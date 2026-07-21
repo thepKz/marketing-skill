@@ -14,6 +14,7 @@ import './App.css'
 type TabId = 'campaign' | 'prompt' | 'manifest' | 'qa' | 'brand'
 
 const channels = ['meta', 'tiktok', 'google', 'linkedin', 'pinterest', 'web']
+const publicAsset = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`
 const tabs: Array<[TabId, string]> = [
   ['campaign', 'Campaign'],
   ['prompt', 'Prompt'],
@@ -201,7 +202,7 @@ function App() {
             </div>
             <div className="board-grid">
               <div className="board-image board-image-main">
-                <img src="/images/product-serum.jpg" alt="Skincare product reference on white fabric" />
+                <img src={publicAsset('images/product-serum.jpg')} alt="Skincare product reference on white fabric" />
                 <span>REFERENCE / PRODUCT</span>
               </div>
               <div className="board-type">
@@ -210,7 +211,7 @@ function App() {
                 <p>{selectedLane.headline}</p>
               </div>
               <div className="board-image board-image-detail">
-                <img src="/images/makeup-tools.jpg" alt="Makeup products arranged under direct light" />
+                <img src={publicAsset('images/makeup-tools.jpg')} alt="Makeup products arranged under direct light" />
                 <span>MATERIAL / LIGHT</span>
               </div>
             </div>
@@ -362,7 +363,7 @@ function App() {
                         </div>
                         <div className={`campaign-visual mode-${form.subjectMode}`}>
                           <img
-                            src={form.subjectMode === 'product' ? '/images/product-serum.jpg' : '/images/human-natural.jpg'}
+                            src={publicAsset(form.subjectMode === 'product' ? 'images/product-serum.jpg' : 'images/human-natural.jpg')}
                             alt={form.subjectMode === 'product' ? 'Product reference preview' : 'Human reference preview'}
                           />
                           <div className="visual-label">REFERENCE / NOT GENERATED</div>
