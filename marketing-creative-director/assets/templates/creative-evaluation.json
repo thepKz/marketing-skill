@@ -1,0 +1,22 @@
+{
+  "asset_id": "ASSET-001",
+  "critical_gates": {
+    "product_fidelity": true,
+    "identity_and_anatomy": true,
+    "physics_and_materials": true,
+    "claims_and_proof": true,
+    "rights_and_consent": true,
+    "required_crop": true
+  },
+  "scores": {
+    "strategy": 0,
+    "fidelity": 0,
+    "distinction": 0,
+    "craft": 0,
+    "channel": 0,
+    "rights_claims": 0
+  },
+  "rejection_reasons": [],
+  "notes": []
+}
+

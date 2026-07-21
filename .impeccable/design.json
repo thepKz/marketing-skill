@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-21T00:00:00.000Z",
+  "title": "Design System: FIELD Marketing Creative Studio",
+  "extensions": {
+    "colorMeta": {
+      "cobalt-instrument": {
+        "role": "primary",
+        "displayName": "Cobalt Instrument",
+        "canonical": "oklch(0.52 0.16 247.4)",
+        "tonalRamp": ["oklch(0.15 0.16 247.4)", "oklch(0.27 0.16 247.4)", "oklch(0.39 0.16 247.4)", "oklch(0.52 0.16 247.4)", "oklch(0.64 0.16 247.4)", "oklch(0.74 0.14 247.4)", "oklch(0.85 0.10 247.4)", "oklch(0.95 0.04 247.4)"]
+      },
+      "safety-orange": {
+        "role": "secondary",
+        "displayName": "Safety Orange",
+        "canonical": "oklch(0.68 0.19 42)",
+        "tonalRamp": ["oklch(0.18 0.19 42)", "oklch(0.30 0.19 42)", "oklch(0.43 0.19 42)", "oklch(0.56 0.19 42)", "oklch(0.68 0.19 42)", "oklch(0.78 0.16 42)", "oklch(0.88 0.10 42)", "oklch(0.95 0.04 42)"]
+      },
+      "true-white": { "role": "neutral", "displayName": "True White", "canonical": "oklch(1 0 0)", "tonalRamp": ["oklch(0.15 0 0)", "oklch(0.28 0 0)", "oklch(0.42 0 0)", "oklch(0.56 0 0)", "oklch(0.70 0 0)", "oklch(0.82 0 0)", "oklch(0.92 0 0)", "oklch(1 0 0)"] },
+      "flight-deck-ink": { "role": "neutral", "displayName": "Flight Deck Ink", "canonical": "oklch(0.16 0.025 255)", "tonalRamp": ["oklch(0.15 0.025 255)", "oklch(0.27 0.025 255)", "oklch(0.39 0.025 255)", "oklch(0.52 0.025 255)", "oklch(0.64 0.025 255)", "oklch(0.76 0.025 255)", "oklch(0.87 0.025 255)", "oklch(0.95 0.025 255)"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Archivo Decision", "purpose": "Hero promises and selected campaign statements." },
+      "body": { "displayName": "Manrope Working Copy", "purpose": "Forms, explanations and operational prose." },
+      "label": { "displayName": "Fragment Metadata", "purpose": "State, provider, lineage and control labels." }
+    },
+    "shadows": [
+      { "name": "pressed-offset", "value": "4px 4px 0 var(--line)", "purpose": "Tactile button hover." },
+      { "name": "selected-offset", "value": "6px 6px 0 var(--line)", "purpose": "Lane selection hover." }
+    ],
+    "motion": [
+      { "name": "mechanical-fast", "value": "160ms cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Press, hover and direct state feedback." },
+      { "name": "section-reveal", "value": "450ms cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Large board and image reveal." }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "640px" },
+      { "name": "stack", "value": "900px" },
+      { "name": "wide", "value": "1180px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Cobalt action with a hard tactile offset.",
+      "html": "<button class=\"ds-btn-primary\">BUILD CAMPAIGN</button>",
+      "css": ".ds-btn-primary { min-height: 48px; padding: 0 20px; border: 2px solid oklch(0.16 0.025 255); border-radius: 4px; color: oklch(1 0 0); background: oklch(0.52 0.16 247.4); font: 700 .74rem/1.2 'Fragment Mono', monospace; letter-spacing: .04em; transition: transform 160ms cubic-bezier(.22,1,.36,1), box-shadow 160ms ease; } .ds-btn-primary:hover { transform: translate(-3px,-3px); box-shadow: 4px 4px 0 oklch(0.16 0.025 255); } .ds-btn-primary:focus-visible { outline: 3px solid oklch(0.64 0.18 247); outline-offset: 3px; } .ds-btn-primary:active { transform: translate(1px,1px); box-shadow: none; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "White structural action that turns orange on intent.",
+      "html": "<button class=\"ds-btn-ghost\">COPY PROMPT</button>",
+      "css": ".ds-btn-ghost { min-height: 48px; padding: 0 20px; border: 2px solid oklch(0.16 0.025 255); border-radius: 4px; color: oklch(0.16 0.025 255); background: oklch(1 0 0); font: 700 .74rem/1.2 'Fragment Mono', monospace; transition: transform 160ms cubic-bezier(.22,1,.36,1), background-color 160ms ease; } .ds-btn-ghost:hover { color: oklch(1 0 0); background: oklch(0.68 0.19 42); transform: translateY(-2px); } .ds-btn-ghost:focus-visible { outline: 3px solid oklch(0.64 0.18 247); outline-offset: 3px; }"
+    },
+    {
+      "name": "Brief Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Truth-first field with visible label and precise focus state.",
+      "html": "<label class=\"ds-field\"><span>PRODUCT TRUTH</span><input value=\"Frosted blue-gray glass bottle\" /></label>",
+      "css": ".ds-field { display: grid; gap: 7px; color: oklch(0.16 0.025 255); font-family: 'Fragment Mono', monospace; font-size: .68rem; } .ds-field input { padding: 12px 13px; border: 1px solid oklch(0.16 0.025 255); border-radius: 4px; color: oklch(0.16 0.025 255); background: oklch(1 0 0); font: 500 1rem/1.5 Manrope, sans-serif; } .ds-field input:focus { border-color: oklch(0.52 0.16 247.4); box-shadow: 4px 4px 0 color-mix(in oklch, oklch(0.52 0.16 247.4) 26%, transparent); outline: none; }"
+    },
+    {
+      "name": "Active Tab",
+      "kind": "nav",
+      "refersTo": "tab-active",
+      "description": "A full-width cobalt state, never a floating pill.",
+      "html": "<button class=\"ds-tab-active\">CAMPAIGN</button>",
+      "css": ".ds-tab-active { min-height: 48px; padding: 0 18px; border: 0; color: oklch(1 0 0); background: oklch(0.52 0.16 247.4); font: 700 .68rem/1.2 'Fragment Mono', monospace; letter-spacing: .08em; } .ds-tab-active:hover { background: oklch(0.45 0.16 247.4); } .ds-tab-active:focus-visible { outline: 3px solid oklch(0.68 0.19 42); outline-offset: -4px; }"
+    },
+    {
+      "name": "Campaign Lane",
+      "kind": "custom",
+      "description": "Exposed-frame campaign decision with index, headline and risk.",
+      "html": "<article class=\"ds-lane\"><span>02</span><div><small>SIGNATURE</small><h3>MAINTENANCE MODE: ON.</h3><p>Make the product mechanism visible.</p></div></article>",
+      "css": ".ds-lane { display: grid; grid-template-columns: 64px 1fr; border: 2px solid oklch(0.16 0.025 255); color: oklch(1 0 0); background: oklch(0.52 0.16 247.4); transition: transform 180ms cubic-bezier(.22,1,.36,1), box-shadow 180ms ease; } .ds-lane > span { padding: 18px 12px; border-right: 1px solid currentColor; font: 400 1.2rem/1 'Archivo Black', sans-serif; } .ds-lane > div { padding: 20px; } .ds-lane small { font: 700 .62rem/1.2 'Fragment Mono', monospace; } .ds-lane h3 { margin: 10px 0; font: 400 2rem/1 'Archivo Black', sans-serif; letter-spacing: -.03em; } .ds-lane p { margin: 0; font: 500 .85rem/1.5 Manrope, sans-serif; } .ds-lane:hover { transform: translate(-4px,-4px); box-shadow: 6px 6px 0 oklch(0.16 0.025 255); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Marked-Up Flight Deck",
+    "overview": "FIELD feels like a creative director's working surface placed inside a precise instrument panel. Its structure is exposed while softness comes from generous spacing, real photography and readable body type.",
+    "keyCharacteristics": ["Exposed structural seams and ruled ledgers.", "One dominant visual decision per scene.", "Cobalt for active state; orange for intervention.", "Real images and artifacts instead of decorative blobs.", "Mechanical motion with reduced-motion fallbacks."],
+    "rules": [
+      { "name": "The Instrument Rule", "body": "Cobalt marks something active, selected, or operational. It is never spread as atmospheric fog.", "section": "colors" },
+      { "name": "The Orange Tape Rule", "body": "Safety orange appears as a purposeful mark or state transition, not a universal accent.", "section": "colors" },
+      { "name": "The Compression Rule", "body": "Display type can be loud but never exceed three intentional lines on desktop or four on mobile.", "section": "typography" },
+      { "name": "The Honest Depth Rule", "body": "A surface moves because it is interactive or selected, never because every container needs decoration.", "section": "elevation" }
+    ],
+    "dos": ["Do expose assumptions, locks, provider, asset lineage, and rejection reasons.", "Do use real photography, product references, prompt records, tables, diagrams, and process lines as visual proof.", "Do design loading, validation, empty, success, copy, download, keyboard, and reduced-motion states."],
+    "donts": ["Don't resemble generic purple-blue AI SaaS or use cobalt as atmospheric fog.", "Don't build soft glass dashboards or decorative glass cards.", "Don't use equal-card landing pages or nested card grids.", "Don't ship a prompt-box demo with no workflow.", "Don't create chaotic neo-brutalist collage without a stable reading path."]
+  }
+}

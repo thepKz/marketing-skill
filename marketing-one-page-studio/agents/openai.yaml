@@ -1,0 +1,4 @@
+interface:
+  display_name: "Marketing One Page Studio"
+  short_description: "Turn one brief into a complete campaign page"
+  default_prompt: "Use $marketing-one-page-studio to turn my product brief into a complete one-page campaign system."

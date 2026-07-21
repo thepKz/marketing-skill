@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Marketing One Page Studio Payload",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "project",
+    "provider",
+    "truth",
+    "campaign",
+    "lanes",
+    "assets",
+    "prompt",
+    "website",
+    "preflight",
+    "qa",
+    "brand_dna"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "project": { "type": "string", "minLength": 1 },
+    "provider": { "enum": ["openai", "midjourney", "flux", "ideogram", "firefly"] },
+    "truth": {
+      "type": "object",
+      "required": ["confirmed", "inferred", "unknown"],
+      "properties": {
+        "confirmed": { "type": "array", "items": { "type": "string" } },
+        "inferred": { "type": "array", "items": { "type": "string" } },
+        "unknown": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "campaign": {
+      "type": "object",
+      "required": ["tension", "desired_belief", "statement", "mechanism", "proof", "cta", "recommended_lane"],
+      "properties": {
+        "tension": { "type": "string" },
+        "desired_belief": { "type": "string" },
+        "statement": { "type": "string" },
+        "mechanism": { "type": "string" },
+        "proof": { "type": "string" },
+        "cta": { "type": "string" },
+        "recommended_lane": { "enum": ["clear", "signature", "departure"] }
+      },
+      "additionalProperties": false
+    },
+    "lanes": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "idea", "headline", "visual_grammar", "hero", "proof", "best_channel", "risk"],
+        "properties": {
+          "id": { "enum": ["clear", "signature", "departure"] },
+          "name": { "type": "string" },
+          "idea": { "type": "string" },
+          "headline": { "type": "string" },
+          "visual_grammar": { "type": "string" },
+          "hero": { "type": "string" },
+          "proof": { "type": "string" },
+          "best_channel": { "type": "string" },
+          "risk": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "lane", "channel", "deliverable", "ratio", "stage", "hypothesis", "status"],
+        "properties": {
+          "id": { "type": "string" },
+          "lane": { "enum": ["clear", "signature", "departure"] },
+          "channel": { "type": "string" },
+          "deliverable": { "type": "string" },
+          "ratio": { "type": "string" },
+          "stage": { "type": "string" },
+          "hypothesis": { "type": "string" },
+          "status": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "prompt": { "type": "string", "minLength": 1 },
+    "website": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "preflight": {
+      "type": "object",
+      "required": ["score", "verdict", "items"],
+      "properties": {
+        "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "verdict": { "enum": ["NOT READY", "CONCEPT READY", "BRIEF LOCKED"] },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["label", "detail", "status"],
+            "properties": {
+              "label": { "type": "string" },
+              "detail": { "type": "string" },
+              "status": { "enum": ["pass", "warning", "blocker"] }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "qa": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "brand_dna": { "type": "string" }
+  },
+  "additionalProperties": false
+}
