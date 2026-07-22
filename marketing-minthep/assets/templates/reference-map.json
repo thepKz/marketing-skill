@@ -1,0 +1,20 @@
+{
+  "reference_map": [
+    {
+      "image_id": "ref-01",
+      "primary_role": "composition",
+      "secondary_roles": ["lighting"],
+      "extract": [],
+      "do_not_copy": []
+    }
+  ],
+  "reference_intent": "style-only",
+  "identity_lock": null,
+  "product_locks": [],
+  "freedom_list": [],
+  "reject_list": [],
+  "canonical_direction": "TBD",
+  "variant_axes": ["anchor", "composition", "light", "action"],
+  "selected_provider": "auto",
+  "selected_model": "TBD"
+}

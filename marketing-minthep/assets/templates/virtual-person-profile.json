@@ -1,0 +1,37 @@
+{
+  "profile_id": "VP-001",
+  "purpose": "TBD",
+  "selected_codes": {
+    "face": "TBD",
+    "build": "TBD",
+    "makeup": "TBD",
+    "pose": "TBD"
+  },
+  "identity_anchors": {
+    "face_shape_cheeks": "TBD",
+    "eyes_lids_spacing": "TBD",
+    "brows_without_makeup": "TBD",
+    "nose": "TBD",
+    "lips": "TBD",
+    "jaw_chin": "TBD",
+    "hairline": "TBD",
+    "distinguishing_detail": "TBD"
+  },
+  "body_identity": {
+    "adult_build": "TBD",
+    "proportion_rhythm": "TBD",
+    "posture_signature": "TBD",
+    "gesture_signature": "TBD"
+  },
+  "baseline_makeup": "TBD",
+  "allowed_variation": [],
+  "reject": [],
+  "reference_sheet_outputs": [
+    "neutral-front",
+    "neutral-left-three-quarter",
+    "neutral-right-three-quarter",
+    "neutral-profile",
+    "neutral-full-body",
+    "expression-sheet"
+  ]
+}

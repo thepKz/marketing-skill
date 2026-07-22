@@ -1,4 +1,0 @@
-interface:
-  display_name: "Marketing Creative Director"
-  short_description: "Build distinctive campaigns and image systems"
-  default_prompt: "Use $marketing-creative-director to design a campaign and production-ready image prompts for my product."

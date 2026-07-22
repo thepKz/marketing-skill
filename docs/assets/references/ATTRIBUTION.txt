@@ -1,0 +1,42 @@
+Reference imagery used by the FIELD handbook
+
+1. Jang Wonyoung portrait 2025
+   Creator: Jangkkuinyourheart
+   License: CC0 1.0
+   Source: https://commons.wikimedia.org/wiki/File:Jang_Wonyoung_portrait_2025.jpg
+
+2. Jang Wonyoung for Marie Claire Korea 2020
+   Creator: Marie Claire Korea
+   License: CC BY 3.0
+   Source: https://commons.wikimedia.org/wiki/File:Jang_Wonyoung_for_Marie_Claire_Korea_2020.jpg
+
+3. aespa at TikTok Awards Korea 2024 red carpet
+   Creator: K-POPIT
+   License: CC BY 3.0
+   Source: https://commons.wikimedia.org/wiki/File:20241115_aespa_TikTok_Awards_Korea_2024_Red_Carpet.jpg
+
+These images illustrate reference-role analysis only. The skill defaults to extracting
+non-identifying composition, lighting, styling, pose, wardrobe, and color qualities for
+original fictional subjects; it does not imply endorsement by the depicted people.
+Instagram reference previews (retrieved 2026-07-22; copyright remains with the original creators/accounts):
+- Jang Wonyoung / @for_everyoung10: https://www.instagram.com/p/DbCmNT1kezc/
+- Jang Wonyoung / @for_everyoung10 / retail candid: https://www.instagram.com/p/DbCklkHRA6d/
+- Jang Wonyoung / @for_everyoung10 / dining action: https://www.instagram.com/p/DbCklmBxdQq/
+- Jang Wonyoung / @for_everyoung10 / warm close-up: https://www.instagram.com/p/DbCkloIRDBN/
+- Go Youn-jung / @goyounjung: https://www.instagram.com/p/Dam3HEElJV6/
+- Go Youn-jung / @goyounjung / reading editorial: https://www.instagram.com/p/Dam1z1KRhL7/
+- Go Youn-jung / @goyounjung / dining candid: https://www.instagram.com/p/Dam1z2Ux9gO/
+- Go Youn-jung / @goyounjung / lip makeup macro: https://www.instagram.com/p/Dam1z3Lx-rF/
+- Winter / @imwinter / mirror makeup: https://www.instagram.com/p/DbBPWNnkw3H/
+- Winter / @imwinter / expression grid: https://www.instagram.com/p/DbBO4eZT3KW/
+- Winter / @imwinter / high-angle pose: https://www.instagram.com/p/DbBO4feTfZO/
+- Winter / @imwinter / concrete editorial: https://www.instagram.com/p/DbBO4jqzQwX/
+- Winter / @imwinter / sunlit full-body: https://www.instagram.com/p/DbBK_T-EyZb/
+- Karina / @katarinabluu: https://www.instagram.com/p/Da5Pq4glKKa/
+- Karina / @katarinabluu / expressive pose: https://www.instagram.com/p/Da5PdjvglPs/
+- Karina / @katarinabluu / full-body negative space: https://www.instagram.com/p/Da5Pdj_ggI0/
+- Karina / @katarinabluu / bright portrait: https://www.instagram.com/p/Da5PdmgAoo2/
+
+These images are used only as attributed visual-analysis references in the handbook. They do not imply endorsement and must not be reused as campaign assets without permission.
+
+Generated concept samples under ../generated/ were created on 2026-07-22 for handbook demonstration. They depict fictional concepts and must not be represented as real products, endorsements, or photographed people.

@@ -1,0 +1,40 @@
+{
+  "prompt_id": "PROMPT-001",
+  "campaign_lane": "TBD",
+  "provider": "generic",
+  "provider_version": "TBD",
+  "purpose": "TBD",
+  "channel": "TBD",
+  "aspect_ratio": "TBD",
+  "capture_mode": "TBD",
+  "references": [],
+  "locks": [],
+  "master_prompt": {
+    "job_single_idea": "TBD",
+    "subject_action": "TBD",
+    "makeup_contract": {
+      "skin_finish_coverage_texture": "TBD",
+      "brows": "TBD",
+      "eyeshadow_liner_lashes": "TBD",
+      "cheeks_contour_highlight": "TBD",
+      "lips": "TBD",
+      "palette_retouch": "TBD"
+    },
+    "scene_social_context": "TBD",
+    "composition_crop": "TBD",
+    "camera_behavior": "TBD",
+    "lighting_geometry": "TBD",
+    "realism_materials": "TBD",
+    "text": "TBD",
+    "reject": "TBD"
+  },
+  "compiled_prompt": "TBD",
+  "negative_constraints": [],
+  "generation_settings": {},
+  "selected_output": null,
+  "rejection_reasons": [],
+  "qa_score": null,
+  "approval_status": "draft",
+  "edit_pass": "TBD",
+  "export_notes": "TBD"
+}

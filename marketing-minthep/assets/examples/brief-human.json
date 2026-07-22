@@ -1,0 +1,37 @@
+{
+  "schema_version": 2,
+  "project": "Tint In Motion",
+  "mode": "human",
+  "industry": "beauty",
+  "channels": ["tiktok"],
+  "brief": {
+    "objective": "Create a candid vertical lip-tint lifestyle image",
+    "audience": "Vietnamese beauty shoppers aged 18-28",
+    "promise": "A touch-up that belongs to real life"
+  },
+  "prompt": {
+    "capture_mode": "phone-candid",
+    "casting": "One fictional adult East Asian woman with brief-appropriate contemporary styling",
+    "makeup_skin": "Sheer satin base with visible pores and tonal variation; no oily or glass-plastic highlights",
+    "makeup_brows": "Soft straight brows with diffused fronts and clean tapered tails",
+    "makeup_eyes": "Rose-beige wash, fine brown tightline, short horizontal wing, separated wispy lashes",
+    "makeup_cheeks": "Translucent peach-pink blush placed high and slightly central; minimal neutral contour",
+    "makeup_lips": "Rose-coral tint with a softly blurred edge and believable balm reflection",
+    "makeup_finish": "Warm-neutral palette, skin tone locked across face and neck, editorial cleanup only",
+    "subject_action": "One fictional adult East Asian woman applying lip tint while looking away from camera",
+    "scene": "Late-afternoon neighborhood cafe beside a window",
+    "composition": "Subject center-right with natural headline space on the left",
+    "camera_geometry": "Friend-held camera near eye level from conversational distance",
+    "aspect_ratio": "9:16",
+    "copy_safe_area": "Upper-left and middle-left",
+    "lens_distance": "24-28mm phone main-camera behavior without close-range facial distortion",
+    "focus_depth": "Face and applicator contact sharp; natural environmental falloff without synthetic portrait blur",
+    "motion_shutter": "Stable face with slight motivated hand movement",
+    "sensor_color": "Plausible low-light phone noise, restrained sharpening, mixed window and warm indoor white balance",
+    "lighting": "Window key camera-left with visible warm practical ambience",
+    "fill_separation": "Natural room bounce roughly one to two stops under the window key",
+    "background_treatment": "Cafe background remains legible but subordinate, with no cloned patrons",
+    "materials": "Natural skin texture, realistic hair, fabric tension, hands, and lip applicator contact",
+    "negative_constraints": "No plastic skin, beauty filter, extreme V-line, extra fingers, fake product text, or influencer grin"
+  }
+}

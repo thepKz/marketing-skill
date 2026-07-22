@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "project": "TBD",
+  "primary_job": "auto",
+  "business_model": "TBD",
+  "product_family": "TBD",
+  "objective": "TBD",
+  "audience": "TBD",
+  "market": "TBD",
+  "product_truth": "TBD",
+  "mechanism": "TBD",
+  "offer": "TBD",
+  "proof": [],
+  "channels": [],
+  "asset_scope": "focused",
+  "brand_assets": [],
+  "reference_assets": [],
+  "locks": {
+    "product": [],
+    "identity": [],
+    "copy": [],
+    "claims": []
+  },
+  "constraints": [],
+  "success_metric": "TBD"
+}

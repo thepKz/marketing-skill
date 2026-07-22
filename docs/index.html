@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Hướng dẫn vận hành Marketing-Minthep: từ ảnh reference và virtual person đến campaign và 4-5 image variants." data-content-en="Marketing-Minthep operating handbook: from reference images and virtual people to campaigns and 4-5 image variants." />
+    <title>FIELD Manual — Marketing-Minthep</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap&subset=vietnamese" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./i18n.js" defer></script>
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Bỏ qua điều hướng</a>
+    <header class="topbar">
+      <a class="wordmark" href="#top" aria-label="FIELD Manual — về đầu trang" data-aria-en="FIELD Manual — back to top">FIELD / MANUAL</a>
+      <nav aria-label="Điều hướng chính" data-aria-en="Primary navigation">
+        <a href="#start">Bắt đầu</a>
+        <a href="#reference-library">Gallery</a>
+        <a href="#workbenches">Workbenches</a>
+        <a href="#virtual-person">Virtual person</a>
+        <a href="#makeup-system">Makeup</a>
+        <a href="#content-system">Content</a>
+        <a href="#qa">QA</a>
+      </nav>
+      <div class="language-switch" aria-label="Language">
+        <button type="button" data-language="vi" aria-pressed="true">VI</button>
+        <button type="button" data-language="en" aria-pressed="false">EN</button>
+      </div>
+      <span class="system-state"><i aria-hidden="true"></i> Skill v5 / Marketing OS</span>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top">
+        <div class="hero-copy">
+          <p class="route-label">References → Art Direction → 4 Variants → Campaign</p>
+          <h1>Gửi ref.<br />Nhận art direction.</h1>
+          <p class="hero-deck">
+            Gửi vài ảnh tham chiếu và mô tả điều bạn muốn. Skill tách identity khỏi style, chọn GPT Image 2 hoặc Nano Banana,
+            rồi trả một ảnh hoàn thiện hoặc 4–5 biến thể có chủ đích cùng marketing và content system.
+          </p>
+          <div class="hero-actions">
+            <button class="button primary copy-button" data-copy="$marketing-minthep" type="button">Copy tên skill</button>
+            <a class="button secondary" href="#prompt-recipe">Xem prompt recipe</a>
+          </div>
+        </div>
+        <div class="contact-sheet" aria-label="Tham chiếu hình ảnh chân dung, thời trang và mỹ phẩm" data-aria-en="Portrait, fashion, and beauty image references">
+          <figure class="frame frame-main">
+            <a href="https://www.instagram.com/p/DbCmNT1kezc/" target="_blank" rel="noreferrer"><img src="./assets/references/instagram-for-everyoung10.jpg" alt="Ảnh Instagram của Jang Wonyoung dùng để minh họa ánh sáng beauty candid và crop gần" data-alt-en="Instagram image of Jang Wonyoung used to study beauty-candid lighting and close crops" /></a>
+            <figcaption>IG REF 01 / BEAUTY CANDID + LIGHT</figcaption>
+          </figure>
+          <figure class="frame">
+            <a href="https://www.instagram.com/p/Dam3HEElJV6/" target="_blank" rel="noreferrer"><img src="./assets/references/instagram-goyounjung.jpg" alt="Ảnh Instagram của Go Youn-jung dùng để minh họa portrait angle, posture và ánh sáng ấm" data-alt-en="Instagram image of Go Youn-jung used to study portrait angle, posture, and warm light" /></a>
+            <figcaption>IG REF 02 / PORTRAIT + POSTURE</figcaption>
+          </figure>
+          <figure class="frame">
+            <a href="https://www.instagram.com/p/Da5Pq4glKKa/" target="_blank" rel="noreferrer"><img src="./assets/references/instagram-katarinabluu.jpg" alt="Ảnh Instagram của Karina dùng để minh họa full-body pose, silhouette và negative space" data-alt-en="Instagram image of Karina used to study full-body posing, silhouette, and negative space" /></a>
+            <figcaption>IG REF 03 / SILHOUETTE + SPACE</figcaption>
+          </figure>
+          <span class="tape" aria-hidden="true">EXTRACT STYLE / DO NOT COPY IDENTITY</span>
+        </div>
+      </section>
+
+      <section class="reference-library" id="reference-library" aria-labelledby="reference-library-title">
+        <header class="section-lead">
+          <h2 id="reference-library-title">Thư viện ref đủ để ra quyết định.</h2>
+          <p>Lọc theo vai trò thị giác, mở post gốc để xem ngữ cảnh, rồi gán từng ảnh vào đúng nhiệm vụ. Đây là nguồn phân tích, không phải asset campaign và không ngụ ý endorsement.</p>
+        </header>
+        <div class="filter-bar" role="group" aria-label="Lọc thư viện ảnh" data-aria-en="Filter the reference library">
+          <button type="button" class="is-active" data-gallery-filter="all">Tất cả</button>
+          <button type="button" data-gallery-filter="makeup">Makeup</button>
+          <button type="button" data-gallery-filter="pose">Pose</button>
+          <button type="button" data-gallery-filter="candid">Candid</button>
+          <button type="button" data-gallery-filter="full-body">Full body</button>
+          <button type="button" data-gallery-filter="editorial">Editorial</button>
+          <button type="button" data-gallery-filter="lighting">Lighting</button>
+        </div>
+        <div class="reference-grid">
+          <a class="reference-card" data-tags="makeup candid lighting" href="https://www.instagram.com/p/DbCkloIRDBN/" target="_blank" rel="noreferrer" aria-label="Mở post Instagram gốc của Wonyoung trong tab mới" data-aria-en="Open Wonyoung's original Instagram post in a new tab"><img src="./assets/references/wonyoung-warm-closeup.jpg" alt="Close-up ánh sáng ấm dùng để phân tích makeup và crop" data-alt-en="Warm close-up used to study makeup and cropping" loading="lazy" /><span><b>Warm close-up</b><small>makeup · candid · lighting</small></span></a>
+          <a class="reference-card" data-tags="candid pose full-body" href="https://www.instagram.com/p/DbCklkHRA6d/" target="_blank" rel="noreferrer" aria-label="Mở post Instagram gốc của Wonyoung trong tab mới" data-aria-en="Open Wonyoung's original Instagram post in a new tab"><img src="./assets/references/wonyoung-retail-candid.jpg" alt="Ảnh retail candid dùng để phân tích full-body pose" data-alt-en="Retail candid used to study full-body posing" loading="lazy" /><span><b>Retail candid</b><small>candid · pose · full body</small></span></a>
+          <a class="reference-card" data-tags="candid pose editorial" href="https://www.instagram.com/p/DbCklmBxdQq/" target="_blank" rel="noreferrer" aria-label="Mở post Instagram gốc của Wonyoung trong tab mới" data-aria-en="Open Wonyoung's original Instagram post in a new tab"><img src="./assets/references/wonyoung-dining-action.jpg" alt="Ảnh dining action dùng để phân tích cử chỉ tự nhiên" data-alt-en="Dining action used to study natural gestures" loading="lazy" /><span><b>Dining action</b><small>candid · pose · editorial</small></span></a>
+          <a class="reference-card" data-tags="editorial pose lighting" href="https://www.instagram.com/p/Dam1z1KRhL7/" target="_blank" rel="noreferrer" aria-label="Mở post Instagram gốc của Go Youn-jung trong tab mới" data-aria-en="Open Go Youn-jung's original Instagram post in a new tab"><img src="./assets/references/goyounjung-reading-editorial.jpg" alt="Ảnh reading editorial dùng để phân tích posture và ánh sáng" data-alt-en="Reading editorial used to study posture and lighting" loading="lazy" /><span><b>Reading editorial</b><small>editorial · pose · lighting</small></span></a>
+          <a class="reference-card" data-tags="candid pose lighting" href="https://www.instagram.com/p/Dam1z2Ux9gO/" target="_blank" rel="noreferrer" aria-label="Mở post Instagram gốc của Go Youn-jung trong tab mới" data-aria-en="Open Go Youn-jung's original Instagram post in a new tab"><img src="./assets/references/goyounjung-dining-candid.jpg" alt="Ảnh dining candid dùng để phân tích action và ánh sáng" data-alt-en="Dining candid used to study action and lighting" loading="lazy" /><span><b>Dining candid</b><small>candid · pose · lighting</small></span></a>
+          <a class="reference-card" data-tags="makeup lighting editorial" href="https://www.instagram.com/p/Dam1z3Lx-rF/" target="_blank" rel="noreferrer" aria-label="Mở post Instagram gốc của Go Youn-jung trong tab mới" data-aria-en="Open Go Youn-jung's original Instagram post in a new tab"><img src="./assets/references/goyounjung-lip-makeup-macro.jpg" alt="Macro môi dùng để phân tích texture và reflection makeup" data-alt-en="Lip macro used to study makeup texture and reflections" loading="lazy" /><span><b>Lip macro</b><small>makeup · lighting · editorial</small></span></a>
+          <a class="reference-card" data-tags="makeup candid lighting" href="https://www.instagram.com/p/DbBPWNnkw3H/" target="_blank" rel="noreferrer" aria-label="Mở post Instagram gốc của Winter trong tab mới" data-aria-en="Open Winter's original Instagram post in a new tab"><img src="./assets/references/winter-mirror-makeup.jpg" alt="Mirror selfie dùng để phân tích makeup phone-like" data-alt-en="Mirror selfie used to study phone-like makeup capture" loading="lazy" /><span><b>Mirror makeup</b><small>makeup · candid · lighting</small></span></a>
+          <a class="reference-card" data-tags="makeup pose candid" href="https://www.instagram.com/p/DbBO4eZT3KW/" target="_blank" rel="noreferrer" aria-label="Mở post Instagram gốc của Winter trong tab mới" data-aria-en="Open Winter's original Instagram post in a new tab"><img src="./assets/references/winter-expression-grid.jpg" alt="Expression grid dùng để phân tích biểu cảm và góc mặt" data-alt-en="Expression grid used to study expressions and face angles" loading="lazy" /><span><b>Expression grid</b><small>makeup · pose · candid</small></span></a>
+          <a class="reference-card" data-tags="pose editorial" href="https://www.instagram.com/p/DbBO4feTfZO/" target="_blank" rel="noreferrer" aria-label="Mở post Instagram gốc của Winter trong tab mới" data-aria-en="Open Winter's original Instagram post in a new tab"><img src="./assets/references/winter-high-angle-pose.jpg" alt="Góc cao dùng để phân tích pose và foreshortening" data-alt-en="High angle used to study posing and foreshortening" loading="lazy" /><span><b>High-angle pose</b><small>pose · editorial</small></span></a>
+          <a class="reference-card" data-tags="full-body editorial lighting pose" href="https://www.instagram.com/p/DbBO4jqzQwX/" target="_blank" rel="noreferrer" aria-label="Mở post Instagram gốc của Winter trong tab mới" data-aria-en="Open Winter's original Instagram post in a new tab"><img src="./assets/references/winter-concrete-editorial.jpg" alt="Full-body concrete editorial dùng để phân tích outfit và negative space" data-alt-en="Concrete full-body editorial used to study outfits and negative space" loading="lazy" /><span><b>Concrete editorial</b><small>full body · editorial · lighting</small></span></a>
+          <a class="reference-card" data-tags="full-body candid lighting pose" href="https://www.instagram.com/p/DbBK_T-EyZb/" target="_blank" rel="noreferrer" aria-label="Mở post Instagram gốc của Winter trong tab mới" data-aria-en="Open Winter's original Instagram post in a new tab"><img src="./assets/references/winter-sunlight-fullbody.jpg" alt="Full-body nắng tự nhiên dùng để phân tích silhouette và light" data-alt-en="Sunlit full-body image used to study silhouette and light" loading="lazy" /><span><b>Sunlit full body</b><small>full body · candid · lighting</small></span></a>
+          <a class="reference-card" data-tags="pose editorial" href="https://www.instagram.com/p/Da5PdjvglPs/" target="_blank" rel="noreferrer" aria-label="Mở post Instagram gốc của Karina trong tab mới" data-aria-en="Open Karina's original Instagram post in a new tab"><img src="./assets/references/karina-expressive-pose.jpg" alt="Ảnh expressive pose dùng để phân tích gesture" data-alt-en="Expressive pose used to study gesture" loading="lazy" /><span><b>Expressive pose</b><small>pose · editorial</small></span></a>
+          <a class="reference-card" data-tags="full-body pose editorial lighting" href="https://www.instagram.com/p/Da5Pdj_ggI0/" target="_blank" rel="noreferrer" aria-label="Mở post Instagram gốc của Karina trong tab mới" data-aria-en="Open Karina's original Instagram post in a new tab"><img src="./assets/references/karina-fullbody-negative-space.jpg" alt="Full-body negative space dùng để phân tích bố cục thời trang" data-alt-en="Full-body negative space used to study fashion composition" loading="lazy" /><span><b>Negative space</b><small>full body · pose · editorial</small></span></a>
+          <a class="reference-card" data-tags="makeup lighting editorial" href="https://www.instagram.com/p/Da5PdmgAoo2/" target="_blank" rel="noreferrer" aria-label="Mở post Instagram gốc của Karina trong tab mới" data-aria-en="Open Karina's original Instagram post in a new tab"><img src="./assets/references/karina-bright-portrait.jpg" alt="Portrait sáng dùng để phân tích makeup và skin exposure" data-alt-en="Bright portrait used to study makeup and skin exposure" loading="lazy" /><span><b>Bright portrait</b><small>makeup · lighting · editorial</small></span></a>
+        </div>
+      </section>
+
+      <section class="generated-gallery" id="generated-gallery" aria-labelledby="generated-title">
+        <header class="section-lead inverse">
+          <h2 id="generated-title">Ảnh mẫu đã render.</h2>
+          <p>Bốn concept fictional được render để minh họa chất lượng đầu ra: packshot, beauty campaign, artistic key visual và fashion look. Đây là concept, không phải sản phẩm hay người thật.</p>
+        </header>
+        <div class="generated-grid">
+          <figure><img src="./assets/generated/minthep-serum-packshot.png" alt="Concept packshot serum Minthep" data-alt-en="Minthep serum packshot concept" loading="lazy" /><figcaption><b>Product packshot</b><span>catalog · PDP · PR kit</span></figcaption></figure>
+          <figure><img src="./assets/generated/minthep-beauty-campaign.png" alt="Concept beauty campaign với người trưởng thành hư cấu" data-alt-en="Beauty campaign concept with a fictional adult" loading="lazy" /><figcaption><b>Beauty campaign</b><span>campaign · social · landing</span></figcaption></figure>
+          <figure><img src="./assets/generated/minthep-serum-key-visual.png" alt="Concept key visual nghệ thuật bằng resin màu hổ phách" data-alt-en="Artistic amber-resin key visual concept" loading="lazy" /><figcaption><b>Art key visual</b><span>PR · campaign · OOH</span></figcaption></figure>
+          <figure><img src="./assets/generated/minthep-fashion-look.png" alt="Concept ảnh thời trang full-body với blazer dress màu ivory" data-alt-en="Full-body fashion concept with an ivory blazer dress" loading="lazy" /><figcaption><b>Fashion look</b><span>outfit · catalog · editorial</span></figcaption></figure>
+        </div>
+        <p class="generated-note">Ảnh demo chỉ minh họa art direction. Khi khách hàng dùng skill, provider được chọn theo môi trường của họ; makeup hoặc outfit edit vẫn phải khóa identity.</p>
+      </section>
+
+      <section class="quick-start" id="start">
+        <header class="section-lead">
+          <h2>Bắt đầu trong 60 giây</h2>
+          <p>Đính kèm ảnh reference, mô tả ý định và gọi skill. Nếu đủ dữ liệu, skill tạo ngay; nếu thiếu quyết định quan trọng, nó chỉ hỏi tối đa ba câu.</p>
+        </header>
+        <div class="command-line">
+          <code>$marketing-minthep</code>
+          <button class="copy-button" data-copy="$marketing-minthep" type="button">Copy</button>
+        </div>
+        <ol class="start-sequence">
+          <li><strong>Gửi ảnh ref.</strong><span>Mỗi ảnh có thể giữ vai trò identity, pose, composition, lighting, styling, grade hoặc product lock.</span></li>
+          <li><strong>Mô tả ý định.</strong><span>Nói chủ thể, cảm giác, mục đích sử dụng và điều phải giữ hoặc tránh.</span></li>
+          <li><strong>Chọn độ rộng.</strong><span>Một ảnh hoàn thiện, bốn biến thể mặc định cho exploration, hoặc tối đa năm.</span></li>
+          <li><strong>Nhận hệ thống.</strong><span>Reference map, provider route, image variants, QA, copy và channel plan khi marketing nằm trong scope.</span></li>
+        </ol>
+        <div class="example-prompt">
+          <p>Prompt mẫu</p>
+          <pre><code>Use $marketing-minthep with my attached references.
+Treat celebrity photos as composition, lighting, styling and pose references only.
+Create four original fictional-adult 4:5 campaign variants,
+route them through GPT Image 2 or Nano Banana, then recommend one.</code></pre>
+          <button class="copy-button" data-copy="Use $marketing-minthep with my attached references. Treat celebrity photos as composition, lighting, styling and pose references only. Create four original fictional-adult 4:5 campaign variants, route them through GPT Image 2 or Nano Banana, then recommend one." type="button">Copy prompt</button>
+        </div>
+      </section>
+
+      <section class="route-board" id="workbenches" aria-labelledby="route-title">
+        <header class="section-lead inverse">
+          <h2 id="route-title">Một invocation, mười workbench</h2>
+          <p>Route theo business job trước, rồi mới áp product, channel, visual và provider overlay. Mặc định chỉ tạo bộ artifact nhỏ nhất có thể dùng.</p>
+        </header>
+        <div class="route-lines">
+          <article><span>Foundation</span><h3>Định vị & offer</h3><p>Audience, mechanism, proof, message ladder, funnel và measurement contract.</p></article>
+          <article><span>Campaign</span><h3>Launch & paid</h3><p>Clear, Signature, Departure; asset matrix, landing continuity và experiments.</p></article>
+          <article><span>Content</span><h3>Engine vận hành</h3><p>Pillars, briefs, calendar, repurposing graph, SEO, social và email.</p></article>
+          <article><span>Copy</span><h3>Conversion assets</h3><p>Copy hierarchy, page narrative, objections, CTA và channel adaptation.</p></article>
+          <article><span>Image</span><h3>Studio & candid</h3><p>Camera behavior, lighting geometry, materials, provider prompts và image edits.</p></article>
+          <article><span>Learning</span><h3>QA & performance</h3><p>Critical gates, hypothesis, asset lineage và quyết định không dựa riêng vào CTR.</p></article>
+          <article><span>Commerce</span><h3>PDP & marketplace</h3><p>Listing narrative, image sequence, SKU family, catalog, retail và return-reduction proof.</p></article>
+          <article><span>PR</span><h3>Earned media</h3><p>Newsworthiness, press angle, pitch, kit, Q&A, spokesperson và newsroom assets.</p></article>
+          <article><span>Sales</span><h3>Enablement</h3><p>One-pager, deck, demo story, case study, proposal, objections và follow-up.</p></article>
+          <article><span>Lifecycle</span><h3>Retention engine</h3><p>Welcome, nurture, abandonment, post-purchase, win-back, upsell và referral.</p></article>
+        </div>
+        <div class="command-line">
+          <code>python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json</code>
+          <button class="copy-button" data-copy="python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json" type="button">Copy</button>
+        </div>
+      </section>
+
+      <section class="reference-flow" id="reference-flow">
+        <header class="section-lead">
+          <h2>Reference-first, không prompt-first.</h2>
+          <p>Skill hiểu ảnh nào đang chỉ ánh sáng, ảnh nào chỉ pose, ảnh nào là identity hoặc product lock. Nó không trộn mọi thứ thành một collage mơ hồ.</p>
+        </header>
+        <div class="flow-track" aria-label="Luồng tạo ảnh từ reference" data-aria-en="Reference-first image creation flow">
+          <div><b>Input</b><span>1–14 ảnh ref + mô tả</span></div>
+          <i>→</i>
+          <div><b>Map</b><span>Role, locks, freedom, reject</span></div>
+          <i>→</i>
+          <div><b>Route</b><span>GPT Image 2 / Nano Banana</span></div>
+          <i>→</i>
+          <div><b>Branch</b><span>V1 anchor, V2 crop, V3 light, V4 action</span></div>
+          <i>→</i>
+          <div><b>Select</b><span>QA + một edit tiếp theo</span></div>
+        </div>
+        <div class="provider-split">
+          <article>
+            <span>OPENAI</span>
+            <h3>GPT Image 2</h3>
+            <p>Direct generate/edit, Responses API cho multi-turn, hoặc <code>n=4–5</code> khi cần nhiều biến thể cùng một prompt.</p>
+            <ul><li>Input images luôn high fidelity.</li><li>Branch từ cùng source state.</li><li>Dùng Image API cho job stateless.</li></ul>
+          </article>
+          <article>
+            <span>GOOGLE</span>
+            <h3>Nano Banana</h3>
+            <p>Nano Banana 2 cho nhiều ref và consistency; Pro cho brand, layout, text, localization và production 2K/4K phức tạp.</p>
+            <ul><li>Mỗi variant là interaction độc lập.</li><li>Chỉ refine winner bằng previous_interaction_id.</li><li>Không dùng Batch API cho 4–5 ảnh interactive.</li></ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="virtual-person" id="virtual-person" aria-labelledby="virtual-title">
+        <header class="virtual-head">
+          <p>Virtual person design system</p>
+          <h2 id="virtual-title">Chọn cảm giác trước.<br />Khóa khuôn mặt sau.</h2>
+          <p>Skill không tạo đại một “cô gái đẹp”. Nó giải thích từng option sẽ khiến người xem cảm nhận thế nào, phù hợp kênh nào và có rủi ro gì trước khi bạn chọn.</p>
+        </header>
+        <div class="virtual-flow" aria-label="Luồng thiết kế người ảo" data-aria-en="Virtual-person design flow">
+          <span>Brand job</span><i>→</i><span>Face option</span><i>→</i><span>Adult build</span><i>→</i><span>Makeup</span><i>→</i><span>Pose</span><i>→</i><span>Identity sheet</span>
+        </div>
+        <div class="option-grid face-options">
+          <article><em>F1</em><h3>Soft romantic</h3><p>Ấm, polished, dễ tạo thiện cảm. Hợp beauty và lifestyle; phải tránh mặt búp bê chung chung.</p></article>
+          <article><em>F2</em><h3>Cinematic natural</h3><p>Bình tĩnh, thông minh, đáng tin. Hợp skincare và storytelling; cần một chi tiết nhận diện đủ mạnh.</p></article>
+          <article><em>F3</em><h3>Cool editorial</h3><p>Hiện đại, chính xác, tự chủ. Hợp fashion và concept; tránh sculpt quá tay khiến nhân vật xa cách.</p></article>
+          <article><em>F4</em><h3>Distinctive fashion</h3><p>Dễ nhớ và có cá tính. Hợp creator IP; không để novelty lấn át sản phẩm.</p></article>
+        </div>
+        <div class="virtual-selector">
+          <div>
+            <span>Body options</span>
+            <p><b>B1</b> Slender light-frame · <b>B2</b> Balanced natural · <b>B3</b> Athletic lean · <b>B4</b> Soft curved</p>
+            <small>Preference mặc định của project: B1 khỏe mạnh cho fashion/beauty. Không extreme thinness, không waist distortion.</small>
+          </div>
+          <div>
+            <span>Recommended starting combination</span>
+            <strong>F1 + B1 + M3 + P3</strong>
+            <p>Soft-romantic face · slender light-frame adult · Douyin luminous · direct idol presence.</p>
+          </div>
+        </div>
+        <div class="douyin-card">
+          <div><span>M3 / DOUYIN LUMINOUS</span><h3>Bọng mắt là ánh sáng + hình học.<br />Không phải vẽ một túi trắng dưới mắt.</h3></div>
+          <ul>
+            <li>Satin-luminous base nhưng vẫn còn pores và undertone thật.</li>
+            <li>Aegyo-sal: highlight hẹp phía trên shadow mềm, đi theo cơ vòng mắt.</li>
+            <li>Fine liner, separated lash clusters, lower lashes tiết chế.</li>
+            <li>High translucent blush, contour mũi nhẹ, gradient/glossy lip.</li>
+            <li>Không enlarge mắt, pinched nose, extreme V-line hoặc childlike face.</li>
+          </ul>
+        </div>
+        <div class="virtual-command">
+          <code>python marketing-minthep/scripts/plan_virtual_person.py --input marketing-minthep/assets/examples/virtual-person-request.json</code>
+          <button class="copy-button" data-copy="Use $marketing-minthep to show me 4 virtual-person options. Explain face impression, healthy adult build, makeup and pose, then recommend one before generating the identity sheet." type="button">Copy request</button>
+        </div>
+      </section>
+
+      <section class="image-lab" id="image-lab">
+        <header class="lab-title">
+          <p>Image production handbook</p>
+          <h2>Ảnh thật đến từ một hệ vật lý nhất quán.</h2>
+          <span>Không đến từ “8K, cinematic, masterpiece”.</span>
+        </header>
+        <div class="capture-modes" role="list" aria-label="Bốn chế độ chụp" data-aria-en="Four capture modes">
+          <div role="listitem"><b>studio-clean</b><span>Commercial, chính xác vật liệu, retouch có kiểm soát.</span></div>
+          <div role="listitem"><b>studio-natural</b><span>Studio mềm, da và tóc còn cấu trúc, posture có sức sống.</span></div>
+          <div role="listitem"><b>environmental-editorial</b><span>Bối cảnh thật, ánh sáng có nguồn, bố cục được authored.</span></div>
+          <div role="listitem"><b>phone-candid</b><span>Khoảng cách, exposure, sharpening và hành vi đúng chất điện thoại.</span></div>
+        </div>
+        <section class="makeup-system" id="makeup-system" aria-labelledby="makeup-title">
+          <header class="makeup-intro">
+            <p>Makeup art-direction module</p>
+            <h2 id="makeup-title">Không nói “K-pop makeup”.<br />Nói chính xác makeup nằm ở đâu.</h2>
+            <p>Một profile Instagram chỉ tạo ra giả thuyết. Muốn phân tích chính xác, gửi 3–8 post hoặc screenshot cụ thể; skill sẽ tách makeup khỏi identity.</p>
+          </header>
+          <div class="makeup-axis" role="list" aria-label="Chín trục makeup" data-aria-en="Nine makeup axes">
+            <div role="listitem"><b>01 / Skin</b><span>Finish, coverage, pores, undertone.</span></div>
+            <div role="listitem"><b>02 / Brows</b><span>Shape, density, front diffusion, tail.</span></div>
+            <div role="listitem"><b>03 / Shadow</b><span>Hue, placement, softness, shimmer.</span></div>
+            <div role="listitem"><b>04 / Liner</b><span>Color, path, wing geometry, tightline.</span></div>
+            <div role="listitem"><b>05 / Lashes</b><span>Separation, density, clusters, lower lash.</span></div>
+            <div role="listitem"><b>06 / Blush</b><span>Hue, intensity, diffusion, placement.</span></div>
+            <div role="listitem"><b>07 / Structure</b><span>Contour and highlight without reshaping.</span></div>
+            <div role="listitem"><b>08 / Lips</b><span>Hue, edge, opacity, gradient, finish.</span></div>
+            <div role="listitem"><b>09 / Finish</b><span>Palette, skin-tone lock, retouch level.</span></div>
+          </div>
+          <div class="profile-lanes">
+            <a href="https://www.instagram.com/for_everyoung10/"><b>Romantic glossy</b><span>High translucent blush, fine liner, separated lashes, glossy tint.</span><em>profile hypothesis</em></a>
+            <a href="https://www.instagram.com/goyounjung/"><b>Quiet luxury</b><span>Satin skin, taupe eye, restrained cheek, rosewood balm.</span><em>profile hypothesis</em></a>
+            <a href="https://www.instagram.com/imwinter/"><b>Cool crystalline</b><span>Icy shimmer, precise liner, cool pink cheek, crisp separation.</span><em>profile hypothesis</em></a>
+            <a href="https://www.instagram.com/katarinabluu/"><b>Sculpted feline</b><span>Elongated smoky wing, temple blush, structured light, lacquer lip.</span><em>profile hypothesis</em></a>
+          </div>
+          <p class="makeup-note">Execution prompt luôn đổi thành fictional adult subject. Không dùng tên người nổi tiếng, không sao chép khuôn mặt và không ngụ ý endorsement.</p>
+          <div class="identity-lock-card">
+            <div><span>AUTHORIZED EDIT / CRITICAL LOCK</span><h3>Makeup đổi bề mặt.<br />Không đổi con người.</h3><p>Nếu ảnh ref là chính người cần chỉnh, output phải giữ đúng cùng một người, không phải một phiên bản “đẹp tương tự”.</p></div>
+            <dl>
+              <div><dt>Change</dt><dd>Chỉ pigment, finish, liner, lashes, blush, highlight, lip surface hoặc vùng trang phục được yêu cầu.</dd></div>
+              <div><dt>Lock</dt><dd>Head shape, mắt và khoảng cách mắt, mí, mũi, môi, jaw, chin, tai, hairline, skin tone, tuổi, bất đối xứng, biểu cảm và gaze.</dd></div>
+              <div><dt>Outfit</dt><dd>Giữ face, hair, body proportions, pose, hands, camera, crop, light và background; chỉ thay garment cùng seam, fold, shadow và occlusion.</dd></div>
+              <div><dt>Reject</dt><dd>Face drift, eye enlargement, nose narrowing, V-line, skin replacement, body reshaping, pose drift hoặc beautification ngoài yêu cầu.</dd></div>
+            </dl>
+          </div>
+        </section>
+        <div class="technical-ledger">
+          <article>
+            <header><span>01</span><h3>Camera</h3></header>
+            <dl>
+              <div><dt>24–35mm</dt><dd>Môi trường và phone-like; tránh dí sát mặt nếu không muốn phóng đại.</dd></div>
+              <div><dt>35–50mm</dt><dd>Half/full body tự nhiên, giữ được context.</dd></div>
+              <div><dt>70–105mm</dt><dd>Portrait, beauty và product với perspective được kiểm soát.</dd></div>
+              <div><dt>f/4–f/5.6</dt><dd>Điểm bắt đầu an toàn cho portrait tự nhiên và đủ chi tiết.</dd></div>
+            </dl>
+          </article>
+          <article>
+            <header><span>02</span><h3>Light</h3></header>
+            <dl>
+              <div><dt>Key</dt><dd>Nêu modifier, phía, độ cao, khoảng cách và độ cứng.</dd></div>
+              <div><dt>Fill</dt><dd>Dùng “một stop dưới key” hoặc “hai stop dưới key”.</dd></div>
+              <div><dt>Separation</dt><dd>Tóc, vai, cạnh sản phẩm và background phải có chủ ý.</dd></div>
+              <div><dt>Spill</dt><dd>Kiểm soát ánh sáng rơi vào nền thay vì gọi chung “cinematic”.</dd></div>
+            </dl>
+          </article>
+          <article>
+            <header><span>03</span><h3>Geometry</h3></header>
+            <dl>
+              <div><dt>Distance</dt><dd>Nêu khoảng cách camera–subject và subject–background.</dd></div>
+              <div><dt>Height</dt><dd>Eye, chest, waist, floor hoặc overhead; đừng bỏ trống.</dd></div>
+              <div><dt>Focus</dt><dd>Nêu chính xác iris, label plane, texture hay toàn bộ set phải nét.</dd></div>
+              <div><dt>Crop</dt><dd>Bảo vệ khớp, tay, closure, logo, copy-safe area và UI zone.</dd></div>
+            </dl>
+          </article>
+        </div>
+
+        <div class="recipe" id="prompt-recipe">
+          <div class="recipe-copy">
+            <p>Studio-natural beauty / starting recipe</p>
+            <h3>Mềm nhưng không nhựa.<br />Sạch nhưng vẫn sống.</h3>
+            <ul>
+              <li>85mm portrait behavior, eye-level, focus near iris</li>
+              <li>f/4 depth intent, 1/200s motion intent, ISO 200 texture</li>
+              <li>Large diffused key 45° camera-left, above eye level</li>
+              <li>White bounce one stop under key, subtle hair separation</li>
+              <li>Matte gray background two meters behind</li>
+              <li>Visible pores, natural asymmetry, editorial cleanup only</li>
+            </ul>
+          </div>
+          <div class="prompt-contract">
+            <div class="prompt-toolbar"><span>MASTER PROMPT CONTRACT</span><button class="copy-button" data-copy-target="#master-prompt" type="button">Copy</button></div>
+            <pre id="master-prompt"><code>JOB AND SINGLE IDEA
+Create a studio-natural skincare portrait that communicates calm trust.
+
+SUBJECT AND ACTION
+Fictional adult subject, relaxed shoulders, one hand holding the product naturally.
+
+COMPOSITION AND CROP
+Head-and-shoulders, eye-level, focus on near iris, right-side copy field, 4:5.
+
+CAMERA BEHAVIOR
+85mm portrait behavior from comfortable distance; f/4 depth intent;
+1/200s motion intent; clean ISO 200 texture; neutral 5400K color.
+
+LIGHTING GEOMETRY
+Large diffused key 45° camera-left and slightly above eye level;
+white bounce one stop under key; subtle hair separation;
+matte gray background two meters behind.
+
+REALISM
+Visible pores, peach fuzz, natural facial asymmetry and flyaway hair;
+editorial cleanup only; accurate hands, fabric pressure and contact shadows.
+
+REJECT
+No poreless skin, beauty-filter face, impossible catchlights,
+synthetic bokeh, anatomy drift, fake text or excessive HDR.</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-system" id="content-system">
+        <header class="section-lead">
+          <h2>Content không phải lịch đăng.</h2>
+          <p>Nó là một hệ chuyển trạng thái nhận thức: từ câu hỏi của audience đến bằng chứng, format, kênh và hành động tiếp theo.</p>
+        </header>
+        <div class="content-flow" aria-label="Luồng content" data-aria-en="Content flow">
+          <span>Audience state</span><i>→</i><span>Tension</span><i>→</i><span>Useful promise</span><i>→</i><span>Evidence</span><i>→</i><span>Format</span><i>→</i><span>Next action</span>
+        </div>
+        <div class="pillar-table" role="table" aria-label="Vai trò content pillar" data-aria-en="Content pillar roles">
+          <div role="row"><b role="cell">Problem language</b><span role="cell">Giúp audience gọi đúng vấn đề.</span><em role="cell">Discover</em></div>
+          <div role="row"><b role="cell">Mechanism education</b><span role="cell">Giải thích giải pháp hoạt động như thế nào.</span><em role="cell">Understand</em></div>
+          <div role="row"><b role="cell">Proof in practice</b><span role="cell">Demo, process, case evidence và kết quả được xác nhận.</span><em role="cell">Trust</em></div>
+          <div role="row"><b role="cell">Decision support</b><span role="cell">Comparison, objections, cost, risk và tiêu chí chọn.</span><em role="cell">Convert</em></div>
+          <div role="row"><b role="cell">Use & expansion</b><span role="cell">Onboarding, workflow, use case và nâng giá trị.</span><em role="cell">Retain</em></div>
+        </div>
+      </section>
+
+      <section class="qa" id="qa">
+        <header>
+          <h2>Không qua gate,<br />không xuất bản.</h2>
+          <p>Visual hấp dẫn vẫn bị loại nếu sai identity, anatomy, physics, claim hoặc rights.</p>
+        </header>
+        <div class="qa-list">
+          <div><span>FIDELITY</span><p>Product, identity, logo, label, shape và material có drift không?</p><b>Critical</b></div>
+          <div><span>PHYSICS</span><p>Lens, depth, motion, catchlight, shadow, contact và reflection có cùng một hệ không?</p><b>Critical</b></div>
+          <div><span>HUMAN</span><p>Hands, joints, posture, skin, hair và biểu cảm có cơ học tự nhiên không?</p><b>Critical</b></div>
+          <div><span>MESSAGE</span><p>Một dominant idea có sống được ở thumbnail và mọi crop không?</p><b>Required</b></div>
+          <div><span>TRUTH</span><p>Có claim, testimonial, statistic, label hay proof nào bị bịa không?</p><b>Critical</b></div>
+          <div><span>CHANNEL</span><p>Hook, density, safe zone, CTA và pacing có đúng hành vi kênh không?</p><b>Required</b></div>
+        </div>
+      </section>
+
+      <section class="sources" aria-labelledby="sources-title">
+        <h2 id="sources-title">Research ledger</h2>
+        <p>Các nguồn chính được kiểm tra ngày 22/07/2026. Thông số trong handbook là production starting points; output vẫn phải được inspect.</p>
+        <ul>
+          <li><a href="https://developers.openai.com/api/docs/guides/image-generation">OpenAI: Image generation guide</a><span>Generation, edit, multi-turn fidelity và output controls.</span></li>
+          <li><a href="https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/understanding-maximum-aperture">Nikon: Understanding Maximum Aperture</a><span>Aperture, exposure và depth of field.</span></li>
+          <li><a href="https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/understanding-focal-length">Nikon: Understanding Focal Length</a><span>Angle of view, magnification và lens use cases.</span></li>
+          <li><a href="https://docs.bfl.ai/guides/prompting_guide_flux2">Black Forest Labs: FLUX.2 Prompting Guide</a><span>Prompt ordering, photorealistic cues và structured prompting.</span></li>
+          <li><a href="https://ai.google.dev/gemini-api/docs/image-generation">Google: Gemini native image generation</a><span>Nano Banana models, reference limits, multi-turn, aspect ratio, resolution và Batch API.</span></li>
+          <li><a href="https://www.instagram.com/jsmbeauty_/">JUNGSAEMMOOL Beauty</a><span>Reference về translucent base, skin-first beauty và controlled glow; không có quyền rehost mặc định.</span></li>
+          <li><a href="https://www.instagram.com/bit.boot_jungyo/">Won Jung-Yo</a><span>Reference về clean-idol/no-makeup makeup và eye detail tiết chế.</span></li>
+          <li><a href="https://www.instagram.com/allurekorea/">Allure Korea</a><span>Beauty close-up, skin finish, lip texture và reflection control.</span></li>
+          <li><a href="https://www.instagram.com/p/DbCmNT1kezc/">Instagram: @for_everyoung10</a><span>Beauty-candid light, close crop và soft-glam makeup reference; không ngụ ý endorsement.</span></li>
+          <li><a href="https://www.instagram.com/p/Dam3HEElJV6/">Instagram: @goyounjung</a><span>Portrait angle, warm light, natural posture và restrained styling reference.</span></li>
+          <li><a href="https://www.instagram.com/p/Da5Pq4glKKa/">Instagram: @katarinabluu</a><span>Full-body silhouette, pose, negative space và low-key editorial light reference.</span></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      <div><strong>FIELD / MARKETING-MINTHEP</strong><p>Một reference map, một virtual-person bible, nhiều controlled branches.</p></div>
+      <div><span>Skill</span><code>$marketing-minthep</code></div>
+      <div><span>Deploy</span><p>GitHub Pages từ thư mục <code>docs/</code>, không cần Node hoặc build app.</p></div>
+    </footer>
+    <div class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  </body>
+</html>

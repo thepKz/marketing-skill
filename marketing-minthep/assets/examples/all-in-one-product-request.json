@@ -1,0 +1,10 @@
+{
+  "project": "New beauty product launch",
+  "product_family": "beauty",
+  "objective": "Launch and sell a new lip product through ecommerce, social, paid ads and PR",
+  "audience": "Vietnamese beauty shoppers aged 18-30",
+  "channels": ["pdp", "marketplace", "instagram", "tiktok", "paid", "pr", "web", "email"],
+  "proof": ["Exact packshot", "Confirmed shade range", "Application texture demonstration"],
+  "asset_scope": "system",
+  "art_direction": "Reference-first romantic glossy campaign with original fictional adult talent"
+}

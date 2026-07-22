@@ -1,6 +1,6 @@
 ---
-name: "FIELD Marketing Creative Studio"
-description: "A tactile creative control room that turns product truth into campaign material."
+name: "FIELD Marketing-Minthep"
+description: "A tactile reference-first manual that turns product truth and visual references into marketing, content, and controlled image production."
 colors:
   cobalt-instrument: "oklch(0.52 0.16 247.4)"
   cobalt-signal: "oklch(0.742 0.14 247.4)"

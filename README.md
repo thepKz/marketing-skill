@@ -1,59 +1,170 @@
-# Marketing Skill
+# Marketing-Minthep
 
-Bộ project gồm hai Codex skill và một website vận hành thử campaign.
+`Marketing-Minthep` là một skill all-in-one dùng được với Claude Code và GPT/Codex, biến brief chưa hoàn chỉnh thành hệ thống marketing có thể sản xuất và đo lường: từ định vị, offer, content, bán hàng, PR đến campaign, hình ảnh sản phẩm, người ảo và production handoff.
 
-## Folder nào là skill cần thiết?
+Skill được thiết kế theo nguyên tắc **một invocation, nhiều workbench**. Nó chỉ nạp phần kiến thức cần cho công việc hiện tại thay vì đổ toàn bộ marketing vào một prompt khổng lồ.
 
-### `marketing-creative-director/` — skill chính
+## Skill làm được gì
 
-Đây là skill đầy đủ và nên dùng mặc định. Gọi bằng:
+| Workbench | Đầu ra điển hình |
+|---|---|
+| Strategy & offer | Audience, positioning, mechanism, proof, offer, funnel, message ladder |
+| Campaign & launch | Big idea, 3 concept lanes, rollout, paid/content/landing matrix, experiment plan |
+| Content & distribution | Pillars, SEO topics, editorial briefs, social calendar, repurposing, email |
+| Commerce & merchandising | PDP/listing narrative, media sequence, SKU/variant system, catalog, retail assets |
+| Paid media | Creative hypotheses, placement matrix, testing hierarchy, naming và measurement contract |
+| PR & communications | Newsworthiness, press angle, pitch/release, press kit, Q&A, newsroom assets |
+| Sales enablement | One-pager, deck/demo story, case study, proposal, objection handling, follow-up |
+| Creator & UGC | Creator criteria, brief, deliverables, disclosure, usage rights, approval và variants |
+| Lifecycle & retention | Welcome, nurture, abandonment, post-purchase, win-back, upsell, referral |
+| Visual production | Product photography, art key visual, beauty/makeup, image edit, virtual adult person |
+| Measurement | Asset lineage, QA, experiment log, reporting, next-test recommendations |
+
+Các loại sản phẩm đã có playbook gồm beauty, fashion, food & beverage, electronics, home, jewelry/luxury, SaaS, dịch vụ, giáo dục và hospitality. Registry hiện bao phủ asset cho PDP, marketplace, catalog, Meta/TikTok/Google, social, web, email, PR, sales, retail, OOH và editorial art.
+
+## Không làm gì
+
+- Không bịa claim, thành phần, thông số, giá, review, khách hàng, số liệu, chứng nhận, scarcity hoặc endorsement.
+- Không sao chép danh tính celebrity, living artist, campaign, ảnh hoặc layout đặc trưng; reference chỉ được tách thành thuộc tính có thể chuyển hóa.
+- Không tự động làm gầy hoặc đổi cơ thể người thật trong ảnh edit.
+- Không coi packaging AI chưa có reference chính xác là hình sản phẩm thật.
+- Không tự publish, gửi báo chí, liên hệ creator, mua ads hoặc thay đổi campaign live.
+
+## Quick start
+
+Gọi skill bằng:
 
 ```text
-$marketing-creative-director
+$marketing-minthep
 ```
 
-Skill xử lý Brand DNA, nghiên cứu reference, campaign strategy, ba creative lane, ảnh sản phẩm, ảnh người, image edit, prompt theo provider, asset manifest, QA, thử nghiệm và learning loop.
+Repo có hai adapter project-level:
 
-Nếu chỉ muốn giữ hoặc cài **một skill**, hãy chọn folder này.
+- Claude Code: `.claude/skills/marketing-minthep/SKILL.md`
+- GPT/Codex: `.codex/skills/marketing-minthep/SKILL.md`
 
-### `marketing-one-page-studio/` — skill compact, tùy chọn
+Hai adapter đều nạp `marketing-minthep/SKILL.md` làm nguồn chính. Không sửa nội dung marketing trực tiếp trong adapter để tránh Claude và GPT cho kết quả lệch nhau.
 
-Đây là phiên bản rút gọn cho tình huống cần đi thật nhanh từ một brief sang một trang campaign hoàn chỉnh hoặc JSON để đưa vào website.
+Input tối thiểu nên có:
 
-Gọi bằng:
+1. Sản phẩm/dịch vụ và mục tiêu kinh doanh.
+2. Audience hoặc tình huống mua.
+3. Kênh, thị trường và thời hạn nếu có.
+4. Fact/claim/proof đã xác nhận.
+5. Asset/reference hiện có và điều phải giữ hoặc tránh.
+
+Skill sẽ hỏi tối đa ba câu khi thiếu dữ liệu có thể làm thay đổi truth, quyền sử dụng, offer, kiến trúc hoặc chi phí. Các khoảng trống ít rủi ro được ghi rõ là giả định rồi tiếp tục.
+
+### Chọn độ rộng
+
+- `focused`: một workbench và bộ artifact nhỏ nhất có thể dùng ngay; đây là mặc định.
+- `system`: nối strategy với các kênh, asset và measurement thật sự phụ thuộc nhau.
+- `production`: thêm brief JSON, manifest, provider prompt, owner, approval, naming và export handoff.
+
+### Ví dụ request
+
+Physical product:
 
 ```text
-$marketing-one-page-studio
+Use $marketing-minthep in production mode for this skincare product.
+Build the PDP image sequence, Meta/TikTok campaign system, creator brief,
+four original image directions, claims ledger, and measurement plan.
 ```
 
-Nó trả về đúng bảy khối: truth, campaign core, ba lane, asset plan, image prompt, cấu trúc one-page website và QA/export. Skill này không thay thế skill chính; nó là lối tắt cho tác vụ nhỏ và tích hợp giao diện.
+Beauty hoặc virtual person:
 
-### `web-studio/` — website, không phải skill
+```text
+Use $marketing-minthep with my references. Explain four fictional-adult
+virtual-person options, including healthy build, makeup and pose. After I choose,
+create a consistent identity sheet and four campaign branches without copying celebrity identity.
+```
 
-Đây là ứng dụng React/Vite để nhập brief, chọn provider/lane/subject và xuất campaign, prompt, manifest, Brand DNA, pre-flight QA, Markdown, JSON và CSV.
+SaaS:
 
-Folder này được deploy lên GitHub Pages. Không copy nó vào thư mục Codex skills.
+```text
+Use $marketing-minthep to launch this B2B SaaS. Produce positioning,
+a proof-led landing narrative, LinkedIn content, sales one-pager,
+demo story, paid hypotheses and a 30-day measurement plan.
+```
 
-## Cấu trúc còn lại
+Dịch vụ địa phương:
 
-- `PRODUCT.md`: mục tiêu và nguyên tắc sản phẩm của website.
-- `DESIGN.md`: visual system của FIELD Studio.
-- `.impeccable/`: cấu hình thiết kế và live preview, không phải skill.
+```text
+Use $marketing-minthep for a local dental clinic. Build the offer,
+Google/Meta asset plan, trust content, review-safe proof system,
+lead follow-up flow and a localized production shot list.
+```
 
-## Chạy website local
+PR, sales, creator hoặc lifecycle:
+
+```text
+Use $marketing-minthep in focused mode for a press launch.
+Score newsworthiness and create the angle, pitch, press kit checklist,
+Q&A, spokesperson assets and earned-media measurement contract.
+```
+
+Để skill tự route một brief rộng:
 
 ```powershell
-cd web-studio
-npm install
-npm run dev
+python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-## Deploy GitHub Pages
+## Image system
 
-Workflow `.github/workflows/deploy-pages.yml` tự build `web-studio` khi push lên `main` và deploy thư mục `web-studio/dist`.
+Flow chuẩn là `references -> role map -> locks/freedoms/rejects -> provider route -> 4-5 controlled branches -> QA -> winner refinement`.
 
-Trong GitHub, mở `Settings > Pages`, chọn `Source: GitHub Actions`, sau đó push branch `main`. Với repository hiện tại, URL dự kiến là:
+- GPT Image 2: phù hợp direct generation/edit, multi-turn qua Responses API và nhiều output cùng canonical prompt.
+- Nano Banana: phù hợp nhiều reference, consistency, layout/text/localization và refinement theo branch.
+- Virtual person luôn là fictional adult, anatomy khỏe mạnh; project có thể ưu tiên `slender-light-frame` nhưng cấm extreme thinness, waist distortion và childlike presentation.
+- Makeup được mô tả theo skin, brows, eyes, liner, lashes, blush, facial structure, lips, palette và retouching. Douyin/aegyo-sal là một option, không phải mặc định cho mọi brief.
 
-```text
-https://thepKz.github.io/marketing-skill/
+Các lệnh liên quan:
+
+```powershell
+python marketing-minthep/scripts/plan_image_generation.py --input marketing-minthep/assets/examples/reference-image-request.json
+python marketing-minthep/scripts/plan_virtual_person.py --input marketing-minthep/assets/examples/virtual-person-request.json
+python marketing-minthep/scripts/compile_prompt.py --help
 ```
+
+## Production tools
+
+```powershell
+# Tạo campaign scaffold
+python marketing-minthep/scripts/scaffold_campaign.py --project "Launch" --job campaign-launch --industry beauty --provider gpt-image-2 --channels meta tiktok web
+
+# Tạo manifest từ request hoặc output của planner
+python marketing-minthep/scripts/build_asset_manifest.py --input marketing-minthep/assets/examples/all-in-one-product-request.json --format json
+
+# Chấm creative và phân tích performance
+python marketing-minthep/scripts/score_creative.py --help
+python marketing-minthep/scripts/analyze_performance.py --help
+```
+
+## Handbook HTML
+
+Handbook tĩnh nằm tại `docs/index.html` và giải thích reference-first flow, business workbenches, virtual person, makeup, camera/light/composition, provider routing, prompt contract, QA và production loop. Giao diện có i18n VI/EN, dùng font hỗ trợ đầy đủ dấu tiếng Việt và contact sheet liên kết về các post Instagram gốc.
+
+```powershell
+python -m http.server 8000 --directory docs
+```
+
+Mở `http://localhost:8000`. Handbook có thư viện 17+ reference preview với filter makeup, pose, candid, full-body, editorial và lighting; mỗi ảnh liên kết về post gốc. Gallery output hiển thị packshot, beauty campaign, artistic key visual và fashion look đã render. Ảnh Instagram chỉ dùng để phân tích thuộc tính thị giác, không ngụ ý endorsement và không mặc nhiên cấp quyền tái sử dụng cho campaign.
+
+Khi edit ảnh người thật, makeup chỉ được đổi pigment/finish trên bề mặt. Skill khóa head shape, eye geometry và spacing, eyelids, nose, lips, jaw, chin, ears, hairline, skin tone, tuổi thể hiện, bất đối xứng, expression và gaze. Outfit edit chỉ thay wardrobe; face, hair, body proportions, pose, hands, camera, crop, light và background vẫn phải giữ nguyên.
+
+## Kiểm tra
+
+```powershell
+python -m unittest discover -s marketing-minthep/scripts -p "test_*.py"
+python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
+python C:\Users\Admin\.codex\skills\.system\skill-creator\scripts\quick_validate.py marketing-minthep
+```
+
+Workflow `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest, unit tests, Python compilation và deploy trực tiếp `docs/` lên GitHub Pages. Repository không còn `marketing-one-page-studio` hoặc `web-studio`.
+
+## Giới hạn vận hành
+
+- Platform specs thay đổi; skill phải kiểm tra nguồn chính thức live trước export/upload.
+- Kết quả ảnh phụ thuộc provider, reference hợp lệ và khả năng render hiện có; prompt không đồng nghĩa ảnh đã được tạo hoặc QA.
+- PR, legal, health, finance, comparative và regulated claims cần bằng chứng/chủ sở hữu phê duyệt phù hợp.
+- Skill hỗ trợ lập kế hoạch và tạo artifact; publishing, media buying, outreach và production deployment cần ủy quyền riêng.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Marketing-Minthep"
+  short_description: "Plan, produce, sell, promote, and optimize"
+  default_prompt: "Use $marketing-minthep with my product truth, goals, channels, proof, and references to build the smallest complete marketing system and production-ready artifact pack."

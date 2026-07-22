@@ -10,15 +10,15 @@ web
 
 ## Users
 
-Independent marketers, founders, creative strategists, content teams, and small agencies use this product while turning an incomplete product idea into a campaign system. They need to move from brief to creative direction, image prompts, channel assets, and production handoff without rebuilding the process in separate documents.
+Independent marketers, founders, creative strategists, content teams, and small agencies use this skill while turning incomplete product truth into a marketing and content operating system. They need to move from positioning to content, campaign, realistic image direction, distribution, and learning without rebuilding the process across disconnected skills.
 
 ## Product Purpose
 
-Create one operational surface where a user can describe a product, choose a campaign posture, and receive a structured campaign concept, human or product image prompt, channel plan, QA criteria, and exportable manifest. Success means the user leaves with production-ready artifacts rather than generic inspiration.
+Create one operational skill plus a static handbook where a user can describe a product and receive a scoped marketing foundation, content system, campaign, production-ready copy, a consistent fictional adult virtual person, physically coherent image direction, channel plan, QA criteria, and learning loop. Success means the user leaves with connected artifacts rather than generic inspiration.
 
 ## Positioning
 
-The creative operating system that converts product truth into distinctive, non-generic campaign assets while preserving brand, product, and human fidelity.
+The reference-first marketing, content, and art-direction system that converts product truth and visual references into distinctive campaigns and controlled image variants while preserving brand, product, and authorized human fidelity.
 
 ## Brand Personality
 

@@ -1,0 +1,17 @@
+{
+  "description": "Create an original studio-natural 4:5 beauty campaign portrait with precise black-and-white styling and a calm, self-possessed expression.",
+  "reference_images": [
+    {"id": "ref-01", "role": "composition+lighting"},
+    {"id": "ref-02", "role": "styling+pose"},
+    {"id": "ref-03", "role": "cast+wardrobe"}
+  ],
+  "reference_intent": "style-only",
+  "operation": "generate",
+  "variant_count": 4,
+  "same_prompt_variants": false,
+  "needs_character_consistency": false,
+  "complex_layout_or_text": false,
+  "multi_turn": true,
+  "latency_priority": "balanced",
+  "output": {"aspect_ratio": "4:5", "resolution": "2K"}
+}

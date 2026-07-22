@@ -1,8 +1,9 @@
-name: Deploy web studio to GitHub Pages
+name: Validate skill and deploy handbook
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -11,46 +12,110 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: web-studio/package-lock.json
+          python-version: "3.12"
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
+      - name: Verify consolidated structure
+        shell: bash
+        run: |
+          test -f marketing-minthep/SKILL.md
+          test -f marketing-minthep/agents/openai.yaml
+          test -f .claude/skills/marketing-minthep/SKILL.md
+          test -f .codex/skills/marketing-minthep/SKILL.md
+          test -f marketing-minthep/references/realistic-studio-imagery.md
+          test -f marketing-minthep/references/reference-first-image-flow.md
+          test -f marketing-minthep/references/api-image-orchestration.md
+          test -f marketing-minthep/references/makeup-art-direction.md
+          test -f marketing-minthep/references/virtual-person-system.md
+          test -f marketing-minthep/references/content-system.md
+          test -f marketing-minthep/references/marketing-system-router.md
+          test -f marketing-minthep/references/commerce-merchandising.md
+          test -f marketing-minthep/references/paid-media-creative.md
+          test -f marketing-minthep/references/pr-communications.md
+          test -f marketing-minthep/references/sales-enablement.md
+          test -f marketing-minthep/references/creator-ugc.md
+          test -f marketing-minthep/references/lifecycle-retention.md
+          test -f marketing-minthep/assets/registries/asset-formats.json
+          test -f docs/index.html
+          test -f docs/styles.css
+          test -f docs/app.js
+          test -f docs/i18n.js
+          test -f docs/assets/references/instagram-for-everyoung10.jpg
+          test -f docs/assets/references/instagram-goyounjung.jpg
+          test -f docs/assets/references/instagram-katarinabluu.jpg
+          test -f docs/assets/references/winter-mirror-makeup.jpg
+          test -f docs/assets/references/karina-fullbody-negative-space.jpg
+          test -f docs/assets/generated/minthep-serum-packshot.png
+          test -f docs/assets/generated/minthep-beauty-campaign.png
+          test -f docs/assets/generated/minthep-serum-key-visual.png
+          test -f docs/assets/generated/minthep-fashion-look.png
+          test ! -e marketing-content-art-director
+          test ! -e marketing-creative-director
+          test ! -e marketing-one-page-studio
+          test ! -e web-studio
 
-      - name: Install dependencies
-        working-directory: web-studio
-        run: npm ci
+      - name: Run deterministic tool tests
+        run: python -m unittest discover -s marketing-minthep/scripts -p "test_*.py"
 
-      - name: Build website
-        working-directory: web-studio
-        run: npm run build
+      - name: Smoke-test all-in-one planner and manifest
+        shell: bash
+        run: |
+          python marketing-minthep/scripts/plan_marketing_system.py \
+            --input marketing-minthep/assets/examples/all-in-one-product-request.json \
+            --output /tmp/marketing-plan.json
+          python marketing-minthep/scripts/build_asset_manifest.py \
+            --input /tmp/marketing-plan.json \
+            --format json \
+            --output /tmp/asset-manifest.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          plan = json.loads(Path('/tmp/marketing-plan.json').read_text())
+          manifest = json.loads(Path('/tmp/asset-manifest.json').read_text())
+          assert plan['asset_count'] == len(plan['selected_assets'])
+          assert 0 < len(manifest) <= plan['asset_count']
+          assert len({row['asset_type'] for row in manifest}) == len(manifest)
+          PY
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: web-studio/dist
+      - name: Compile Python tools
+        run: python -m compileall -q marketing-minthep/scripts
+
+      - name: Validate handbook JavaScript
+        run: |
+          node --check docs/i18n.js
+          node --check docs/app.js
 
   deploy:
+    if: github.event_name != 'pull_request'
+    needs: validate
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: build
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload static handbook
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

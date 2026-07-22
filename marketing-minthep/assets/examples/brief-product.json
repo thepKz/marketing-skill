@@ -1,0 +1,35 @@
+{
+  "schema_version": 2,
+  "project": "Barrier Reset",
+  "mode": "product",
+  "industry": "beauty",
+  "channels": ["meta", "tiktok", "web"],
+  "brief": {
+    "objective": "Launch a barrier-support serum",
+    "audience": "Vietnamese women aged 22-30 with overloaded skincare routines",
+    "product_truth": "Frosted blue-gray glass serum bottle; exact packshot not yet supplied",
+    "mechanism": "Support the skin barrier",
+    "promise": "Make recovery feel simpler"
+  },
+  "prompt": {
+    "capture_mode": "studio-natural",
+    "job": "Create a conversion-focused skincare product hero",
+    "single_idea": "Stable skin makes the routine feel lighter",
+    "subject_action": "One frosted blue-gray serum bottle standing with believable weight",
+    "scene": "Morning bathroom window light with a restrained translucent membrane metaphor",
+    "composition": "Product slightly right of center with a clear left copy field",
+    "camera_geometry": "Camera at label height with a three-quarter product angle",
+    "aspect_ratio": "4:5",
+    "copy_safe_area": "Upper-left 40 percent",
+    "lens_distance": "90-105mm product-lens behavior from a low-distortion working distance",
+    "focus_depth": "f/8 depth intent with bottle silhouette, closure, and known material planes sharp",
+    "motion_shutter": "Static product with no motion blur",
+    "sensor_color": "Clean ISO 100-200 texture and neutral daylight balance",
+    "lighting": "Broad top-front diffusion with two side cards defining frosted-glass edges",
+    "fill_separation": "Low frontal fill with controlled reflection density",
+    "background_treatment": "Neutral seamless background separated from the bottle with a grounded contact shadow",
+    "materials": "Believable frosted glass thickness, refraction, and surface texture",
+    "locks": "Known color and material only; packaging remains concept art",
+    "negative_constraints": "No fake label, petals, splash, marble, floating bottle, or generic pastel pedestal"
+  }
+}
