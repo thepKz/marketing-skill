@@ -13,18 +13,18 @@ colors:
   error: "oklch(0.55 0.20 27)"
 typography:
   display:
-    fontFamily: "Archivo Black, sans-serif"
+    fontFamily: "Be Vietnam Pro, sans-serif"
     fontSize: "clamp(3.2rem, 6.6vw, 6rem)"
-    fontWeight: 400
+    fontWeight: 900
     lineHeight: 0.93
     letterSpacing: "-0.04em"
   body:
-    fontFamily: "Manrope, sans-serif"
+    fontFamily: "Be Vietnam Pro, sans-serif"
     fontSize: "1rem"
     fontWeight: 500
     lineHeight: 1.65
   label:
-    fontFamily: "Fragment Mono, monospace"
+    fontFamily: "IBM Plex Mono, monospace"
     fontSize: "0.68rem"
     fontWeight: 700
     lineHeight: 1.4
@@ -111,15 +111,15 @@ The palette is a flight deck at dawn: true white working light, blue instruments
 
 ## Typography
 
-**Display Font:** Archivo Black (sans-serif fallback)
-**Body Font:** Manrope (sans-serif fallback)
-**Label/Mono Font:** Fragment Mono (monospace fallback)
+**Display Font:** Be Vietnam Pro (sans-serif fallback)
+**Body Font:** Be Vietnam Pro (sans-serif fallback)
+**Label/Mono Font:** IBM Plex Mono (monospace fallback)
 
-**Character:** Archivo Black creates compressed poster-like decisions. Manrope keeps long operational copy calm. Fragment Mono exposes metadata, state, lineage, and control labels without turning the entire product into a terminal costume.
+**Character:** Be Vietnam Pro keeps Vietnamese and English equally legible while its heavy weights create poster-like decisions. IBM Plex Mono exposes metadata, state, lineage, and control labels without turning the entire product into a terminal costume.
 
 ### Hierarchy
 
-- **Display** (400, fluid 3.2rem-6rem, 0.93): Hero promises and selected campaign statements only.
+- **Display** (900, fluid 3.2rem-6rem, 0.93): Hero promises and selected campaign statements only.
 - **Headline** (400, fluid 2rem-4.2rem, 1): Section decisions and output modes.
 - **Title** (700, 1rem-1.4rem, 1.25): Component and lane titles.
 - **Body** (500, 1rem, 1.65): Explanations, prompts, and form guidance with a 65-75ch ceiling.
@@ -168,7 +168,7 @@ FIELD is flat by default. Depth comes from tonal changes, full borders, overlap,
 
 ### Navigation
 
-- **Style:** Stable 62px ruled rail with Archivo brand mark and Fragment Mono links.
+- **Style:** Stable 64px ruled rail with a Be Vietnam Pro brand mark and IBM Plex Mono links.
 - **States:** Underline hover, explicit focus ring, no floating pill navigation.
 - **Mobile:** Collapse optional links while preserving brand and system state.
 
