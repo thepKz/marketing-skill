@@ -23,7 +23,6 @@
         <a href="#use-cases">Dùng để làm gì</a>
         <a href="#start">Bắt đầu</a>
         <a href="#outputs">Ảnh mẫu</a>
-        <a href="#workflow">Cách dùng</a>
         <a href="#identity">Identity lock</a>
         <a href="#install">Cài skill</a>
       </nav>
@@ -112,9 +111,9 @@
           <p>Chỉ cần nói bạn bán gì, muốn đạt điều gì và gửi ảnh/ref nếu có. Skill sẽ tự hỏi phần còn thiếu, giải thích quyết định bằng ngôn ngữ dễ hiểu rồi tạo báo cáo Markdown để bạn dùng tiếp.</p>
         </div>
         <div class="starter-path-grid">
-          <article><span>01 / NÓI</span><h3>Brief bằng lời thường</h3><p>“Tôi bán bún bò, muốn menu hiện đại cho khách văn phòng.” Không cần viết brief chuẩn.</p><code>product-brief.md</code></article>
-          <article><span>02 / CHỌN</span><h3>So sánh hướng đi</h3><p>Nhận 2–3 hướng chiến lược, moodboard, màu sắc, bố cục và trade-off trước khi làm sâu.</p><code>direction-options.md</code></article>
-          <article><span>03 / NHẬN</span><h3>Hệ thống dùng được</h3><p>Copy, wireframe, shot list, prompt hình/video, lịch nội dung và checklist QA nằm trong một thư mục.</p><code>campaign-report.md</code></article>
+          <article><span>BẠN NÓI</span><h3>Brief bằng lời thường</h3><p>“Tôi bán bún bò, muốn menu hiện đại cho khách văn phòng.” Không cần viết brief chuẩn.</p><code>product-brief.md</code></article>
+          <article><span>BẠN CHỌN</span><h3>So sánh hướng đi</h3><p>Nhận 2–3 hướng chiến lược, moodboard, màu sắc, bố cục và trade-off trước khi làm sâu.</p><code>direction-options.md</code></article>
+          <article><span>BẠN NHẬN</span><h3>Hệ thống dùng được</h3><p>Copy, wireframe, shot list, prompt hình/video, lịch nội dung và checklist QA nằm trong một thư mục.</p><code>campaign-report.md</code></article>
         </div>
         <div class="starter-path-foot"><b>INPUT → RESEARCH → DECISION → PRODUCTION → QA</b><span>Mỗi vòng đều có file, lý do và bước tiếp theo.</span></div>
       </section>
@@ -155,19 +154,6 @@
           </button>
         </div>
         <p class="concept-disclaimer">Các hình trên là concept hư cấu để minh họa art direction. Ba menu là cùng một nội dung, dựng bằng <code>render_mockup.py</code>, chỉ đổi hướng thiết kế — lề, cỡ chữ tiêu đề, giãn dòng và cách xử lý dòng món đều khác nhau, không chỉ đổi màu. Giá và thành phần cố ý để trống; đây chưa phải file in đã duyệt.</p>
-      </section>
-
-      <section class="workflow" id="workflow" aria-labelledby="workflow-title">
-        <header class="section-intro inverse">
-          <h2 id="workflow-title">Gửi ref vào.<br />Nhận hệ thống ra.</h2>
-          <p>Skill biến những điều bạn nói bằng cảm giác thành một production contract rõ ràng: ảnh nào khóa identity, ảnh nào chỉ pose, ánh sáng nào được giữ và biến thể nào đáng thử.</p>
-        </header>
-        <ol class="workflow-track">
-          <li><div class="step-image"><img src="./assets/references/wonyoung-warm-closeup.jpg" alt="Reference close-up ánh sáng ấm" data-alt-en="Warm close-up reference" loading="lazy" /></div><span>Gửi input</span><h3>Ảnh ref + mục tiêu</h3><p>Sản phẩm, audience, kênh, điều phải giữ và điều muốn tránh.</p></li>
-          <li><div class="role-map"><em>identity</em><em>pose</em><em>light</em><em>makeup</em><em>product</em></div><span>Tách vai trò</span><h3>Không trộn ref mơ hồ</h3><p>Mỗi ảnh nhận một nhiệm vụ, độ ưu tiên và lock riêng.</p></li>
-          <li><div class="variant-fan"><i>V1</i><i>V2</i><i>V3</i><i>V4</i></div><span>Tạo nhánh</span><h3>4–5 biến thể có lý do</h3><p>Mỗi nhánh chỉ đổi một trục: crop, light, action hoặc styling.</p></li>
-          <li><div class="qa-stamp">PASS<br /><small>FIDELITY</small></div><span>Chọn & hoàn thiện</span><h3>Reject trước khi đẹp</h3><p>Loại sai identity, product, anatomy, physics, claim hoặc rights.</p></li>
-        </ol>
       </section>
 
       <section class="identity" id="identity" aria-labelledby="identity-title">
@@ -220,12 +206,13 @@ provider-ready prompts, QA gates, and the next decision.</code></pre>
       <section class="install" id="install" aria-labelledby="install-title">
         <div class="install-heading">
           <h2 id="install-title">Cài một lần.<br />Dùng ở mọi project.</h2>
-          <p>Skill đã tương thích global với Claude Code và GPT/Codex. Mở phiên mới rồi gọi cùng một tên skill.</p>
+          <p>Một script cài vào cả Claude Code và GPT/Codex. Nó mirror chứ không merge: file bạn xóa trong repo cũng biến mất ở bản global, nên bản copy cũ không âm thầm sống sót.</p>
         </div>
         <div class="install-rails">
+          <div class="install-command"><code>python marketing-minthep/scripts/install_global.py</code><button class="copy-button" data-copy="python marketing-minthep/scripts/install_global.py" type="button">Copy</button></div>
           <article><span>CLAUDE CODE</span><code>~/.claude/skills/marketing-minthep</code><b>Global skill</b></article>
           <article><span>GPT / CODEX</span><code>~/.codex/skills/marketing-minthep</code><b>Global skill</b></article>
-          <div class="install-command"><code>$marketing-minthep</code><button class="copy-button" data-copy="$marketing-minthep" type="button">Copy</button></div>
+          <p class="install-note"><code>--check</code> báo bản global lệch repo bao nhiêu file mà không ghi gì. Sau khi cài, mở phiên mới rồi gọi <code>$marketing-minthep</code>.</p>
         </div>
       </section>
 
