@@ -92,6 +92,46 @@ class ToolTests(unittest.TestCase):
         self.assertIn("sans-serif", svg)
         self.assertIn("Liberation", svg)
 
+    def test_mockup_themes_differ_in_layout_not_only_palette(self) -> None:
+        """plan_design_options.py sells the three themes as different design directions, with
+        different margins, type scale and row treatment. They once differed only in colour and
+        font, which made the option set a choice in name only. Each must change real geometry."""
+        items = [{"name": f"Dish {index}", "price": "—"} for index in range(4)]
+        spec = {"title": "Bún bò", "items": items, "width": 1080, "height": 1080}
+        indents, pitches, titles = set(), set(), set()
+        for theme in ("quiet-editorial", "modern-street", "heritage-craft"):
+            svg = render({**spec, "theme": theme})
+            names = [
+                node for node in ET.fromstring(svg).iter()
+                if node.tag.endswith("text") and node.get("class") == "item"
+            ]
+            baselines = [float(node.get("y")) for node in names]
+            indents.add(min(float(node.get("x")) for node in names))
+            pitches.add(baselines[1] - baselines[0])
+            titles.add(svg.split(".title{font:700 ")[1].split("px")[0])
+        self.assertEqual(len(indents), 3, f"themes share a text indent: {indents}")
+        self.assertEqual(len(pitches), 3, f"themes share a row pitch: {pitches}")
+        self.assertEqual(len(titles), 3, f"themes share a title size: {titles}")
+
+    def test_mockup_price_leader_never_runs_under_the_text(self) -> None:
+        """heritage-craft draws a dotted leader between name and price from an estimated text
+        width. If the estimate ran short the dots would print through a dish name, so the leader
+        must stay clear of both ends or be dropped entirely."""
+        base = {"theme": "heritage-craft", "title": "Bún bò", "width": 1080, "height": 1080}
+        crowded = render({
+            **base,
+            "items": [{"name": "Bún bò Huế đặc biệt thêm giò heo và chả cua", "price": "129.000đ"}],
+        })
+        leaders = [node for node in ET.fromstring(crowded).iter() if node.get("stroke-dasharray")]
+        # A name this long leaves no honest room, so drawing nothing is the correct output.
+        self.assertEqual(leaders, [], "leader drawn where there is no room for it")
+        roomy = render({**base, "items": [{"name": "Bún bò", "price": "79.000đ"}]})
+        leaders = [node for node in ET.fromstring(roomy).iter() if node.get("stroke-dasharray")]
+        self.assertEqual(len(leaders), 1, "a short name should get a leader")
+        margin = round(1080 * 0.0972)
+        self.assertGreater(float(leaders[0].get("x1")), margin, "leader starts inside the name")
+        self.assertLess(float(leaders[0].get("x2")), 1080 - margin, "leader crosses the margin")
+
     def test_scaffold_v3_separates_job_and_artifact_mode(self) -> None:
         record = build_record("Launch", "product", "beauty", "gpt-image-2", ["meta", "web"])
         self.assertEqual(record["schema_version"], 3)

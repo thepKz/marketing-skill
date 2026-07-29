@@ -1,0 +1,17 @@
+{
+  "theme": "quiet-editorial",
+  "width": 1080,
+  "height": 1080,
+  "kicker": "BÚN BÒ",
+  "title": "Một tô, mỗi sáng",
+  "subtitle": "Bản minh họa bố cục — giá và thành phần phải được quán xác nhận",
+  "category": "MÓN CHÍNH",
+  "hero_shape": "bowl",
+  "items": [
+    {"name": "Tô tiêu chuẩn", "description": "Khẩu phần và thành phần chờ quán xác nhận", "price": "—"},
+    {"name": "Tô đặc biệt", "description": "Không tự suy ra topping từ ảnh tham chiếu", "price": "—"},
+    {"name": "Phần thêm", "description": "Chỉ hiển thị khi có menu và giá nguồn", "price": "—"},
+    {"name": "Đồ uống", "description": "Sắp theo logic hoàn tất giỏ hàng", "price": "—"}
+  ],
+  "footer": "CONCEPT LAYOUT / Không phải menu giá đã được duyệt"
+}

@@ -49,7 +49,9 @@ jobs:
           test -f marketing-minthep/references/lifecycle-retention.md
           test -f marketing-minthep/references/dossiers/README.md
           test -f marketing-minthep/references/dossiers/anti-fabrication-protocol.md
+          test -f marketing-minthep/references/dossiers/colour-science-and-harmony.md
           test -f marketing-minthep/references/dossiers/composition-and-layout-vision.md
+          test -f marketing-minthep/references/dossiers/food-and-beverage-imagery.md
           test -f marketing-minthep/references/dossiers/copywriting-deep.md
           test -f marketing-minthep/references/dossiers/light-and-shadow.md
           test -f marketing-minthep/references/dossiers/market-assessment-method.md

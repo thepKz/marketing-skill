@@ -1,0 +1,17 @@
+{
+  "theme": "heritage-craft",
+  "width": 1080,
+  "height": 1080,
+  "kicker": "BÚN BÒ / QUÁN NHÀ",
+  "title": "Nấu theo lối cũ",
+  "subtitle": "Bản minh họa bố cục — nguồn gốc và công thức phải do quán cung cấp",
+  "category": "MÓN CHÍNH",
+  "hero_shape": "bowl",
+  "items": [
+    {"name": "Tô tiêu chuẩn", "description": "Mô tả nguyên liệu chờ quán cung cấp", "price": "—"},
+    {"name": "Tô đặc biệt", "description": "Không tự viết câu chuyện gia truyền", "price": "—"},
+    {"name": "Phần thêm", "description": "Chỉ hiển thị khi có menu và giá nguồn", "price": "—"},
+    {"name": "Đồ uống", "description": "Sắp theo logic hoàn tất giỏ hàng", "price": "—"}
+  ],
+  "footer": "CONCEPT LAYOUT / Không phải menu giá đã được duyệt"
+}
