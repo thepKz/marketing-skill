@@ -1,5 +1,9 @@
 # Image Editing
 
+## Automatic edit-mode trigger
+
+When the user supplies an image/reference and asks to `edit`, `fix`, `replace`, `remove`, `change`, `extend`, `reframe`, `restyle`, `retouch`, or create variants from that exact asset, treat the job as image editing rather than fresh generation. Preserve the supplied pixels and identity/product truth outside the named change. Use masks or localized edits when available; if the active runtime cannot edit or render images, return an executable edit contract and state that no edit was rendered.
+
 ## Build an edit contract
 
 Before editing, separate the request into four lists:

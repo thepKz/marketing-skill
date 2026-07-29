@@ -23,6 +23,8 @@ Adapt tool calls to the active runtime. Never claim that Claude, GPT/Codex, an i
 6. Research current market/platform facts when they can change. Cite URLs and dates; do not claim research that did not occur.
 7. Keep lineage: `objective -> audience -> message -> proof -> workbench -> asset -> variant -> channel -> result`.
 8. Never claim rendering, publication, outreach, deployment, approval, or performance that did not happen.
+9. When the user is not a marketer, lead with the decision and plain-language rationale, define unavoidable terms, recommend a default, and make the next action executable.
+10. When filesystem tools are available, broad plans and production requests must create a run workspace and write the requested reports/assets to disk; a chat-only outline is not a completed production run.
 
 ## Route the request
 
@@ -40,6 +42,9 @@ Read `references/marketing-system-router.md`. Run `scripts/plan_marketing_system
 | Welcome, nurture, abandonment, post-purchase, win-back | `lifecycle-retention.md`, `copywriting.md`, `learning-loop.md` |
 | Product/human/virtual-person imagery, edits, artistic visuals | Relevant image routes below |
 | Reporting, experiment, creative optimization | `learning-loop.md`, `creative-evaluation.md`, `production-pipeline.md` |
+| Marketing plan from zero or market assessment | `research-protocol.md`, `market-assessment.md`, `customer-evidence.md`, `marketing-foundation.md`, `copywriting.md` |
+| Food, restaurant, dish photo, menu or menu wireframe | `menu-engineering.md`, `menu-design.md`, `product-imagery.md`, `copywriting.md` |
+| Video concept, short-form ad, storyboard or AI video prompts | `video-production.md`, `copywriting.md`, `production-pipeline.md` |
 
 ### Conditional overlays
 
@@ -49,6 +54,7 @@ Read `references/marketing-system-router.md`. Run `scripts/plan_marketing_system
 | Current placement/export specs | `channel-spec-registry.md` and the live official source |
 | Product/human reference images | `reference-first-image-flow.md`, `prompt-contracts.md`, `rights-and-claims.md` |
 | Studio/product photography | `realistic-studio-imagery.md`, `product-imagery.md` |
+| Composition, lighting, shadow, color, resolution or sharpening | `visual-craft.md`, `composition-light-color.md`, `image-output-and-sharpening.md` |
 | Human/beauty/makeup | `human-imagery.md`, `makeup-art-direction.md`, `realistic-studio-imagery.md` |
 | Virtual brand person or recurring AI creator | `virtual-person-system.md`, `makeup-art-direction.md`, `rights-and-claims.md` |
 | Image edit/composite | `image-editing.md`, `prompt-contracts.md`, `rights-and-claims.md` |
@@ -71,6 +77,14 @@ Capture or safely infer:
 
 Use `assets/templates/project-brief.json` as the canonical machine-readable brief when the project spans multiple workbenches.
 
+## Autonomous workspaces and reports
+
+For a broad request, a non-marketer asking for a plan, or any request that asks for files/reports, run `scripts/new_run.py` before drafting. Select the closest pipeline (`plan-from-zero`, `deep-research`, `image-from-reference`, `design-render`, `video-campaign`, or `optimize-iterate`) and the smallest adequate mode.
+
+Then replace the generated `WRITE` stubs with substantive work. Preserve the generated acceptance gates and run `scripts/run_status.py --strict` before calling the run complete. A scaffold is not a report. If filesystem writes are unavailable, reproduce the same deliverable structure in the response and state that no files were created.
+
+`plan-from-zero` always includes market evidence, audience insight, positioning/offer, message architecture, a channel-ready copy pack, execution priorities, budget/measurement assumptions, and a source appendix. Do not make a non-marketer discover and invoke copywriting or research modules separately.
+
 ## Workflow
 
 ### 1. Establish truth and route
@@ -84,6 +98,10 @@ Write the audience tension, desired belief/action, product mechanism, proof, off
 ### 3. Research when needed
 
 Research current market behavior, competitors, placements, journalists, platform requirements, or search intent only when relevant. Record source, date, useful pattern, saturated pattern, rights/accuracy limits, and original adaptation.
+
+For plans, market assessments, competitor/customer claims, pricing, regulations, current platform behavior, or feasibility decisions, research is mandatory when live research tools are available. Follow `research-protocol.md`: decompose questions, assign source tiers, triangulate important conclusions, show sizing arithmetic, attach confidence, and state stop conditions. If live research is unavailable, produce the research plan and label all unverified conclusions.
+
+When multi-agent execution is available and the research has independent questions, delegate bounded tracks such as market/demand, competitors/pricing, customer language, channel/platform facts, and visual craft. Give each track a source/evidence contract, then have the primary agent verify citations, resolve contradictions, and synthesize one decision. Do not use more agents merely to produce more prose.
 
 ### 4. Build the route-specific artifact pack
 
@@ -103,6 +121,10 @@ Use `assets/registries/asset-formats.json` and select the minimum useful set; do
 Map every reference by `identity`, `product`, `pose`, `composition`, `lighting`, `styling`, `makeup`, `color-grade`, or `texture`. Separate locks, freedoms, and rejects.
 
 Use `scripts/plan_image_generation.py` for GPT Image 2/Nano Banana routing, `scripts/plan_virtual_person.py` for a recurring fictional adult person, and `scripts/compile_prompt.py` for provider-ready prompts. For four or five variants, branch from the same canonical inputs and change one named axis. Never claim images were rendered when only prompts were produced.
+
+When the user supplies an image and asks to change, fix, transform, restyle, retouch, replace, remove, extend, recompose, add branding, change makeup/outfit, or otherwise "sửa" it, default to the edit/composite route rather than text-only ideation. Inspect the source, create the reference/lock map, invoke an available image-edit capability, and compare the result against identity/product locks. If editing is unavailable, return an executable edit prompt and exact mask/selection instructions.
+
+For photoshoot direction, load `visual-craft.md` plus its specialist references. Specify composition, camera/lens intent, light direction and softness, shadow physics, color roles, material/food texture, copy-safe space, master resolution, resize/sharpen policy, and rejection criteria. For food/menu requests, produce at least three direction options, recommend one, then deliver the information architecture, wireframe, copy, image plan/prompts, and print/digital QA from `menu-engineering.md` and `menu-design.md`.
 
 ### 6. Adapt to channel and placement
 

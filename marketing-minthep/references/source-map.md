@@ -7,6 +7,7 @@
 - Campaign and website references
 - Product and packaging references
 - Image-production documentation
+- Composition, color, output, menu, and video research
 - Beauty and makeup references
 - Source logging template
 
@@ -67,6 +68,26 @@ Study physical constraints: material reflectance, label hierarchy, closure, scal
 | Google Gemini image generation | https://ai.google.dev/gemini-api/docs/image-generation | Nano Banana model roles, reference inputs, multi-turn editing, response formats, resolutions, and batch behavior |
 
 When another provider is selected, load its current official documentation rather than assuming feature parity.
+
+## Composition, color, output, menu, and video research
+
+These sources support `composition-light-color.md`, `menu-design.md`, `image-output-and-sharpening.md`, and `video-production.md`. Platform and provider specifications must still be checked live.
+
+| Source | URL | Use it for | Caution |
+|---|---|---|---|
+| Amirshahi et al., *Evaluating the Rule of Thirds* | https://brill.com/view/journals/artp/2/1-2/article-p163_11.xml | Evidence limits of rule-of-thirds claims | Composition heuristic, not a universal preference law |
+| Itti, Koch, and Niebur saliency model | https://www.cse.psu.edu/~rtc12/CSE597E/papers/Itti_etal98pami.pdf | Intensity, color, and orientation saliency | Does not adequately model faces, text, or brand meaning |
+| Wertheimer, Gestalt grouping factors | https://psychclassics.yorku.ca/Wertheimer/Forms/forms.htm | Proximity, similarity, continuity, closure, common fate | Translate principles into observable layout behavior |
+| Joe Edelman, inverse-square law | https://www.joeedelman.com/inverse-square-law | Light distance and background falloff | Large close modifiers are not perfect point sources |
+| Strobist, apparent light size | https://strobist.blogspot.com/2007/07/lighting-102-unit-21-apparent-light.html | Source size/distance and shadow softness | Practitioner guidance; verify by rendered or metered result |
+| Yang, restaurant-menu scanpaths | https://www.researchgate.net/publication/257118038_Eye_movements_on_restaurant_menus_A_revisitation_on_gaze_motion_and_consumer_scanpaths | Sequential menu reading and rejection of the golden-triangle myth | Access may be abstract or repository dependent |
+| Kasavana and Smith menu engineering overview | https://en.wikipedia.org/wiki/Menu_engineering | Origin and basic matrix vocabulary | Use primary sales/cost data and state thresholds/method |
+| Google Merchant Center image requirements | https://support.google.com/merchants/answer/6324350 | Current listing dimensions, formats, and limits | Re-check before delivery; requirements change |
+| Shopify product media | https://help.shopify.com/en/manual/products/product-media/product-media-types | Product-image dimensions and supported formats | Delivery transformations vary by storefront/client |
+| Etsy image requirements | https://help.etsy.com/hc/en-us/articles/115015663347-Requirements-and-Best-Practices-for-Images-in-Your-Etsy-Shop | Listing-image requirements | Page availability can vary; verify in seller help |
+| Adobe printer resolution guidance | https://helpx.adobe.com/photoshop/desktop/crop-resize-transform/resize-adjust-resolution/printer-resolution.html | PPI, printer resolution, and resampling workflow | Printer and press requirements override generic targets |
+| TikTok Creative Center | https://ads.tiktok.com/business/creativecenter/inspiration/topads/pc/en | Current hooks, pacing, formats, and category patterns | Pattern discovery is not evidence of causal performance |
+| Meta Ads Guide | https://www.facebook.com/business/ads-guide | Live placement, aspect-ratio, safe-zone, and delivery guidance | Verify the exact placement and market |
 
 ## Beauty and makeup references
 

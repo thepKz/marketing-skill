@@ -21,6 +21,21 @@ Route by the business job first, then apply product/category, channel, visual, a
 
 Run `scripts/plan_marketing_system.py` when the request spans jobs or the correct output pack is unclear.
 
+## Autonomous pipeline router
+
+For requests that must become files on disk, use `scripts/new_run.py` and select one pipeline:
+
+| Pipeline | Trigger | Mandatory modules |
+|---|---|---|
+| `plan-from-zero` | Non-marketer or business has no usable plan | Research, market assessment, audience, positioning/offer, copy, channels, budget, calendar, measurement |
+| `deep-research` | Decision depends on market, customer, competitor, price, regulation, or feasibility evidence | `research-protocol.md`, `market-assessment.md`, `customer-evidence.md`, `source-map.md` |
+| `image-from-reference` | Source image A must become branded, commercial, artistic, or edited imagery | Reference locks, visual craft, edit/generation route, prompts/render, QA/export |
+| `design-render` | Menu, poster, layout, wireframe, one-pager, or other designed artifact | Options, recommendation, information architecture, wireframe, copy, render/spec, QA |
+| `video-campaign` | Video concept, storyboard, short ad, demo, or AI-video prompt pack | Script, beats, shots, continuity, audio/captions, cutdowns, delivery QA |
+| `optimize-iterate` | Existing work has evidence or performance to diagnose | Metric tree, hypotheses, one-variable tests, guardrails, decision log |
+
+When the user is a non-marketer, do not return a menu of disconnected marketing disciplines. Recommend the smallest coherent pipeline, explain why in plain language, and create the connected artifact pack. Copywriting is mandatory inside `plan-from-zero`; it is not an optional follow-up.
+
 ## Secondary overlays
 
 Load only when relevant:

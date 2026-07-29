@@ -15,14 +15,35 @@ from build_asset_manifest import build_manifest
 from compile_prompt import compile_provider
 from new_run import build_run, load_registry, route_pipeline, write_run
 from plan_image_generation import route_image_request
+from plan_design_options import plan_options
 from plan_marketing_system import plan_marketing_system
 from plan_virtual_person import plan_virtual_person
+from render_mockup import render
+from research_plan import build_plan, to_markdown
 from run_status import audit_file, audit_run
 from scaffold_campaign import build_record
 from score_creative import evaluate
 
 
 class ToolTests(unittest.TestCase):
+    def test_research_plan_is_bounded_and_traceable(self) -> None:
+        plan = build_plan({"objective": "Đánh giá quán bún bò", "category": "bún bò", "market": "TP.HCM"})
+        self.assertEqual(plan["scope"]["market"], "TP.HCM")
+        self.assertEqual({item["id"] for item in plan["questions"]}, {"demand", "competition", "buyer-language", "constraints"})
+        self.assertTrue(all(item["stop_condition"] for item in plan["questions"]))
+        self.assertIn("retrieved_at", plan["evidence_ledger_fields"])
+        self.assertIn("Kế hoạch nghiên cứu", to_markdown(plan))
+
+    def test_design_options_are_distinct_and_renderable(self) -> None:
+        result = plan_options({"artefact": "menu", "product": "Bún bò Huế"})
+        self.assertEqual(result["artefact"], "menu")
+        self.assertEqual(len(result["options"]), 3)
+        self.assertEqual(len({item["id"] for item in result["options"]}), 3)
+        svg = render({"title": "Bún bò Huế", "items": [{"name": "Tô đặc biệt", "price": "79.000đ"}]})
+        self.assertIn("<svg", svg)
+        self.assertIn("Tô đặc biệt", svg)
+        self.assertIn("79.000đ", svg)
+
     def test_scaffold_v3_separates_job_and_artifact_mode(self) -> None:
         record = build_record("Launch", "product", "beauty", "gpt-image-2", ["meta", "web"])
         self.assertEqual(record["schema_version"], 3)
