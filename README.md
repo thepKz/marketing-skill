@@ -1,184 +1,199 @@
 # Marketing-Minthep
 
-`Marketing-Minthep` là một skill all-in-one dùng được với Claude Code và GPT/Codex, biến brief chưa hoàn chỉnh thành hệ thống marketing có thể sản xuất và đo lường: từ định vị, offer, content, bán hàng, PR đến campaign, hình ảnh sản phẩm, người ảo và production handoff.
+**🇬🇧 English** · [🇻🇳 Tiếng Việt](README.vi.md)
 
-Skill được thiết kế theo nguyên tắc **một invocation, nhiều workbench**. Nó chỉ nạp phần kiến thức cần cho công việc hiện tại thay vì đổ toàn bộ marketing vào một prompt khổng lồ.
+An all-in-one marketing skill for Claude Code and GPT/Codex. It turns an unfinished brief — including *"I don't know anything about marketing"* — into a system you can actually produce and measure: positioning, offer, copy, campaign, product imagery, menu and layout design, video sequences, and a measurement contract.
 
-## Skill làm được gì
-
-| Workbench | Đầu ra điển hình |
-|---|---|
-| Strategy & offer | Audience, positioning, mechanism, proof, offer, funnel, message ladder |
-| Campaign & launch | Big idea, 3 concept lanes, rollout, paid/content/landing matrix, experiment plan |
-| Content & distribution | Pillars, SEO topics, editorial briefs, social calendar, repurposing, email |
-| Commerce & merchandising | PDP/listing narrative, media sequence, SKU/variant system, catalog, retail assets |
-| Paid media | Creative hypotheses, placement matrix, testing hierarchy, naming và measurement contract |
-| PR & communications | Newsworthiness, press angle, pitch/release, press kit, Q&A, newsroom assets |
-| Sales enablement | One-pager, deck/demo story, case study, proposal, objection handling, follow-up |
-| Creator & UGC | Creator criteria, brief, deliverables, disclosure, usage rights, approval và variants |
-| Lifecycle & retention | Welcome, nurture, abandonment, post-purchase, win-back, upsell, referral |
-| Visual production | Product photography, art key visual, beauty/makeup, image edit, virtual adult person |
-| Measurement | Asset lineage, QA, experiment log, reporting, next-test recommendations |
-
-Các loại sản phẩm đã có playbook gồm beauty, fashion, food & beverage, electronics, home, jewelry/luxury, SaaS, dịch vụ, giáo dục và hospitality. Registry hiện bao phủ asset cho PDP, marketplace, catalog, Meta/TikTok/Google, social, web, email, PR, sales, retail, OOH và editorial art.
-
-## Không làm gì
-
-- Không bịa claim, thành phần, thông số, giá, review, khách hàng, số liệu, chứng nhận, scarcity hoặc endorsement.
-- Không sao chép danh tính celebrity, living artist, campaign, ảnh hoặc layout đặc trưng; reference chỉ được tách thành thuộc tính có thể chuyển hóa.
-- Không tự động làm gầy hoặc đổi cơ thể người thật trong ảnh edit.
-- Không coi packaging AI chưa có reference chính xác là hình sản phẩm thật.
-- Không tự publish, gửi báo chí, liên hệ creator, mua ads hoặc thay đổi campaign live.
-
-## Quick start
-
-Gọi skill bằng:
+One invocation, many workbenches. The skill loads only the knowledge the current job needs instead of pouring all of marketing into one enormous prompt.
 
 ```text
 $marketing-minthep
 ```
 
-Repo có hai adapter project-level:
+## Contents
 
-- Claude Code: `.claude/skills/marketing-minthep/SKILL.md`
-- GPT/Codex: `.codex/skills/marketing-minthep/SKILL.md`
+- [What it produces](#what-it-produces) · [How it decides](#how-it-decides) · [Quick start](#quick-start)
+- [The five things people find confusing](#the-five-things-people-find-confusing) — copywriting, image editing, campaign building, colour, layout
+- [Sample output](#sample-output) · [Reference library](#reference-library) · [Anti-AI-slop gate](#anti-ai-slop-gate)
+- [Repository layout](#repository-layout) · [Tests](#tests) · [What it will not do](#what-it-will-not-do)
 
-Hai adapter đều nạp `marketing-minthep/SKILL.md` làm nguồn chính. Không sửa nội dung marketing trực tiếp trong adapter để tránh Claude và GPT cho kết quả lệch nhau.
+## What it produces
 
-Input tối thiểu nên có:
+Six pipelines, each with a fixed deliverable contract:
 
-1. Sản phẩm/dịch vụ và mục tiêu kinh doanh.
-2. Audience hoặc tình huống mua.
-3. Kênh, thị trường và thời hạn nếu có.
-4. Fact/claim/proof đã xác nhận.
-5. Asset/reference hiện có và điều phải giữ hoặc tránh.
+| Pipeline | Deliverables | Typical output |
+|---|---|---|
+| `plan-from-zero` | 16 | Market evidence, audience, positioning, offer, message ladder, copy pack, calendar, budget and measurement |
+| `deep-research` | 9 | Question decomposition, tiered sources, sizing arithmetic, triangulation, confidence, source map |
+| `image-from-reference` | 10 | Reference role map, locks/freedoms/rejects, provider route, 4–5 controlled branches, QA |
+| `design-render` | 9 | Design directions, chosen system, real rendered menu/wireframe/key visual, print and export handoff |
+| `video-campaign` | 9 | Shot list with carried continuity, per-shot prompts, audio, edit plan, platform cutdowns |
+| `optimize-iterate` | 7 | Asset lineage, experiment log, read-out, next-test recommendation |
 
-Skill sẽ hỏi tối đa ba câu khi thiếu dữ liệu có thể làm thay đổi truth, quyền sử dụng, offer, kiến trúc hoặc chi phí. Các khoảng trống ít rủi ro được ghi rõ là giả định rồi tiếp tục.
+Eleven workbenches sit across those pipelines: strategy and offer, campaign and launch, content and distribution, commerce and merchandising, paid media, PR, sales enablement, creator and UGC, lifecycle and retention, visual production, measurement.
 
-### Chọn độ rộng
+Product families with their own playbook and proof requirements: beauty, fashion, food and beverage, electronics, home, jewelry and luxury, SaaS, local service, education, hospitality.
 
-- `focused`: một workbench và bộ artifact nhỏ nhất có thể dùng ngay; đây là mặc định.
-- `system`: nối strategy với các kênh, asset và measurement thật sự phụ thuộc nhau.
-- `production`: thêm brief JSON, manifest, provider prompt, owner, approval, naming và export handoff.
+## How it decides
 
-Kế hoạch từ số 0 và nghiên cứu sâu mặc định chạy ở `system` để không bỏ sót audience, copy pack, ngân sách và lịch triển khai. Menu, image edit và video sẽ tự nâng lên `production` khi request có `render`, `export`, `xuất file`, `MP4` hoặc yêu cầu in ấn.
+The scaffold reads your sentence before it plans anything. `scripts/_signals.py` pulls four facts out of the wording, in Vietnamese or English, accented or not:
 
-### Ví dụ request
+| Signal | Read from | Effect |
+|---|---|---|
+| Campaign horizon | `"trong 6 tuần"`, `"in 8 weeks"`, `"90 ngày"` | Names and divides the calendar deliverable into phases that add up exactly |
+| Budget pressure | `"ngân sách nhỏ"`, `"tight budget"` | Caps the asset count and drops channels that tier cannot reach, with a stated reason |
+| Product family | `"bún bò"`, `"serum"`, `"homestay"` | Selects the playbook and the proof requirements |
+| Market | `"Sài Gòn"`, `"Đà Lạt"` | Switches to Vietnam market context and single-location tactics |
 
-Physical product:
+Every one of these is labelled `inferred` and carries the phrase it was read from, because a horizon you stated is not the same kind of fact as one we defaulted to. `01-intake` opens with your request quoted verbatim above that label table. Correct a wrong inference there and everything downstream follows.
 
-```text
-Use $marketing-minthep in production mode for this skincare product.
-Build the PDP image sequence, Meta/TikTok campaign system, creator brief,
-four original image directions, claims ledger, and measurement plan.
-```
+Facts are labelled throughout: `confirmed` (you said it), `observed` (found in a cited source), `inferred` (read from wording), `unknown`. A field marked `unknown` — unit price and contribution margin above all — gets an answer from you or a written assumption beside it. It never gets a plausible number.
 
-Beauty hoặc virtual person:
+Three widths: `focused` (smallest usable set, the default), `system` (strategy connected to channels and measurement), `production` (adds JSON manifests, provider prompts, owners, approval, naming, export handoff). Plans from zero and deep research start at `system`. Menu, image edit and video rise to `production` when the request says `render`, `export`, `xuất file`, `MP4`, or asks for print.
 
-```text
-Use $marketing-minthep with my references. Explain four fictional-adult
-virtual-person options, including healthy build, makeup and pose. After I choose,
-create a consistent identity sheet and four campaign branches without copying celebrity identity.
-```
+## Quick start
 
-SaaS:
-
-```text
-Use $marketing-minthep to launch this B2B SaaS. Produce positioning,
-a proof-led landing narrative, LinkedIn content, sales one-pager,
-demo story, paid hypotheses and a 30-day measurement plan.
-```
-
-Dịch vụ địa phương:
-
-```text
-Use $marketing-minthep for a local dental clinic. Build the offer,
-Google/Meta asset plan, trust content, review-safe proof system,
-lead follow-up flow and a localized production shot list.
-```
-
-PR, sales, creator hoặc lifecycle:
-
-```text
-Use $marketing-minthep in focused mode for a press launch.
-Score newsworthiness and create the angle, pitch, press kit checklist,
-Q&A, spokesperson assets and earned-media measurement contract.
-```
-
-Để skill tự route một brief rộng:
+Install into both CLIs, globally:
 
 ```powershell
-python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
+python marketing-minthep/scripts/install_global.py
 ```
 
-Để tạo workspace thật, seed research/provider metadata và nối các pipeline phụ trong cùng một request:
+That writes to `~/.claude/skills/marketing-minthep` and `~/.codex/skills/marketing-minthep`. The repo also carries project-level adapters at `.claude/skills/` and `.codex/skills/`; both load `marketing-minthep/SKILL.md` as the single source, so never edit marketing content inside an adapter.
+
+Create a real workspace from one sentence:
 
 ```powershell
 python marketing-minthep/scripts/start_workbench.py --request "Tôi không biết marketing, hãy làm kế hoạch từ đầu cho quán bún bò" --root .
 ```
 
-Mỗi run có `_meta/render-capability.json`. File này bắt đầu ở `not-rendered`; chỉ đổi trạng thái sau khi output thật đã được mở và QA. Prompt, storyboard, wireframe SVG và provider plan không được gọi là ảnh/video đã render.
-
-## Image system
-
-Flow chuẩn là `references -> role map -> locks/freedoms/rejects -> provider route -> 4-5 controlled branches -> QA -> winner refinement`.
-
-- GPT Image 2: phù hợp direct generation/edit, multi-turn qua Responses API và nhiều output cùng canonical prompt.
-- Nano Banana: phù hợp nhiều reference, consistency, layout/text/localization và refinement theo branch.
-- Virtual person luôn là fictional adult, anatomy khỏe mạnh; project có thể ưu tiên `slender-light-frame` nhưng cấm extreme thinness, waist distortion và childlike presentation.
-- Makeup được mô tả theo skin, brows, eyes, liner, lashes, blush, facial structure, lips, palette và retouching. Douyin/aegyo-sal là một option, không phải mặc định cho mọi brief.
-
-Các lệnh liên quan:
+A campaign brief derived entirely from the request — horizon, budget, industry and channels all read from it:
 
 ```powershell
-python marketing-minthep/scripts/plan_image_generation.py --input marketing-minthep/assets/examples/reference-image-request.json
-python marketing-minthep/scripts/plan_virtual_person.py --input marketing-minthep/assets/examples/virtual-person-request.json
-python marketing-minthep/scripts/compile_prompt.py --help
-```
-
-## Production tools
-
-```powershell
-# Campaign brief đọc từ chính câu yêu cầu: horizon, ngân sách, ngành, kênh đều suy ra từ đó
 python marketing-minthep/scripts/scaffold_campaign.py --request "Tôi bán bún bò ở Sài Gòn, muốn lên chiến dịch ra mắt trong 6 tuần cho khách văn phòng, ngân sách nhỏ"
-
-# Ghi đè khi bạn biết rõ hơn suy luận của nó
-python marketing-minthep/scripts/scaffold_campaign.py --project "Launch" --job campaign-launch --industry beauty --provider gpt-image-2 --channels meta tiktok web
-
-# Tạo manifest từ request hoặc output của planner
-python marketing-minthep/scripts/build_asset_manifest.py --input marketing-minthep/assets/examples/all-in-one-product-request.json --format json
-
-# Chấm creative và phân tích performance
-python marketing-minthep/scripts/score_creative.py --help
-python marketing-minthep/scripts/analyze_performance.py --help
 ```
 
-## Handbook HTML
+Override when you know better than the inference:
 
-Handbook tĩnh nằm tại `docs/index.html` và giải thích reference-first flow, business workbenches, virtual person, makeup, camera/light/composition, provider routing, prompt contract, QA và production loop. Giao diện có i18n VI/EN, dùng font hỗ trợ đầy đủ dấu tiếng Việt và contact sheet liên kết về các post Instagram gốc.
+```powershell
+python marketing-minthep/scripts/scaffold_campaign.py --project "Launch" --job campaign-launch --industry beauty --provider gpt-image-2 --channels meta tiktok web
+```
+
+Check a run before calling it finished:
+
+```powershell
+python marketing-minthep/scripts/run_status.py --strict
+```
+
+`--strict` fails on empty deliverables *and* on filled-but-indefensible ones: unsourced figures, leftover placeholders, sections thin enough to be filler. A scaffold is not a report, and a full file is not automatically a defensible one.
+
+Every run carries `_meta/render-capability.json`, starting at `not-rendered`. Prompts, storyboards, SVG wireframes and provider plans are never described as rendered photography or video.
+
+## The five things people find confusing
+
+Each one has a deep dossier and a command that produces a real artefact.
+
+### Copywriting
+
+The ladder is `tension → promise → mechanism → proof → action`, and it is a ladder because you cannot skip a rung: a promise without a mechanism is a slogan, a mechanism without proof is a claim. Read [`references/copywriting.md`](marketing-minthep/references/copywriting.md) for the channel-ready pack and [`references/dossiers/copywriting-deep.md`](marketing-minthep/references/dossiers/copywriting-deep.md) for sentence-level craft — specificity over adjective stacking, the objection you must name before the reader does, and why "chất lượng cao" is not a benefit.
+
+### Image editing
+
+Editing is not generation. The route is: inspect the source, build a **lock map**, invoke a real edit capability, then compare the result against the locks. On a real person, makeup edits change pigment and finish on the surface only; head shape, eye geometry and spacing, eyelids, nose, lips, jaw, chin, ears, hairline, skin tone, apparent age, asymmetry, expression and gaze are locked. Outfit edits change wardrobe only. If a real edit capability is unavailable, the skill returns an executable edit prompt with exact mask instructions and says plainly that nothing was rendered. See [`references/image-editing.md`](marketing-minthep/references/image-editing.md).
+
+### Campaign building
+
+```powershell
+python marketing-minthep/scripts/scaffold_campaign.py --request "..."
+```
+
+The brief separates two things that used to both print as `TBD`: **UNKNOWN** means nobody has stated it and the plan is blocked until they do; **TBD** means it is ours to decide and is not decided yet. Assets interleave across channels and carry a funnel stage, rather than being the cartesian product of channels and formats — that is a multiplication, not a plan. See [`references/campaign-systems.md`](marketing-minthep/references/campaign-systems.md).
+
+### Colour
+
+Palettes are built, not picked. The dossier [`references/dossiers/colour-science-and-harmony.md`](marketing-minthep/references/dossiers/colour-science-and-harmony.md) covers perceptual lightness versus hex intuition, contrast ratios that survive a phone screen in sunlight, the difference between a brand colour and an accent that only appears once, and what happens to your palette in CMYK. `references/composition-light-color.md` connects it to camera, light and grade.
+
+### Layout
+
+```powershell
+python marketing-minthep/scripts/plan_design_options.py --input marketing-minthep/assets/examples/bun-bo/menu-modern-street.json
+python marketing-minthep/scripts/render_mockup.py --input marketing-minthep/assets/examples/bun-bo/menu-modern-street.json --output out.svg --html-output out.html
+```
+
+The renderer measures text and flows it. Nothing is positioned by a fraction of the canvas height — that approach produced diacritics cutting through a kicker line and a title painted under the hero image. Copy that does not fit raises an error instead of being silently truncated, because a mockup that quietly deletes two thirds of a sentence looks finished, which is what makes it dangerous. Dossiers: [`layout-wireframe-typography.md`](marketing-minthep/references/dossiers/layout-wireframe-typography.md), [`composition-and-layout-vision.md`](marketing-minthep/references/dossiers/composition-and-layout-vision.md), [`menu-design-and-engineering.md`](marketing-minthep/references/dossiers/menu-design-and-engineering.md).
+
+## Sample output
+
+Three menu directions for the same bún bò shop, rendered by `render_mockup.py` from the specs in `assets/examples/bun-bo/` — no API, no design tool:
+
+| Modern street | Heritage craft | Quiet editorial |
+|---|---|---|
+| [SVG](docs/assets/generated/bun-bo-menu-modern-street.svg) | [SVG](docs/assets/generated/bun-bo-menu-heritage-craft.svg) | [SVG](docs/assets/generated/bun-bo-menu-quiet-editorial.svg) |
+
+Image directions compiled by `compile_prompt.py` and rendered through a provider:
+
+| Packshot | Key visual | Beauty campaign | Fashion look |
+|---|---|---|---|
+| <img src="docs/assets/generated/minthep-serum-packshot.png" width="180"> | <img src="docs/assets/generated/minthep-serum-key-visual.png" width="180"> | <img src="docs/assets/generated/minthep-beauty-campaign.png" width="180"> | <img src="docs/assets/generated/minthep-fashion-look.png" width="180"> |
+
+Video shots come from `plan_video_sequence.py`, which carries continuity forward: each shot inherits the previous shot's subject state, wardrobe, light direction, lens and grade, so prompt 4 cannot contradict prompt 3.
+
+```powershell
+python marketing-minthep/scripts/plan_video_sequence.py --input marketing-minthep/assets/examples/bun-bo/video-sequence.json --format prompts
+```
+
+## Reference library
+
+20 reference photographs in `docs/assets/references/` with attribution in `ATTRIBUTION.txt`, covering makeup macro, expression grids, candid action, full-body negative space, editorial poses and mixed lighting. They exist to be decomposed into transferable attributes — `identity`, `product`, `pose`, `composition`, `lighting`, `styling`, `makeup`, `color-grade`, `texture` — and never to be copied. Using them implies no endorsement and grants no reuse rights for a campaign.
+
+The static handbook explains the whole flow with a VI/EN toggle:
 
 ```powershell
 python -m http.server 8000 --directory docs
 ```
 
-Mở `http://localhost:8000`. Handbook có thư viện 17+ reference preview với filter makeup, pose, candid, full-body, editorial và lighting; mỗi ảnh liên kết về post gốc. Gallery output hiển thị packshot, beauty campaign, artistic key visual và fashion look đã render. Ảnh Instagram chỉ dùng để phân tích thuộc tính thị giác, không ngụ ý endorsement và không mặc nhiên cấp quyền tái sử dụng cho campaign.
+## Anti-AI-slop gate
 
-Khi edit ảnh người thật, makeup chỉ được đổi pigment/finish trên bề mặt. Skill khóa head shape, eye geometry và spacing, eyelids, nose, lips, jaw, chin, ears, hairline, skin tone, tuổi thể hiện, bất đối xứng, expression và gaze. Outfit edit chỉ thay wardrobe; face, hair, body proportions, pose, hands, camera, crop, light và background vẫn phải giữ nguyên.
+[`references/anti-ai-quality.md`](marketing-minthep/references/anti-ai-quality.md) runs before delivery. The first-order check: could someone predict the palette, model, props, lighting and layout from the product *category* alone? Dark navy and purple glow for AI software, airbrushed face and water splash for beauty, blue gradient and handshake for corporate, black and gold and marble for luxury, beige room and one green leaf for wellness. If yes, the category cue is replaced by a product mechanism, an audience behaviour, or a physical material specific to this brief.
 
-## Kiểm tra
+The second-order check catches the escape hatch: having rejected the obvious category look, did the work land in another fashionable default — generic editorial restraint, brutalist utility, maximalist acid graphics — for no reason from the brief? The visual lane has to be named and justified by the product, not by taste.
+
+## Repository layout
+
+```
+marketing-minthep/
+  SKILL.md                  entry point, under 150 lines
+  references/               45 topic files, each under 150 lines
+    dossiers/               14 deep-craft dossiers + index
+  scripts/                  19 tools + test suite
+  assets/
+    registries/             pipelines.json, asset-formats.json
+    templates/              project-brief.json and deliverable skeletons
+    examples/               runnable inputs, including the bún bò case study
+    evals/                  routing cases
+docs/                       static handbook, VI/EN, deployed to GitHub Pages
+.claude/skills/  .codex/skills/    thin adapters over the same SKILL.md
+```
+
+## Tests
 
 ```powershell
 python -m unittest discover -s marketing-minthep/scripts -p "test_*.py"
-python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
-python C:\Users\Admin\.codex\skills\.system\skill-creator\scripts\quick_validate.py marketing-minthep
 python marketing-minthep/scripts/evaluate_workbench.py
+python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-Workflow `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest, unit tests, Python compilation và deploy trực tiếp `docs/` lên GitHub Pages. Repository không còn `marketing-one-page-studio` hoặc `web-studio`.
+93 tests. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
 
-## Giới hạn vận hành
+## What it will not do
 
-- Platform specs thay đổi; skill phải kiểm tra nguồn chính thức live trước export/upload.
-- Kết quả ảnh phụ thuộc provider, reference hợp lệ và khả năng render hiện có; prompt không đồng nghĩa ảnh đã được tạo hoặc QA.
-- PR, legal, health, finance, comparative và regulated claims cần bằng chứng/chủ sở hữu phê duyệt phù hợp.
-- Skill hỗ trợ lập kế hoạch và tạo artifact; publishing, media buying, outreach và production deployment cần ủy quyền riêng.
+- Invent a claim, ingredient, spec, price, review, customer, statistic, certification, scarcity cue or endorsement.
+- Copy a celebrity identity, a living artist's style, a specific campaign, photograph or signature layout. References are decomposed into attributes or not used.
+- Slim or reshape a real person's body in an edit.
+- Present an AI-generated package as a photograph of the real product without an exact reference.
+- Publish, contact press or creators, buy ads, or change a live campaign. Those need separate authorization.
+- Call a prompt an image, a storyboard a video, or a plan a result.
+
+## Operating limits
+
+Platform specs change; verify the official source live before export or upload. Image results depend on the provider, valid references and whatever rendering capability actually exists at the time. PR, legal, health, finance, comparative and regulated claims need evidence and owner approval. This skill plans and produces artefacts; publishing, media buying, outreach and deployment remain yours.
