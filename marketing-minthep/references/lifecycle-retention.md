@@ -25,7 +25,12 @@ Do not send promotional pressure when a service or support issue is unresolved. 
 
 - Keep essential meaning in live text; images may be blocked.
 - Use product/use visuals that match the lifecycle state.
-- Avoid generic discounting as the default solution to weak activation or unclear value.
+- Diagnose before discounting. Low activation has distinct causes and a discount only fixes one of
+  them: the customer never reached first value (fix onboarding and the first-run path), does not
+  believe the value (add proof, demo, or a guarantee), hit a friction wall such as payment or setup
+  (fix the wall), or genuinely finds the price too high for the value shown (only here does price
+  belong in the answer). Discounting a belief problem teaches the customer to wait for the next
+  offer and leaves the belief intact.
 - Confirm offer, inventory, expiry, replenishment timing, and personalization data.
 - Adapt email, SMS, push, in-app, and retargeting instead of pasting one message everywhere.
 

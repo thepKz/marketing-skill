@@ -70,4 +70,12 @@ Run five passes:
 4. **Voice**: wording sounds like the brand, not a copy template.
 5. **Compression**: remove repetition, throat-clearing, and empty intensifiers.
 
-Avoid default phrases such as `revolutionary`, `seamless`, `unlock`, `elevate`, `game-changing`, and `in today's fast-paced world` unless evidence and brand voice genuinely require them.
+Delete `revolutionary`, `seamless`, `unlock`, `elevate`, `game-changing`, and `in today's
+fast-paced world` outright. No evidence can require them: they are adjectives with no test
+attached, which is why every competitor can use the same line. Replace each with the thing that
+earned it — `seamless` becomes the number of steps removed, `elevate` becomes the outcome that
+changed, `revolutionary` becomes what was impossible before. If nothing can be named, the claim
+was empty and the sentence should go, not be softened.
+
+The exception is a phrase the brand already owns in market, where dropping it costs recognition.
+That is a brand-guideline decision with a paper trail, not a judgement to make while drafting.

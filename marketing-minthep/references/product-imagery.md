@@ -45,7 +45,11 @@ Use standard compositions for ecommerce, launch clarity, catalogs, retail, and c
 6. **Off-axis system**: use a deliberate diagonal or asymmetric balance that survives channel crops.
 7. **Scale disruption**: enlarge or miniaturize only when the metaphor supports the campaign idea.
 
-The unusual move must express mechanism, audience tension, or brand character. Random surrealism is not a concept.
+Before rendering an unusual move, finish this sentence in one line: "This image is strange in *this*
+specific way because the product does *this*." If the strangeness could be swapped for a different
+strangeness without changing that sentence, it is decoration and the concept is still missing.
+A floating serum bottle ringed by orbiting citrus is arbitrary; the same bottle suspended in a
+cross-section of the gel it disperses into is the mechanism made visible.
 
 ### Corporate: proof-led confidence
 

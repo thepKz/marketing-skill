@@ -68,7 +68,15 @@ Define voice through contrasts:
 - Calm vs urgent.
 - Formal vs conversational.
 
-Give three positive examples and three rejected examples. Ban filler such as "elevate," "unlock," "revolutionize," and "all-in-one" unless the brand has consciously adopted them.
+Place the brand on each axis, then write the same sentence twice — once on-voice, once in the
+version a competitor would write. If the two are hard to tell apart, the axis positions are
+decorative and the voice is not defined yet.
+
+Ban `elevate`, `unlock`, `revolutionize`, and `all-in-one`. They sit at no position on any axis
+above, which is exactly the problem: a word that survives every setting describes none of them.
+See `copywriting.md` for what to replace each one with. If the brand already uses one of these in
+market, record it as an inherited term with the date it was adopted, so the next writer knows it is
+a legacy constraint rather than a house style worth extending.
 
 ## Visual fingerprint
 

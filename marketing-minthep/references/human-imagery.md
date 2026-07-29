@@ -2,7 +2,16 @@
 
 ## Choose casting and capture mode
 
-Do not apply a universal beauty, ethnicity, body, camera, or K-pop default. Derive the direction from the audience, product, market, channel, and supplied references.
+Derive casting from four named inputs, in this order: who actually buys the product, what the
+product does to or for a body, the market the image runs in, and the channel's viewing distance.
+Write the answer to each before describing a face. "Women 25–34 in TP.HCM who commute by motorbike,
+buying a sunscreen, seen at arm's length on a phone" already rules out a studio-lit fashion beauty
+shot and points at real skin in real daylight.
+
+Left unanchored, image models converge on one narrow look — young, symmetrical, light-skinned,
+glass-skinned K-pop beauty — regardless of who the product is for. That default is not neutral: it
+is a claim about who the brand is speaking to, made by accident. Name the four inputs and it stops
+being the fallback.
 
 When the brief is incomplete:
 
