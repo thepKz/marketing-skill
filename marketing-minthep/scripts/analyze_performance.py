@@ -6,7 +6,11 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _emit import emit  # noqa: E402
 
 
 def number(row: dict, key: str) -> float:
@@ -86,10 +90,7 @@ def main() -> None:
     with Path(args.input).open(encoding="utf-8", newline="") as handle:
         results = analyze(list(csv.DictReader(handle)))
     content = json.dumps(results, indent=2, ensure_ascii=True) + "\n" if args.format == "json" else to_markdown(results)
-    if args.output:
-        Path(args.output).write_text(content, encoding="utf-8")
-    else:
-        print(content, end="")
+    emit(content, args.output)
 
 
 if __name__ == "__main__":

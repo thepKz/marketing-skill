@@ -5,7 +5,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _emit import emit  # noqa: E402
 
 
 PROVIDER_ALIASES = {
@@ -152,10 +156,7 @@ def main() -> None:
     request = json.loads(Path(args.input).read_text(encoding="utf-8"))
     result = route_image_request(request)
     content = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
-    if args.output:
-        Path(args.output).write_text(content, encoding="utf-8")
-    else:
-        print(content, end="")
+    emit(content, args.output)
 
 
 if __name__ == "__main__":

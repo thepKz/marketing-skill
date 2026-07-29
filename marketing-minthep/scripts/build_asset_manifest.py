@@ -7,7 +7,11 @@ import argparse
 import csv
 import io
 import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _emit import emit  # noqa: E402
 
 from plan_marketing_system import plan_marketing_system
 
@@ -130,10 +134,7 @@ def main() -> None:
     record = json.loads(Path(args.input).read_text(encoding="utf-8"))
     rows = build_manifest(record, normalize_channels(record, args.channels))
     content = json.dumps(rows, indent=2, ensure_ascii=True) + "\n" if args.format == "json" else to_csv(rows)
-    if args.output:
-        Path(args.output).write_text(content, encoding="utf-8")
-    else:
-        print(content, end="")
+    emit(content, args.output)
 
 
 if __name__ == "__main__":

@@ -5,7 +5,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _emit import emit  # noqa: E402
 
 
 PROVIDERS = (
@@ -214,10 +218,7 @@ def main() -> None:
     parser.add_argument("--output")
     args = parser.parse_args()
     content = compile_provider(load_record(args.input), args.provider) + "\n"
-    if args.output:
-        Path(args.output).write_text(content, encoding="utf-8")
-    else:
-        print(content, end="")
+    emit(content, args.output)
 
 
 if __name__ == "__main__":

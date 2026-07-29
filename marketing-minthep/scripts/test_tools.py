@@ -5,14 +5,19 @@ from __future__ import annotations
 
 import csv
 import io
+import json
+import tempfile
 import unittest
+from pathlib import Path
 
 from analyze_performance import analyze
 from build_asset_manifest import build_manifest
 from compile_prompt import compile_provider
+from new_run import build_run, load_registry, route_pipeline, write_run
 from plan_image_generation import route_image_request
 from plan_marketing_system import plan_marketing_system
 from plan_virtual_person import plan_virtual_person
+from run_status import audit_file, audit_run
 from scaffold_campaign import build_record
 from score_creative import evaluate
 
@@ -226,6 +231,195 @@ class ToolTests(unittest.TestCase):
         self.assertAlmostEqual(result["cvr"], 0.1)
         self.assertAlmostEqual(result["roas"], 4.0)
         self.assertFalse(result["sample_warning"])
+
+
+SUBSTANTIVE_SECTION = (
+    "The mid-tier segment competes on taste consistency rather than location, which is where "
+    "the gap sits. Three nearby shops describe themselves in nearly identical language and none "
+    "of them says anything about how the broth is actually made."
+)
+
+
+def _doc(*sections: tuple[str, str], status: str = "final") -> str:
+    head = f"<!-- minthep:deliverable id=05-positioning lang=vi status={status} -->\n# Positioning\n\n"
+    return head + "\n".join(f"## {title}\n\n{body}\n" for title, body in sections)
+
+
+class RunWorkspaceTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.registry = load_registry()
+
+    def test_vietnamese_phrasing_routes_to_each_pipeline(self) -> None:
+        cases = {
+            "tôi muốn lên kế hoạch marketing cho quán bún bò": "plan-from-zero",
+            "làm menu cho quán, thiết kế wireframe": "design-render",
+            "tôi có hình ảnh này, muốn tạo ảnh branding sản phẩm": "image-from-reference",
+            "làm video quảng cáo tiktok": "video-campaign",
+            "phân tích hiệu quả quảng cáo và tối ưu": "optimize-iterate",
+            "nghiên cứu thị trường và đối thủ cạnh tranh": "deep-research",
+        }
+        for request, expected in cases.items():
+            with self.subTest(request=request):
+                routing = route_pipeline({"request": request}, self.registry)
+                self.assertEqual(routing["pipeline"], expected)
+
+    def test_explicit_pipeline_overrides_keyword_routing(self) -> None:
+        routing = route_pipeline(
+            {"request": "lên kế hoạch marketing", "pipeline": "video-campaign"}, self.registry
+        )
+        self.assertEqual(routing["pipeline"], "video-campaign")
+        self.assertEqual(routing["reason"], "explicitly requested")
+
+    def test_unmatched_request_falls_back_to_plan_from_zero(self) -> None:
+        routing = route_pipeline({"request": "zzzz qqqq"}, self.registry)
+        self.assertEqual(routing["pipeline"], "plan-from-zero")
+        self.assertIn("no signal", routing["reason"])
+        self.assertEqual(max(routing["scores"].values()), 0)
+
+    def test_unsupported_pipeline_and_mode_are_rejected(self) -> None:
+        with self.assertRaises(ValueError):
+            route_pipeline({"pipeline": "make-me-famous"}, self.registry)
+        with self.assertRaises(ValueError):
+            build_run({"request": "kế hoạch", "mode": "turbo"}, self.registry)
+        with self.assertRaises(ValueError):
+            build_run({"request": "kế hoạch", "languages": ["fr"]}, self.registry)
+
+    def test_slug_strips_vietnamese_diacritics(self) -> None:
+        run = build_run({"request": "kế hoạch", "project": "Bún Bò Huế Đà Nẵng"}, self.registry)
+        self.assertEqual(run["run_id"].split("-", 3)[3], "bun-bo-hue-da-nang")
+
+    def test_long_slug_cuts_at_a_word_boundary(self) -> None:
+        run = build_run(
+            {"request": "tôi muốn lên kế hoạch marketing cho quán bún bò Huế", "date": "2026-01-01"},
+            self.registry,
+        )
+        slug = run["run_id"].removeprefix("2026-01-01-")
+        self.assertLessEqual(len(slug), 48)
+        self.assertFalse(slug.endswith("-"), slug)
+        self.assertEqual(slug, "toi-muon-len-ke-hoach-marketing-cho-quan-bun-bo")
+
+    def test_slug_falls_back_when_the_request_has_no_usable_characters(self) -> None:
+        run = build_run({"request": "!!! ???", "date": "2026-01-01"}, self.registry)
+        self.assertEqual(run["run_id"], "2026-01-01-run")
+
+    def test_mode_widens_the_deliverable_set(self) -> None:
+        counts = {}
+        for mode in ("focused", "system", "production"):
+            run = build_run({"request": "lên kế hoạch marketing", "mode": mode}, self.registry)
+            counts[mode] = len(run["deliverables"])
+        self.assertLess(counts["focused"], counts["system"])
+        self.assertLessEqual(counts["system"], counts["production"])
+
+    def test_write_run_creates_bilingual_pairs_and_manifest(self) -> None:
+        run = build_run(
+            {"request": "lên kế hoạch marketing", "project": "Bun Bo", "mode": "system", "date": "2026-07-29"},
+            self.registry,
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            written = write_run(run, Path(tmp))
+            run_dir = Path(tmp) / "runs" / run["run_id"]
+            self.assertTrue((run_dir / "run.json").exists())
+            self.assertTrue((run_dir / "README.md").exists())
+            self.assertGreater(len(written["files_written"]), 20)
+            self.assertIn("run.json", written["files_written"])
+            bilingual = [item for item in run["deliverables"] if item["bilingual"]]
+            self.assertGreater(len(bilingual), 5)
+            for entry in bilingual:
+                for rel in entry["paths"]:
+                    self.assertTrue((run_dir / rel).exists(), rel)
+            manifest = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["pipeline"], "plan-from-zero")
+
+    def test_write_run_refuses_to_clobber_without_force(self) -> None:
+        run = build_run({"request": "lên kế hoạch marketing", "date": "2026-07-29"}, self.registry)
+        with tempfile.TemporaryDirectory() as tmp:
+            write_run(run, Path(tmp))
+            with self.assertRaises(FileExistsError):
+                write_run(run, Path(tmp))
+            write_run(run, Path(tmp), force=True)
+
+
+class RunAuditTests(unittest.TestCase):
+    def _audit_doc(self, text: str) -> dict:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "05-positioning.vi.md"
+            path.write_text(text, encoding="utf-8")
+            return audit_file(path)
+
+    def test_fresh_workspace_is_not_filled_and_strict_would_fail(self) -> None:
+        run = build_run(
+            {"request": "lên kế hoạch marketing", "mode": "system", "date": "2026-07-29"}
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            write_run(run, Path(tmp))
+            report = audit_run(Path(tmp) / "runs" / run["run_id"])
+        self.assertFalse(report["filled"])
+        self.assertFalse(report["complete"])
+        self.assertGreater(report["total_unfilled_sections"], 50)
+        self.assertIn("01-intake", report["blocking"])
+
+    def test_unfilled_stub_reports_write_prompts_not_quality_noise(self) -> None:
+        result = self._audit_doc(_doc(("Market structure", "> WRITE: describe the segments"), status="empty"))
+        self.assertEqual(result["status"], "empty")
+        self.assertEqual(result["unfilled_sections"], 1)
+        self.assertEqual(result["warnings"], [])
+
+    def test_placeholder_leak_is_flagged(self) -> None:
+        result = self._audit_doc(_doc(("Market structure", "Pricing is TBD and the rest is TODO.")))
+        self.assertTrue(any("placeholder" in warning for warning in result["warnings"]))
+
+    def test_figures_without_a_source_are_flagged(self) -> None:
+        body = "The segment is 1.134.000 people, growing 12,5% with an average ticket of 45.000 VND."
+        result = self._audit_doc(_doc(("Market structure", body)))
+        self.assertTrue(any("no source URL" in warning for warning in result["warnings"]))
+
+    def test_figures_with_a_source_are_clean(self) -> None:
+        body = (
+            "The segment is 1.134.000 people, growing 12,5% with an average ticket of 45.000 VND, "
+            "per https://danang.gov.vn retrieved 2026-07-29. The arithmetic behind the range is "
+            "shown in the sizing appendix so a reader can rebuild it without trusting the number."
+        )
+        result = self._audit_doc(_doc(("Market structure", body)))
+        self.assertEqual(result["warnings"], [])
+
+    def test_one_liner_sections_are_flagged_as_thin(self) -> None:
+        result = self._audit_doc(
+            _doc(
+                ("Market structure", "Three segments exist."),
+                ("Nearest rivals", "Three shops nearby."),
+                ("Differentiating idea", "Twelve-hour broth."),
+                ("Positioning statement", "For office workers."),
+            )
+        )
+        self.assertTrue(any("thin" in warning for warning in result["warnings"]))
+
+    def test_substantive_sections_are_not_flagged_as_thin(self) -> None:
+        result = self._audit_doc(
+            _doc(
+                ("Market structure", SUBSTANTIVE_SECTION),
+                ("Nearest rivals", SUBSTANTIVE_SECTION),
+                ("Differentiating idea", SUBSTANTIVE_SECTION),
+                ("Positioning statement", SUBSTANTIVE_SECTION),
+            )
+        )
+        self.assertEqual(result["warnings"], [])
+
+    def test_csv_with_header_only_is_empty(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "claims.csv"
+            path.write_text("claim_id,claim,evidence\n", encoding="utf-8")
+            self.assertEqual(audit_file(path)["status"], "empty")
+            path.write_text("claim_id,claim,evidence\nC-1,12h broth,kitchen log\n", encoding="utf-8")
+            self.assertEqual(audit_file(path)["status"], "final")
+
+    def test_invalid_json_deliverable_is_reported(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "02-reference-map.json"
+            path.write_text("{not json", encoding="utf-8")
+            result = audit_file(path)
+        self.assertEqual(result["status"], "invalid")
+        self.assertTrue(any("invalid JSON" in issue for issue in result["issues"]))
 
 
 if __name__ == "__main__":

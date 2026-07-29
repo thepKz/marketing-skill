@@ -48,6 +48,9 @@ jobs:
           test -f marketing-minthep/references/creator-ugc.md
           test -f marketing-minthep/references/lifecycle-retention.md
           test -f marketing-minthep/assets/registries/asset-formats.json
+          test -f marketing-minthep/assets/registries/pipelines.json
+          test -f marketing-minthep/scripts/new_run.py
+          test -f marketing-minthep/scripts/run_status.py
           test -f docs/index.html
           test -f docs/styles.css
           test -f docs/app.js
@@ -88,6 +91,46 @@ jobs:
           assert 0 < len(manifest) <= plan['asset_count']
           assert len({row['asset_type'] for row in manifest}) == len(manifest)
           PY
+
+      - name: Smoke-test run workspace scaffold and audit
+        shell: bash
+        run: |
+          python marketing-minthep/scripts/new_run.py \
+            --request "tôi muốn lên kế hoạch marketing cho quán bún bò Huế" \
+            --mode system --date 2026-01-01 --root "$RUNNER_TEMP/run-smoke" \
+            --output "$RUNNER_TEMP/scaffold.json"
+          RUN=$(python -c "import json,sys;print(json.load(open(sys.argv[1],encoding='utf-8'))['run_dir'])" \
+            "$RUNNER_TEMP/scaffold.json")
+          test -f "$RUN/run.json"
+          test -f "$RUN/README.md"
+          test -f "$RUN/05-positioning.vi.md"
+          test -f "$RUN/05-positioning.en.md"
+          python marketing-minthep/scripts/run_status.py --run "$RUN" --json \
+            --output "$RUNNER_TEMP/audit.json"
+          python - "$RUNNER_TEMP/scaffold.json" "$RUNNER_TEMP/audit.json" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          scaffold = json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+          report = json.loads(Path(sys.argv[2]).read_text(encoding='utf-8'))
+          assert scaffold['pipeline'] == 'plan-from-zero', scaffold['pipeline']
+          assert scaffold['run_id'].endswith('-bun-bo'), scaffold['run_id']
+          bilingual = [item for item in scaffold['deliverables'] if item['bilingual']]
+          assert len(bilingual) > 5, len(bilingual)
+          assert all(len(item['paths']) == 2 for item in bilingual)
+          # A freshly scaffolded run must never audit as usable work.
+          assert report['filled'] is False
+          assert report['complete'] is False
+          assert report['total_unfilled_sections'] > 50, report['total_unfilled_sections']
+          assert '01-intake' in report['blocking']
+          PY
+          # --strict must refuse an unfilled run.
+          if python marketing-minthep/scripts/run_status.py --run "$RUN" --strict \
+               --output "$RUNNER_TEMP/strict.txt"; then
+            echo "run_status.py --strict passed an unfilled run; the completeness gate is broken"
+            exit 1
+          fi
 
       - name: Compile Python tools
         run: python -m compileall -q marketing-minthep/scripts
