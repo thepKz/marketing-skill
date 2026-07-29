@@ -11,6 +11,7 @@ import re
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
+from html.parser import HTMLParser
 from pathlib import Path
 
 from _signals import BUDGET_TIERS, phase_plan, read_signals
@@ -1246,6 +1247,7 @@ class DataTableTests(unittest.TestCase):
         "layout-dials.csv": 11,
         "slop-tells.csv": 9,
         "copy-formulas.csv": 22,
+        "reference-axes.csv": 9,
     }
 
     @staticmethod
@@ -1430,6 +1432,24 @@ class RefSheetTests(unittest.TestCase):
             self.assertIn(lights[0][2], ("soft", "window", "hard", "strip"),
                           "the first light in a setup must be the key")
 
+    def test_reference_sheet_gives_every_axis_a_verdict_the_legend_explains(self) -> None:
+        # The sheet's whole argument is that "can I use this reference" gets a row rather than a
+        # feeling. An axis the sheet silently drops, or a verdict no legend glosses, breaks that.
+        svg = self.sheet("reference")
+        for row in DataTableTests.rows("reference-axes.csv"):
+            self.assertIn(row["name_en"], svg, f'{row["axis"]}: missing from the sheet')
+            self.assertIn(row["verdict"], render_refsheet.VERDICT_GLOSS,
+                          f'{row["axis"]}: verdict {row["verdict"]!r} has no plain-language gloss')
+            self.assertIn(row["verdict"], render_refsheet.VERDICT_COLOUR)
+
+    def test_reference_sheet_transforms_at_least_three_axes(self) -> None:
+        """references/reference-analysis.md sets the bar: move at least three axes or the result
+        can still be traced to one source at a glance. The table has to clear the bar it teaches,
+        or the sheet is an illustration of a rule it breaks."""
+        rows = DataTableTests.rows("reference-axes.csv")
+        moved = [row["axis"] for row in rows if row["verdict"] == "transform"]
+        self.assertGreaterEqual(len(moved), 3, f"only {moved} would move; the rule asks for three")
+
     def test_frames_reserve_stays_inside_the_platform_bands(self) -> None:
         for name, _pw, ph, top, bottom, _note, reserve, _why in render_refsheet.PLACEMENTS:
             if reserve is None:
@@ -1465,6 +1485,37 @@ class ReferenceIntegrityTests(unittest.TestCase):
                 if not any((base / ref).exists() for base in candidates):
                     unresolved.append(f"{document.relative_to(SKILL_ROOT)} -> {ref}")
         self.assertEqual(unresolved, [], f"unresolved file references: {unresolved}")
+
+    def test_every_reference_image_has_a_licence_line(self) -> None:
+        """An image in the demo's reference directory is republished on a public site, so its
+        rights have to be resolved before it lands there — not after somebody notices.
+
+        This test exists because seventeen files failed it. They were photographs of named living
+        people saved from Instagram, filed under "copyright remains with the original creators",
+        which is a disclaimer rather than a permission. The skill's own creative-evaluation.md
+        rejects any asset whose source rights are unresolved, so the demo page was arguing against
+        the skill it demonstrates. Convenience is the only way an image gets into a directory like
+        this one, and convenience is exactly what a test can refuse.
+        """
+        directory = REPO_ROOT / "docs" / "assets" / "references"
+        attribution = directory / "ATTRIBUTION.txt"
+        text = attribution.read_text(encoding="utf-8")
+        # Entries are blank-line-separated blocks, so the filename and the licence have to sit in
+        # the same block. Checking the whole file for both strings separately would pass a file
+        # listed under one entry and licensed under another.
+        blocks = [block for block in text.split("\n\n") if "License:" in block]
+        for image in sorted(directory.glob("*")):
+            if image.suffix.lower() not in (".jpg", ".jpeg", ".png", ".webp"):
+                continue
+            owning = [block for block in blocks if image.name in block]
+            self.assertEqual(
+                len(owning), 1,
+                f"{image.name}: {len(owning)} blocks in ATTRIBUTION.txt name it with a License "
+                "line. Every image here needs exactly one creator, licence and source URL.",
+            )
+            for field in ("Creator:", "License:", "Source:", "File:"):
+                self.assertIn(field, owning[0], f"{image.name}: its entry has no {field} line")
+            self.assertIn("http", owning[0], f"{image.name}: its entry has no source URL")
 
     def test_no_reference_is_unreachable_from_the_router(self) -> None:
         """A reference nothing routes to will never be loaded, so its knowledge is dead
@@ -1564,6 +1615,87 @@ class ReferenceIntegrityTests(unittest.TestCase):
                         "that such numbers are invented and must not be published",
                     )
                     break
+
+
+class _TextNodes(HTMLParser):
+    """The text nodes docs/app.js would hand to its translator, in the same order.
+
+    app.js walks the DOM with a TreeWalker, rejects SCRIPT/STYLE/CODE/PRE, and keys each node on
+    its whitespace-collapsed value. This mirrors that exactly, because the only alternative is a
+    browser — and without it the two failures below are invisible: a Vietnamese line with no key
+    stays Vietnamese in the English edition, and a key whose sentence was reworded silently stops
+    matching anything at all.
+    """
+
+    SKIP = {"script", "style", "code", "pre"}
+    VOID = {"br", "img", "meta", "link", "input", "hr", "source", "area"}
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.stack: list[str] = []
+        self.nodes: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: object) -> None:
+        if tag not in self.VOID:
+            self.stack.append(tag)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in self.stack:
+            while self.stack and self.stack.pop() != tag:
+                pass
+
+    def handle_data(self, data: str) -> None:
+        if any(tag in self.SKIP for tag in self.stack):
+            return
+        collapsed = re.sub(r"\s+", " ", data).strip()
+        if collapsed:
+            self.nodes.append(collapsed)
+
+
+class HandbookTranslationTests(unittest.TestCase):
+    """The bilingual demo page is one of the skill's deliverables, so a half-translated page is a
+    shipped defect rather than a cosmetic one. Both assertions here failed when they were written:
+    eleven Vietnamese lines had no English at all, and 148 of the 227 keys matched nothing on the
+    page because their sentences had been reworded in later rounds."""
+
+    DOCS = Path(__file__).resolve().parents[2] / "docs"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        walker = _TextNodes()
+        walker.feed((cls.DOCS / "index.html").read_text(encoding="utf-8"))
+        cls.nodes = dict.fromkeys(walker.nodes)
+        source = (cls.DOCS / "i18n.js").read_text(encoding="utf-8")
+        # Comment lines are stripped first so a commented-out example key is not read as a real one.
+        body = re.sub(r"^\s*//.*$", "", source, flags=re.M)
+        cls.keys = {
+            match.replace('\\"', '"')
+            for match in re.findall(r'\n\s*"((?:[^"\\]|\\.)*)"\s*:', body)
+        }
+        cls.app = (cls.DOCS / "app.js").read_text(encoding="utf-8")
+
+    @staticmethod
+    def vietnamese(text: str) -> bool:
+        # Any Latin letter carrying a diacritic, plus đ, which has no combining name. Detecting the
+        # language by keyword would miss exactly the short captions that went untranslated.
+        return any("WITH" in unicodedata.name(ch, "") or ch in "đĐ" for ch in text)
+
+    def test_every_vietnamese_line_on_the_page_has_an_english_key(self) -> None:
+        untranslated = [
+            text for text in self.nodes
+            if self.vietnamese(text) and text not in self.keys
+            # The use-case panel and the prompt block are rendered from app.js, which carries its
+            # own vi/en pair per entry, so their initial HTML values are translated by other means.
+            and text not in self.app
+        ]
+        self.assertEqual(untranslated, [], f"no English for: {untranslated}")
+
+    def test_no_translation_key_is_dead(self) -> None:
+        """A key that matches nothing is worse than clutter: it reads as coverage. Every one of
+        these is a line that was reworded in the HTML while its translation stayed behind, so the
+        page it was written for no longer exists and nobody noticed the English went missing."""
+        dead = sorted(key for key in self.keys if key not in self.nodes)
+        self.assertEqual(dead, [], f"{len(dead)} keys match no text node: {dead[:5]}")
 
 
 if __name__ == "__main__":

@@ -178,7 +178,16 @@ python marketing-minthep/scripts/plan_video_sequence.py --input marketing-minthe
 
 ## Thư viện reference
 
-20 ảnh reference trong `docs/assets/references/`, ghi nguồn ở `ATTRIBUTION.txt`, phủ makeup macro, grid biểu cảm, candid action, full-body với negative space, pose editorial và nhiều điều kiện sáng. Chúng tồn tại để được tách thành các thuộc tính có thể chuyển hóa — `identity`, `product`, `pose`, `composition`, `lighting`, `styling`, `makeup`, `color-grade`, `texture` — chứ không bao giờ để sao chép. Dùng chúng không hàm ý endorsement và không tự cấp quyền tái sử dụng cho campaign.
+Một tấm reference tồn tại để được tách thành các thuộc tính có thể chuyển hóa — `identity`, `product`, `pose`, `composition`, `lighting`, `styling`, `makeup`, `color-grade`, `texture` — chứ không bao giờ để sao chép.
+
+```powershell
+python marketing-minthep/scripts/find_recipe.py --table axes
+python marketing-minthep/scripts/render_refsheet.py --sheet reference --output reference.svg
+```
+
+Một nửa tấm ảnh bạn vừa đưa là của người khác: chữ, mặt, dáng, logo. Nửa còn lại không của ai — hình học khung, hướng sáng, đường mắt đi, tỉ lệ crop. `data/reference-axes.csv` chia ra 11 trục và phán quyết từng trục: bốn `keep`, năm `transform`, một `reject`, một `avoid`. `--sheet reference` vẽ cùng một tấm ảnh hai lần — một lần khoanh những phần thuộc về người khác, một lần chỉ còn lưới, hướng sáng và đường mắt đi — nên người không làm marketing vẫn thấy được nửa nào là nửa nào thay vì phải tin. Luật là đổi ít nhất ba trục trước khi dùng một reference; bảng này đổi năm. Nếu kết quả vẫn truy được về một nguồn ngay từ cái nhìn đầu, làm lại.
+
+Còn ba ảnh trong `docs/assets/references/`, giấy phép CC0 và CC BY, kèm tác giả và nguồn trong `ATTRIBUTION.txt`. Mười bảy ảnh đã bị xóa ngày 2026-07-29: đó là ảnh chụp người thật có tên, và giấy phép ghi "bản quyền vẫn thuộc tác giả gốc" — một lời phủ nhận, không phải một sự cho phép. `test_tools.py` làm hỏng cả bộ test nếu có ảnh thứ tư vào đây mà không có dòng giấy phép.
 
 Handbook tĩnh giải thích toàn bộ flow, có nút chuyển VI/EN:
 
@@ -199,8 +208,8 @@ marketing-minthep/
   SKILL.md                  điểm vào, dưới 150 dòng
   references/               45 file chủ đề, mỗi file dưới 150 dòng
     dossiers/               14 dossier craft chuyên sâu + index
-  data/                     5 bảng tra: image recipe, palette, layout dial,
-                            slop tell, copy formula
+  data/                     6 bảng tra: image recipe, palette, layout dial,
+                            slop tell, copy formula, reference axis
   scripts/                  22 công cụ + bộ test
   assets/
     registries/             pipelines.json, asset-formats.json
@@ -219,7 +228,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-115 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv` và test fail nếu một ví dụ copy chứa số in được. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
+121 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv` và test fail nếu một ví dụ copy chứa số in được. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
 
 ## Những gì skill không làm
 

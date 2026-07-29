@@ -35,6 +35,10 @@ TABLES = {
     "dials": ("layout-dials.csv", "dial", ("what_it_changes", "raise_it_when", "lower_it_when")),
     "slop": ("slop-tells.csv", "id", ("domain", "tell_vi", "tell_en", "look_where", "fix")),
     "copy": ("copy-formulas.csv", "id", ("name_vi", "name_en", "use_when", "structure")),
+    # Searched by the question rather than the axis name, because nobody arrives knowing they
+    # want the "copy_behavior" axis — they arrive holding a picture and asking whether the words
+    # on it are theirs to take.
+    "axes": ("reference-axes.csv", "axis", ("question_vi", "question_en", "name_vi", "name_en")),
 }
 
 # The fields of a brief that no lookup table can supply, with the reason each one has to come from

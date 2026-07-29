@@ -2,19 +2,23 @@
 """Draw the reference sheets a non-marketer actually needs, as real SVG, with no API key.
 
 A skill that only writes prose about lighting asks the reader to hold a diagram in their head. So
-these four sheets are the diagram. Every number printed on them is computed from the same data
+these five sheets are the diagram. Every number printed on them is computed from the same data
 tables the rest of the skill reads, which means a sheet cannot drift away from the advice: change
 `data/layout-dials.csv` and the dial sheet changes with it.
 
-  lighting  A plan view of six setups, seen from above, with the shadow each one throws.
-  frames    Every placement at its real proportion, with the reserved copy area and the bands the
-            platform's own interface covers, shaded.
-  palettes  Every palette as a card, with its measured contrast ratio printed on it.
-  dials     One layout drawn three times — at the minimum, the default and the maximum of a single
-            dial — so the reader sees what the number does instead of reading what it does.
+  lighting   A plan view of six setups, seen from above, with the shadow each one throws.
+  frames     Every placement at its real proportion, with the reserved copy area and the bands the
+             platform's own interface covers, shaded.
+  palettes   Every palette as a card, with its measured contrast ratio printed on it.
+  dials      One layout drawn three times — at the minimum, the default and the maximum of a single
+             dial — so the reader sees what the number does instead of reading what it does.
+  reference  The same borrowed picture drawn twice: once as the parts that belong to somebody, once
+             as the geometry that belongs to nobody, then a verdict on each of eleven axes.
 
 The dial sheet is the one that answers "cơ chế bố cục": the mechanism is a small set of numbers,
-and the only honest way to explain a number is to show the same thing twice with it changed.
+and the only honest way to explain a number is to show the same thing twice with it changed. The
+reference sheet answers the question underneath every "make it like this": which half of the
+picture you were handed is actually available to you.
 """
 
 from __future__ import annotations
@@ -407,11 +411,211 @@ def sheet_dials(dial_id: str = "margin_ratio") -> str:
     return _open(width, height) + "".join(parts) + "</svg>"
 
 
+VERDICT_COLOUR = {"keep": COBALT, "transform": ORANGE, "reject": MUTED, "avoid": INK}
+
+VERDICT_GLOSS = {
+    "keep": "Take it as it is",
+    "transform": "Take the idea, change the thing",
+    "reject": "Note it, then do not use it",
+    "avoid": "Do not put it in a prompt at all",
+}
+
+
+def _plate_copied(ox: float, oy: float, w: float, h: float) -> str:
+    """The reference as a beginner reads it: a picture full of things that belong to somebody.
+
+    The protected parts are marked with rectangles rather than rings. The first version used dashed
+    circles and they read as decoration: a circle wide enough to enclose a headline block also
+    encloses half the plate and escapes the frame edge, so four marks produced four overlaps and no
+    information. A rectangle is the size of the thing it is about.
+    """
+    parts = [f'<rect x="{ox:.0f}" y="{oy:.0f}" width="{w:.0f}" height="{h:.0f}" '
+             f'fill="#EFE9DE" stroke="{INK}" stroke-width="2"/>']
+    # A headline, a tagline and a logo lozenge — the three parts that are literally retypable.
+    parts.append(f'<rect x="{ox + w * 0.08:.0f}" y="{oy + h * 0.14:.0f}" '
+                 f'width="{w * 0.34:.0f}" height="{h * 0.045:.0f}" fill="{INK}"/>')
+    parts.append(f'<rect x="{ox + w * 0.08:.0f}" y="{oy + h * 0.21:.0f}" '
+                 f'width="{w * 0.24:.0f}" height="{h * 0.028:.0f}" fill="{MUTED}"/>')
+    parts.append(f'<rect x="{ox + w * 0.08:.0f}" y="{oy + h * 0.85:.0f}" width="{w * 0.17:.0f}" '
+                 f'height="{h * 0.06:.0f}" rx="{h * 0.03:.0f}" fill="{ORANGE}"/>')
+    # A figure, deliberately schematic: a head and a shoulder trapezoid. Drawn solid, because the
+    # point of this plate is that the beginner is looking at the parts that are filled in.
+    hx, hy, hr = ox + w * 0.64, oy + h * 0.30, w * 0.055
+    parts.append(f'<circle cx="{hx:.0f}" cy="{hy:.0f}" r="{hr:.0f}" fill="{INK}"/>')
+    shoulder_y, hem_y = hy + hr * 1.5, oy + h * 0.78
+    parts.append(
+        f'<path d="M{hx - hr * 1.1:.0f},{shoulder_y:.0f} L{hx + hr * 1.1:.0f},{shoulder_y:.0f} '
+        f'L{hx + hr * 2.4:.0f},{hem_y:.0f} L{hx - hr * 2.4:.0f},{hem_y:.0f} Z" fill="{INK}"/>'
+    )
+    # x, y, width, height, label, and which corner the label hangs off. Every box is sized to its
+    # element and every label sits in a part of the plate no other label reaches.
+    marks = [
+        (0.055, 0.105, 0.385, 0.160, "the words", "above"),
+        (0.640 - 0.083, 0.300 - 0.083 / 0.75, 0.166, 0.166 / 0.75, "the face", "above"),
+        (0.470, 0.200, 0.340, 0.610, "the exact pose", "below"),
+        (0.060, 0.825, 0.210, 0.110, "the logo", "above"),
+    ]
+    for fx, fy, fw_, fh_, label, side in marks:
+        bx, by = ox + w * fx, oy + h * fy
+        parts.append(f'<rect x="{bx:.0f}" y="{by:.0f}" width="{w * fw_:.0f}" height="{h * fh_:.0f}" '
+                     f'fill="none" stroke="{ORANGE}" stroke-width="2.5" stroke-dasharray="6 5"/>')
+        ly = by - 8 if side == "above" else by + h * fh_ + 18
+        parts.append(_text(bx, ly, label, 13, fill=ORANGE, bold=True))
+    return "".join(parts)
+
+
+def _plate_extracted(ox: float, oy: float, w: float, h: float) -> str:
+    """The same reference reduced to what transfers: geometry, light direction, reading order."""
+    parts = [f'<rect x="{ox:.0f}" y="{oy:.0f}" width="{w:.0f}" height="{h:.0f}" '
+             f'fill="#FFFFFF" stroke="{INK}" stroke-width="2"/>']
+    for third in (1, 2):
+        parts.append(f'<line x1="{ox + w * third / 3:.0f}" y1="{oy:.0f}" x2="{ox + w * third / 3:.0f}" '
+                     f'y2="{oy + h:.0f}" stroke="{MUTED}" stroke-width="1" stroke-dasharray="4 6"/>')
+        parts.append(f'<line x1="{ox:.0f}" y1="{oy + h * third / 3:.0f}" x2="{ox + w:.0f}" '
+                     f'y2="{oy + h * third / 3:.0f}" stroke="{MUTED}" stroke-width="1" stroke-dasharray="4 6"/>')
+    # The empty area, as a rectangle rather than the phrase "upper left". The two plates put their
+    # marks in the same places on purpose: the cobalt rectangle here covers the orange "the words"
+    # rectangle there, which is the whole argument of the sheet in one overlay.
+    parts.append(f'<rect x="{ox + w * 0.055:.0f}" y="{oy + h * 0.105:.0f}" width="{w * 0.385:.0f}" '
+                 f'height="{h * 0.160:.0f}" fill="{COBALT}" opacity="0.16"/>')
+    parts.append(_text(ox + w * 0.055, oy + h * 0.105 - 8, "empty, 38% of width", 13, fill=COBALT, bold=True))
+    # The subject as an outline only — position and share of frame, no identity.
+    parts.append(f'<rect x="{ox + w * 0.470:.0f}" y="{oy + h * 0.200:.0f}" width="{w * 0.340:.0f}" '
+                 f'height="{h * 0.610:.0f}" fill="none" stroke="{INK}" stroke-width="2"/>')
+    parts.append(_text(ox + w * 0.470, oy + h * 0.810 + 18, "subject, 34% of width, centre-right", 13))
+    # Key light, from the side the left plate's own shading implies.
+    lx, ly, lr = ox + w * 0.14, oy + h * 0.50, w * 0.038
+    parts.append(f'<circle cx="{lx:.0f}" cy="{ly:.0f}" r="{lr:.0f}" fill="{COBALT}"/>')
+    parts.append(f'<line x1="{lx:.0f}" y1="{ly:.0f}" x2="{ox + w * 0.52:.0f}" y2="{oy + h * 0.40:.0f}" '
+                 f'stroke="{COBALT}" stroke-width="2" stroke-dasharray="7 6"/>')
+    parts.append(_text(lx - lr, ly + lr + 18, "key, front-left, 45°", 13, fill=COBALT, bold=True))
+    # The reading path, as three numbered stops.
+    for order, (px, py) in enumerate(
+        [(ox + w * 0.12, oy + h * 0.155), (ox + w * 0.64, oy + h * 0.30), (ox + w * 0.145, oy + h * 0.88)],
+        start=1,
+    ):
+        parts.append(f'<circle cx="{px:.0f}" cy="{py:.0f}" r="14" fill="{INK}"/>')
+        parts.append(_text(px, py + 14 * CAP / 2, str(order), 14, fill="#FFFFFF", bold=True, anchor="middle"))
+    parts.append(_text(ox + w - 14, oy + h - 16, "crop 4:3", 13, fill=MUTED, anchor="end"))
+    return "".join(parts)
+
+
+def sheet_reference() -> str:
+    """The two halves of a reference, drawn side by side, then the eleven axes that split them.
+
+    A reference is the one input a non-marketer supplies confidently and uses wrongly: they hand
+    over a picture they like and mean "make this". The useful half of that picture — where the light
+    is, how much of the frame the subject takes, what is left empty, what order it reads in — is
+    free to take and is the half nobody looks at. The other half is somebody's face, somebody's
+    words and somebody's logo, and it is the half that gets copied.
+
+    Prose cannot make that split legible, because the split is spatial. So the same frame is drawn
+    twice: once as the beginner reads it, once as a brief reads it. Then every axis from
+    `references/reference-analysis.md` gets a verdict from `data/reference-axes.csv`, which is why
+    the sheet cannot drift away from the doctrine it illustrates.
+    """
+    rows = _table("reference-axes.csv")
+    width, margin, gap = 1400, 60, 44
+    head, cursor = _header(
+        "One reference, two halves",
+        "Both frames below are the same picture. On the left is what gets copied: a face, a "
+        "headline, a logo, a pose, each of which belongs to somebody. On the right is the same "
+        "picture written as a brief: where the light is, how much of the frame the subject takes, "
+        "what is left empty, and what order it reads in. Everything on the right is free. Nothing "
+        "on the left is. The table underneath gives each axis a verdict, so the answer to \"can I "
+        "use this\" is a row rather than a feeling.",
+        width, margin, max_lines=5,
+    )
+    parts = [head]
+    plate_w = (width - margin * 2 - gap) / 2
+    plate_h = plate_w * 0.75  # 4:3, and the right plate prints that ratio, so it has to be true
+    for index, (label, note, draw) in enumerate((
+        ("Copied", "What a beginner takes. Four boxes, four owners.", _plate_copied),
+        ("Extracted", "What a brief takes. Same frame, none of the ownership.", _plate_extracted),
+    )):
+        ox = margin + index * (plate_w + gap)
+        parts.append(_text(ox, cursor + 20, label, 24, bold=True))
+        parts.append(_text(ox, cursor + 44, note, 14, fill=MUTED))
+        parts.append(draw(ox, cursor + 64, plate_w, plate_h))
+    cursor += 64 + plate_h + 56
+
+    # The spans plus the four gutters have to come to exactly the usable width. The first version
+    # totalled 1360 against 1280 available, which does not raise anything — SVG text simply keeps
+    # going, so the Leave column ran 80px off the right edge of the canvas.
+    columns = [("Axis", 190), ("Verdict", 170), ("Ask yourself", 280), ("Take", 300), ("Leave", 260)]
+    gutter = 20
+    usable = width - margin * 2
+    assert sum(span for _t, span in columns) + gutter * (len(columns) - 1) == usable
+    xs, offset = [], margin
+    for _title, span in columns:
+        xs.append(offset)
+        offset += span + gutter
+    parts.append(_text(margin, cursor, "Eleven axes, with a verdict on each", 24, bold=True))
+    cursor += 34
+    for (title, _span), x in zip(columns, xs):
+        parts.append(_text(x, cursor, title.upper(), 12, fill=MUTED, bold=True))
+    cursor += 10
+    parts.append(f'<rect x="{margin}" y="{cursor:.0f}" width="{width - margin * 2}" height="2" fill="{INK}"/>')
+    cursor += 26
+
+    for row in rows:
+        colour = VERDICT_COLOUR[row["verdict"]]
+        cells = [
+            (row["name_en"], 15, INK, True, columns[0][1]),
+            (None, 0, colour, False, columns[1][1]),
+            (row["question_en"], 14, MUTED, False, columns[2][1]),
+            (row["take"], 14, INK, False, columns[3][1]),
+            (row["leave"], 14, colour, False, columns[4][1]),
+        ]
+        # The row is as tall as its tallest cell, measured rather than assumed. The first version
+        # used a fixed pitch and the `leave` column of the rights row ran into the row below it.
+        heights = []
+        for content, size, _fill, _bold, span in cells:
+            if content is None:
+                heights.append(52.0)
+                continue
+            heights.append(len(wrap(content, size, span, 6, "cell")) * size * LEAD)
+        row_h = max(heights) + 20
+        parts.append(_text(xs[0], cursor + 13, row["name_en"], 15, bold=True))
+        parts.append(_text(xs[0], cursor + 32, row["name_vi"], 13, fill=MUTED))
+        chip_w = advance(row["verdict"].upper(), 12, bold=True) + 24
+        parts.append(f'<rect x="{xs[1]:.0f}" y="{cursor:.0f}" width="{chip_w:.0f}" height="24" rx="4" fill="{colour}"/>')
+        parts.append(_text(xs[1] + chip_w / 2, cursor + 12 + 12 * CAP / 2, row["verdict"].upper(), 12,
+                           fill="#FFFFFF", bold=True, anchor="middle"))
+        gloss, _ = _block(xs[1], cursor + 42, VERDICT_GLOSS[row["verdict"]], 13, columns[1][1],
+                          "gloss", fill=MUTED, max_lines=2)
+        parts.append(gloss)
+        body, _ = _block(xs[2], cursor + 13, row["question_en"], 14, columns[2][1], "question",
+                         fill=MUTED, max_lines=6)
+        parts.append(body)
+        body, _ = _block(xs[3], cursor + 13, row["take"], 14, columns[3][1], "take", max_lines=6)
+        parts.append(body)
+        body, _ = _block(xs[4], cursor + 13, row["leave"], 14, columns[4][1], "leave", fill=colour,
+                         max_lines=6)
+        parts.append(body)
+        cursor += row_h
+        parts.append(f'<line x1="{margin}" y1="{cursor - 10:.0f}" x2="{width - margin}" '
+                     f'y2="{cursor - 10:.0f}" stroke="{MUTED}" stroke-width="1" opacity="0.5"/>')
+
+    closing, cursor = _block(
+        margin,
+        cursor + 24,
+        "Three axes say transform, and reference-analysis.md asks you to move at least three before "
+        "using a pattern at all. That is not a coincidence: hook, material and copy behaviour are "
+        "the three that carry the most recognition, so moving them is what stops a reference being "
+        "traceable at a glance. If the result can still be traced to one source, start again.",
+        15, width - margin * 2, "closing", fill=MUTED, max_lines=4,
+    )
+    parts.append(closing)
+    return _open(width, cursor + margin) + "".join(parts) + "</svg>"
+
+
 SHEETS = {
     "lighting": sheet_lighting,
     "frames": sheet_frames,
     "palettes": sheet_palettes,
     "dials": sheet_dials,
+    "reference": sheet_reference,
 }
 
 

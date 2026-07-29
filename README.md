@@ -178,7 +178,16 @@ python marketing-minthep/scripts/plan_video_sequence.py --input marketing-minthe
 
 ## Reference library
 
-20 reference photographs in `docs/assets/references/` with attribution in `ATTRIBUTION.txt`, covering makeup macro, expression grids, candid action, full-body negative space, editorial poses and mixed lighting. They exist to be decomposed into transferable attributes — `identity`, `product`, `pose`, `composition`, `lighting`, `styling`, `makeup`, `color-grade`, `texture` — and never to be copied. Using them implies no endorsement and grants no reuse rights for a campaign.
+A reference exists to be decomposed into transferable attributes — `identity`, `product`, `pose`, `composition`, `lighting`, `styling`, `makeup`, `color-grade`, `texture` — and never to be copied.
+
+```powershell
+python marketing-minthep/scripts/find_recipe.py --table axes
+python marketing-minthep/scripts/render_refsheet.py --sheet reference --output reference.svg
+```
+
+Half of any picture you hand over belongs to somebody: the words, the face, the pose, the logo. The other half belongs to nobody — the geometry of the frame, the direction of the key light, the path your eye takes, the crop ratio. `data/reference-axes.csv` splits it on 11 axes and rules on each one: four `keep`, five `transform`, one `reject`, one `avoid`. `--sheet reference` draws the same picture twice — once with the borrowed parts boxed, once reduced to grid, key direction and reading path — so someone with no marketing vocabulary can see which half is which instead of taking it on trust. The rule is to change at least three axes before using a reference; the sheet changes five. If the result is still traceable to one source at a glance, start again.
+
+Three photographs remain in `docs/assets/references/`, CC0 and CC BY, each with creator and source in `ATTRIBUTION.txt`. Seventeen were deleted on 2026-07-29: they were photographs of named living people whose stated licence was "copyright remains with the original creators", which is a disclaimer and not a permission. `test_tools.py` fails the whole suite if a fourth file arrives here without a licence line.
 
 The static handbook explains the whole flow with a VI/EN toggle:
 
@@ -199,8 +208,8 @@ marketing-minthep/
   SKILL.md                  entry point, under 150 lines
   references/               45 topic files, each under 150 lines
     dossiers/               14 deep-craft dossiers + index
-  data/                     5 lookup tables: image recipes, palettes, layout
-                            dials, slop tells, copy formulas
+  data/                     6 lookup tables: image recipes, palettes, layout
+                            dials, slop tells, copy formulas, reference axes
   scripts/                  22 tools + test suite
   assets/
     registries/             pipelines.json, asset-formats.json
@@ -219,7 +228,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-115 tests, including ones that recompute every contrast ratio in `data/palettes.csv` and fail if a copy example contains a printable number. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
+121 tests, including ones that recompute every contrast ratio in `data/palettes.csv` and fail if a copy example contains a printable number. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
 
 ## What it will not do
 

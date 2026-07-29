@@ -1,42 +1,44 @@
 Reference imagery used by the FIELD handbook
 
+Every image file in this directory must appear below with a creator, a licence and a source URL.
+A test enforces that: marketing-minthep/scripts/test_tools.py, in
+test_every_reference_image_has_a_licence_line. A file here without a licence line fails the suite,
+so an image cannot enter this directory by being convenient.
+
+Seventeen files were removed from here on 2026-07-29. They were photographs of named living people,
+saved from Instagram, and their stated licence was "copyright remains with the original creators" —
+which is not permission to republish them on a public site. The skill's own
+references/creative-evaluation.md rejects any asset whose source rights are unresolved, so a demo
+page shipping seventeen of them was arguing against itself. What they stood in for is now drawn
+instead: ../generated/refsheet-reference.svg, built by
+`marketing-minthep/scripts/render_refsheet.py --sheet reference`, shows the same borrowed picture
+twice — once as the parts that belong to somebody, once as the geometry that belongs to nobody.
+
 1. Jang Wonyoung portrait 2025
    Creator: Jangkkuinyourheart
    License: CC0 1.0
    Source: https://commons.wikimedia.org/wiki/File:Jang_Wonyoung_portrait_2025.jpg
+   File: wonyoung-portrait-2025.jpg
 
 2. Jang Wonyoung for Marie Claire Korea 2020
    Creator: Marie Claire Korea
    License: CC BY 3.0
    Source: https://commons.wikimedia.org/wiki/File:Jang_Wonyoung_for_Marie_Claire_Korea_2020.jpg
+   File: wonyoung-editorial-2020.jpg
 
 3. aespa at TikTok Awards Korea 2024 red carpet
    Creator: K-POPIT
    License: CC BY 3.0
    Source: https://commons.wikimedia.org/wiki/File:20241115_aespa_TikTok_Awards_Korea_2024_Red_Carpet.jpg
+   File: aespa-red-carpet-2024.jpg
 
-These images illustrate reference-role analysis only. The skill defaults to extracting
-non-identifying composition, lighting, styling, pose, wardrobe, and color qualities for
-original fictional subjects; it does not imply endorsement by the depicted people.
-Instagram reference previews (retrieved 2026-07-22; copyright remains with the original creators/accounts):
-- Jang Wonyoung / @for_everyoung10: https://www.instagram.com/p/DbCmNT1kezc/
-- Jang Wonyoung / @for_everyoung10 / retail candid: https://www.instagram.com/p/DbCklkHRA6d/
-- Jang Wonyoung / @for_everyoung10 / dining action: https://www.instagram.com/p/DbCklmBxdQq/
-- Jang Wonyoung / @for_everyoung10 / warm close-up: https://www.instagram.com/p/DbCkloIRDBN/
-- Go Youn-jung / @goyounjung: https://www.instagram.com/p/Dam3HEElJV6/
-- Go Youn-jung / @goyounjung / reading editorial: https://www.instagram.com/p/Dam1z1KRhL7/
-- Go Youn-jung / @goyounjung / dining candid: https://www.instagram.com/p/Dam1z2Ux9gO/
-- Go Youn-jung / @goyounjung / lip makeup macro: https://www.instagram.com/p/Dam1z3Lx-rF/
-- Winter / @imwinter / mirror makeup: https://www.instagram.com/p/DbBPWNnkw3H/
-- Winter / @imwinter / expression grid: https://www.instagram.com/p/DbBO4eZT3KW/
-- Winter / @imwinter / high-angle pose: https://www.instagram.com/p/DbBO4feTfZO/
-- Winter / @imwinter / concrete editorial: https://www.instagram.com/p/DbBO4jqzQwX/
-- Winter / @imwinter / sunlit full-body: https://www.instagram.com/p/DbBK_T-EyZb/
-- Karina / @katarinabluu: https://www.instagram.com/p/Da5Pq4glKKa/
-- Karina / @katarinabluu / expressive pose: https://www.instagram.com/p/Da5PdjvglPs/
-- Karina / @katarinabluu / full-body negative space: https://www.instagram.com/p/Da5Pdj_ggI0/
-- Karina / @katarinabluu / bright portrait: https://www.instagram.com/p/Da5PdmgAoo2/
+These three illustrate reference-role analysis only. The skill defaults to extracting
+non-identifying composition, lighting, styling, pose, wardrobe, and color qualities for original
+fictional subjects; it does not imply endorsement by the depicted people, and it will not reproduce
+a real person's face.
 
-These images are used only as attributed visual-analysis references in the handbook. They do not imply endorsement and must not be reused as campaign assets without permission.
-
-Generated concept samples under ../generated/ were created on 2026-07-22 for handbook demonstration. They depict fictional concepts and must not be represented as real products, endorsements, or photographed people.
+Generated concept samples under ../generated/ are either drawn by code or were created on
+2026-07-22 for handbook demonstration. They depict fictional concepts and must not be represented
+as real products, endorsements, or photographed people. The refsheet-*.svg and bun-bo-*.svg files
+are drawn by scripts under marketing-minthep/scripts/ from the tables under
+marketing-minthep/data/, and contain no photography at all.

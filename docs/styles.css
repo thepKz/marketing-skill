@@ -391,14 +391,35 @@ h1 { max-width: 780px; margin: 26px 0 28px; font-size: clamp(3.5rem, 5.7vw, 6rem
 .install-rails article b { font-size: 0.8rem; }
 .install-command { grid-column: 1 / -1; display: flex; border: 2px solid var(--line); border-top: 0; background: var(--ink); }
 .install-command code { flex: 1; padding: 18px 22px; color: var(--white); }
+.install-command .nowrap { white-space: nowrap; }
 .install-command button { min-width: 100px; color: var(--ink); background: var(--orange); border: 0; border-left: 2px solid var(--line); cursor: pointer; }
 
 .reference-library { padding: clamp(64px, 8vw, 112px); border-bottom: 1px solid var(--line); overflow: hidden; }
-.filter-bar { display: flex; flex-wrap: wrap; gap: 7px; margin: 42px 0 20px; }
-/* Five across, because the library holds twenty: six left a last row of two beside four holes. */
-.reference-strip { display: grid; grid-template-columns: repeat(5, minmax(180px, 1fr)); gap: 8px; }
+/* The sheet is 1400x1839, so it wants a column of its own rather than a slot in the twelve-column
+   sheet wall, where the portrait ratio made it four screens tall. The legend sits beside it so the
+   four verdicts are readable without opening the lightbox. */
+.reference-wall { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: start; gap: 8px; margin-top: 42px; padding: 8px; background: var(--paper); border: 1px solid var(--line); }
+.reference-wall .sheet-item, .reference-wall .sheet-item:nth-child(1) { grid-column: auto; }
+.verdict-key { display: flex; flex-direction: column; gap: 20px; padding: clamp(20px, 3vw, 40px); }
+.verdict-key ul { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.verdict-key li { display: grid; grid-template-columns: 118px minmax(0, 1fr); gap: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.verdict-key li:last-child { padding-bottom: 0; border-bottom: 0; }
+.verdict-key b { align-self: start; padding: 4px 9px; color: var(--white); background: var(--ink); font: 700 0.62rem/1.4 "IBM Plex Mono", monospace; letter-spacing: 0.08em; text-align: center; }
+.verdict-key li:nth-child(1) b { background: var(--blue); }
+.verdict-key li:nth-child(2) b { color: var(--ink); background: var(--orange); }
+.verdict-key li:nth-child(3) b { background: var(--muted); }
+.verdict-key li span { font-size: 0.84rem; line-height: 1.5; }
+.verdict-key > p { max-width: 52ch; margin: 0; color: var(--muted); font-size: 0.8rem; line-height: 1.6; }
+/* Narrower column than the install rail, so the same command wrapped across three lines and broke
+   the repo path at its hyphen. Smaller type keeps it to two. */
+.verdict-key .install-command { margin: 0; border-top: 2px solid var(--line); }
+.verdict-key .install-command code { padding: 14px 16px; font-size: 0.68rem; }
+.verdict-key .install-command button { min-width: 76px; font-size: 0.68rem; }
+
+/* Three across, not five: the library used to hold twenty scraped photographs and now holds the
+   three whose licence is resolved. */
+.reference-strip { display: grid; grid-template-columns: repeat(3, minmax(180px, 1fr)); gap: 8px; }
 .reference-card { position: relative; min-height: 380px; color: var(--white); background: var(--ink); border: 1px solid var(--line); overflow: hidden; text-decoration: none; }
-.reference-card[hidden] { display: none; }
 .reference-card img { transition: transform 300ms ease; }
 .reference-card:hover img { transform: scale(1.035); }
 .reference-card span { position: absolute; inset: auto 0 0; padding: 10px; background: rgb(21 27 41 / 0.88); font-size: 0.6rem; font-weight: 700; }
@@ -493,6 +514,10 @@ footer p { max-width: 60ch; margin: 7px 0 0; color: var(--muted); }
   .sheet-wall { grid-template-columns: 1fr; }
   .sheet-item, .sheet-item:nth-child(1), .sheet-item:nth-child(2), .sheet-item:nth-child(3), .sheet-item:nth-child(4) { grid-column: auto; }
   .sheet-item > span { flex-direction: column; gap: 4px; }
+  .reference-wall { grid-template-columns: 1fr; }
+  .verdict-key { padding: 32px 20px; }
+  .verdict-key li { grid-template-columns: 1fr; gap: 9px; }
+  .verdict-key b { justify-self: start; }
   .identity-visual { min-height: 590px; }
   .lock { font-size: 0.52rem; }
   .lock-eye { left: 3%; }

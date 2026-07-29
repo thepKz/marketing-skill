@@ -168,16 +168,10 @@ document.querySelectorAll('.copy-button').forEach((button) => {
   });
 });
 
-const galleryButtons = [...document.querySelectorAll('[data-gallery-filter]')];
-const galleryCards = [...document.querySelectorAll('.reference-card')];
-galleryButtons.forEach((button) => button.addEventListener('click', () => {
-  const filter = button.dataset.galleryFilter;
-  galleryButtons.forEach((item) => {
-    item.classList.toggle('is-active', item === button);
-    item.setAttribute('aria-pressed', String(item === button));
-  });
-  galleryCards.forEach((card) => { card.hidden = filter !== 'all' && !(card.dataset.tags?.split(/\s+/) || []).includes(filter); });
-}));
+// The reference gallery used to carry a makeup/pose/candid/full-body/editorial filter bar over
+// twenty scraped photographs. Seventeen of those had unresolved rights and were deleted; three
+// Creative Commons images remain, and five filters over three items is a control that only ever
+// hides things. The filter bar and its handler went with them.
 
 const dialog = document.querySelector('.image-dialog');
 const dialogImage = dialog?.querySelector('img');
