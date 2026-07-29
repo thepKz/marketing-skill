@@ -48,6 +48,50 @@ class ToolTests(unittest.TestCase):
         self.assertIn("79.000đ", svg)
         self.assertEqual(ET.fromstring(svg).tag, "{http://www.w3.org/2000/svg}svg")
 
+    def _item_baselines(self, spec: dict) -> list[float]:
+        root = ET.fromstring(render(spec))
+        return [
+            float(node.get("y"))
+            for node in root.iter()
+            if node.tag.endswith("text") and node.get("class") == "item"
+        ]
+
+    def test_mockup_layout_adapts_to_any_canvas(self) -> None:
+        """Layout used to be hardcoded to 1080x1350, so any other size drew text off-canvas
+        or over the footer rule while still emitting valid SVG — a silent failure."""
+        items = [{"name": f"Dish {index}", "description": "d", "price": "—"} for index in range(6)]
+        for width, height in ((1080, 1350), (1200, 1600), (1080, 1080), (640, 960)):
+            spec = {"title": "Bún bò", "items": items, "width": width, "height": height}
+            baselines = self._item_baselines(spec)
+            self.assertEqual(len(baselines), len(items))
+            footer_rule = height - round(height * 0.0519)
+            self.assertLess(
+                max(baselines), footer_rule, f"items cross the footer rule at {width}x{height}"
+            )
+            self.assertGreater(min(baselines), 0)
+
+    def test_mockup_refuses_a_menu_that_cannot_fit(self) -> None:
+        """Silently dropping items past a cap would present a partial menu as the whole menu."""
+        items = [{"name": f"Dish {index}"} for index in range(20)]
+        with self.assertRaises(ValueError) as caught:
+            render({"title": "Too long", "items": items, "width": 1080, "height": 700})
+        self.assertIn("do not fit", str(caught.exception))
+
+    def test_mockup_tightens_rather_than_overflowing_as_items_grow(self) -> None:
+        base = {"title": "Bún bò", "width": 1080, "height": 1350}
+        pitches = []
+        for count in (4, 8, 11):
+            items = [{"name": f"D{index}", "price": "—"} for index in range(count)]
+            baselines = self._item_baselines({**base, "items": items})
+            pitches.append(baselines[1] - baselines[0])
+        self.assertGreater(pitches[0], pitches[-1], "row pitch must compress as items are added")
+
+    def test_mockup_fonts_declare_fallbacks(self) -> None:
+        """A bare family name re-flows the whole layout on any machine that lacks it."""
+        svg = render({"title": "Bún bò", "items": [{"name": "Tô đặc biệt", "price": "79.000đ"}]})
+        self.assertIn("sans-serif", svg)
+        self.assertIn("Liberation", svg)
+
     def test_scaffold_v3_separates_job_and_artifact_mode(self) -> None:
         record = build_record("Launch", "product", "beauty", "gpt-image-2", ["meta", "web"])
         self.assertEqual(record["schema_version"], 3)
