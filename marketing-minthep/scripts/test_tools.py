@@ -8,6 +8,7 @@ import io
 import json
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from analyze_performance import analyze
@@ -23,6 +24,7 @@ from research_plan import build_plan, to_markdown
 from run_status import audit_file, audit_run
 from scaffold_campaign import build_record
 from score_creative import evaluate
+from start_workbench import start
 
 
 class ToolTests(unittest.TestCase):
@@ -43,6 +45,7 @@ class ToolTests(unittest.TestCase):
         self.assertIn("<svg", svg)
         self.assertIn("Tô đặc biệt", svg)
         self.assertIn("79.000đ", svg)
+        self.assertEqual(ET.fromstring(svg).tag, "{http://www.w3.org/2000/svg}svg")
 
     def test_scaffold_v3_separates_job_and_artifact_mode(self) -> None:
         record = build_record("Launch", "product", "beauty", "gpt-image-2", ["meta", "web"])
@@ -92,6 +95,21 @@ class ToolTests(unittest.TestCase):
             "firefly",
         ):
             self.assertIn("PROVIDER:", compile_provider(record, provider))
+
+    def test_generic_edit_prompt_has_localized_contract(self) -> None:
+        prompt = compile_provider(
+            {
+                "mode": "product",
+                "operation": "edit",
+                "prompt": {"change": "background only", "lock": "exact bottle, cap, and label"},
+            },
+            "gpt-image-2",
+        )
+        self.assertIn("LOCALIZED EDIT CONTRACT", prompt)
+        self.assertIn("CHANGE: background only", prompt)
+        self.assertIn("LOCK: exact bottle, cap, and label", prompt)
+        self.assertIn("MATCH:", prompt)
+        self.assertIn("MASK:", prompt)
 
     def test_virtual_person_planner_recommends_douyin_direction(self) -> None:
         result = plan_virtual_person(
@@ -194,6 +212,12 @@ class ToolTests(unittest.TestCase):
         self.assertEqual(plan["primary_job"], "commerce-merchandising")
         self.assertLessEqual(plan["asset_count"], 8)
         self.assertTrue(all(asset["family"] in {"commerce", "owned"} for asset in plan["selected_assets"]))
+
+    def test_vietnamese_plan_routes_to_strategy_workbench(self) -> None:
+        plan = plan_marketing_system(
+            {"request": "Tôi không biết marketing, hãy làm kế hoạch từ đầu cho quán bún bò"}
+        )
+        self.assertEqual(plan["primary_job"], "strategy-offer")
 
     def test_system_scope_connects_multiple_workbenches(self) -> None:
         plan = plan_marketing_system(
@@ -331,6 +355,46 @@ class RunWorkspaceTests(unittest.TestCase):
             counts[mode] = len(run["deliverables"])
         self.assertLess(counts["focused"], counts["system"])
         self.assertLessEqual(counts["system"], counts["production"])
+
+    def test_pipeline_defaults_cover_promised_artifacts(self) -> None:
+        plan = build_run({"request": "Tôi không biết marketing, làm kế hoạch từ đầu"}, self.registry)
+        image = build_run({"request": "Sửa ảnh này thành key visual"}, self.registry)
+        design = build_run({"request": "Thiết kế menu cho quán"}, self.registry)
+        video = build_run({"request": "Làm video TikTok và shot list"}, self.registry)
+        self.assertEqual(plan["mode"], "system")
+        self.assertEqual(image["mode"], "system")
+        self.assertEqual(design["mode"], "system")
+        self.assertEqual(video["mode"], "system")
+        self.assertIn("08-copy-pack", {item["id"] for item in plan["deliverables"]})
+        self.assertIn("08-qa", {item["id"] for item in image["deliverables"]})
+        self.assertIn("08-print-export", {item["id"] for item in design["deliverables"]})
+        self.assertIn("07-audio-captions", {item["id"] for item in video["deliverables"]})
+
+    def test_render_request_promotes_visual_pipeline_to_production(self) -> None:
+        run = build_run({"request": "Thiết kế menu và render file PNG để in ấn"}, self.registry)
+        self.assertEqual(run["mode"], "production")
+
+    def test_mixed_menu_video_request_keeps_a_supporting_pipeline(self) -> None:
+        run = build_run(
+            {"request": "Làm 3 option menu hiện đại, render option tốt nhất và thêm video TikTok 15s"},
+            self.registry,
+        )
+        self.assertEqual(run["pipeline"], "design-render")
+        self.assertIn("video-campaign", run["supporting_pipelines"])
+
+    def test_start_workbench_creates_linked_runs_and_capability_records(self) -> None:
+        request = {
+            "request": "Làm 3 option menu, render option tốt nhất và thêm video TikTok 15s",
+            "date": "2026-01-01",
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            result = start(request, Path(tmp))
+            primary = Path(result["run_dir"])
+            self.assertTrue((primary / "_meta" / "render-capability.json").exists())
+            self.assertEqual(result["supporting_runs"][0]["pipeline"], "video-campaign")
+            supporting = Path(result["supporting_runs"][0]["run_dir"])
+            self.assertTrue((supporting / "_meta" / "render-capability.json").exists())
+            self.assertTrue((supporting / "production-files" / "exports" / "README.md").exists())
 
     def test_write_run_creates_bilingual_pairs_and_manifest(self) -> None:
         run = build_run(

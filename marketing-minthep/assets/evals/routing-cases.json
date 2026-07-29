@@ -1,0 +1,13 @@
+{
+  "cases": [
+    {"id": "non-marketer-plan", "request": "Tôi không biết marketing, hãy làm kế hoạch từ đầu cho quán bún bò", "expected_pipeline": "plan-from-zero"},
+    {"id": "market-research", "request": "Nghiên cứu thị trường, khách hàng và đối thủ chuyên sâu", "expected_pipeline": "deep-research"},
+    {"id": "reference-edit", "request": "Sửa ảnh này thành key visual, giữ nguyên người và sản phẩm", "expected_pipeline": "image-from-reference"},
+    {"id": "menu-wireframe", "request": "Thiết kế menu hiện đại và wireframe cho quán", "expected_pipeline": "design-render"},
+    {"id": "video-shot-list", "request": "Làm video TikTok 15 giây, kịch bản và shot list", "expected_pipeline": "video-campaign"},
+    {"id": "performance-diagnosis", "request": "ROAS đang giảm, hãy chẩn đoán và tối ưu campaign", "expected_pipeline": "optimize-iterate"},
+    {"id": "english-plan", "request": "Build a marketing plan from scratch for my small restaurant", "expected_pipeline": "plan-from-zero"},
+    {"id": "english-image", "request": "Edit this product photo into a premium branding image", "expected_pipeline": "image-from-reference"},
+    {"id": "menu-plus-video", "request": "Làm 3 option menu, render option tốt nhất và thêm video TikTok 15s", "expected_pipeline": "design-render", "expected_supporting": ["video-campaign"], "expected_mode": "production"}
+  ]
+}

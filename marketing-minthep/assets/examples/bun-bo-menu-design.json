@@ -1,0 +1,17 @@
+{
+  "theme": "modern-street",
+  "width": 1080,
+  "height": 1350,
+  "kicker": "BÚN BÒ / SIGNATURE MENU",
+  "title": "Bún bò mỗi ngày",
+  "subtitle": "Bản minh họa bố cục — giá và thành phần phải được quán xác nhận",
+  "category": "MÓN CHÍNH",
+  "hero_shape": "bowl",
+  "items": [
+    {"name": "Bún bò tiêu chuẩn", "description": "Tên, khẩu phần và thành phần chờ xác nhận", "price": "—"},
+    {"name": "Bún bò đặc biệt", "description": "Không tự suy ra topping từ ảnh tham chiếu", "price": "—"},
+    {"name": "Phần thêm", "description": "Chỉ hiển thị khi có menu và giá nguồn", "price": "—"},
+    {"name": "Đồ uống", "description": "Sắp theo logic hoàn tất giỏ hàng", "price": "—"}
+  ],
+  "footer": "CONCEPT LAYOUT / Không phải menu giá đã được duyệt"
+}

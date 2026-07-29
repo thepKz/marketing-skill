@@ -10,9 +10,10 @@
     "plan-from-zero": {
       "title": "Marketing plan from zero",
       "title_vi": "Kế hoạch marketing từ đầu",
+      "default_mode": "system",
       "use_when": "User has a product, service, or shop and no marketing plan. Includes market assessment, positioning, offer, messaging, copy, channels, budget, calendar, measurement.",
-      "references": ["research-protocol.md", "market-assessment.md", "customer-evidence.md", "marketing-foundation.md", "brand-dna.md", "claims-proof-ledger.md", "copywriting.md", "channel-deliverables.md", "learning-loop.md"],
-      "scripts": ["new_run.py", "research_plan.py", "plan_marketing_system.py", "run_status.py"],
+      "references": ["research-protocol.md", "market-assessment.md", "customer-evidence.md", "marketing-foundation.md", "brand-dna.md", "claims-proof-ledger.md", "copywriting.md", "channel-deliverables.md", "learning-loop.md", "product-category-playbooks.md", "industry-playbooks.md", "menu-engineering.md", "menu-design.md"],
+      "scripts": ["start_workbench.py", "new_run.py", "research_plan.py", "plan_marketing_system.py", "run_status.py"],
       "deliverables": [
         {
           "id": "01-intake",
@@ -303,9 +304,10 @@
     "deep-research": {
       "title": "Deep market research",
       "title_vi": "Nghiên cứu thị trường chuyên sâu",
+      "default_mode": "system",
       "use_when": "User wants to understand a market, competitors, customers, demand, or feasibility before committing. Also runs as the research stage inside plan-from-zero.",
       "references": ["research-protocol.md", "market-assessment.md", "customer-evidence.md", "source-map.md", "claims-proof-ledger.md"],
-      "scripts": ["new_run.py", "research_plan.py", "run_status.py"],
+      "scripts": ["start_workbench.py", "new_run.py", "research_plan.py", "run_status.py"],
       "deliverables": [
         {
           "id": "01-intake",
@@ -458,9 +460,10 @@
     "image-from-reference": {
       "title": "Image from reference",
       "title_vi": "Ảnh từ ảnh tham chiếu",
+      "default_mode": "system",
       "use_when": "User supplies photo A (product, dish, person, packaging, space) and wants branding imagery, product shots, or artistic key visuals derived from it.",
       "references": ["reference-first-image-flow.md", "reference-analysis.md", "visual-craft.md", "composition-light-color.md", "image-output-and-sharpening.md", "product-imagery.md", "image-editing.md", "prompt-contracts.md", "provider-compilers.md", "creative-evaluation.md", "anti-ai-quality.md"],
-      "scripts": ["new_run.py", "plan_design_options.py", "compile_prompt.py", "plan_image_generation.py", "build_asset_manifest.py", "score_creative.py"],
+      "scripts": ["start_workbench.py", "new_run.py", "plan_design_options.py", "compile_prompt.py", "plan_image_generation.py", "build_asset_manifest.py", "score_creative.py", "run_status.py"],
       "deliverables": [
         {
           "id": "01-intake",
@@ -612,9 +615,10 @@
     "design-render": {
       "title": "Design and render",
       "title_vi": "Thiết kế và dựng bản",
+      "default_mode": "system",
       "use_when": "User needs a designed artefact: menu, wireframe, landing page layout, poster, packaging layout, one-pager, key visual with type. Produces option cards, a spec, and real rendered SVG or HTML output.",
       "references": ["menu-engineering.md", "menu-design.md", "visual-craft.md", "copywriting.md", "creative-tool-interfaces.md", "production-pipeline.md", "channel-spec-registry.md"],
-      "scripts": ["new_run.py", "plan_design_options.py", "render_mockup.py", "run_status.py"],
+      "scripts": ["start_workbench.py", "new_run.py", "plan_design_options.py", "render_mockup.py", "run_status.py"],
       "deliverables": [
         {
           "id": "01-intake",
@@ -721,8 +725,8 @@
           "modes": ["focused", "system", "production"],
           "title": "Rendered output",
           "title_vi": "Bản dựng",
-          "gate": "Real files that open. Rendered from 05-design-spec by scripts/render_mockup.py, so spec and render cannot drift.",
-          "readme": "SVG and HTML output. Generate with scripts/render_mockup.py using 05-design-spec and 02-content-inventory as input. Print-destined artefacts render at true trim size with bleed; screen artefacts render at their delivery pixel size. These are real deliverables, not previews of something else."
+          "gate": "Real SVG or HTML files that open, plus the machine-readable JSON spec used by scripts/render_mockup.py. A wireframe render must not be described as final photography, print PDF, or video.",
+          "readme": "Store design-spec.json beside the generated SVG/HTML. The JSON must carry the approved content, theme, dimensions, colors, image path, and footer. Print PDF, raster export, and real image/video generation require separate capable tools and QA; state clearly when they were not produced."
         },
         {
           "id": "08-print-export",
@@ -756,9 +760,10 @@
     "video-campaign": {
       "title": "Video campaign",
       "title_vi": "Chiến dịch video",
+      "default_mode": "system",
       "use_when": "User needs video: short-form vertical, product demo, founder story, testimonial, or ad cutdowns. Produces script, shot list, per-shot AI prompts, audio and caption direction, and delivery specs.",
       "references": ["video-production.md", "copywriting.md", "visual-craft.md", "prompt-contracts.md", "production-pipeline.md", "channel-spec-registry.md", "rights-and-claims.md"],
-      "scripts": ["new_run.py", "compile_prompt.py", "run_status.py"],
+      "scripts": ["start_workbench.py", "new_run.py", "compile_prompt.py", "run_status.py"],
       "deliverables": [
         {
           "id": "01-intake",
@@ -897,9 +902,10 @@
     "optimize-iterate": {
       "title": "Optimize and iterate",
       "title_vi": "Tối ưu và cải tiến",
+      "default_mode": "focused",
       "use_when": "Something is already running and results are known, weak, or confusing. Diagnose, form hypotheses, and change one variable at a time.",
       "references": ["learning-loop.md", "creative-evaluation.md", "production-pipeline.md", "claims-proof-ledger.md"],
-      "scripts": ["new_run.py", "analyze_performance.py", "score_creative.py", "run_status.py"],
+      "scripts": ["start_workbench.py", "new_run.py", "analyze_performance.py", "score_creative.py", "run_status.py"],
       "deliverables": [
         {
           "id": "01-intake",

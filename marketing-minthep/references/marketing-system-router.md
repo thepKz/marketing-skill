@@ -23,7 +23,7 @@ Run `scripts/plan_marketing_system.py` when the request spans jobs or the correc
 
 ## Autonomous pipeline router
 
-For requests that must become files on disk, use `scripts/new_run.py` and select one pipeline:
+For requests that must become files on disk, use `scripts/start_workbench.py`. It selects a primary pipeline and creates linked supporting runs when independent jobs score strongly in the same request. Use `scripts/new_run.py` only for a bare single-pipeline scaffold.
 
 | Pipeline | Trigger | Mandatory modules |
 |---|---|---|

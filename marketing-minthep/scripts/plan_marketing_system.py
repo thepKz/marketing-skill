@@ -55,15 +55,18 @@ PRODUCT_PROOF = {
 }
 
 JOB_KEYWORDS = {
-    "strategy-offer": ("positioning", "offer", "pricing", "strategy", "funnel"),
+    "strategy-offer": (
+        "positioning", "offer", "pricing", "strategy", "funnel", "marketing plan", "from scratch",
+        "định vị", "chào bán", "giá", "chiến lược", "kế hoạch marketing", "từ đầu", "không biết marketing",
+    ),
     "campaign-launch": ("launch", "campaign", "promotion", "paid ads", "paid campaign", "quảng cáo"),
-    "content-distribution": ("content", "seo", "social", "editorial", "calendar", "blog"),
+    "content-distribution": ("content", "seo", "social", "editorial", "calendar", "blog", "nội dung", "lịch nội dung"),
     "commerce-merchandising": ("pdp", "marketplace", "listing", "catalog", "sell", "rao bán", "ecommerce", "retail"),
     "pr-communications": ("press", "public relations", "journalist", "earned media", "newsroom", "pr launch"),
     "sales-enablement": ("sales deck", "proposal", "battlecard", "demo script", "sales kit", "one-pager"),
     "creator-ugc": ("creator", "ugc", "influencer", "kol", "seeding", "whitelisting"),
     "lifecycle-retention": ("retention", "welcome flow", "abandoned cart", "win-back", "post-purchase", "lifecycle"),
-    "creative-production": ("image", "photo", "visual", "art direction", "hình ảnh", "studio"),
+    "creative-production": ("image", "photo", "visual", "art direction", "hình ảnh", "ảnh", "studio", "chụp hình"),
     "measurement-optimization": ("analyze", "performance", "optimize", "report", "roas", "cpa", "measurement"),
 }
 
@@ -89,7 +92,10 @@ CHANNEL_JOB_SIGNALS = {
 
 def _infer_jobs(request: dict) -> list[str]:
     explicit = str(request.get("primary_job", "auto")).lower()
-    text = " ".join(str(request.get(key, "")) for key in ("objective", "notes", "project")).lower()
+    text = " ".join(
+        str(request.get(key, ""))
+        for key in ("request", "objective", "notes", "project", "deliverable")
+    ).lower()
     scores = {job: sum(1 for word in words if word in text) for job, words in JOB_KEYWORDS.items()}
     for channel in (str(item).lower() for item in request.get("channels", [])):
         signaled_job = CHANNEL_JOB_SIGNALS.get(channel)

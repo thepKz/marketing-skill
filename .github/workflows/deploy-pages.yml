@@ -50,6 +50,9 @@ jobs:
           test -f marketing-minthep/assets/registries/asset-formats.json
           test -f marketing-minthep/assets/registries/pipelines.json
           test -f marketing-minthep/scripts/new_run.py
+          test -f marketing-minthep/scripts/start_workbench.py
+          test -f marketing-minthep/scripts/evaluate_workbench.py
+          test -f marketing-minthep/assets/evals/routing-cases.json
           test -f marketing-minthep/scripts/run_status.py
           test -f docs/index.html
           test -f docs/styles.css
@@ -131,6 +134,9 @@ jobs:
             echo "run_status.py --strict passed an unfilled run; the completeness gate is broken"
             exit 1
           fi
+
+      - name: Evaluate routing and linked workbenches
+        run: python marketing-minthep/scripts/evaluate_workbench.py --output "$RUNNER_TEMP/workbench-evaluation.json"
 
       - name: Compile Python tools
         run: python -m compileall -q marketing-minthep/scripts

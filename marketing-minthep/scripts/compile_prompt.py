@@ -45,7 +45,9 @@ def value(record: dict, key: str, default: str = "TBD") -> str:
 
 def master_prompt(record: dict) -> str:
     mode = str(record.get("mode", "campaign"))
+    operation = str(record.get("operation", "")).lower()
     is_person = mode in ("human", "virtual-person", "human-edit", "makeup-edit", "outfit-edit")
+    is_edit = operation == "edit" or mode.endswith("-edit") or bool(record.get("edit_target"))
     identity_sensitive_edit = mode in ("human-edit", "makeup-edit", "outfit-edit") or bool(record.get("identity_sensitive_edit"))
     capture_mode = value(record, "capture_mode", "studio-natural" if is_person else "studio-clean")
     capture_direction = CAPTURE_MODES.get(capture_mode, capture_mode)
@@ -87,6 +89,18 @@ def master_prompt(record: dict) -> str:
                     "preserving the person's face, hair, makeup unless requested, body shape, pose, and every non-wardrobe region."
                 ),
                 "Reject face drift, beautification drift, body reshaping, pose drift, extra accessories, skin replacement, or full-image restyling.",
+                "",
+            ]
+        )
+    elif is_edit:
+        lines.extend(
+            [
+                "LOCALIZED EDIT CONTRACT",
+                f"CHANGE: {value(record, 'change', 'Only the explicitly requested region, object, background, lighting, or styling.')}",
+                f"LOCK: {value(record, 'lock', 'All source pixels, product geometry, labels, identity, pose, crop, and proportions outside Change.')}",
+                f"MATCH: {value(record, 'match', 'Perspective, scale, grain, focus, occlusion, reflections, color spill, and contact shadows.')}",
+                f"MASK: {value(record, 'mask', 'Use the smallest practical mask; feather only where the physical edge requires it.')}",
+                f"REJECT: {value(record, 'reject', 'Full-image restyling, source drift, invented text, floating objects, or inconsistent light and shadow.')}",
                 "",
             ]
         )

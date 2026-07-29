@@ -79,9 +79,11 @@ Use `assets/templates/project-brief.json` as the canonical machine-readable brie
 
 ## Autonomous workspaces and reports
 
-For a broad request, a non-marketer asking for a plan, or any request that asks for files/reports, run `scripts/new_run.py` before drafting. Select the closest pipeline (`plan-from-zero`, `deep-research`, `image-from-reference`, `design-render`, `video-campaign`, or `optimize-iterate`) and the smallest adequate mode.
+For a broad request, a non-marketer asking for a plan, or any request that asks for files/reports, run `scripts/start_workbench.py` before drafting. It creates the run workspace, seeds research/design/provider metadata, and creates linked supporting runs when one request spans pipelines. Use `scripts/new_run.py` only when a bare scaffold is explicitly preferred. Select the closest primary pipeline (`plan-from-zero`, `deep-research`, `image-from-reference`, `design-render`, `video-campaign`, or `optimize-iterate`) and the smallest adequate mode.
 
 Then replace the generated `WRITE` stubs with substantive work. Preserve the generated acceptance gates and run `scripts/run_status.py --strict` before calling the run complete. A scaffold is not a report. If filesystem writes are unavailable, reproduce the same deliverable structure in the response and state that no files were created.
+
+Inspect `_meta/render-capability.json` for image, design, and video work. It starts as `not-rendered`; update it only after real files were produced, opened, and QA-reviewed. Never relabel prompts, storyboards, SVG wireframes, or provider plans as rendered photography or video.
 
 `plan-from-zero` always includes market evidence, audience insight, positioning/offer, message architecture, a channel-ready copy pack, execution priorities, budget/measurement assumptions, and a source appendix. Do not make a non-marketer discover and invoke copywriting or research modules separately.
 

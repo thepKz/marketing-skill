@@ -61,6 +61,8 @@ Skill sẽ hỏi tối đa ba câu khi thiếu dữ liệu có thể làm thay �
 - `system`: nối strategy với các kênh, asset và measurement thật sự phụ thuộc nhau.
 - `production`: thêm brief JSON, manifest, provider prompt, owner, approval, naming và export handoff.
 
+Kế hoạch từ số 0 và nghiên cứu sâu mặc định chạy ở `system` để không bỏ sót audience, copy pack, ngân sách và lịch triển khai. Menu, image edit và video sẽ tự nâng lên `production` khi request có `render`, `export`, `xuất file`, `MP4` hoặc yêu cầu in ấn.
+
 ### Ví dụ request
 
 Physical product:
@@ -108,6 +110,14 @@ Q&A, spokesperson assets and earned-media measurement contract.
 ```powershell
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
+
+Để tạo workspace thật, seed research/provider metadata và nối các pipeline phụ trong cùng một request:
+
+```powershell
+python marketing-minthep/scripts/start_workbench.py --request "Tôi không biết marketing, hãy làm kế hoạch từ đầu cho quán bún bò" --root .
+```
+
+Mỗi run có `_meta/render-capability.json`. File này bắt đầu ở `not-rendered`; chỉ đổi trạng thái sau khi output thật đã được mở và QA. Prompt, storyboard, wireframe SVG và provider plan không được gọi là ảnh/video đã render.
 
 ## Image system
 
@@ -158,6 +168,7 @@ Khi edit ảnh người thật, makeup chỉ được đổi pigment/finish trê
 python -m unittest discover -s marketing-minthep/scripts -p "test_*.py"
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 python C:\Users\Admin\.codex\skills\.system\skill-creator\scripts\quick_validate.py marketing-minthep
+python marketing-minthep/scripts/evaluate_workbench.py
 ```
 
 Workflow `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest, unit tests, Python compilation và deploy trực tiếp `docs/` lên GitHub Pages. Repository không còn `marketing-one-page-studio` hoặc `web-studio`.

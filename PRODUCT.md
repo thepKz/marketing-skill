@@ -10,11 +10,11 @@ web
 
 ## Users
 
-Independent marketers, founders, creative strategists, content teams, and small agencies use this skill while turning incomplete product truth into a marketing and content operating system. They need to move from positioning to content, campaign, realistic image direction, distribution, and learning without rebuilding the process across disconnected skills.
+Non-marketers, founders, independent marketers, creative strategists, content teams, and small agencies use this skill while turning incomplete product truth into a marketing and content operating system. A user may describe the job in ordinary language; the system must route research, copywriting, visual production, channel planning, and measurement without requiring them to know which specialist skill to invoke.
 
 ## Product Purpose
 
-Create one operational skill plus a static handbook where a user can describe a product and receive a scoped marketing foundation, content system, campaign, production-ready copy, a consistent fictional adult virtual person, physically coherent image direction, channel plan, QA criteria, and learning loop. Success means the user leaves with connected artifacts rather than generic inspiration.
+Create one operational skill plus a static handbook where a user can describe a product and receive an on-disk workbench: scoped marketing foundation, sourced research plan, content and copy system, campaign, physically coherent image direction, menu/design render, video production pack, channel plan, QA criteria, and learning loop. Success means the user leaves with connected artifacts and honest render state rather than generic inspiration or prompts mislabeled as finished media.
 
 ## Positioning
 

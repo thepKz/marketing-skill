@@ -74,7 +74,7 @@ def to_markdown(plan: dict) -> str:
     lines = ["# Research plan / Kế hoạch nghiên cứu", "", f"**Objective:** {plan['objective']}", "", "## Scope", "", f"- Category: `{plan['scope']['category']}`", f"- Market: `{plan['scope']['market']}`", "", "## Questions", ""]
     for item in plan["questions"]:
         lines += [f"### {item['id']}: {item['question']}", "", f"- Source tiers: {', '.join(item['source_tier'])}", f"- Queries: {'; '.join(item['queries'])}", f"- Stop condition: {item['stop_condition']}", ""]
-    lines += ["## Evidence ledger", "", "| source_id | url | retrieved_at | tier | observation | claim_supported | bias | confidence |", "|---|---|---|---|---|---|---|---|", "| TBD | TBD | TBD | TBD | TBD | TBD | TBD | TBD |", "", "## Synthesis rules", ""]
+    lines += ["## Evidence ledger", "", "| source_id | url | retrieved_at | tier | observation | claim_supported | bias | confidence |", "|---|---|---|---|---|---|---|---|", "| — | — | — | — | Add evidence during live research | — | — | — |", "", "## Synthesis rules", ""]
     lines += [f"- {rule}" for rule in plan["synthesis_rules"]]
     return "\n".join(lines) + "\n"
 

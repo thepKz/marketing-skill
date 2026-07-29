@@ -56,7 +56,7 @@ PIPELINE_KEYWORDS = {
     ),
     "video-campaign": (
         ("shot list", "storyboard", "video ad", "quảng cáo video", "kịch bản video", "video script",
-         "short video", "video ngắn", "reel", "tiktok video", "cutdown", "video campaign"),
+         "short video", "video ngắn", "reel", "tiktok video", "video tiktok", "cutdown", "video campaign"),
         ("video", "clip", "reel", "shorts", "footage", "kịch", "bản", "storyboard", "shot", "veo",
          "sora", "kling", "runway", "motion"),
     ),
@@ -68,6 +68,28 @@ PIPELINE_KEYWORDS = {
          "audit", "tối", "ưu", "giảm", "báo", "cáo", "report", "experiment", "test", "a/b"),
     ),
 }
+
+
+def _supporting_pipelines(routing: dict) -> list[str]:
+    primary = routing["pipeline"]
+    scores = routing.get("scores", {})
+    primary_score = scores.get(primary, 0)
+    if not scores or primary_score <= 0:
+        return []
+    threshold = max(3, int(primary_score * 0.6))
+    ranked = sorted(scores.items(), key=lambda item: -item[1])
+    return [name for name, score in ranked if name != primary and score >= threshold][:2]
+
+
+def _select_mode(request: dict, pipeline_name: str, pipeline: dict) -> str:
+    explicit = request.get("mode")
+    if explicit:
+        return str(explicit).lower()
+    text = " ".join(str(request.get(key, "")) for key in ("request", "objective", "deliverable", "notes")).lower()
+    production_signals = ("render", "xuất", "export", "production-ready", "file mp4", "file png", "file pdf", "in ấn")
+    if pipeline_name in {"image-from-reference", "design-render", "video-campaign"} and any(signal in text for signal in production_signals):
+        return "production"
+    return str(pipeline.get("default_mode", "focused")).lower()
 
 
 def _slugify(value: str, fallback: str = "run") -> str:
@@ -110,6 +132,15 @@ def route_pipeline(request: dict, registry: dict) -> dict:
         score = 3 * sum(1 for phrase in phrases if phrase in text)
         score += sum(1 for word in words if re.search(rf"\b{re.escape(word)}", text))
         scores[name] = score
+
+    # Preserve the user's first concrete deliverable when a design request also asks
+    # for a supporting video; the latter becomes a linked workbench instead of
+    # silently replacing the menu/layout job.
+    if "menu" in text and any(token in text for token in ("video", "tiktok", "reel", "storyboard")):
+        menu_position = text.find("menu")
+        video_positions = [pos for token in ("video", "tiktok", "reel", "storyboard") if (pos := text.find(token)) >= 0]
+        if video_positions and menu_position <= min(video_positions):
+            scores["design-render"] = max(scores["design-render"], scores["video-campaign"] + 1)
 
     best = max(scores, key=lambda name: (scores[name], -list(pipelines).index(name)))
     if scores[best] == 0:
@@ -176,7 +207,7 @@ def build_run(request: dict, registry: dict | None = None) -> dict:
     pipeline_name = routing["pipeline"]
     pipeline = registry["pipelines"][pipeline_name]
 
-    mode = str(request.get("mode", "focused")).lower()
+    mode = _select_mode(request, pipeline_name, pipeline)
     if mode not in MODES:
         raise ValueError(f"Unsupported mode: {mode}. Choose from {', '.join(MODES)}.")
 
@@ -224,6 +255,7 @@ def build_run(request: dict, registry: dict | None = None) -> dict:
         "mode": mode,
         "languages": languages,
         "routing": routing,
+        "supporting_pipelines": _supporting_pipelines(routing),
         "references_to_load": pipeline["references"],
         "scripts": pipeline["scripts"],
         "deliverables": deliverables,
