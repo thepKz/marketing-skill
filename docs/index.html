@@ -23,6 +23,7 @@
         <a href="#use-cases">Dùng để làm gì</a>
         <a href="#start">Bắt đầu</a>
         <a href="#outputs">Ảnh mẫu</a>
+        <a href="#sheets">Bảng tham chiếu</a>
         <a href="#identity">Identity lock</a>
         <a href="#install">Cài skill</a>
       </nav>
@@ -140,28 +141,54 @@
             <img src="./assets/generated/minthep-fashion-look.png" alt="Fashion look full-body màu ivory" data-alt-en="Full-body ivory fashion look" loading="lazy" />
             <span><b>Fashion look</b><small>outfit · catalog · editorial</small></span>
           </button>
-          <button class="output-item output-menu image-open" type="button" data-image="./assets/generated/bun-bo-menu-quiet-editorial.svg" data-caption="Menu · hướng Quiet editorial · lề rộng, chữ tiêu đề lớn, không trang trí dòng">
+          <button class="output-item output-menu image-open" type="button" data-image="./assets/generated/bun-bo-menu-quiet-editorial.svg" data-caption="Menu · hướng Quiet editorial · lề rộng, chữ tiêu đề lớn, không trang trí dòng" data-caption-en="Menu · Quiet editorial direction · wide margins, large title type, no row ornament">
             <img src="./assets/generated/bun-bo-menu-quiet-editorial.svg" alt="Menu bún bò hướng quiet editorial, lề rộng và giãn dòng thoáng, giá cố ý để trống" data-alt-en="Quiet-editorial bun bo menu with wide margins and open leading, prices intentionally left blank" loading="lazy" />
             <span><b>Menu · Quiet editorial</b><small>lề rộng · giãn dòng · định vị cao</small></span>
           </button>
-          <button class="output-item output-menu image-open" type="button" data-image="./assets/generated/bun-bo-menu-modern-street.svg" data-caption="Menu · hướng Modern street · thanh accent dày, số thứ tự để gọi món">
+          <button class="output-item output-menu image-open" type="button" data-image="./assets/generated/bun-bo-menu-modern-street.svg" data-caption="Menu · hướng Modern street · thanh accent dày, số thứ tự để gọi món" data-caption-en="Menu · Modern street direction · heavy accent bar, item numbers for ordering">
             <img src="./assets/generated/bun-bo-menu-modern-street.svg" alt="Menu bún bò hướng modern street, có số thứ tự món và thanh màu dày, giá cố ý để trống" data-alt-en="Modern-street bun bo menu with item numbers and a heavy accent bar, prices intentionally left blank" loading="lazy" />
             <span><b>Menu · Modern street</b><small>quét nhanh · số gọi món · social</small></span>
           </button>
-          <button class="output-item output-menu image-open" type="button" data-image="./assets/generated/bun-bo-menu-heritage-craft.svg" data-caption="Menu · hướng Heritage craft · kẻ đôi, bullet, dẫn chấm tới giá">
+          <button class="output-item output-menu image-open" type="button" data-image="./assets/generated/bun-bo-menu-heritage-craft.svg" data-caption="Menu · hướng Heritage craft · kẻ đôi, bullet, dẫn chấm tới giá" data-caption-en="Menu · Heritage craft direction · double rule, bullets, dotted leaders to the price">
             <img src="./assets/generated/bun-bo-menu-heritage-craft.svg" alt="Menu bún bò hướng heritage craft, kẻ đôi và dẫn chấm tới cột giá, giá cố ý để trống" data-alt-en="Heritage-craft bun bo menu with a double rule and dotted price leaders, prices intentionally left blank" loading="lazy" />
             <span><b>Menu · Heritage craft</b><small>kẻ đôi · dẫn chấm · menu in</small></span>
           </button>
-          <button class="output-item output-post image-open" type="button" data-image="./assets/generated/bun-bo-post-feed.svg" data-caption="Post mẫu · feed 4:5 · headline, 3 dòng bằng chứng, CTA và dòng chưa duyệt">
+          <button class="output-item output-post image-open" type="button" data-image="./assets/generated/bun-bo-post-feed.svg" data-caption="Post mẫu · feed 4:5 · headline, 3 dòng bằng chứng, CTA và dòng chưa duyệt" data-caption-en="Sample post · 4:5 feed · headline, 3 proof lines, CTA and an unconfirmed line">
             <img src="./assets/generated/bun-bo-post-feed.svg" alt="Bài đăng feed 4:5 dựng bằng code: tô bún vẽ sơ đồ, headline, ba dòng bằng chứng chờ xác nhận và nút CTA" data-alt-en="Code-built 4:5 feed post: schematic bowl, headline, three unconfirmed proof lines and a CTA button" loading="lazy" />
             <span><b>Post mẫu · Feed 4:5</b><small>headline · proof · CTA</small></span>
           </button>
-          <button class="output-item output-post is-story image-open" type="button" data-image="./assets/generated/bun-bo-post-story.svg" data-caption="Post mẫu · story 9:16 · chừa 250px trên và 420px dưới cho khung giao diện ứng dụng">
+          <button class="output-item output-post is-story image-open" type="button" data-image="./assets/generated/bun-bo-post-story.svg" data-caption="Post mẫu · story 9:16 · chừa 250px trên và 420px dưới cho khung giao diện ứng dụng" data-caption-en="Sample post · 9:16 story · 250px reserved at the top and 420px at the bottom for the app interface">
             <img src="./assets/generated/bun-bo-post-story.svg" alt="Bài đăng story 9:16 với vùng trên và dưới để trống cho khung giao diện của ứng dụng" data-alt-en="9:16 story post with the top and bottom bands left empty for the app's own interface" loading="lazy" />
             <span><b>Post mẫu · Story 9:16</b><small>safe zone · dựng lại · không cắt</small></span>
           </button>
         </div>
         <p class="concept-disclaimer">Các hình trên là concept hư cấu để minh họa art direction. Hai post mẫu dựng bằng <code>render_social_post.py</code>: story không phải bản feed bị cắt, nó chừa 250px trên và 420px dưới cho khung giao diện của ứng dụng. Ba menu là cùng một nội dung, dựng bằng <code>render_mockup.py</code>, chỉ đổi hướng thiết kế — lề, cỡ chữ tiêu đề, giãn dòng và cách xử lý dòng món đều khác nhau, không chỉ đổi màu. Giá và thành phần cố ý để trống; đây chưa phải file in đã duyệt.</p>
+      </section>
+
+      <section class="sheets" id="sheets" aria-labelledby="sheets-title">
+        <header class="output-heading">
+          <div><h2 id="sheets-title">Không mô tả cơ chế.<br />Vẽ nó ra rồi chỉ.</h2></div>
+          <p>Bốn bảng tham chiếu dựng bằng code từ đúng những bảng dữ liệu mà skill tra khi ra quyết định, nên bảng không thể lệch khỏi lời khuyên. Không cần API key, không gọi provider nào. Bấm để xem bản đầy đủ.</p>
+        </header>
+        <div class="sheet-wall">
+          <button class="sheet-item image-open" type="button" style="aspect-ratio: 1400 / 958" data-image="./assets/generated/refsheet-dial-margin.svg" data-caption="Bảng dial · cùng một menu vẽ ba lần ở min, mặc định và max của tỉ lệ lề" data-caption-en="Dial sheet · the same menu drawn three times at the minimum, default and maximum margin ratio">
+            <img src="./assets/generated/refsheet-dial-margin.svg" alt="Cùng một menu bún bò bốn món vẽ ba lần, chỉ tỉ lệ lề thay đổi giữa min, mặc định và max" data-alt-en="The same four-item bun bo menu drawn three times, with only the margin ratio changing between minimum, default and maximum" loading="lazy" />
+            <span><b>Bố cục là một nhúm con số</b><small>17 dial · min · mặc định · max</small></span>
+          </button>
+          <button class="sheet-item image-open" type="button" style="aspect-ratio: 1400 / 1222" data-image="./assets/generated/refsheet-lighting.svg" data-caption="Bảng ánh sáng · sáu setup nhìn từ trên xuống, bóng tính từ vị trí đèn key" data-caption-en="Lighting sheet · six overhead setups, the shadow computed from where the key sits">
+            <img src="./assets/generated/refsheet-lighting.svg" alt="Sáu sơ đồ ánh sáng nhìn từ trên xuống với đèn key, fill, bounce và flag, bóng vẽ theo hướng đèn key" data-alt-en="Six overhead lighting plans with key, fill, bounce and flag, the shadow drawn from where the key sits" loading="lazy" />
+            <span><b>“45/45 soft key” là gì</b><small>6 setup · bóng tính, không chọn</small></span>
+          </button>
+          <button class="sheet-item image-open" type="button" style="aspect-ratio: 1400 / 934" data-image="./assets/generated/refsheet-frames.svg" data-caption="Bảng khung · năm placement đúng tỉ lệ thật với vùng chữ và dải giao diện bị chiếm" data-caption-en="Frame sheet · five placements at true proportion with the copy reserve and the interface bands shaded">
+            <img src="./assets/generated/refsheet-frames.svg" alt="Năm khung đăng bài theo đúng tỉ lệ thật, tô đậm vùng dành cho chữ và dải mà ứng dụng tự vẽ lên" data-alt-en="Five posting frames at true proportion, shading the copy reserve and the bands the app draws over" loading="lazy" />
+            <span><b>Vì sao story không crop được</b><small>5 khung · safe zone · lề cắt</small></span>
+          </button>
+          <button class="sheet-item image-open" type="button" style="aspect-ratio: 1400 / 1906" data-image="./assets/generated/refsheet-palettes.svg" data-caption="Bảng palette · 20 palette thành vùng màu thật, tỉ lệ tương phản đo được in ở dưới" data-caption-en="Palette sheet · 20 palettes as real areas, the measured contrast ratio printed underneath">
+            <img src="./assets/generated/refsheet-palettes.svg" alt="Hai mươi palette vẽ thành vùng màu thật kèm một nút thật, tỉ lệ tương phản đo được in dưới mỗi cái" data-alt-en="Twenty palettes drawn as real areas with a real button, the measured contrast ratio printed under each" loading="lazy" />
+            <span><b>Màu nào đọc được ngoài nắng</b><small>20 palette · tỉ lệ tính, không khai</small></span>
+          </button>
+        </div>
+        <p class="concept-disclaimer">Bốn bảng này là artefact thật, không phải concept: chạy <code>render_refsheet.py</code> là ra đúng những hình trên. Cột tương phản trong bảng palette là tính ra chứ không khai ra, và hai trong hai mươi accent thật sự không đạt ngưỡng 3:1 nên bị đánh dấu chỉ dùng để tô, không dùng cho chữ. Như vậy hữu ích hơn một bộ palette mà cái nào cũng đạt.</p>
       </section>
 
       <section class="identity" id="identity" aria-labelledby="identity-title">

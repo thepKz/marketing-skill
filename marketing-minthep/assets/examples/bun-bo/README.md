@@ -78,6 +78,44 @@ colour would be one option wearing three hats.
 
 Rendered output lives in `docs/assets/generated/bun-bo-menu-<direction>.svg`.
 
+The three columns of numbers above are not invented per direction. They come from
+`data/layout-dials.csv`, which names 17 dials, each with a minimum, a maximum, a default per
+direction, what raising it changes and the value it breaks at. To see a dial instead of reading it:
+
+```bash
+python ../../../scripts/render_refsheet.py --sheet dials --dial margin_ratio \
+  --output dials.svg --html-output dials.html
+```
+
+That draws this same four-item menu three times, at the minimum, the default and the maximum of
+one dial, with everything else held still. It is the fastest way to show someone who does not do
+this for a living what "side margin 11.1% against 8.3%" actually does to a page. Swap `--dial` for
+`title_ratio`, `row_pitch_ratio` or `line_leading` to isolate a different number.
+
+Three more sheets come off the same tables: `--sheet lighting` for the six setups a photography
+brief can ask for, `--sheet frames` for the five placements at true proportion with the reserved
+bands shaded, and `--sheet palettes` for 20 palettes with their measured contrast printed on them.
+None of them call an image provider and none need an API key.
+
+## Where the craft values came from
+
+`key-visual.json` was not written from memory. Start here instead:
+
+```bash
+python ../../../scripts/find_recipe.py --query "bún bò"
+python ../../../scripts/find_recipe.py --brief bowl-counter --palette paper-cobalt
+python ../../../scripts/find_recipe.py --checklist bowl-counter
+```
+
+Search by the job, in Vietnamese or English, in the words you would use out loud. `--brief`
+composes a `compile_prompt.py` payload and leaves anything only the shop owner knows as `TBD` with
+the reason attached, so a truth nobody stated cannot slip in as a plausible sentence. `--checklist`
+prints what to look at on the render, filtered to the tells that apply to this recipe. Eight of the
+33 apply to a bowl, and one of them is the tell this dish lives or dies on: food with a waxy sheen,
+or broth rendered opaque. Each one names what to look at and what to change. Keep it open beside
+the image.
+Reading the prompt again proves nothing about the picture.
+
 ## Why every price is an em dash
 
 Nobody told the skill what a bowl of bún bò costs at your shop. So it renders `—`, and the

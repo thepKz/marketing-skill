@@ -1350,6 +1350,25 @@ class FindRecipeTests(unittest.TestCase):
         self.assertTrue(hits, "a Vietnamese job phrase found nothing")
         self.assertEqual(hits[0]["id"], "dish-delivery")
 
+    def test_the_words_a_shop_owner_types_reach_a_row(self) -> None:
+        """Phrases, not keywords. Each of these returned nothing while the query was matched as one
+        substring: "bún bò" because no row spelled out the dish, "khuyến mãi" because the offer
+        formulas only said "offer". A lookup that needs the right vocabulary to find the row that
+        supplies the vocabulary is no use to the person this skill is for."""
+        for table, query, expected in (
+            ("recipes", "bún bò", "bowl-counter"),
+            ("recipes", "tô bún quầy", "bowl-counter"),
+            ("recipes", "ảnh món ăn cho app", "dish-delivery"),
+            ("copy", "khuyến mãi", {"offer-stack", "scarcity-honest"}),
+            ("copy", "ưu đãi", "offer-stack"),
+            ("copy", "tiêu đề", "one-idea-headline"),
+        ):
+            hits = find_recipe.search(table, query)
+            self.assertTrue(hits, f"{query!r} found nothing in {table}")
+            ids = {row["id"] for row in hits}
+            wanted = expected if isinstance(expected, set) else {expected}
+            self.assertTrue(wanted <= ids, f"{query!r} did not reach {wanted - ids}")
+
     def test_brief_leaves_owner_fields_as_tbd_and_compiles(self) -> None:
         payload = find_recipe.brief("dish-delivery", "white-crimson")
         for field in payload["brief"]:

@@ -66,23 +66,37 @@ def search(table: str, query: str) -> list[dict[str, str]]:
     An id match beats a job match, and a job match beats a hit anywhere else in the row. Without
     the ranking, a query for "food" returns the nineteen rows that mention food in a warning and
     buries the four rows that are about photographing it.
+
+    Every word has to hit, but not adjacently. "bún bò" used to return nothing while "bún" returned
+    the right row, because the whole phrase was matched as one substring and no row spells out the
+    dish. Someone who does not do this for a living types a phrase, not a keyword.
     """
     _, key, searched = TABLES[table]
-    needle = query.strip().lower()
-    if not needle:
+    terms = [term for term in query.strip().lower().split() if term]
+    if not terms:
         return load(table)
+
+    def hits(text: str) -> bool:
+        lowered = text.lower()
+        return all(term in lowered for term in terms)
+
+    def joined(row: dict[str, str], fields) -> str:
+        # Joined rather than checked field by field, so a two-word query can land one word in
+        # job_vi and the other in job_en and still count as a job match.
+        return " ".join((row.get(field) or "") for field in fields)
+
     scored: list[tuple[int, dict[str, str]]] = []
     for row in load(table):
-        if needle in row[key].lower():
+        if hits(row[key]):
             scored.append((0, row))
             continue
-        if any(needle in (row.get(field) or "").lower() for field in searched[:2]):
+        if hits(joined(row, searched[:2])):
             scored.append((1, row))
             continue
-        if any(needle in (row.get(field) or "").lower() for field in searched):
+        if hits(joined(row, searched)):
             scored.append((2, row))
             continue
-        if any(needle in (value or "").lower() for value in row.values()):
+        if hits(" ".join(value or "" for value in row.values())):
             scored.append((3, row))
     scored.sort(key=lambda pair: pair[0])
     return [row for _, row in scored]

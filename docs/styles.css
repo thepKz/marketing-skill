@@ -297,6 +297,29 @@ h1 { max-width: 780px; margin: 26px 0 28px; font-size: clamp(3.5rem, 5.7vw, 6rem
 .output-post img { object-fit: contain; padding: 18px 18px 54px; }
 .concept-disclaimer { margin: 0; padding: 18px clamp(20px, 5vw, 72px); color: var(--ink); background: var(--orange); font-size: 0.68rem; font-weight: 700; }
 
+/* The four reference sheets. Each carries its own ratio inline, because they are different shapes
+   and forcing one ratio would crop the thing each sheet exists to show. `align-items: start` is
+   load-bearing: the grid default stretches an item to the row height, which wins over
+   aspect-ratio, and the first version showed the dial sheet letterboxed inside a taller row. The
+   spans are picked so both rows come out close to level at desktop width: 7+5 puts a 1400x958
+   sheet beside a 1400x1222 one, and 8+4 puts a landscape sheet beside the tall palette sheet.
+   The tile background is the literal #f5f1e8 rather than var(--paper) for the same reason
+   .output-menu is: that is the exact paper the renderer fills its own canvas with, and --paper is
+   #f3f1eb. Two shades apart is invisible as a colour and visible as a seam, because the image is
+   contained inside 16px of padding and the tile shows through around it. */
+.sheets { color: var(--white); background: var(--ink); border-bottom: 1px solid var(--line); }
+.sheet-wall { display: grid; grid-template-columns: repeat(12, 1fr); align-items: start; gap: 8px; padding: 8px; }
+.sheet-item { position: relative; grid-column: span 6; padding: 0; border: 0; background: #f5f1e8; cursor: zoom-in; overflow: hidden; }
+.sheet-item img { object-fit: contain; padding: 16px 16px 52px; transition: transform 500ms cubic-bezier(.2,.8,.2,1); }
+.sheet-item:hover img { transform: scale(1.02); }
+.sheet-item > span { position: absolute; inset: auto 0 0; display: flex; justify-content: space-between; gap: 20px; padding: 16px; color: var(--ink); background: rgb(255 255 255 / 0.94); border-top: 1px solid var(--line); text-align: left; }
+.sheet-item b { font-size: 0.86rem; }
+.sheet-item small { color: var(--muted); font: 600 0.62rem "IBM Plex Mono", monospace; }
+.sheet-item:nth-child(1) { grid-column: span 7; }
+.sheet-item:nth-child(2) { grid-column: span 5; }
+.sheet-item:nth-child(3) { grid-column: span 8; }
+.sheet-item:nth-child(4) { grid-column: span 4; }
+
 .step-image, .role-map, .variant-fan, .qa-stamp { height: 190px; border: 1px solid var(--line); }
 .step-image img { object-position: center 27%; }
 .role-map { display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 7px; padding: 14px; background: var(--paper); }
@@ -467,6 +490,9 @@ footer p { max-width: 60ch; margin: 7px 0 0; color: var(--muted); }
   .output-wall { grid-template-columns: 1fr; }
   .output-item, .output-product, .output-beauty, .output-art, .output-fashion, .output-menu, .output-post, .output-post.is-story { grid-column: auto; min-height: 480px; margin-top: 0; }
   .output-item > span { flex-direction: column; gap: 4px; }
+  .sheet-wall { grid-template-columns: 1fr; }
+  .sheet-item, .sheet-item:nth-child(1), .sheet-item:nth-child(2), .sheet-item:nth-child(3), .sheet-item:nth-child(4) { grid-column: auto; }
+  .sheet-item > span { flex-direction: column; gap: 4px; }
   .identity-visual { min-height: 590px; }
   .lock { font-size: 0.52rem; }
   .lock-eye { left: 3%; }

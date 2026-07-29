@@ -186,7 +186,10 @@ document.querySelectorAll('.image-open').forEach((button) => button.addEventList
   if (!dialog || !dialogImage || !dialogCaption) return;
   dialogImage.src = button.dataset.image;
   dialogImage.alt = button.querySelector('img')?.alt || '';
-  dialogCaption.textContent = button.dataset.caption || '';
+  // The caption is an attribute, so the tree walker never sees it and the English edition used to
+  // open every lightbox with a Vietnamese line under it. data-caption-en mirrors data-alt-en.
+  const caption = currentLanguage === 'en' ? button.dataset.captionEn || button.dataset.caption : button.dataset.caption;
+  dialogCaption.textContent = caption || '';
   dialog.showModal();
 }));
 dialog?.querySelector('.dialog-close')?.addEventListener('click', () => dialog.close());
