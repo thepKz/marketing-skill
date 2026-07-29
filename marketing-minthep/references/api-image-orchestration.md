@@ -1,5 +1,15 @@
 # GPT Image 2 and Nano Banana Orchestration
 
+Every model ID below was verified against the provider's own documentation on 2026-07-29:
+`gpt-image-2` at https://developers.openai.com/api/docs/guides/image-generation, and
+`gemini-3.1-flash-lite-image`, `gemini-3.1-flash-image`, `gemini-3-pro-image`,
+`gemini-2.5-flash-image` at https://ai.google.dev/gemini-api/docs/image-generation.
+
+Treat that as a dated cache, not knowledge. Model IDs, price tiers, and parameter support change
+without notice. Re-read both pages before an API call, and never name a version you have not seen
+on a live provider page. The same OpenAI page also lists `gpt-image-1.5`, `gpt-image-1`, and
+`gpt-image-1-mini`, which this reference does not route to.
+
 ## Contents
 
 - Routing summary

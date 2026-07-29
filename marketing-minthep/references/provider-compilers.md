@@ -2,6 +2,9 @@
 
 Keep one provider-neutral master prompt. Compile only the execution layer. Provider features and parameters change; verify current official documentation before production.
 
+Model IDs here were verified on 2026-07-29 — see `api-image-orchestration.md` for the source URLs
+and the re-verification rule.
+
 ## Shared source contract
 
 Every provider receives:
