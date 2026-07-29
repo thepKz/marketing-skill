@@ -1,6 +1,6 @@
 ---
 name: marketing-minthep
-description: "Autonomous marketing system: market research, positioning, offer, copywriting, branding imagery from a reference photo, menu and wireframe design, video. Writes bilingual VI/EN deliverables to disk."
+description: "All-in-one marketing for marketers and non-marketers alike. Use for market research and sizing, competitor and audience analysis, positioning, offer and pricing, brand voice, copywriting (ads, landing page, PDP, email, social, script), campaign and launch planning, content calendar, paid media creative, SEO, PR and press kit, sales deck, creator/UGC briefs, lifecycle and retention flows, product photography and key visual direction, image editing and retouch, virtual person and makeup direction, colour palettes, menu/poster/wireframe layout rendered as real SVG or HTML, video shot sequencing with continuity, provider prompts for GPT Image or Nano Banana, creative QA and experiment read-outs. Vietnamese too: quảng cáo, chiến dịch, thương hiệu, định vị, viết content, thiết kế menu, bố cục, chỉnh sửa ảnh, ảnh sản phẩm, màu sắc, kịch bản video, kế hoạch marketing từ đầu. Writes bilingual VI/EN deliverables to disk and labels every fact confirmed, observed, inferred, or unknown."
 ---
 
 # Marketing-Minthep for Claude

@@ -1211,8 +1211,20 @@ class ReferenceIntegrityTests(unittest.TestCase):
         skill = SKILL_ROOT / "SKILL.md"
         lines = skill.read_text(encoding="utf-8").splitlines()
         self.assertLess(len(lines), 150, f"SKILL.md is {len(lines)} lines")
-        value = _frontmatter_description(skill)
-        self.assertLess(len(value), 200, f"description is {len(value)} chars")
+    def test_the_description_is_wide_enough_to_be_found(self) -> None:
+        """The description is not prose the user reads; it is the only text a runtime matches a
+        request against before loading anything. Holding it to one tidy sentence was a mistake:
+        "branding imagery from a reference photo, menu and wireframe design" does not contain
+        campaign, palette, retouch, press kit, lifecycle, or a single Vietnamese word, so a man
+        typing "giúp tôi lên chiến dịch quảng cáo" matched nothing. Width here costs one
+        activation-time string; missing the match costs the whole skill. 1024 characters is the
+        documented ceiling, so the test guards that and the coverage rather than brevity."""
+        value = _frontmatter_description(SKILL_ROOT / "SKILL.md")
+        self.assertLessEqual(len(value), 1024, f"description is {len(value)} chars")
+        for term in ("campaign", "copywriting", "colour", "layout", "image editing", "video"):
+            self.assertIn(term, value.lower(), f"description never mentions {term}")
+        for term in ("chiến dịch", "thiết kế menu", "chỉnh sửa ảnh", "màu sắc"):
+            self.assertIn(term, value, f"description never mentions {term}")
 
     def test_runtime_adapters_advertise_the_canonical_description(self) -> None:
         """The adapters are what each runtime actually indexes for skill discovery. When their
