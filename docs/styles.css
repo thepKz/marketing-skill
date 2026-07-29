@@ -278,8 +278,13 @@ h1 { max-width: 780px; margin: 26px 0 28px; font-size: clamp(3.5rem, 5.7vw, 6rem
 .output-beauty { min-height: 720px; }
 .output-art { min-height: 680px; margin-top: -150px; }
 .output-fashion { min-height: 540px; }
-.output-menu { grid-column: span 12; min-height: 680px; background: #f5f1e8; }
-.output-menu img { object-fit: contain; padding: 28px 28px 72px; }
+/* Three menus, one row. Each was span 12 with min-height 680, and because the img keeps
+   height:100% the tile grew to the SVG's own aspect ratio instead: roughly 1450px each, so the
+   same artefact filled 4300px of a 13500px page. Three directions shown a screen apart are not a
+   comparison, they are the same page three times. Side by side at a fixed 3/4 the margin, title
+   size and line treatment differ visibly in one glance; the dialog still opens each at full size. */
+.output-menu { grid-column: span 4; min-height: 0; aspect-ratio: 3 / 4; background: #f5f1e8; }
+.output-menu img { object-fit: contain; padding: 18px 18px 54px; }
 .concept-disclaimer { margin: 0; padding: 18px clamp(20px, 5vw, 72px); color: var(--ink); background: var(--orange); font-size: 0.68rem; font-weight: 700; }
 
 .step-image, .role-map, .variant-fan, .qa-stamp { height: 190px; border: 1px solid var(--line); }
