@@ -1,7 +1,8 @@
-# Bún bò — menu options, worked end to end
+# Bún bò — one shop, worked end to end
 
 A single request ("I sell bún bò, I want a menu") turned into three design directions and three
 rendered files, so you can see what the skill produces before trusting it with your own product.
+Two more files carry the same shop into photography and video.
 
 ## Run it
 
@@ -9,10 +10,37 @@ rendered files, so you can see what the skill produces before trusting it with y
 python ../../../scripts/plan_design_options.py --input request.json
 python ../../../scripts/render_mockup.py --input menu-modern-street.json \
   --output out.svg --html-output out.html
+python ../../../scripts/compile_prompt.py --input key-visual.json --provider generic
+python ../../../scripts/plan_video_sequence.py --input video-sequence.json --format report
 ```
 
 `plan_design_options.py` returns the three directions and names one recommendation. Pick one,
 then render it. The `--html-output` flag wraps the SVG in a page you can open in a browser.
+
+| File | What it is |
+|---|---|
+| `request.json` | The original request, in the words a shop owner would use |
+| `menu-*.json` | The three design directions, ready to render |
+| `key-visual.json` | One photography brief, compiled to a provider-ready prompt |
+| `video-sequence.json` | Five shots for a 15s vertical, sequenced with carried continuity |
+
+## The photography brief
+
+`key-visual.json` is deliberately specific about material behaviour: translucent broth with fat
+rings rather than opaque soup, noodles wet and separate rather than clumped, herbs cut and
+slightly bruised rather than glossy. That is where food images stop looking generated. It reserves
+the upper-left 45 percent of the frame as empty space and puts the stock pot on the other side,
+because a reserved area that the scene description fills is a reserved area you cannot use.
+
+It also asks for no text at all. The dish name and price go in during layout, after the price is
+confirmed — a rendered price is an invented price.
+
+## The video sequence
+
+`video-sequence.json` describes the world once and lets each shot declare only what changes, so
+the sequencer carries light direction, screen direction, hand, props and steam state forward by
+itself. Run it with `--format prompts` for the per-shot prompts, `--format csv` for the shot list.
+Break continuity and it refuses to emit anything, which is the point.
 
 ## The three directions
 

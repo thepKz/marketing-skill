@@ -197,6 +197,81 @@ class ToolTests(unittest.TestCase):
         self.assertIn("LIGHTING GEOMETRY", prompt)
         self.assertNotIn("K-pop-inspired makeup", prompt)
 
+    def test_product_prompt_does_not_ask_for_skin_hair_or_fabric(self) -> None:
+        """Capture modes were written in person vocabulary and emitted for products too, so a
+        serum-bottle prompt carried "natural skin, hair, fabric, posture" into the renderer. A
+        test render came back with silk drapery filling the copy area the brief reserved."""
+        prompt = compile_provider(
+            {"mode": "product", "prompt": {"capture_mode": "studio-natural", "subject_action": "One glass bottle"}},
+            "generic",
+        )
+        capture = prompt.split("CAPTURE MODE")[1].split("\n\n")[0].lower()
+        for word in ("skin", "hair", "fabric", "posture"):
+            self.assertNotIn(word, capture, f"product capture mode invites {word}")
+        # The person wording still exists; it is only supposed to be reachable from a person mode.
+        person = compile_provider({"mode": "human", "prompt": {"capture_mode": "studio-natural"}}, "generic")
+        self.assertIn("natural skin, hair, fabric, posture", person)
+
+    def test_copy_area_is_an_instruction_that_outranks_the_rest_of_the_brief(self) -> None:
+        """It used to be emitted as a fact — "Copy-safe area: Upper-left 40 percent" — which a
+        renderer cannot act on, and a test render duly filled it. Briefs also contradict
+        themselves about it, so the compiled prompt has to say which line wins."""
+        prompt = compile_provider(
+            {"mode": "product", "prompt": {"copy_safe_area": "Upper-left 40 percent", "aspect_ratio": "4:5"}},
+            "generic",
+        )
+        self.assertIn("Keep this area of the frame deliberately empty: Upper-left 40 percent", prompt)
+        self.assertIn("this empty area wins", prompt)
+        # A brief with no reserved area must not leave the renderer guessing either.
+        full_bleed = compile_provider({"mode": "product", "prompt": {"aspect_ratio": "1:1"}}, "generic")
+        self.assertIn("No copy area is reserved", full_bleed)
+
+    def test_known_ratio_carries_the_size_to_set(self) -> None:
+        """The ratio in the prompt text does not shape the pixels; the API size parameter does.
+        A prompt that says 4:5 rendered at 1:1 crops away the copy area."""
+        prompt = compile_provider({"mode": "product", "prompt": {"aspect_ratio": "4:5"}}, "generic")
+        self.assertIn("1024x1280", prompt)
+        # An unusual ratio has no honest size to name, so none is invented.
+        odd = compile_provider({"mode": "product", "prompt": {"aspect_ratio": "37:11"}}, "generic")
+        self.assertNotIn("Set the provider's output size", odd)
+
+    def test_house_negatives_are_added_without_replacing_the_brief(self) -> None:
+        """A brief author cannot name every trope in advance, and the ones here are credibility
+        failures or physical impossibilities rather than style opinions."""
+        prompt = compile_provider(
+            {"mode": "product", "prompt": {"negative_constraints": "No fake label"}},
+            "generic",
+        )
+        self.assertIn("No fake label", prompt)
+        for trope in ("silk or satin drapery", "no object resting on nothing", "no invented logo"):
+            self.assertIn(trope, prompt)
+
+    def test_subject_leads_the_prompt(self) -> None:
+        """The opening was the provider name and the capture mode, so the highest-attention
+        position went to metadata and the thing being photographed arrived seventh."""
+        prompt = compile_provider(
+            {"mode": "product", "prompt": {"subject_action": "One frosted bottle", "job": "Hero"}},
+            "generic",
+        )
+        self.assertLess(prompt.index("SUBJECT AND ACTION"), prompt.index("CAPTURE MODE"))
+        self.assertLess(prompt.index("FRAME AND NEGATIVE SPACE"), prompt.index("SCENE AND ART DIRECTION"))
+        self.assertLess(prompt.index("LIGHTING GEOMETRY"), prompt.index("JOB"))
+
+    def test_shipped_bun_bo_key_visual_reserves_an_area_nothing_else_occupies(self) -> None:
+        """The contradiction this catches was one I shipped: the scene put the stock pot behind
+        camera-left while the copy area reserved the upper-left, and the render filled it."""
+        path = SKILL_ROOT / "assets" / "examples" / "bun-bo" / "key-visual.json"
+        record = json.loads(path.read_text(encoding="utf-8"))
+        brief = record["prompt"]
+        reserved = brief["copy_safe_area"].lower()
+        side = "left" if "left" in reserved else "right"
+        for field in ("scene", "composition"):
+            self.assertNotIn(
+                f"camera-{side}",
+                brief[field].lower(),
+                f"{field} places something on the {side} while the copy area reserves the {side}",
+            )
+
     def test_provider_compilers(self) -> None:
         record = {"mode": "product", "brief": {"objective": "Product hero"}}
         for provider in (

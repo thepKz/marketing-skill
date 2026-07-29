@@ -1,0 +1,36 @@
+{
+  "schema_version": 2,
+  "project": "Bún bò",
+  "mode": "product",
+  "industry": "food-service",
+  "channels": ["facebook", "instagram", "print-menu"],
+  "brief": {
+    "objective": "One key visual the shop can reuse on the menu header, a social post, and a printed A-board",
+    "audience": "Office workers within a ten-minute walk, choosing lunch in under a minute",
+    "product_truth": "Bún bò cooked the way this shop cooks it. No packshot supplied; the bowl below is the recipe as described, not a photograph that exists",
+    "mechanism": "Broth simmered from bone rather than made to order",
+    "promise": "The bowl you would order twice"
+  },
+  "prompt": {
+    "capture_mode": "environmental-editorial",
+    "job": "Create one reusable key visual for menu, social, and print",
+    "single_idea": "This broth was cooked, not assembled",
+    "subject_action": "One bowl of bún bò Huế seen at a shallow three-quarter angle: round white ceramic bowl with a plain rim, clear red-orange broth, round rice noodles visible under the surface, two slices of shank and one slice of pork knuckle resting against the far rim, spring onion and raw onion on top, one wedge of lime and a small pile of herbs on the counter beside the bowl",
+    "scene": "The shop's own stainless counter at mid-morning, one steel stock pot soft out of focus behind camera-right, well clear of the reserved copy area, the street beyond dissolved to tone rather than detail",
+    "composition": "Bowl in the lower right two thirds, its far rim crossing the horizontal centre line, herbs entering from the bottom edge",
+    "camera_geometry": "Camera at 30 degrees above the counter, high enough to read the broth surface and low enough to keep the bowl's silhouette",
+    "aspect_ratio": "4:5",
+    "copy_safe_area": "The upper-left 45 percent of the frame",
+    "lens_distance": "50-65mm behavior from arm's length, no wide-angle bowl distortion",
+    "focus_depth": "f/4 depth intent: the near rim, broth surface, and meat sharp; the pot and street soft",
+    "motion_shutter": "Static, except steam, which may show a slight rise; no frozen droplets",
+    "sensor_color": "ISO 200-400 texture with a faint warm cast from the counter, no colour grading",
+    "lighting": "One large soft source from camera-left at 45 degrees standing in for the shop doorway, raking across the broth surface so the sheen reads",
+    "fill_separation": "Low bounce fill from camera-right; the bowl separates from the counter by tone, not by outline",
+    "background_treatment": "Counter runs out of focus into the upper third; no visible wall pattern, no signage",
+    "materials": "Broth is translucent with visible fat rings on the surface, not opaque. Noodles are wet and separate, not clumped. Meat has grain and one visible tendon line. Herbs are cut, slightly bruised, and not glossy. Ceramic shows one small kiln mark",
+    "locks": "Portion and ingredients as listed and no more; every element must be something this shop actually serves",
+    "exact_text": "No generated text of any kind. The dish name, price, and hours are set in layout after the price is confirmed",
+    "negative_constraints": "No chopsticks standing upright in the bowl, no garnish the shop does not serve, no styling gel sheen, no ice, no impossible steam plume, no second bowl, no hands, no restaurant interior behind"
+  }
+}

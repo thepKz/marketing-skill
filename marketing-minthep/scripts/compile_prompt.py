@@ -25,12 +25,60 @@ PROVIDERS = (
     "firefly",
 )
 
+# The same capture mode means different things pointed at a bottle and pointed at a face. This
+# used to be one sentence per mode, written in person vocabulary, and emitted for product shots
+# too: a serum-bottle prompt carried "natural skin, hair, fabric, posture" into the renderer. A
+# test render came back with silk drapery filling the copy area the brief had asked to keep
+# empty, because the prompt asked for fabric on a page where no fabric existed.
 CAPTURE_MODES = {
-    "studio-clean": "Controlled commercial studio capture with exact materials and restrained retouching.",
-    "studio-natural": "Controlled soft studio capture with natural skin, hair, fabric, posture, and tonal variation.",
-    "environmental-editorial": "Authored environmental capture with credible location light and spatial depth.",
-    "phone-candid": "Believable phone-camera capture with motivated framing, exposure limits, and social behavior.",
+    "studio-clean": {
+        "product": "Controlled commercial studio capture with exact materials, true colour, and restrained retouching.",
+        "person": "Controlled commercial studio capture with exact wardrobe materials and restrained retouching.",
+    },
+    "studio-natural": {
+        "product": "Controlled soft studio capture with honest material texture and tonal variation.",
+        "person": "Controlled soft studio capture with natural skin, hair, fabric, posture, and tonal variation.",
+    },
+    "environmental-editorial": {
+        "product": "Authored environmental capture with credible location light and spatial depth.",
+        "person": "Authored environmental capture with credible location light, spatial depth, and unposed body language.",
+    },
+    "phone-candid": {
+        "product": "Believable phone-camera capture with motivated framing and exposure limits.",
+        "person": "Believable phone-camera capture with motivated framing, exposure limits, and social behavior.",
+    },
 }
+
+# Provider size hints for the ratios a marketing deliverable actually uses. The ratio written in
+# the prompt text is not what shapes the pixels — the API's size parameter is — so the compiled
+# prompt has to tell the operator what to set. A prompt that says 4:5 and a call that renders
+# 1:1 produces a crop where the copy area was.
+RENDER_SIZES = {
+    "1:1": "1024x1024",
+    "4:5": "1024x1280",
+    "5:4": "1280x1024",
+    "2:3": "1024x1536",
+    "3:2": "1536x1024",
+    "3:4": "1024x1365",
+    "4:3": "1365x1024",
+    "9:16": "1080x1920",
+    "16:9": "1920x1080",
+}
+
+# Appended to whatever the brief forbids, because a brief author cannot be expected to name every
+# trope in advance. Each entry is a failure mode observed in test renders or a physical
+# impossibility, not a style opinion: this list is about credibility, not taste.
+HOUSE_NEGATIVES = (
+    "no generic silk or satin drapery used as filler; "
+    "no unmotivated petals, splashes, smoke, or floating props; "
+    "no marble slab, pastel pedestal, or bokeh light spots added for mood; "
+    "no lens flare or glow that no light source in the scene could cast; "
+    "no shadow that disagrees with the stated light direction; "
+    "no object resting on nothing; "
+    "no plastic skin, waxy food, duplicated fingers, or extra limbs; "
+    "no invented logo, label copy, price, or signage text; "
+    "no watermark or signature."
+)
 
 
 def load_record(path: str) -> dict:
@@ -43,6 +91,49 @@ def value(record: dict, key: str, default: str = "TBD") -> str:
     return str(prompt.get(key) or brief.get(key) or record.get(key) or default)
 
 
+def frame_block(record: dict) -> list[str]:
+    """Frame, composition, and the reserved copy area stated as something to do.
+
+    The copy-safe area used to be emitted as a fact — "Copy-safe area: Upper-left 40 percent" —
+    which tells a renderer nothing it can act on. A test render put the bottle dead centre and
+    filled the upper-left with drapery, so the deliverable had nowhere to set a headline: the
+    brief's most commercially important requirement was the one silently dropped. It is now an
+    instruction with a stated consequence, and the composition is named before the scene so it
+    is not competing with a nearer sentence about mood.
+    """
+    ratio = value(record, "aspect_ratio")
+    size = RENDER_SIZES.get(ratio)
+    lines = ["FRAME AND NEGATIVE SPACE", f"Aspect ratio: {ratio}."]
+    if size:
+        lines.append(
+            f"Set the provider's output size to {size} or the nearest supported size at this ratio. "
+            "Do not rely on the ratio being read from this text."
+        )
+    lines.append(
+        f"Composition: {value(record, 'composition')}. Camera height and angle: {value(record, 'camera_geometry')}."
+    )
+    copy_area = value(record, "copy_safe_area", "")
+    if copy_area:
+        lines.append(
+            f"Keep this area of the frame deliberately empty: {copy_area}. No subject, no prop, no drapery, "
+            "no pattern, and no high-contrast detail there. Type will be set into it during layout, so it "
+            "must read as quiet, even-toned space, not as background that happens to be less busy. "
+            # Briefs contradict themselves: the scene names a prop on one side and the copy area
+            # reserves that same side. Left unresolved, the renderer picks, and the deliverable
+            # loses the one thing a layout cannot work around. Precedence is stated rather than
+            # assumed, so a self-contradicting brief still produces a usable frame.
+            "If any other line in this prompt would place an object there, this empty area wins and "
+            "that object moves or leaves the frame."
+        )
+    else:
+        lines.append(
+            "No copy area is reserved, so the layout will place type outside the image or crop it. "
+            "Compose as a full-bleed picture rather than leaving arbitrary empty space."
+        )
+    lines.append("")
+    return lines
+
+
 def master_prompt(record: dict) -> str:
     mode = str(record.get("mode", "campaign"))
     operation = str(record.get("operation", "")).lower()
@@ -50,12 +141,28 @@ def master_prompt(record: dict) -> str:
     is_edit = operation == "edit" or mode.endswith("-edit") or bool(record.get("edit_target"))
     identity_sensitive_edit = mode in ("human-edit", "makeup-edit", "outfit-edit") or bool(record.get("identity_sensitive_edit"))
     capture_mode = value(record, "capture_mode", "studio-natural" if is_person else "studio-clean")
-    capture_direction = CAPTURE_MODES.get(capture_mode, capture_mode)
+    described = CAPTURE_MODES.get(capture_mode)
+    capture_direction = described[("person" if is_person else "product")] if described else capture_mode
+
+    # The subject leads. This block used to open with the provider name and the capture mode, so
+    # the highest-attention position in the prompt was spent on metadata and the thing being
+    # photographed arrived seventh.
     lines = [
-        "CAPTURE MODE",
-        f"{capture_mode}: {capture_direction}",
+        "SUBJECT AND ACTION",
+        value(record, "subject_action"),
         "",
     ]
+    lines.extend(frame_block(record))
+    lines.extend(
+        [
+            "SCENE AND ART DIRECTION",
+            value(record, "scene"),
+            "",
+            "CAPTURE MODE",
+            f"{capture_mode}: {capture_direction}",
+            "",
+        ]
+    )
     if is_person:
         lines.extend(
             [
@@ -139,24 +246,6 @@ def master_prompt(record: dict) -> str:
         )
     lines.extend(
         [
-            "JOB",
-            value(record, "job", value(record, "objective")),
-            "",
-            "AUDIENCE AND MESSAGE",
-            f"Audience: {value(record, 'audience')}. Single idea: {value(record, 'single_idea', value(record, 'promise'))}.",
-            "",
-            "REFERENCES AND LOCKS",
-            f"References: {value(record, 'references', 'None supplied')}. Preserve exactly: {value(record, 'locks', 'No exact locks supplied')}.",
-            "",
-            "SUBJECT AND ACTION",
-            value(record, "subject_action"),
-            "",
-            "SCENE AND ART DIRECTION",
-            value(record, "scene"),
-            "",
-            "COMPOSITION AND CROP",
-            f"{value(record, 'composition')}. Camera height and angle: {value(record, 'camera_geometry')}. Aspect ratio: {value(record, 'aspect_ratio')}. Copy-safe area: {value(record, 'copy_safe_area')}.",
-            "",
             "CAMERA BEHAVIOR",
             f"Lens and distance: {value(record, 'lens_distance')}. Focus and aperture intent: {value(record, 'focus_depth')}. Motion and shutter intent: {value(record, 'motion_shutter')}. ISO/noise and white balance: {value(record, 'sensor_color')}.",
             "",
@@ -166,11 +255,24 @@ def master_prompt(record: dict) -> str:
             "REALISM AND MATERIALS",
             value(record, "materials"),
             "",
+            "REFERENCES AND LOCKS",
+            f"References: {value(record, 'references', 'None supplied')}. Preserve exactly: {value(record, 'locks', 'No exact locks supplied')}.",
+            "",
             "TEXT",
             value(record, "exact_text", "No generated text; add typography during layout."),
             "",
+            # Job and audience are context for the person reading the prompt, not instructions a
+            # renderer can execute. They sit after the visual contract so they do not compete
+            # with it for attention.
+            "JOB",
+            value(record, "job", value(record, "objective")),
+            "",
+            "AUDIENCE AND MESSAGE",
+            f"Audience: {value(record, 'audience')}. Single idea: {value(record, 'single_idea', value(record, 'promise'))}.",
+            "",
             "DO NOT",
-            value(record, "negative_constraints", "No fake text, product drift, plastic skin, anatomy errors, impossible light or physics, watermark, or generic AI styling."),
+            value(record, "negative_constraints", "No product drift or anatomy errors."),
+            HOUSE_NEGATIVES,
         ]
     )
     return "\n".join(lines)
