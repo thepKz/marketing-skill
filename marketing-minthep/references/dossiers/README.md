@@ -9,15 +9,19 @@ The operational references in `../` are the working layer and stay short on purp
 | Dossier | Answers |
 |---|---|
 | [`anti-fabrication-protocol.md`](anti-fabrication-protocol.md) | How to research without inventing: question decomposition, source tiering, triangulation, claim ledgers, adversarial self-checks. |
-| [`colour-science-and-harmony.md`](colour-science-and-harmony.md) | **Partial — ends at section 4.** What colour physically is, colour spaces and when each applies, why OkLCh beats HSL as a palette space, and the real WCAG contrast maths with its critique. Harmony schemes, Kelvin temperature, food colour and palette construction are *not* written yet. |
+| [`colour-science-and-harmony.md`](colour-science-and-harmony.md) | What colour physically is, colour spaces and when each applies, why OkLCh beats HSL as a palette space, the real WCAG contrast maths with its critique, harmony schemes, Kelvin and mixed lighting, surviving the phone camera, and a worked Vietnamese noodle-restaurant palette. |
 | [`composition-and-layout-vision.md`](composition-and-layout-vision.md) | Grid systems and their real evidence base, visual weight, gaze vectors, depth cues, shot size, crop grammar, safe zones, multi-ratio recomposition. |
 | [`food-and-beverage-imagery.md`](food-and-beverage-imagery.md) | **Partial — ends at section 5.** The five questions behind every food image, what appetite appeal actually has evidence for, angle grammar derived from first principles, the specific problem of shooting soup and broth, lens and depth-of-field geometry for a bowl, and why backlight dominates. Styling, props, plating and beverage-specific work are *not* written yet, and the text contains forward references to sections (e.g. §10.2) that do not exist — ignore them. |
 | [`copywriting-deep.md`](copywriting-deep.md) | Awareness and sophistication ladders, a 45-pattern headline bank, lead types, proof architecture, objection structure, CTA mechanics, a 6-pass edit, and a Vietnamese-language section. |
+| [`image-prompt-engineering.md`](image-prompt-engineering.md) | Prompt structure and what ordering does, describing a subject versus describing a photograph, the four distinct reference-image roles, where negative prompting actually exists, getting rendered text exact, aspect/seed control, one-variable iteration, the failure modes diagnosed, and a bún bò Huế campaign worked end to end. 143 verified citations. |
+| [`layout-wireframe-typography.md`](layout-wireframe-typography.md) | **Partial — ends at section 5.** What wireframing is for, why 4/8px spacing systems work with the arithmetic shown, column and gutter maths, baseline grids, and type-scale construction. Stops mid type-scale; grid-to-layout application and responsive behaviour are *not* written. |
 | [`light-and-shadow.md`](light-and-shadow.md) | Falloff, hardness geometry, the six-shadow taxonomy, measured ratios, setups with azimuth/elevation/distance, colour temperature, and forensic detection of impossible light. |
 | [`market-assessment-method.md`](market-assessment-method.md) | Bottom-up and top-down sizing with full arithmetic, demand evidence and its biases, competitive structure, beachhead choice, pricing floors, risk scan, output contract. |
 | [`materials-and-surfaces.md`](materials-and-surfaces.md) | A practical BRDF model, per-material playbooks from glass to broth, prompt translation for each, and the physics QA that catches floating products and fake steam. |
 | [`menu-design-and-engineering.md`](menu-design-and-engineering.md) | The Kasavana & Smith matrix with exact arithmetic, an evidence audit separating supported menu psychology from vendor folklore, typography, print specs, and three specified bún bò directions. |
 | [`resolution-sharpening-output.md`](resolution-sharpening-output.md) | The acuity maths behind PPI, DPI/PPI/LPI, three-stage sharpening, resampling and upscaling limits, format economics, colour management, prepress. |
+| [`video-craft-and-production.md`](video-craft-and-production.md) | Shot grammar and coverage, storyboarding a 15–30s spot, the first-three-seconds problem, cut rhythm against a music bed, sound design, vertical 9:16 safe zones, caption legibility, and grading and shot matching. Its cost arithmetic is `[illustrative]` and must be replaced with your own numbers. |
+| [`vietnam-market-context.md`](vietnam-market-context.md) | What each Vietnamese channel is actually *for*, the F&B baseline, KOL versus KOC practice, payment and platform economics, đồng formatting and pricing psychology, language and tone, the occasion calendar, and the advertising and claims regulations. 102 verified citations plus a gap register — the topic where fabrication was most tempting, so check the marker on every figure. |
 
 ## How claims are marked
 
@@ -38,15 +42,15 @@ priced, versioned, or platform-specific needs re-checking against the live sourc
 
 ## Known limits
 
-**Two files are partial.** `colour-science-and-harmony.md` and `food-and-beverage-imagery.md` both
-stop mid-document because the research run hit an output limit. What is there is finished prose,
-not notes, and the sections it does cover are usable. The table above says where each one stops.
-Do not assume a topic is covered because the filename suggests it — check the headings.
+**Two files are partial.** `food-and-beverage-imagery.md` stops at section 5 and
+`layout-wireframe-typography.md` at section 5, because those research runs hit an output limit.
+What is there is finished prose, not notes. The table above says where each one stops, and the food
+file forward-references sections that do not exist. Do not assume a topic is covered because the
+filename suggests it — check the headings.
 
-**Six topics have no dossier at all**: image prompt engineering, video craft and models, Vietnam
-market context, campaign and channel architecture, optics and lens, and brand identity systems.
-The concise references in `../` cover these at working depth; the deep evidence audit does not
-exist. Do not cite a dossier for them.
+**Three topics have no dossier at all**: campaign and channel architecture, optics and lens, and
+brand identity systems. The concise references in `../` cover these at working depth; the deep
+evidence audit does not exist. Do not cite a dossier for them.
 
 **No adversarial verification pass has run** over any file here. Each dossier carries its own
 per-claim markers, and that is the only guard until one does. Treat an unmarked claim in these

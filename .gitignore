@@ -9,3 +9,11 @@ runs/
 
 # Scratch written by research subagents while verifying arithmetic. Not deliverables.
 .tmpcolor/
+
+# Scratch written by research subagents (fetched HTML, arithmetic checks). Not deliverables.
+.tmp*/
+.tmp_*
+.vnres/
+.vnmkt/
+.tmp_viet/
+undefined/

@@ -597,7 +597,12 @@ REPO_ROOT = SKILL_ROOT.parent
 
 # Paths a run workspace creates at runtime. They are named in the prose on purpose and are
 # not expected to exist in the repository.
-RUNTIME_ARTIFACTS = {"_meta/render-capability.json"}
+RUNTIME_ARTIFACTS = {
+    "_meta/render-capability.json",
+    # video-craft-and-production.md tells the reader to keep a log of every generation attempt.
+    # It is an output of following the dossier, not a cross-reference into this repository.
+    "generation_log.csv",
+}
 # Files the operator may supply, which the skill degrades gracefully without.
 OPTIONAL_INPUTS = {"BRAND.md"}
 
@@ -697,14 +702,35 @@ class ReferenceIntegrityTests(unittest.TestCase):
         for path in sorted(dossier_dir.glob("*.md")):
             if path.name == "README.md":
                 continue
-            text = path.read_text(encoding="utf-8", errors="replace")
-            if "[illustrative]" in text:
-                self.assertIn(
-                    "illustrative",
-                    text.split("---")[0].lower(),
-                    f"{path.name} uses [illustrative] figures without declaring the convention "
-                    "in its scope header",
-                )
+            lines = path.read_text(encoding="utf-8", errors="replace").lower().splitlines()
+            # What protects the reader is that the convention is explained before they meet a
+            # fabricated number — not that it sits in any particular section. An earlier version
+            # only searched the scope header, which rejected a dossier that declared it in an
+            # evidence-key table instead. A line that both marks and explains counts as the
+            # declaration, since that is how a marker glossary is written.
+            # Each phrase is a complete instruction to the reader, not a keyword: either the
+            # number is declared fake, or the reader is told to swap it for a measured one before
+            # anything ships. Both close the hole. Matching only one house style rejected
+            # dossiers that chose the other.
+            explains = (
+                "not real",
+                "invented",
+                "never quote",
+                "never publish",
+                "replace illustrative numbers",
+                "with measured ones before publishing",
+            )
+            declared = False
+            for number, line in enumerate(lines, start=1):
+                if any(phrase in line for phrase in explains):
+                    declared = True
+                if "[illustrative]" in line:
+                    self.assertTrue(
+                        declared,
+                        f"{path.name}:{number} uses an [illustrative] figure before explaining "
+                        "that such numbers are invented and must not be published",
+                    )
+                    break
 
 
 if __name__ == "__main__":

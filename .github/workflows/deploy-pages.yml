@@ -53,11 +53,15 @@ jobs:
           test -f marketing-minthep/references/dossiers/composition-and-layout-vision.md
           test -f marketing-minthep/references/dossiers/food-and-beverage-imagery.md
           test -f marketing-minthep/references/dossiers/copywriting-deep.md
+          test -f marketing-minthep/references/dossiers/image-prompt-engineering.md
+          test -f marketing-minthep/references/dossiers/layout-wireframe-typography.md
           test -f marketing-minthep/references/dossiers/light-and-shadow.md
           test -f marketing-minthep/references/dossiers/market-assessment-method.md
           test -f marketing-minthep/references/dossiers/materials-and-surfaces.md
           test -f marketing-minthep/references/dossiers/menu-design-and-engineering.md
           test -f marketing-minthep/references/dossiers/resolution-sharpening-output.md
+          test -f marketing-minthep/references/dossiers/video-craft-and-production.md
+          test -f marketing-minthep/references/dossiers/vietnam-market-context.md
           test -f marketing-minthep/assets/registries/asset-formats.json
           test -f marketing-minthep/assets/registries/pipelines.json
           test -f marketing-minthep/scripts/new_run.py
