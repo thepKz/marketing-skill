@@ -30,7 +30,7 @@ Six pipelines, each with a fixed deliverable contract:
 | `video-campaign` | 9 | Shot list with carried continuity, per-shot prompts, audio, edit plan, platform cutdowns |
 | `optimize-iterate` | 7 | Asset lineage, experiment log, read-out, next-test recommendation |
 
-Eleven workbenches sit across those pipelines: strategy and offer, campaign and launch, content and distribution, commerce and merchandising, paid media, PR, sales enablement, creator and UGC, lifecycle and retention, visual production, measurement.
+Ten business jobs route inside those pipelines, defined in [`references/marketing-system-router.md`](marketing-minthep/references/marketing-system-router.md): `strategy-offer`, `campaign-launch`, `content-distribution`, `commerce-merchandising`, `pr-communications`, `sales-enablement`, `creator-ugc`, `lifecycle-retention`, `creative-production`, `measurement-optimization`.
 
 Product families with their own playbook and proof requirements: beauty, fashion, food and beverage, electronics, home, jewelry and luxury, SaaS, local service, education, hospitality.
 

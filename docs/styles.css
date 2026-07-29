@@ -362,7 +362,8 @@ h1 { max-width: 780px; margin: 26px 0 28px; font-size: clamp(3.5rem, 5.7vw, 6rem
 
 .reference-library { padding: clamp(64px, 8vw, 112px); border-bottom: 1px solid var(--line); overflow: hidden; }
 .filter-bar { display: flex; flex-wrap: wrap; gap: 7px; margin: 42px 0 20px; }
-.reference-strip { display: grid; grid-template-columns: repeat(6, minmax(180px, 1fr)); gap: 8px; }
+/* Five across, because the library holds twenty: six left a last row of two beside four holes. */
+.reference-strip { display: grid; grid-template-columns: repeat(5, minmax(180px, 1fr)); gap: 8px; }
 .reference-card { position: relative; min-height: 380px; color: var(--white); background: var(--ink); border: 1px solid var(--line); overflow: hidden; text-decoration: none; }
 .reference-card[hidden] { display: none; }
 .reference-card img { transition: transform 300ms ease; }

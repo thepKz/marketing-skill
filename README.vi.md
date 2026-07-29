@@ -30,7 +30,7 @@ Sáu pipeline, mỗi pipeline có hợp đồng deliverable cố định:
 | `video-campaign` | 9 | Shot list mang continuity, prompt từng shot, âm thanh, edit plan, cutdown theo nền tảng |
 | `optimize-iterate` | 7 | Lineage của asset, log thử nghiệm, read-out, đề xuất test kế tiếp |
 
-Mười một workbench nằm rải trên các pipeline đó: strategy và offer, campaign và launch, content và phân phối, commerce và merchandising, paid media, PR, sales enablement, creator và UGC, lifecycle và retention, visual production, measurement.
+Mười business job được route bên trong các pipeline đó, định nghĩa ở [`references/marketing-system-router.md`](marketing-minthep/references/marketing-system-router.md): `strategy-offer`, `campaign-launch`, `content-distribution`, `commerce-merchandising`, `pr-communications`, `sales-enablement`, `creator-ugc`, `lifecycle-retention`, `creative-production`, `measurement-optimization`.
 
 Các nhóm sản phẩm đã có playbook riêng và yêu cầu proof riêng: beauty, fashion, food & beverage, điện tử, đồ gia dụng, trang sức/luxury, SaaS, dịch vụ địa phương, giáo dục, hospitality.
 
