@@ -3,6 +3,15 @@
 
 This is the execution contract of the skill: it turns a request into real files with
 required sections and acceptance gates, so a run cannot end as conversation.
+
+The workspace is shaped by what the request actually says. That was not true before: a request
+reading "lên chiến dịch ra mắt trong 6 tuần ... ngân sách nhỏ" produced a deliverable named
+`10-calendar-90d` whose sections were "Days 1-30 / 31-60 / 61-90", and an intake file whose first
+instruction was "> WRITE: Quote the user verbatim" — asking to be handed back the sentence sitting
+in `_meta/request.json`. A scaffold that ignores a stated six-week horizon and then asks for
+information it already holds is why campaign building read as broken. The horizon now names and
+divides the calendar, and everything read from the request is written into the intake table with
+its label attached, so the plan starts from the request instead of from a blank form.
 """
 
 from __future__ import annotations
@@ -18,6 +27,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _emit import emit_json  # noqa: E402
+from _signals import phase_plan, read_signals  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 PIPELINE_REGISTRY = ROOT / "assets" / "registries" / "pipelines.json"
@@ -158,6 +168,114 @@ def _active(deliverables: list[dict], mode: str) -> list[dict]:
     return [item for item in deliverables if mode in item.get("modes", MODES)]
 
 
+def request_text(request: dict) -> str:
+    return " ".join(
+        str(request.get(key, ""))
+        for key in ("request", "objective", "project", "notes", "deliverable")
+    ).strip()
+
+
+def _calendar_spec(spec: dict, horizon: dict) -> dict:
+    """Rebuild the calendar deliverable around the horizon the request stated.
+
+    The filename carries the horizon because the filename is the part people quote back. Calling
+    a six-week plan `10-calendar-90d` is a factual error in the one artefact whose whole subject
+    is time. When no horizon was stated the file keeps the 90-day default and the section body
+    says so, so the assumption is visible rather than dressed up as a decision.
+    """
+    weeks = horizon["weeks"]
+    phases = phase_plan(weeks)
+    spec = dict(spec)
+    spec["file"] = f"10-calendar-{weeks}w"
+    spec["title"] = f"{weeks}-week calendar ({horizon['days']} days)"
+    spec["title_vi"] = f"Lịch {weeks} tuần ({horizon['days']} ngày)"
+
+    if horizon["stated"]:
+        opening = (
+            f"What must exist before day one: assets, tracking, inventory, permissions. The "
+            f"horizon is {weeks} weeks, from the request's \"{horizon['evidence']}\", so pre-launch "
+            f"work has to fit before week 1 rather than inside it."
+        )
+    else:
+        opening = (
+            "What must exist before day one: assets, tracking, inventory, permissions. No horizon "
+            "was stated, so this calendar assumes 13 weeks. Confirm or replace that before "
+            "committing anyone to a date."
+        )
+
+    sections = [{"en": "Phase 0 pre-launch", "vi": "Giai đoạn 0 trước khi chạy", "write": opening}]
+    for phase in phases:
+        span = (
+            f"Week {phase['week_from']}"
+            if phase["week_from"] == phase["week_to"]
+            else f"Weeks {phase['week_from']}-{phase['week_to']}"
+        )
+        span_vi = (
+            f"Tuần {phase['week_from']}"
+            if phase["week_from"] == phase["week_to"]
+            else f"Tuần {phase['week_from']}-{phase['week_to']}"
+        )
+        sections.append(
+            {
+                "en": f"{span} — {phase['name_en']} (days {phase['day_from']}-{phase['day_to']})",
+                "vi": f"{span_vi} — {phase['name_vi']} (ngày {phase['day_from']}-{phase['day_to']})",
+                "write": f"{phase['goal_en']} One learning goal per week, named before the activity.",
+            }
+        )
+    sections += [spec["sections"][-2], spec["sections"][-1]]
+    spec["sections"] = sections
+    return spec
+
+
+def _intake_seeds(request: dict, signals: dict, context: dict) -> dict:
+    """Pre-fill the intake sections whose answers are already in hand.
+
+    Only two sections can be honestly seeded: the verbatim request, which we have, and the label
+    table, where each row states what was read and the phrase it was read from. Product truth,
+    rights, and price stay empty because nobody has told us any of them, and a seeded guess there
+    is the exact failure the truth gate exists to prevent.
+    """
+    verbatim = str(request.get("request") or request.get("project") or "").strip()
+    horizon, budget = signals["horizon"], signals["budget"]
+    family, market = signals["product_family"], signals["market"]
+
+    rows = [
+        "| Field | Value | Label | Read from |",
+        "|---|---|---|---|",
+    ]
+
+    def row(field: str, value: str, label: str, evidence: str) -> None:
+        rows.append(f"| {field} | {value} | `{label}` | {evidence or '—'} |")
+
+    row("Campaign horizon", f"{horizon['weeks']} weeks ({horizon['days']} days)",
+        horizon["label"] if horizon["stated"] else "assumption",
+        f"\"{horizon['evidence']}\"" if horizon["stated"] else "not stated; 13 weeks assumed")
+    row("Budget pressure", budget["tier"], budget["label"],
+        f"\"{budget['evidence']}\"" if budget["stated"] else "not stated")
+    row("Product family", family["family"], family["label"],
+        ", ".join(f"\"{word}\"" for word in family["evidence"]))
+    row("Market", market["market"] + (", single location" if market["single_location"] else ""),
+        market["label"], ", ".join(f"\"{place}\"" for place in market["places"]))
+    row("Pipeline / mode", f"{context['pipeline']} / {context['mode']}", "decision", "routing score")
+    row("Unit price", "unknown", "unknown", "never stated; the budget deliverable needs it")
+    row("Contribution margin", "unknown", "unknown", "never stated; the CAC ceiling derives from it")
+
+    seeds = {
+        "Confirmed / observed / inferred / unknown": "\n".join(rows) + (
+            "\n\n> WRITE: Add the product, price, capacity, and proof rows. Every `unknown` above "
+            "either gets an answer or gets an assumption written next to it. Nothing labelled "
+            "`inferred` may be repeated downstream as a confirmed fact."
+        ),
+    }
+    if verbatim:
+        seeds["Request as stated"] = (
+            f"> {verbatim}\n\n"
+            "*Quoted as received, uncleaned. Anything below that is not in this sentence is an "
+            "inference and is labelled as one.*"
+        )
+    return seeds
+
+
 def _header(spec: dict, lang: str | None, context: dict) -> str:
     title = spec["title_vi"] if lang == "vi" else spec["title"]
     if lang is None:
@@ -178,7 +296,8 @@ def _header(spec: dict, lang: str | None, context: dict) -> str:
     return "\n".join(lines)
 
 
-def _markdown_stub(spec: dict, lang: str | None, context: dict) -> str:
+def _markdown_stub(spec: dict, lang: str | None, context: dict, seeds: dict | None = None) -> str:
+    seeds = seeds or {}
     parts = [_header(spec, lang, context)]
     for section in spec.get("sections", []):
         if lang == "vi":
@@ -187,7 +306,8 @@ def _markdown_stub(spec: dict, lang: str | None, context: dict) -> str:
             heading = section["en"]
         else:
             heading = f"{section['vi']} / {section['en']}"
-        parts.append(f"## {heading}\n\n> WRITE: {section['write']}\n")
+        body = seeds.get(section["en"])
+        parts.append(f"## {heading}\n\n{body}\n" if body else f"## {heading}\n\n> WRITE: {section['write']}\n")
     return "\n".join(parts) + "\n"
 
 
@@ -199,6 +319,21 @@ def _dir_readme(spec: dict, context: dict) -> str:
         f"**Acceptance gate / Tiêu chí nghiệm thu:** {spec['gate']}\n\n"
         f"> WRITE: {spec.get('readme', 'Populate this folder, then replace this line.')}\n"
     )
+
+
+def resolved_specs(pipeline: dict, mode: str, signals: dict) -> list[dict]:
+    """The deliverable specs for this mode, after the request has been allowed to reshape them.
+
+    `build_run` and `write_run` both go through here so the manifest and the files on disk cannot
+    disagree about what a deliverable is called. They used to be derived independently, which is
+    the kind of split that stays invisible until one side is changed.
+    """
+    specs = []
+    for spec in _active(pipeline["deliverables"], mode):
+        if spec["id"] == "10-calendar":
+            spec = _calendar_spec(spec, signals["horizon"])
+        specs.append(spec)
+    return specs
 
 
 def build_run(request: dict, registry: dict | None = None) -> dict:
@@ -222,9 +357,10 @@ def build_run(request: dict, registry: dict | None = None) -> dict:
     slug = _slugify(request.get("slug") or request.get("project") or request.get("request", ""), "run")
     run_id = f"{created}-{slug}"
 
+    signals = read_signals(request_text(request))
     context = {"run_id": run_id, "pipeline": pipeline_name, "mode": mode}
     deliverables = []
-    for spec in _active(pipeline["deliverables"], mode):
+    for spec in resolved_specs(pipeline, mode, signals):
         kind = spec.get("kind", "md")
         if kind == "md" and spec.get("bilingual"):
             paths = [f"{spec['file']}.{lang}.md" for lang in languages]
@@ -255,6 +391,7 @@ def build_run(request: dict, registry: dict | None = None) -> dict:
         "mode": mode,
         "languages": languages,
         "routing": routing,
+        "signals": signals,
         "supporting_pipelines": _supporting_pipelines(routing),
         "references_to_load": pipeline["references"],
         "scripts": pipeline["scripts"],
@@ -272,28 +409,31 @@ def build_run(request: dict, registry: dict | None = None) -> dict:
     }
 
 
-def write_run(run: dict, root: Path, force: bool = False) -> dict:
+def write_run(run: dict, root: Path, force: bool = False, request: dict | None = None) -> dict:
     registry = load_registry()
     pipeline = registry["pipelines"][run["pipeline"]]
-    specs = {item["id"]: item for item in pipeline["deliverables"]}
+    signals = run.get("signals") or read_signals(str(run.get("project", "")))
+    specs = {item["id"]: item for item in resolved_specs(pipeline, run["mode"], signals)}
     run_dir = root / "runs" / run["run_id"]
     if run_dir.exists() and not force:
         raise FileExistsError(f"{run_dir} already exists. Pass --force to overwrite.")
     run_dir.mkdir(parents=True, exist_ok=True)
 
     context = {"run_id": run["run_id"], "pipeline": run["pipeline"], "mode": run["mode"]}
+    seeds = {"01-intake": _intake_seeds(request or {"request": run.get("project", "")}, signals, context)}
     written = []
     for entry in run["deliverables"]:
         spec = specs[entry["id"]]
         kind = entry["kind"]
+        seed = seeds.get(entry["id"])
         for rel in entry["paths"]:
             target = run_dir / rel
             target.parent.mkdir(parents=True, exist_ok=True)
             if kind == "md" and entry["bilingual"]:
                 lang = rel.rsplit(".", 2)[-2]
-                target.write_text(_markdown_stub(spec, lang, context), encoding="utf-8")
+                target.write_text(_markdown_stub(spec, lang, context, seed), encoding="utf-8")
             elif kind == "md":
-                target.write_text(_markdown_stub(spec, None, context), encoding="utf-8")
+                target.write_text(_markdown_stub(spec, None, context, seed), encoding="utf-8")
             elif kind == "csv":
                 target.write_text(spec["header"] + "\n", encoding="utf-8")
             elif kind == "json":
@@ -317,6 +457,23 @@ def write_run(run: dict, root: Path, force: bool = False) -> dict:
     return result
 
 
+def _signal_note(signals: dict) -> str:
+    """One line saying what was read from the request and what was assumed instead.
+
+    It goes at the top of the run index because a reader has to be able to see, before opening
+    anything, whether the six-week horizon in their head is the one the plan is built on.
+    """
+    if not signals:
+        return ""
+    horizon, budget, family = signals["horizon"], signals["budget"], signals["product_family"]
+    read = [
+        f"horizon **{horizon['weeks']} weeks** ({'stated: ' + horizon['evidence'] if horizon['stated'] else 'assumed, not stated'})",
+        f"budget **{budget['tier']}**" + (f" (from \"{budget['evidence']}\")" if budget["stated"] else " (not stated)"),
+        f"product family **{family['family']}**" + (f" (from \"{family['evidence'][0]}\")" if family["evidence"] else " (not recognised)"),
+    ]
+    return "Read from the request: " + "; ".join(read) + ". Correct any of these in `01-intake` first — everything downstream is built on them."
+
+
 def _index(run: dict, written: list[str]) -> str:
     lines = [
         f"# {run['project'] or run['run_id']}",
@@ -325,6 +482,8 @@ def _index(run: dict, written: list[str]) -> str:
         f"**Languages:** {', '.join(run['languages'])} · **Created:** {run['created']}",
         "",
         f"Routing: {run['routing']['reason']}.",
+        "",
+        _signal_note(run.get("signals") or {}),
         "",
         "## Deliverables / Sản phẩm giao",
         "",
@@ -388,7 +547,7 @@ def main() -> None:
 
     run = build_run(request)
     if not args.plan_only:
-        run = write_run(run, Path(args.root).resolve(), force=args.force)
+        run = write_run(run, Path(args.root).resolve(), force=args.force, request=request)
 
     emit_json(run, args.output)
 

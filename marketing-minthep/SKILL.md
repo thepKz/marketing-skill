@@ -86,6 +86,8 @@ Then replace every `WRITE` stub with substantive work. Preserve the generated ac
 
 `_meta/render-capability.json` starts at `not-rendered`. Update it only after real files were produced, opened, and QA-reviewed. Never relabel prompts, storyboards, SVG wireframes, or provider plans as rendered photography or video.
 
+The scaffold has already read the request. `scripts/_signals.py` extracts the campaign horizon, budget pressure, product family, and market from the wording in Vietnamese or English: the calendar deliverable is named and divided by the horizon it found, the asset count is capped by the budget tier, and `01-intake` opens with the request quoted verbatim above a label table of every inference and the phrase it came from. Read that table before writing a word. Do not ask for a horizon the request already stated, do not plan against 90 days when it said six weeks, and do not restate anything labelled `inferred` as if it were confirmed. Correct a wrong inference in `01-intake` first, because everything downstream is built on it. A row marked `unknown` — unit price and contribution margin above all — gets an answer from the user or a written assumption beside it, never a plausible number.
+
 `plan-from-zero` always includes market evidence, audience insight, positioning and offer, message architecture, a channel-ready copy pack, execution priorities, budget and measurement assumptions, and a source appendix. Never make a non-marketer discover and invoke the copywriting or research modules separately.
 
 If filesystem writes are unavailable, reproduce the same deliverable structure in the response and say plainly that no files were created.

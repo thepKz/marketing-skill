@@ -139,7 +139,10 @@ python marketing-minthep/scripts/compile_prompt.py --help
 ## Production tools
 
 ```powershell
-# Tạo campaign scaffold
+# Campaign brief đọc từ chính câu yêu cầu: horizon, ngân sách, ngành, kênh đều suy ra từ đó
+python marketing-minthep/scripts/scaffold_campaign.py --request "Tôi bán bún bò ở Sài Gòn, muốn lên chiến dịch ra mắt trong 6 tuần cho khách văn phòng, ngân sách nhỏ"
+
+# Ghi đè khi bạn biết rõ hơn suy luận của nó
 python marketing-minthep/scripts/scaffold_campaign.py --project "Launch" --job campaign-launch --industry beauty --provider gpt-image-2 --channels meta tiktok web
 
 # Tạo manifest từ request hoặc output của planner

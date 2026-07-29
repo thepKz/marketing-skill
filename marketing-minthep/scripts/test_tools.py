@@ -13,19 +13,20 @@ import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from _signals import BUDGET_TIERS, phase_plan, read_signals
 from analyze_performance import analyze
 from build_asset_manifest import build_manifest
 from compile_prompt import compile_provider
 from new_run import build_run, load_registry, route_pipeline, write_run
 from plan_image_generation import route_image_request
 from plan_design_options import plan_options
-from plan_marketing_system import plan_marketing_system
+from plan_marketing_system import PRODUCT_PROOF, plan_marketing_system
 from plan_video_sequence import lock_block, resolve, shot_prompt
 from plan_virtual_person import plan_virtual_person
 from render_mockup import CAP, DROP, FONTS_WITHOUT_VIETNAMESE, SANS, SERIF, THEMES, advance, render, wrap
 from research_plan import build_plan, to_markdown
 from run_status import audit_file, audit_run
-from scaffold_campaign import build_record
+from scaffold_campaign import build_record, to_markdown as to_campaign_markdown
 from score_creative import evaluate
 from start_workbench import start
 
@@ -335,13 +336,159 @@ class ToolTests(unittest.TestCase):
             depth = max(float(value) for value in re.findall(r"L[-\d.]+ ([\d.]+)", wall.get("d"))) - float(rim.get("cy"))
             self.assertGreater(depth, rim_ry, f"{width}x{height}: bowl is {depth:.0f}px deep on a {rim_ry:.0f}px rim")
 
-    def test_scaffold_v3_separates_job_and_artifact_mode(self) -> None:
+    def test_scaffold_v4_separates_job_and_artifact_mode(self) -> None:
         record = build_record("Launch", "product", "beauty", "gpt-image-2", ["meta", "web"])
-        self.assertEqual(record["schema_version"], 3)
+        self.assertEqual(record["schema_version"], 4)
         self.assertEqual(record["primary_job"], "campaign-launch")
         self.assertEqual(record["artifact_mode"], "product")
         self.assertEqual([lane["name"] for lane in record["concept_lanes"]], ["Clear", "Signature", "Departure"])
         self.assertGreater(len(record["assets"]), 3)
+
+    # --- The campaign bug: a request states its constraints and the plan ignores them. ---
+    #
+    # Every test below was written against a real defect in the run produced by the request
+    # "Tôi bán bún bò ở Sài Gòn, muốn lên chiến dịch ra mắt trong 6 tuần cho khách văn phòng,
+    # ngân sách nhỏ": a 90-day calendar for a six-week campaign, eight assets for a small budget,
+    # `product_family: other` for a bowl of bún bò, and an intake file asking to be told the
+    # product it had just been told.
+
+    BUN_BO = "Tôi bán bún bò ở Sài Gòn, muốn lên chiến dịch ra mắt trong 6 tuần cho khách văn phòng, ngân sách nhỏ"
+
+    def test_a_stated_horizon_reaches_the_calendar(self) -> None:
+        run = build_run({"request": self.BUN_BO})
+        self.assertEqual(run["signals"]["horizon"]["weeks"], 6)
+        self.assertTrue(run["signals"]["horizon"]["stated"])
+        calendar = next(item for item in run["deliverables"] if item["id"] == "10-calendar")
+        for path in calendar["paths"]:
+            self.assertIn("6w", path, f"a 6-week campaign was given {path}")
+            self.assertNotIn("90d", path)
+        self.assertIn("6-week", calendar["title"])
+
+    def test_calendar_phases_add_up_to_the_horizon(self) -> None:
+        for weeks in (1, 2, 3, 6, 8, 13, 26, 52):
+            phases = phase_plan(weeks)
+            self.assertEqual(phases[0]["week_from"], 1)
+            self.assertEqual(phases[-1]["week_to"], weeks, f"{weeks}w phases end at {phases[-1]['week_to']}")
+            for earlier, later in zip(phases, phases[1:]):
+                self.assertEqual(later["week_from"], earlier["week_to"] + 1, f"{weeks}w has a gap or overlap")
+            self.assertEqual(phases[-1]["day_to"], weeks * 7)
+
+    def test_an_unstated_horizon_is_labelled_as_an_assumption(self) -> None:
+        """The default is fine. Printing it as though it were agreed is not."""
+        run = build_run({"request": "Tôi muốn lên chiến dịch cho quán bún bò"})
+        self.assertFalse(run["signals"]["horizon"]["stated"])
+        self.assertEqual(run["signals"]["horizon"]["weeks"], 13)
+        with tempfile.TemporaryDirectory() as tmp:
+            written = write_run(run, Path(tmp), request={"request": "Tôi muốn lên chiến dịch cho quán bún bò"})
+            calendar = (Path(written["run_dir"]) / "10-calendar-13w.en.md").read_text(encoding="utf-8")
+            self.assertIn("No horizon", calendar)
+            index = (Path(written["run_dir"]) / "README.md").read_text(encoding="utf-8")
+            self.assertIn("assumed", index)
+
+    def test_intake_quotes_the_request_instead_of_asking_for_it(self) -> None:
+        request = {"request": self.BUN_BO}
+        run = build_run(request)
+        with tempfile.TemporaryDirectory() as tmp:
+            written = write_run(run, Path(tmp), request=request)
+            intake = (Path(written["run_dir"]) / "01-intake.md").read_text(encoding="utf-8")
+        self.assertIn(self.BUN_BO, intake, "the request the scaffold holds is not in the intake file")
+        self.assertNotIn("Quote the user verbatim", intake)
+        # Every signal is present with its label, and the two figures nobody stated are named as
+        # unknown rather than left out, because the budget deliverable blocks on them.
+        for expected in ("6 weeks (42 days)", "`confirmed`", "small", "food-beverage",
+                         "Unit price", "Contribution margin", "`unknown`"):
+            self.assertIn(expected, intake)
+
+    def test_a_small_budget_does_not_get_a_large_budget_asset_list(self) -> None:
+        plan = plan_marketing_system({"request": self.BUN_BO})
+        self.assertEqual(plan["budget_tier"], "small")
+        self.assertLessEqual(plan["asset_count"], 4, "a shop that said ngân sách nhỏ got more than four assets")
+        families = {asset["family"] for asset in plan["selected_assets"]}
+        self.assertNotIn("art", families, "a conceptual art still life is not a small-budget asset")
+        channels = {channel for asset in plan["selected_assets"] for channel in asset["channels"]}
+        self.assertFalse(channels & {"ooh", "linkedin", "pinterest"},
+                         f"unaffordable channels survived: {sorted(channels & {'ooh', 'linkedin', 'pinterest'})}")
+        self.assertTrue(plan["assets_dropped_for_budget"], "assets were dropped without saying which or why")
+        for entry in plan["assets_dropped_for_budget"]:
+            self.assertTrue(entry["reason"])
+
+    def test_a_large_budget_is_not_capped_by_the_small_budget_rules(self) -> None:
+        plan = plan_marketing_system({"request": "Global launch campaign, large budget", "asset_scope": "system"})
+        self.assertEqual(plan["budget_tier"], "large")
+        self.assertGreater(plan["asset_count"], 4)
+        self.assertEqual(plan["assets_dropped_for_budget"], [])
+
+    def test_product_family_is_read_from_the_words_the_owner_used(self) -> None:
+        cases = {
+            self.BUN_BO: "food-beverage",
+            "Bán serum dưỡng da, muốn chạy quảng cáo": "beauty",
+            "We sell a B2B SaaS dashboard": "saas",
+            "Mở homestay ở Đà Lạt": "hospitality",
+            "Trung tâm dạy tiếng Anh cho trẻ": "education",
+        }
+        for request, expected in cases.items():
+            plan = plan_marketing_system({"request": request})
+            self.assertEqual(plan["product_family"], expected, f"{request!r} -> {plan['product_family']}")
+            self.assertEqual(plan["product_family_label"], "inferred")
+            self.assertNotEqual(plan["proof_requirements"], PRODUCT_PROOF["other"],
+                                f"{request!r} got the generic proof list")
+
+    def test_an_explicit_product_family_still_wins(self) -> None:
+        plan = plan_marketing_system({"request": self.BUN_BO, "product_family": "hospitality"})
+        self.assertEqual(plan["product_family"], "hospitality")
+        self.assertEqual(plan["product_family_label"], "confirmed")
+
+    def test_the_plan_does_not_ask_what_it_was_just_told(self) -> None:
+        plan = plan_marketing_system({"request": self.BUN_BO})
+        for question in plan["questions"]:
+            self.assertNotIn("What kind of product", question,
+                             "asked what the product is, of a request that opens by saying so")
+        # It asks instead for the two numbers that cannot be inferred from any wording.
+        self.assertTrue(any("cost you to make" in question for question in plan["questions"]))
+
+    def test_campaign_brief_derives_from_the_request_it_was_given(self) -> None:
+        record = build_record("Bún bò", "mixed", "food-cpg", "generic", ["meta", "tiktok", "web"],
+                              request=self.BUN_BO)
+        self.assertEqual(record["horizon_weeks"], 6)
+        self.assertTrue(record["horizon_stated"])
+        self.assertEqual(record["budget_tier"], "small")
+        self.assertEqual(len(record["assets"]), record["asset_cap"])
+        self.assertLessEqual(len(record["assets"]), 4)
+        self.assertIn(self.BUN_BO, record["truth_map"]["confirmed"][0])
+        self.assertTrue(any("6 tuần" in entry for entry in record["truth_map"]["inferred"]))
+        # A stated horizon is not asked for again, and no asset carries "TBD" as its funnel stage.
+        self.assertFalse(any("How long" in question for question in record["open_questions"]))
+        self.assertEqual([], [asset for asset in record["assets"] if asset["funnel_stage"] == "TBD"])
+
+    def test_campaign_brief_separates_unknown_from_undecided(self) -> None:
+        """A brief that prints both as TBD hides the questions that actually block the work."""
+        record = build_record("Launch", "mixed", "other", "generic", ["meta"], request="Launch a new product")
+        markdown = to_campaign_markdown(record)
+        self.assertIn("UNKNOWN", markdown)
+        self.assertIn("TBD", markdown)
+        self.assertIn("nobody has stated", markdown)
+        self.assertIn("Do not fill an `UNKNOWN` with a plausible guess", markdown)
+        self.assertEqual(record["brief"]["product_truth"], record["brief"]["proof"])
+        self.assertNotEqual(record["brief"]["product_truth"], "TBD")
+        # No horizon was stated, so that question comes back — and it comes back only then.
+        self.assertTrue(any("How long" in question for question in record["open_questions"]))
+
+    def test_campaign_assets_spread_across_channels_rather_than_filling_the_first(self) -> None:
+        record = build_record("Launch", "mixed", "other", "generic", ["meta", "tiktok", "web"],
+                              request="Ra mắt sản phẩm, ngân sách nhỏ")
+        used = [asset["channel"] for asset in record["assets"]]
+        self.assertEqual(len(record["assets"]), 4)
+        self.assertEqual({"meta", "tiktok", "web"}, set(used), f"assets clustered on {sorted(set(used))}")
+
+    def test_budget_tier_is_a_tier_and_never_an_invented_amount(self) -> None:
+        """A tier can be read from wording. A number in đồng cannot, and it is the one figure the
+        budget deliverable exists to derive from."""
+        for request in (self.BUN_BO, "large budget campaign", "ngân sách vừa"):
+            signals = read_signals(request)
+            self.assertIn(signals["budget"]["tier"], BUDGET_TIERS)
+            blob = json.dumps(signals, ensure_ascii=False)
+            for invented in ("triệu", "VND", "đồng", "$"):
+                self.assertNotIn(invented, blob, f"{request!r} produced a currency figure: {blob}")
 
     def test_human_prompt_uses_physical_capture_contract(self) -> None:
         prompt = compile_provider(
