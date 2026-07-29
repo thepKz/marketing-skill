@@ -186,6 +186,19 @@ window.HANDBOOK_I18N = {
     "GPT Image 2 cho direct generate/edit và conversational refinement. Nano Banana phù hợp nhiều reference, consistency và production phức tạp. Luôn kiểm tra tài liệu live trước khi gọi API.": "GPT Image 2 supports direct generation, editing, and conversational refinement. Nano Banana suits multi-reference consistency and complex production. Always check live documentation before calling an API.",
     "Không bịa claim, thông số, review, giá, chứng nhận hoặc endorsement. Celebrity references chỉ được tách thành pose, makeup, light và composition.": "Never fabricate claims, specifications, reviews, prices, certifications, or endorsements. Celebrity references may only be decomposed into pose, makeup, lighting, and composition.",
     "Mọi output phải qua fidelity, anatomy, physics, truth, channel và rights gate trước khi được chọn.": "Every output must pass fidelity, anatomy, physics, truth, channel, and rights gates before selection.",
-    "Marketing, content và visual production trong cùng một source of truth.": "Marketing, content, and visual production in one source of truth."
+    "Marketing, content và visual production trong cùng một source of truth.": "Marketing, content, and visual production in one source of truth.",
+    "Menu / F&B": "Menu / F&B",
+    "Photoshoot": "Photoshoot",
+    "Video brief": "Video brief",
+    "Edit ảnh ref": "Edit reference",
+    "Bạn không cần biết marketing trước.": "You do not need to know marketing first.",
+    "Chỉ cần nói bạn bán gì, muốn đạt điều gì và gửi ảnh/ref nếu có. Skill sẽ tự hỏi phần còn thiếu, giải thích quyết định bằng ngôn ngữ dễ hiểu rồi tạo báo cáo Markdown để bạn dùng tiếp.": "Tell the skill what you sell, what you want to achieve, and attach references if you have them. It fills the gaps, explains decisions in plain language, and creates Markdown reports you can keep using.",
+    "Brief bằng lời thường": "Brief in plain language",
+    "“Tôi bán bún bò, muốn menu hiện đại cho khách văn phòng.” Không cần viết brief chuẩn.": "“I sell bun bo and need a modern menu for office workers.” No formal brief required.",
+    "So sánh hướng đi": "Compare directions",
+    "Nhận 2–3 hướng chiến lược, moodboard, màu sắc, bố cục và trade-off trước khi làm sâu.": "Review 2–3 strategic directions, moodboards, palettes, layouts, and trade-offs before deeper production.",
+    "Hệ thống dùng được": "Receive a usable system",
+    "Copy, wireframe, shot list, prompt hình/video, lịch nội dung và checklist QA nằm trong một thư mục.": "Copy, wireframes, shot lists, image/video prompts, content calendars, and QA checklists live in one folder.",
+    "Mỗi vòng đều có file, lý do và bước tiếp theo.": "Every round includes files, rationale, and the next step."
   }
 };
