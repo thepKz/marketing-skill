@@ -91,13 +91,27 @@ Every run carries `_meta/render-capability.json`, starting at `not-rendered`. Pr
 
 ## The five things people find confusing
 
-Each one has a deep dossier and a command that produces a real artefact.
+Each one has a deep dossier, a lookup table under `data/`, and a command that produces something you can look at. Look it up rather than recalling it: a remembered craft value is a guess, a table row is a decision someone already wrote down with its reason.
 
 ### Copywriting
 
-The ladder is `tension → promise → mechanism → proof → action`, and it is a ladder because you cannot skip a rung: a promise without a mechanism is a slogan, a mechanism without proof is a claim. Read [`references/copywriting.md`](marketing-minthep/references/copywriting.md) for the channel-ready pack and [`references/dossiers/copywriting-deep.md`](marketing-minthep/references/dossiers/copywriting-deep.md) for sentence-level craft — specificity over adjective stacking, the objection you must name before the reader does, and why "chất lượng cao" is not a benefit.
+```powershell
+python marketing-minthep/scripts/find_recipe.py --table copy --query "tiêu đề"
+```
+
+22 formulas in `data/copy-formulas.csv`, each with a worked Vietnamese and an English example. No example contains a printable number — every price, hour and percentage is a `[slot]`, because a sample that ships a plausible-looking figure is how an invented claim reaches a customer. The ladder is `tension → promise → mechanism → proof → action`, and it is a ladder because you cannot skip a rung: a promise without a mechanism is a slogan, a mechanism without proof is a claim. Read [`references/copywriting.md`](marketing-minthep/references/copywriting.md) for the channel-ready pack and [`references/dossiers/copywriting-deep.md`](marketing-minthep/references/dossiers/copywriting-deep.md) for sentence-level craft — specificity over adjective stacking, the objection you must name before the reader does, and why "chất lượng cao" is not a benefit.
 
 ### Image editing
+
+```powershell
+python marketing-minthep/scripts/find_recipe.py --query "giao đồ ăn"
+python marketing-minthep/scripts/find_recipe.py --brief dish-delivery --palette paper-cobalt
+python marketing-minthep/scripts/find_recipe.py --checklist dish-delivery
+```
+
+Search by the job, in Vietnamese or English — not by a style name. `data/image-recipes.csv` carries 39 jobs, including six the Vietnam market needs and nobody else has a row for: a delivery motorbike, a market stall, a Tết composition, a bánh mì cross-section, a bowl counter, grill smoke. `--brief` composes a `compile_prompt.py` payload and leaves what only the owner knows as `TBD` with the reason attached; it will not invent a `product_truth`. `--checklist` filters the 33 tells in `data/slop-tells.csv` down to the ones that apply to that recipe, sorted by severity — the drink checklist asks about condensation, the before-and-after checklist asks whether the "after" is merely better lit. Keep it open while you look at the render; re-reading the prompt proves nothing.
+
+Two more sheets explain the parts of a brief a non-marketer has no vocabulary for. `--sheet lighting` draws the six setups from above as light positions with the shadow computed from where the key sits, so "45/45 soft key" stops being jargon. `--sheet frames` draws the five placements at their real proportions with the reserved bands shaded — the story frame is the one that shows why a story is laid out again rather than cropped from the feed post.
 
 Editing is not generation. The route is: inspect the source, build a **lock map**, invoke a real edit capability, then compare the result against the locks. On a real person, makeup edits change pigment and finish on the surface only; head shape, eye geometry and spacing, eyelids, nose, lips, jaw, chin, ears, hairline, skin tone, apparent age, asymmetry, expression and gaze are locked. Outfit edits change wardrobe only. If a real edit capability is unavailable, the skill returns an executable edit prompt with exact mask instructions and says plainly that nothing was rendered. See [`references/image-editing.md`](marketing-minthep/references/image-editing.md).
 
@@ -111,7 +125,11 @@ The brief separates two things that used to both print as `TBD`: **UNKNOWN** mea
 
 ### Colour
 
-Palettes are built, not picked. The dossier [`references/dossiers/colour-science-and-harmony.md`](marketing-minthep/references/dossiers/colour-science-and-harmony.md) covers perceptual lightness versus hex intuition, contrast ratios that survive a phone screen in sunlight, the difference between a brand colour and an accent that only appears once, and what happens to your palette in CMYK. `references/composition-light-color.md` connects it to camera, light and grade.
+```powershell
+python marketing-minthep/scripts/render_refsheet.py --sheet palettes --output palettes.svg --html-output palettes.html
+```
+
+That draws all 20 palettes in `data/palettes.csv` as real areas with a real button on each, and prints the measured contrast ratios underneath. The last five columns of the table are computed, not claimed: two of the twenty accents genuinely fail 3:1 against their background and are marked `fill only — too close to the background for text or hairlines`, which is more useful than a palette set where everything passes. Palettes are built, not picked. The dossier [`references/dossiers/colour-science-and-harmony.md`](marketing-minthep/references/dossiers/colour-science-and-harmony.md) covers perceptual lightness versus hex intuition, contrast ratios that survive a phone screen in sunlight, the difference between a brand colour and an accent that only appears once, and what happens to your palette in CMYK. `references/composition-light-color.md` connects it to camera, light and grade.
 
 ### Layout
 
@@ -119,7 +137,10 @@ Palettes are built, not picked. The dossier [`references/dossiers/colour-science
 python marketing-minthep/scripts/plan_design_options.py --input marketing-minthep/assets/examples/bun-bo/menu-modern-street.json
 python marketing-minthep/scripts/render_mockup.py --input marketing-minthep/assets/examples/bun-bo/menu-modern-street.json --output out.svg --html-output out.html
 python marketing-minthep/scripts/render_social_post.py --input marketing-minthep/assets/examples/bun-bo/post-story.json --output story.svg
+python marketing-minthep/scripts/render_refsheet.py --sheet dials --dial margin_ratio --output dials.svg --html-output dials.html
 ```
+
+The mechanism is a small set of numbers, and the only honest way to explain a number is to show the same thing twice with it changed. `data/layout-dials.csv` names 17 of them — margin ratio, title ratio, row pitch, line leading — each with a minimum, a maximum, three named defaults, what raising it changes and where it breaks. `--sheet dials` draws the same four-item bún bò menu three times at min, default and max, with only the dial under test moving. Show that to someone instead of describing it.
 
 The renderer measures text and flows it. Nothing is positioned by a fraction of the canvas height — that approach produced diacritics cutting through a kicker line and a title painted under the hero image. Copy that does not fit raises an error instead of being silently truncated, because a mockup that quietly deletes two thirds of a sentence looks finished, which is what makes it dangerous. The post renderer adds the one constraint a menu does not have: the platform draws its own buttons over the canvas, so each placement declares the bands it may not use and a block that would collide with the CTA raises with the overflow in pixels. Dossiers: [`layout-wireframe-typography.md`](marketing-minthep/references/dossiers/layout-wireframe-typography.md), [`composition-and-layout-vision.md`](marketing-minthep/references/dossiers/composition-and-layout-vision.md), [`menu-design-and-engineering.md`](marketing-minthep/references/dossiers/menu-design-and-engineering.md).
 
@@ -178,7 +199,9 @@ marketing-minthep/
   SKILL.md                  entry point, under 150 lines
   references/               45 topic files, each under 150 lines
     dossiers/               14 deep-craft dossiers + index
-  scripts/                  20 tools + test suite
+  data/                     5 lookup tables: image recipes, palettes, layout
+                            dials, slop tells, copy formulas
+  scripts/                  22 tools + test suite
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json and deliverable skeletons
@@ -196,7 +219,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-99 tests. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
+115 tests, including ones that recompute every contrast ratio in `data/palettes.csv` and fail if a copy example contains a printable number. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
 
 ## What it will not do
 

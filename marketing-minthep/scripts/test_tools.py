@@ -17,6 +17,10 @@ from _signals import BUDGET_TIERS, phase_plan, read_signals
 from analyze_performance import analyze
 from build_asset_manifest import build_manifest
 from compile_prompt import compile_provider
+# Imported as modules, not names: both define PLACEMENTS, and `from ... import PLACEMENTS` twice
+# would leave one test silently asserting against the other module's table.
+import find_recipe
+import render_refsheet
 from new_run import build_run, load_registry, route_pipeline, write_run
 from plan_image_generation import route_image_request
 from plan_design_options import plan_options
@@ -1230,6 +1234,192 @@ class SocialPostTests(unittest.TestCase):
             self.assertIn("CONCEPT", svg, f"{name} lost its unapproved-content footer")
 
 
+class DataTableTests(unittest.TestCase):
+    """The tables are the skill's memory, and a wrong cell is a wrong recommendation that reads
+    as data. Two of these assertions exist because the first version of the tables failed them:
+    a slop tell scoped to a recipe id that had been renamed, and a palette whose contrast claim
+    was typed rather than computed."""
+
+    TABLES = {
+        "image-recipes.csv": 13,
+        "palettes.csv": 15,
+        "layout-dials.csv": 11,
+        "slop-tells.csv": 9,
+        "copy-formulas.csv": 22,
+    }
+
+    @staticmethod
+    def rows(name: str) -> list[dict[str, str]]:
+        text = (SKILL_ROOT / "data" / name).read_text(encoding="utf-8")
+        return list(csv.DictReader(io.StringIO(text)))
+
+    def test_every_cell_is_filled(self) -> None:
+        # An empty cell in a lookup table is not a blank, it is a silent omission: the composer
+        # writes the key with an empty value and the prompt asks the image model for "lighting: ".
+        for name in self.TABLES:
+            for row in self.rows(name):
+                for field, value in row.items():
+                    self.assertTrue(
+                        value and value.strip(),
+                        f"{name}: row {list(row.values())[0]!r} has an empty {field}",
+                    )
+
+    def test_ids_are_unique(self) -> None:
+        for name in self.TABLES:
+            rows = self.rows(name)
+            key = list(rows[0])[0]
+            ids = [row[key] for row in rows]
+            self.assertEqual(len(ids), len(set(ids)), f"{name} has a duplicate {key}")
+
+    def test_palette_body_contrast_passes_and_is_computed(self) -> None:
+        def luminance(hex_colour: str) -> float:
+            channels = [int(hex_colour[index:index + 2], 16) / 255 for index in (1, 3, 5)]
+            linear = [c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in channels]
+            return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+
+        def ratio(one: str, two: str) -> float:
+            first, second = luminance(one), luminance(two)
+            high, low = max(first, second), min(first, second)
+            return (high + 0.05) / (low + 0.05)
+
+        for row in self.rows("palettes.csv"):
+            measured = ratio(row["bg"], row["ink"])
+            self.assertGreaterEqual(
+                measured, 4.5,
+                f'{row["id"]}: ink {row["ink"]} on {row["bg"]} is {measured:.2f}:1, under 4.5',
+            )
+            self.assertAlmostEqual(
+                measured, float(row["ratio_ink_on_bg"]), places=1,
+                msg=f'{row["id"]}: the table says {row["ratio_ink_on_bg"]} but the colours '
+                    f"measure {measured:.2f}. The number was typed, not computed.",
+            )
+            # An accent under 3:1 may still be a fill, but the table has to say so rather than
+            # let a reader set a hairline in it.
+            accent = ratio(row["bg"], row["accent"])
+            if accent < 3.0:
+                self.assertIn("fill only", row["accent_use"],
+                              f'{row["id"]}: accent is {accent:.2f}:1 but is not marked fill only')
+
+    def test_slop_tells_point_at_recipes_that_exist(self) -> None:
+        known = {row["id"] for row in self.rows("image-recipes.csv")}
+        for row in self.rows("slop-tells.csv"):
+            if row["applies_to"] == "any":
+                continue
+            for recipe_id in row["applies_to"].split():
+                self.assertIn(recipe_id, known,
+                              f'slop tell {row["id"]} scopes itself to unknown recipe {recipe_id}')
+
+    def test_dial_defaults_sit_inside_their_own_range(self) -> None:
+        for row in self.rows("layout-dials.csv"):
+            low, high = float(row["min"]), float(row["max"])
+            self.assertLess(low, high, f'{row["dial"]}: min is not below max')
+            for theme in ("quiet_editorial", "modern_street", "heritage_craft"):
+                value = float(row[theme])
+                self.assertTrue(
+                    low <= value <= high,
+                    f'{row["dial"]}: {theme} default {value} is outside {low}–{high}',
+                )
+
+    def test_copy_examples_carry_no_printable_number(self) -> None:
+        # Every figure in an example must be a bracketed slot. An example with a real-looking
+        # number is a claim somebody will paste into an ad.
+        for row in self.rows("copy-formulas.csv"):
+            for field in ("example_vi", "example_en"):
+                stripped = re.sub(r"\[[^\]]*\]", "", row[field])
+                # A shot timecode is structure, not a claim: "8-12:" tells the editor where the
+                # cut goes and there is nothing in it a reader could paste into an ad.
+                stripped = re.sub(r"\b\d+-\d+:", "", stripped)
+                self.assertFalse(
+                    re.search(r"\d", stripped),
+                    f'{row["id"]}.{field} contains a bare number: {row[field]!r}',
+                )
+
+
+class FindRecipeTests(unittest.TestCase):
+    """The composer's job is to fill in what a table can know and refuse to fill in what only
+    the owner knows. Both halves are asserted here, because the failure mode of the second is a
+    brief full of invented product truth that runs without complaint."""
+
+    def test_person_recipes_all_exist(self) -> None:
+        known = {row["id"] for row in find_recipe.load("recipes")}
+        for recipe_id in find_recipe.PERSON_RECIPES:
+            self.assertIn(recipe_id, known, f"PERSON_RECIPES names {recipe_id}, which is not a recipe")
+
+    def test_search_puts_the_job_match_first(self) -> None:
+        hits = find_recipe.search("recipes", "giao đồ ăn")
+        self.assertTrue(hits, "a Vietnamese job phrase found nothing")
+        self.assertEqual(hits[0]["id"], "dish-delivery")
+
+    def test_brief_leaves_owner_fields_as_tbd_and_compiles(self) -> None:
+        payload = find_recipe.brief("dish-delivery", "white-crimson")
+        for field in payload["brief"]:
+            self.assertEqual(payload["brief"][field], "TBD",
+                             f"{field} was filled in by a table that cannot know it")
+        compiled = compile_provider(payload, "generic")
+        self.assertIn("dish", compiled.lower())
+
+    def test_person_brief_uses_the_mode_compile_prompt_recognises(self) -> None:
+        # "person" is not a capture mode; compile_prompt.py falls through to the product wording
+        # and a portrait brief silently asks for exact materials and true colour.
+        payload = find_recipe.brief("founder-portrait", None)
+        self.assertEqual(payload["mode"], "human")
+        self.assertIn("body language", compile_provider(payload, "generic"))
+
+    def test_checklist_is_scoped_to_the_recipe(self) -> None:
+        drink = find_recipe.checklist("drink-cold")
+        self.assertNotIn("skin", drink.lower(), "a drink checklist should not carry a skin tell")
+        self.assertIn("condensation", drink.lower())
+        before = find_recipe.checklist("before-after")
+        self.assertIn("better lit", before, "the one tell this recipe exists to prevent is missing")
+        self.assertNotIn("better lit", drink)
+
+
+class RefSheetTests(unittest.TestCase):
+    """Each sheet is parsed as XML and checked for the numbers it claims to show, because an SVG
+    that is merely well-formed can still be blank."""
+
+    def sheet(self, name: str, **kwargs: str) -> str:
+        svg = render_refsheet.SHEETS[name](**kwargs)
+        ET.fromstring(svg)  # a malformed sheet is a broken deliverable, not a warning
+        return svg
+
+    def test_every_sheet_parses_and_carries_content(self) -> None:
+        for name in render_refsheet.SHEETS:
+            svg = self.sheet(name)
+            self.assertGreater(svg.count("<text"), 10, f"{name} has almost no type on it")
+
+    def test_dial_sheet_prints_the_three_values_from_the_table(self) -> None:
+        for row in DataTableTests.rows("layout-dials.csv"):
+            svg = render_refsheet.sheet_dials(row["dial"])
+            for value in (row["min"], row["quiet_editorial"], row["max"]):
+                printed = f"{float(value):g}"
+                self.assertIn(printed, svg,
+                              f'{row["dial"]}: the sheet does not print {printed}')
+
+    def test_palette_sheet_prints_every_palette_and_its_measured_ratio(self) -> None:
+        svg = self.sheet("palettes")
+        for row in DataTableTests.rows("palettes.csv"):
+            self.assertIn(row["name_en"], svg)
+            self.assertIn(f'{row["ratio_ink_on_bg"]}:1', svg)
+
+    def test_lighting_shadow_falls_away_from_the_key(self) -> None:
+        # The diagram would be worthless — and would teach the exact error it warns about — if the
+        # shadow were drawn in a fixed direction while the key moved.
+        svg = self.sheet("lighting")
+        self.assertIn("opacity=\"0.38\"", svg, "no shadow wedge was drawn")
+        for _label, _why, lights in render_refsheet.SETUPS:
+            self.assertIn(lights[0][2], ("soft", "window", "hard", "strip"),
+                          "the first light in a setup must be the key")
+
+    def test_frames_reserve_stays_inside_the_platform_bands(self) -> None:
+        for name, _pw, ph, top, bottom, _note, reserve, _why in render_refsheet.PLACEMENTS:
+            if reserve is None:
+                continue
+            self.assertLessEqual(reserve[1] + reserve[3], 1.0 + 1e-9,
+                                 f"{name}: the reserve runs past the usable area")
+            self.assertLess(top + bottom, ph, f"{name}: the bands cover the whole frame")
+
+
 class ReferenceIntegrityTests(unittest.TestCase):
     """A reference the skill cannot open is worse than no reference: it reads as depth
     that does not ship. This caught three pointers into a gitignored research folder."""
@@ -1241,6 +1431,7 @@ class ReferenceIntegrityTests(unittest.TestCase):
             SKILL_ROOT / "references",
             SKILL_ROOT,
             SKILL_ROOT / "scripts",
+            SKILL_ROOT / "data",
             SKILL_ROOT / "assets",
             REPO_ROOT,
         )

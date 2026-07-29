@@ -91,13 +91,27 @@ Mỗi run có `_meta/render-capability.json`, khởi điểm ở `not-rendered`.
 
 ## Năm phần thường gây khó hiểu
 
-Mỗi phần có một dossier chuyên sâu và một lệnh tạo ra artefact thật.
+Mỗi phần có một dossier chuyên sâu, một bảng tra trong `data/`, và một lệnh tạo ra thứ mình xem được bằng mắt. Tra bảng, đừng nhớ trong đầu: một con số craft nhớ ra là một phỏng đoán, còn một dòng trong bảng là quyết định đã có người viết xuống kèm lý do.
 
 ### Copywriting
 
-Thang là `tension → promise → mechanism → proof → action`, và nó là một cái thang vì không được bỏ bậc: promise mà không có mechanism thì chỉ là slogan, mechanism mà không có proof thì chỉ là một lời khẳng định. Đọc [`references/copywriting.md`](marketing-minthep/references/copywriting.md) cho copy pack theo kênh, và [`references/dossiers/copywriting-deep.md`](marketing-minthep/references/dossiers/copywriting-deep.md) cho craft ở mức từng câu — cụ thể thay vì xếp tính từ, cái phản đối phải tự nêu trước khi người đọc nêu, và vì sao "chất lượng cao" không phải một lợi ích.
+```powershell
+python marketing-minthep/scripts/find_recipe.py --table copy --query "tiêu đề"
+```
+
+22 công thức trong `data/copy-formulas.csv`, mỗi cái kèm một ví dụ tiếng Việt và một ví dụ tiếng Anh viết sẵn. Không ví dụ nào chứa số in được — mọi giá, giờ và phần trăm đều là `[slot]`, vì một mẫu mang theo con số trông hợp lý chính là cách một lời khẳng định bịa ra đi tới tay khách. Thang là `tension → promise → mechanism → proof → action`, và nó là một cái thang vì không được bỏ bậc: promise mà không có mechanism thì chỉ là slogan, mechanism mà không có proof thì chỉ là một lời khẳng định. Đọc [`references/copywriting.md`](marketing-minthep/references/copywriting.md) cho copy pack theo kênh, và [`references/dossiers/copywriting-deep.md`](marketing-minthep/references/dossiers/copywriting-deep.md) cho craft ở mức từng câu — cụ thể thay vì xếp tính từ, cái phản đối phải tự nêu trước khi người đọc nêu, và vì sao "chất lượng cao" không phải một lợi ích.
 
 ### Edit ảnh
+
+```powershell
+python marketing-minthep/scripts/find_recipe.py --query "giao đồ ăn"
+python marketing-minthep/scripts/find_recipe.py --brief dish-delivery --palette paper-cobalt
+python marketing-minthep/scripts/find_recipe.py --checklist dish-delivery
+```
+
+Tìm theo công việc, bằng tiếng Việt hoặc tiếng Anh — không tìm theo tên style. `data/image-recipes.csv` có 39 công việc, trong đó sáu cái thị trường Việt Nam cần mà chưa nơi nào có dòng riêng: xe máy giao hàng, sạp chợ, bố cục Tết, mặt cắt bánh mì, quầy bún, khói than. `--brief` soạn payload cho `compile_prompt.py` và để nguyên `TBD` những gì chỉ chủ hàng biết, kèm lý do; nó không tự bịa `product_truth`. `--checklist` lọc 33 dấu hiệu trong `data/slop-tells.csv` xuống còn những cái áp cho recipe đó, xếp theo mức nặng — checklist đồ uống hỏi về hơi nước đọng, checklist before-after hỏi xem ảnh "after" có phải chỉ là được chiếu sáng đẹp hơn. Mở nó ra trong lúc xem render; đọc lại prompt thì không chứng minh được gì.
+
+Hai sheet nữa giải thích những phần trong brief mà người không làm marketing chưa có từ để gọi. `--sheet lighting` vẽ sáu setup nhìn từ trên xuống thành vị trí đèn, với bóng tính ra từ chỗ đặt key, để "45/45 soft key" thôi là biệt ngữ. `--sheet frames` vẽ năm placement theo đúng tỉ lệ thật và tô những dải bị chiếm — khung story là cái cho thấy vì sao story phải bố cục lại chứ không crop từ post feed.
 
 Edit không phải generate. Đường đi là: soi ảnh gốc, dựng **lock map**, gọi một năng lực edit thật, rồi so kết quả với các lock. Trên ảnh người thật, edit makeup chỉ đổi pigment và finish trên bề mặt; head shape, hình học và khoảng cách mắt, mí, mũi, môi, xương hàm, chin, tai, hairline, tone da, tuổi thể hiện, độ bất đối xứng, biểu cảm và hướng nhìn đều bị khóa. Edit outfit chỉ đổi trang phục. Nếu không có năng lực edit thật, skill trả về một prompt edit chạy được kèm chỉ dẫn mask chính xác, và nói thẳng là chưa render gì. Xem [`references/image-editing.md`](marketing-minthep/references/image-editing.md).
 
@@ -111,7 +125,11 @@ Brief tách hai thứ trước đây cùng in ra `TBD`: **UNKNOWN** là chưa ai
 
 ### Màu sắc
 
-Palette được dựng, không phải được chọn. Dossier [`references/dossiers/colour-science-and-harmony.md`](marketing-minthep/references/dossiers/colour-science-and-harmony.md) nói về độ sáng cảm nhận so với trực giác đọc mã hex, tỉ lệ tương phản còn sống nổi trên màn hình điện thoại giữa nắng, khác biệt giữa một màu thương hiệu và một accent chỉ xuất hiện đúng một lần, và chuyện gì xảy ra với palette khi sang CMYK. `references/composition-light-color.md` nối nó với camera, ánh sáng và grade.
+```powershell
+python marketing-minthep/scripts/render_refsheet.py --sheet palettes --output palettes.svg --html-output palettes.html
+```
+
+Lệnh đó vẽ cả 20 palette trong `data/palettes.csv` thành vùng màu thật với một cái nút thật trên mỗi cái, và in tỉ lệ tương phản đo được ở dưới. Năm cột cuối của bảng là tính ra, không phải khai ra: hai trong hai mươi accent thật sự không đạt 3:1 so với nền và bị đánh dấu `fill only — too close to the background for text or hairlines`, hữu ích hơn một bộ palette mà cái nào cũng đạt. Palette được dựng, không phải được chọn. Dossier [`references/dossiers/colour-science-and-harmony.md`](marketing-minthep/references/dossiers/colour-science-and-harmony.md) nói về độ sáng cảm nhận so với trực giác đọc mã hex, tỉ lệ tương phản còn sống nổi trên màn hình điện thoại giữa nắng, khác biệt giữa một màu thương hiệu và một accent chỉ xuất hiện đúng một lần, và chuyện gì xảy ra với palette khi sang CMYK. `references/composition-light-color.md` nối nó với camera, ánh sáng và grade.
 
 ### Bố cục
 
@@ -119,7 +137,10 @@ Palette được dựng, không phải được chọn. Dossier [`references/dos
 python marketing-minthep/scripts/plan_design_options.py --input marketing-minthep/assets/examples/bun-bo/menu-modern-street.json
 python marketing-minthep/scripts/render_mockup.py --input marketing-minthep/assets/examples/bun-bo/menu-modern-street.json --output out.svg --html-output out.html
 python marketing-minthep/scripts/render_social_post.py --input marketing-minthep/assets/examples/bun-bo/post-story.json --output story.svg
+python marketing-minthep/scripts/render_refsheet.py --sheet dials --dial margin_ratio --output dials.svg --html-output dials.html
 ```
+
+Cơ chế là một nhúm con số, và cách trung thực duy nhất để giải thích một con số là cho xem cùng một thứ hai lần với con số đó bị đổi. `data/layout-dials.csv` gọi tên 17 con số — tỉ lệ lề, tỉ lệ tiêu đề, bước dòng món, leading — mỗi cái có min, max, ba giá trị mặc định theo phong cách, nâng lên thì đổi cái gì, và vỡ ở đâu. `--sheet dials` vẽ đúng một menu bún bò bốn món ba lần ở min, mặc định và max, chỉ dial đang xét là dịch chuyển. Đưa cái đó cho người ta xem thay vì mô tả.
 
 Bộ render đo chữ rồi dòng chữ chảy theo phép đo đó. Không có gì được đặt theo một phân số của chiều cao canvas — cách cũ đó đã tạo ra dấu tiếng Việt cắt xuyên dòng kicker và một tiêu đề bị vẽ chồng dưới ảnh hero. Copy không vừa chỗ sẽ báo lỗi thay vì bị cắt âm thầm, vì một mockup lặng lẽ xóa hai phần ba câu vẫn trông như đã hoàn thiện, và đó chính là chỗ nguy hiểm. Bộ render post thêm một ràng buộc mà menu không có: nền tảng tự vẽ nút của nó lên trên canvas, nên mỗi placement khai báo sẵn những dải nó không được dùng, và một khối chữ chạm vào CTA sẽ báo lỗi kèm số pixel bị lấn. Dossier: [`layout-wireframe-typography.md`](marketing-minthep/references/dossiers/layout-wireframe-typography.md), [`composition-and-layout-vision.md`](marketing-minthep/references/dossiers/composition-and-layout-vision.md), [`menu-design-and-engineering.md`](marketing-minthep/references/dossiers/menu-design-and-engineering.md).
 
@@ -178,7 +199,9 @@ marketing-minthep/
   SKILL.md                  điểm vào, dưới 150 dòng
   references/               45 file chủ đề, mỗi file dưới 150 dòng
     dossiers/               14 dossier craft chuyên sâu + index
-  scripts/                  20 công cụ + bộ test
+  data/                     5 bảng tra: image recipe, palette, layout dial,
+                            slop tell, copy formula
+  scripts/                  22 công cụ + bộ test
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json và khung deliverable
@@ -196,7 +219,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-99 test. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
+115 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv` và test fail nếu một ví dụ copy chứa số in được. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
 
 ## Những gì skill không làm
 
