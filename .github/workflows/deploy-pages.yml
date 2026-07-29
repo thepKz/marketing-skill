@@ -47,6 +47,15 @@ jobs:
           test -f marketing-minthep/references/sales-enablement.md
           test -f marketing-minthep/references/creator-ugc.md
           test -f marketing-minthep/references/lifecycle-retention.md
+          test -f marketing-minthep/references/dossiers/README.md
+          test -f marketing-minthep/references/dossiers/anti-fabrication-protocol.md
+          test -f marketing-minthep/references/dossiers/composition-and-layout-vision.md
+          test -f marketing-minthep/references/dossiers/copywriting-deep.md
+          test -f marketing-minthep/references/dossiers/light-and-shadow.md
+          test -f marketing-minthep/references/dossiers/market-assessment-method.md
+          test -f marketing-minthep/references/dossiers/materials-and-surfaces.md
+          test -f marketing-minthep/references/dossiers/menu-design-and-engineering.md
+          test -f marketing-minthep/references/dossiers/resolution-sharpening-output.md
           test -f marketing-minthep/assets/registries/asset-formats.json
           test -f marketing-minthep/assets/registries/pipelines.json
           test -f marketing-minthep/scripts/new_run.py

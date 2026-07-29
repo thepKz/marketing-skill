@@ -1,6 +1,6 @@
 # Image Output and Sharpening
 
-Use this reference after image selection and local editing. Resolution, upscaling, sharpening, compression, and color management cannot repair incorrect anatomy, product geometry, text, masks, shadows, or reflections. Fix those first. Detailed calculations and current channel tables live in `../_research/resolution-sharpening-output.md`.
+Use this reference after image selection and local editing. Resolution, upscaling, sharpening, compression, and color management cannot repair incorrect anatomy, product geometry, text, masks, shadows, or reflections. Fix those first. Detailed calculations and current channel tables live in `dossiers/resolution-sharpening-output.md`.
 
 ## Output decision
 

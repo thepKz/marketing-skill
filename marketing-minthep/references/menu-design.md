@@ -1,6 +1,6 @@
 # Menu Design and Engineering
 
-Use this reference for printed menus, menu boards, delivery listings, QR menus, restaurant landing pages, and food-brand concept directions. Do not begin with visual style; begin with item economics, customer decision order, operational truth, and the ordering environment. The detailed evidence audit and worked Vietnamese example live in `../_research/menu-design-and-engineering.md`.
+Use this reference for printed menus, menu boards, delivery listings, QR menus, restaurant landing pages, and food-brand concept directions. Do not begin with visual style; begin with item economics, customer decision order, operational truth, and the ordering environment. The detailed evidence audit and worked Vietnamese example live in `dossiers/menu-design-and-engineering.md`.
 
 ## Required inputs
 

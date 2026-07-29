@@ -1,6 +1,6 @@
 # Composition, Light, and Color Direction
 
-Use this reference to turn a vague request such as `modern`, `premium`, `appetizing`, or `artistic` into a physical shot plan. For the evidence and calculations behind these rules, consult `../_research/composition-and-layout-vision.md`, `../_research/light-and-shadow.md`, and `../_research/materials-and-surfaces.md`.
+Use this reference to turn a vague request such as `modern`, `premium`, `appetizing`, or `artistic` into a physical shot plan. For the evidence and calculations behind these rules, consult `dossiers/composition-and-layout-vision.md`, `dossiers/light-and-shadow.md`, and `dossiers/materials-and-surfaces.md`.
 
 ## Decision order
 

@@ -6,6 +6,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import re
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
@@ -505,6 +506,72 @@ class RunAuditTests(unittest.TestCase):
             result = audit_file(path)
         self.assertEqual(result["status"], "invalid")
         self.assertTrue(any("invalid JSON" in issue for issue in result["issues"]))
+
+
+SKILL_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = SKILL_ROOT.parent
+
+# Paths a run workspace creates at runtime. They are named in the prose on purpose and are
+# not expected to exist in the repository.
+RUNTIME_ARTIFACTS = {"_meta/render-capability.json"}
+# Files the operator may supply, which the skill degrades gracefully without.
+OPTIONAL_INPUTS = {"BRAND.md"}
+
+FILE_REFERENCE = re.compile(
+    r"`([^`\s]+\.(?:md|json|py|csv|yaml|yml))`"
+    r"|\]\(([^)\s]+\.(?:md|json|py|csv|yaml|yml))\)"
+)
+
+
+class ReferenceIntegrityTests(unittest.TestCase):
+    """A reference the skill cannot open is worse than no reference: it reads as depth
+    that does not ship. This caught three pointers into a gitignored research folder."""
+
+    def test_every_cited_file_exists_somewhere_the_skill_can_reach(self) -> None:
+        # REPO_ROOT is a legitimate base: SKILL.md names the .claude/ and .codex/ adapters by
+        # their repository-root paths, because that is where an operator installs them from.
+        bases = (
+            SKILL_ROOT / "references",
+            SKILL_ROOT,
+            SKILL_ROOT / "scripts",
+            SKILL_ROOT / "assets",
+            REPO_ROOT,
+        )
+        unresolved = []
+        for document in sorted(SKILL_ROOT.rglob("*.md")):
+            text = document.read_text(encoding="utf-8", errors="replace")
+            for match in FILE_REFERENCE.finditer(text):
+                ref = match.group(1) or match.group(2)
+                if any(ch in ref for ch in "*<>{}") or ref in RUNTIME_ARTIFACTS | OPTIONAL_INPUTS:
+                    continue
+                candidates = (document.parent, *bases)
+                if not any((base / ref).exists() for base in candidates):
+                    unresolved.append(f"{document.relative_to(SKILL_ROOT)} -> {ref}")
+        self.assertEqual(unresolved, [], f"unresolved file references: {unresolved}")
+
+    def test_dossiers_ship_and_are_indexed(self) -> None:
+        dossier_dir = SKILL_ROOT / "references" / "dossiers"
+        dossiers = sorted(path.name for path in dossier_dir.glob("*.md") if path.name != "README.md")
+        self.assertGreaterEqual(len(dossiers), 8)
+        index = (dossier_dir / "README.md").read_text(encoding="utf-8")
+        for name in dossiers:
+            self.assertIn(name, index, f"{name} is not listed in the dossier index")
+
+    def test_dossiers_do_not_present_illustrative_numbers_as_measured(self) -> None:
+        """Worked examples invent numbers so the arithmetic can be followed. Any dossier
+        that does so must say so, or a reader will publish a fabricated figure."""
+        dossier_dir = SKILL_ROOT / "references" / "dossiers"
+        for path in sorted(dossier_dir.glob("*.md")):
+            if path.name == "README.md":
+                continue
+            text = path.read_text(encoding="utf-8", errors="replace")
+            if "[illustrative]" in text:
+                self.assertIn(
+                    "illustrative",
+                    text.split("---")[0].lower(),
+                    f"{path.name} uses [illustrative] figures without declaring the convention "
+                    "in its scope header",
+                )
 
 
 if __name__ == "__main__":
