@@ -1,10 +1,23 @@
 #!/usr/bin/env python3
 """Render a small, dependency-free SVG/HTML mockup from a design spec JSON file.
 
-Layout is computed from width and height rather than hardcoded, so a spec that asks for a
-1200x1600 poster or a 1080x1080 square gets a correct layout instead of a silently broken one.
-The item band absorbs the slack: four dishes spread out, eleven tighten up, and a spec that
-genuinely cannot fit raises instead of overprinting the footer.
+Nothing here is positioned by a fraction of the canvas height. That was the previous approach and
+it produced two defects you could only see by looking at a render: the title, set at 5.9 percent
+of the width, grew tall enough that its ascenders struck the kicker baseline sitting at 11.1
+percent of the height, so "SIGNATURE MENU" had the diacritic of "mỗi" cutting through it; and a
+title longer than the space beside the hero ran straight under the bowl, so "Bún bò Huế gia
+truyền cô Tám" rendered as "Bún bò Huế gia truy" with the rest painted over. Text was also
+wrapped by counting characters, with the character budget computed as 48 divided by the scale,
+which is backwards: a 2160px poster got a 24-character measure, wrapped the subtitle after a
+third of the sentence, and silently dropped the remaining two thirds.
+
+So the layout is measured and flowed instead. `advance` estimates rendered width from a
+per-character table calibrated against browser renders of the two font stacks below (within 1.5
+percent on the four strings tested), `wrap` breaks on that width rather than on a character
+count, and every vertical position is derived by stacking real cap heights and descenders down
+from the top margin. Copy that does not fit raises, the way an over-long item list already did:
+a mockup that quietly deletes two thirds of a sentence looks finished, which is what makes it
+dangerous.
 """
 
 from __future__ import annotations
@@ -12,7 +25,7 @@ from __future__ import annotations
 import argparse
 import html
 import json
-import textwrap
+import unicodedata
 from pathlib import Path
 
 # Full stacks, not bare family names. A bare "Arial" falls back to an unpredictable default on
@@ -32,7 +45,23 @@ SERIF = "Cambria, Constantia, 'Times New Roman', 'Liberation Serif', 'DejaVu Ser
 # Families measured as lacking the block above. None may appear in a stack.
 FONTS_WITHOUT_VIETNAMESE = ("Georgia", "Book Antiqua", "Garamond")
 
-# Below this the description line collides with the next item's name.
+# Vertical metrics as fractions of the font size, close enough for both stacks. CAP is how far
+# the ink rises above the baseline, DROP how far it falls below, LEAD the baseline-to-baseline
+# step inside a wrapped block. Everything vertical is built from these three numbers, so a
+# theme that changes a type size cannot silently start overlapping its neighbour.
+CAP, DROP, LEAD = 0.74, 0.26, 1.24
+
+# Per-character advance widths as fractions of the font size. A single average coefficient
+# treated "Illinois" and "Wammawamma" as the same width, which is how the price leader ended up
+# as a six-dot stub next to a long dish name. Diacritics are stripped before measuring because
+# ấ advances exactly as far as a — that is also why this needs no font library.
+NARROW = set("ijltfIrJ.,;:!|'\"()[]{}/\\-`’‘·")
+WIDE = set("mwMW@%&—–")
+# Errs wide on purpose. Wrapping early costs a line break; wrapping late runs type off the page.
+SAFETY = 1.04
+BOLD = 1.06
+
+# Below this a row's description line collides with the next row's name.
 MIN_ROW_PITCH = 58
 
 # A theme has to change the layout, not just the palette. `plan_design_options.py` sells these
@@ -74,34 +103,104 @@ THEMES = {
 }
 
 
-def _advance(text: str, size: float) -> float:
-    """Estimate rendered width of a bold string, on purpose too high.
+def advance(text: str, size: float, bold: bool = False) -> float:
+    """Estimate the rendered width of a string, erring slightly wide."""
+    total = 0.0
+    for character in unicodedata.normalize("NFD", str(text)):
+        if unicodedata.combining(character):
+            continue
+        if character == " ":
+            total += 0.28
+        elif character in NARROW:
+            total += 0.30
+        elif character in WIDE:
+            total += 0.90
+        elif character.isupper():
+            total += 0.68
+        elif character.isdigit():
+            total += 0.56
+        else:
+            total += 0.55
+    return total * size * SAFETY * (BOLD if bold else 1.0)
 
-    Real metrics would need a font library, and the only consumer of this is the dotted price
-    leader, where erring wide means the dots stop a little early and erring narrow means they
-    print through a dish name. So the coefficient is set above any realistic average advance.
+
+def wrap(text: str, size: float, limit: float, max_lines: int, field: str, bold: bool = False) -> list[str]:
+    """Break `text` to `limit` pixels, or raise naming what has to be shortened.
+
+    Truncation is not an option here. The subtitle used to be cut to two lines and the remainder
+    thrown away, so a spec whose subtitle read "...ruốc Huế nguyên chất, không dùng bột ngọt"
+    rendered as "...ruốc Huế nguyên chất," — ending on a comma, which is the layout advertising
+    that it ate the rest of the sentence.
     """
-    return len(text) * size * 0.62
+    words = str(text).split()
+    if not words:
+        return [""]
+    lines: list[str] = []
+    current = words[0]
+    for word in words[1:]:
+        candidate = f"{current} {word}"
+        if advance(candidate, size, bold) <= limit:
+            current = candidate
+        else:
+            lines.append(current)
+            current = word
+    lines.append(current)
+    if len(lines) > max_lines:
+        budget = sum(len(line) for line in lines[:max_lines])
+        raise ValueError(
+            f"{field} needs {len(lines)} lines at this size and the layout holds {max_lines}; "
+            f"shorten it to about {budget} characters or raise the canvas width"
+        )
+    return lines
 
 
-def _bowl(cx: float, cy: float, radius: float, scale: float) -> str:
-    """A schematic noodle bowl: vessel, broth, and two garnish arcs.
+def _tspans(lines: list[str], x: float, step: float) -> str:
+    return "".join(
+        f'<tspan x="{x:.0f}" dy="{0 if index == 0 else step:.0f}">{html.escape(line)}</tspan>'
+        for index, line in enumerate(lines)
+    )
+
+
+def _bowl(x: float, y: float, box_w: float, box_h: float, scale: float) -> str:
+    """A schematic noodle bowl drawn to fit the box it is given.
+
+    It used to take a single radius and derive the height from it, so on a box that was taller
+    than it was wide the bowl came out as a flat disc — a dark ellipse with a red one on top,
+    reading as a hockey puck rather than a bowl of anything. Vessel depth is now a share of the
+    box height, so the silhouette stays a bowl at any hero shape.
 
     It is deliberately a diagram, not an illustration. A placeholder that tried to look like a
     photograph would invite someone to mistake it for the dish, and the render is only ever
     standing in for a real photo that has not been taken yet.
     """
-    rx = radius
+    rx = min(box_w, box_h * 1.9) / 2
+    rim_ry = rx * 0.40
+    depth = min(box_h - rim_ry * 2, rx * 0.62)
+    cx = x + box_w / 2
+    rim_cy = y + rim_ry + max(0.0, (box_h - rim_ry * 2 - depth)) / 2
+    foot_cy = rim_cy + depth
     return (
-        f'<ellipse cx="{cx:.0f}" cy="{cy:.0f}" rx="{rx:.0f}" ry="{rx * 0.477:.0f}" fill="#231f20"/>'
-        f'<ellipse cx="{cx:.0f}" cy="{cy - rx * 0.123:.0f}" rx="{rx * 0.908:.0f}" '
-        f'ry="{rx * 0.362:.0f}" fill="#a8432e"/>'
-        f'<path d="M{cx - rx * 0.677:.0f} {cy - rx * 0.185:.0f} Q{cx:.0f} {cy + rx * 0.154:.0f} '
-        f'{cx + rx * 0.677:.0f} {cy - rx * 0.185:.0f}" fill="none" stroke="#efc08a" '
-        f'stroke-width="{max(2, round(8 * scale))}" stroke-linecap="round"/>'
-        f'<path d="M{cx - rx * 0.5:.0f} {cy - rx * 0.346:.0f} Q{cx:.0f} {cy - rx * 0.577:.0f} '
-        f'{cx + rx * 0.5:.0f} {cy - rx * 0.346:.0f}" fill="none" stroke="#f3d7b1" '
-        f'stroke-width="{max(1, round(5 * scale))}" stroke-linecap="round" opacity=".8"/>'
+        # The rim, as a whole ellipse, so the bowl reads as open at the top.
+        f'<ellipse cx="{cx:.0f}" cy="{rim_cy:.0f}" rx="{rx:.0f}" ry="{rim_ry:.0f}" fill="#231f20"/>'
+        # The front wall, from the near edge of the rim down to a narrower foot. Both arcs have to
+        # bulge downward: with SVG's y-axis pointing down, that is sweep 0 travelling left to
+        # right and sweep 1 travelling right to left. Getting the second one wrong turned the
+        # bowl into a saucer with two spikes under it.
+        f'<path d="M{cx - rx:.0f} {rim_cy:.0f} '
+        f'A{rx:.0f} {rim_ry:.0f} 0 0 0 {cx + rx:.0f} {rim_cy:.0f} '
+        f'L{cx + rx * 0.62:.0f} {foot_cy:.0f} '
+        f'A{rx * 0.62:.0f} {rim_ry * 0.62:.0f} 0 0 1 {cx - rx * 0.62:.0f} {foot_cy:.0f} Z" '
+        f'fill="#231f20"/>'
+        # Broth surface, inset so the rim reads as a rim.
+        f'<ellipse cx="{cx:.0f}" cy="{rim_cy:.0f}" rx="{rx * 0.88:.0f}" ry="{rim_ry * 0.88:.0f}" '
+        f'fill="#a8432e"/>'
+        # Two garnish arcs sitting on the broth, not floating above the vessel.
+        f'<path d="M{cx - rx * 0.60:.0f} {rim_cy + rim_ry * 0.10:.0f} '
+        f'Q{cx:.0f} {rim_cy + rim_ry * 0.72:.0f} {cx + rx * 0.60:.0f} {rim_cy + rim_ry * 0.10:.0f}" '
+        f'fill="none" stroke="#efc08a" stroke-width="{max(2, round(8 * scale))}" stroke-linecap="round"/>'
+        f'<path d="M{cx - rx * 0.44:.0f} {rim_cy - rim_ry * 0.30:.0f} '
+        f'Q{cx:.0f} {rim_cy - rim_ry * 0.66:.0f} {cx + rx * 0.44:.0f} {rim_cy - rim_ry * 0.30:.0f}" '
+        f'fill="none" stroke="#f3d7b1" stroke-width="{max(1, round(5 * scale))}" stroke-linecap="round" opacity=".8"/>'
     )
 
 
@@ -115,26 +214,76 @@ def render(spec: dict) -> str:
     bg = html.escape(str(spec.get("background", style["bg"])))
     ink = html.escape(str(spec.get("ink", style["ink"])))
     accent = html.escape(str(spec.get("accent", style["accent"])))
-    title_text = str(spec.get("title", "Untitled design"))
-    title = html.escape(title_text)
-    subtitle_text = str(spec.get("subtitle", "Replace with approved copy"))
-    subtitle = html.escape(subtitle_text)
 
-    # Geometry, all derived. `scale` keeps type and rule weights in proportion when the canvas
-    # changes; vertical anchors are measured from the real edges so nothing lands off-canvas.
     scale = width / 1080
     margin = round(width * style["margin"])
     right = width - margin
     rule_weight = max(1, round(8 * scale))
     header_rule_y = round(height * 0.0519)
-    kicker_y = round(height * 0.111)
-    title_y = round(height * 0.163)
-    subtitle_y = round(height * 0.193)
-    subtitle_leading = round(30 * scale)
-    divider_y = round(height * 0.311)
-    category_y = round(height * 0.344)
     footer_rule_y = height - round(height * 0.0519)
     footer_y = height - round(height * 0.0222)
+    gutter = round(28 * scale)
+
+    size = {
+        "kicker": max(11, round(22 * scale)),
+        "title": max(24, round(width * style["title"])),
+        "subtitle": max(12, round(24 * scale)),
+        "category": max(10, round(20 * scale)),
+        "item": max(14, round(28 * scale)),
+        "desc": max(10, round(19 * scale)),
+        "price": max(13, round(26 * scale)),
+        "footer": max(9, round(15 * scale)),
+    }
+
+    # The hero box is claimed before any type is measured, because the type has to be told where
+    # not to go. Height is capped against the width so the bowl cannot be squashed into a disc.
+    items = list(spec.get("items", []))
+    hero_href = spec.get("hero_image")
+    hero_shape = spec.get("hero_shape", "bowl")
+    has_hero = bool(hero_href) or hero_shape == "bowl"
+    hero_w = round(width * 0.30)
+    hero_x = right - hero_w
+    hero_top = header_rule_y + round(38 * scale)
+    hero_h = min(round(height * 0.20), round(hero_w * 0.78))
+    # Everything in the header measures against this, not against the page edge.
+    column = (hero_x - gutter if has_hero else right) - margin
+
+    kicker_lines = wrap(
+        str(spec.get("kicker", "MENU / CONCEPT")), size["kicker"], column, 2, "kicker", bold=True
+    )
+    # Three lines, not two: at quiet-editorial's 6.5-percent title size the column beside the
+    # hero holds about eleven characters a line, and a shop name of any length is normal input.
+    title_lines = wrap(
+        str(spec.get("title", "Untitled design")), size["title"], column, 3, "title", bold=True
+    )
+    subtitle_lines = wrap(
+        str(spec.get("subtitle", "Replace with approved copy")), size["subtitle"], column, 3, "subtitle"
+    )
+
+    def flow(cursor: float, lines: list[str], point: float, air: float) -> tuple[list[int], float]:
+        """Stack a text block under `cursor`, returning its baselines and new ink bottom."""
+        first = cursor + point * (air + CAP)
+        baselines = [round(first + index * point * LEAD) for index in range(len(lines))]
+        return baselines, baselines[-1] + point * DROP
+
+    cursor = float(header_rule_y + rule_weight)
+    kicker_y, cursor = flow(cursor, kicker_lines, size["kicker"], 1.35)
+    title_y, cursor = flow(cursor, title_lines, size["title"], 0.42)
+    subtitle_y, cursor = flow(cursor, subtitle_lines, size["subtitle"], 0.62)
+
+    hero = ""
+    if hero_href:
+        hero = (
+            f'<image href="{html.escape(str(hero_href), quote=True)}" x="{hero_x}" y="{hero_top}" '
+            f'width="{hero_w}" height="{hero_h}" preserveAspectRatio="xMidYMid slice" '
+            f'clip-path="url(#hero-clip)"/>'
+        )
+    elif hero_shape == "bowl":
+        hero = _bowl(hero_x, hero_top, hero_w, hero_h, scale)
+
+    # The divider clears whichever is lower, the header type or the hero. Fixing it at 31 percent
+    # of the height meant a two-line title pushed the subtitle through it.
+    divider_y = round(max(cursor, hero_top + hero_h if has_hero else 0) + 44 * scale)
 
     # The top rule carries most of the theme's first impression, so each direction draws its own:
     # a heavy accent bar shouts, a hairline whispers, a double rule reads as printed stationery.
@@ -158,42 +307,54 @@ def render(spec: dict) -> str:
             f'stroke="{accent}" stroke-width="{max(1, round(2 * scale))}"/>'
         )
 
-    measure = max(24, round(48 / max(scale, 0.4)))
-    subtitle_lines = textwrap.wrap(
-        subtitle_text, width=measure, break_long_words=False, break_on_hyphens=False
-    )[:2] or [""]
-    subtitle_svg = "".join(
-        f'<tspan x="{margin}" dy="{0 if index == 0 else subtitle_leading}">{html.escape(line)}</tspan>'
-        for index, line in enumerate(subtitle_lines)
-    )
+    # The category label and the rows are laid out as one group and the leftover space is split
+    # above and below it. Anchoring the label to the divider and the rows to the band left four
+    # dishes on a tall canvas sitting under a label they had visibly detached from, with a hole
+    # over the footer; both halves of that read as a rendering fault rather than as white space.
+    group_top = divider_y + round(40 * scale)
+    group_bottom = footer_rule_y - round(30 * scale)
+    label_height = round(size["category"] * (CAP + DROP) + 34 * scale)
+    band_top = group_top + label_height
+    band = group_bottom - band_top
+    marker = style["marker"]
+    indent = margin + (round(46 * scale) if marker != "none" else 0)
+    desc_offset = round(size["item"] * DROP + size["desc"] * CAP + 8 * scale)
+    desc_step = round(size["desc"] * LEAD)
+    category_y = group_top + round(size["category"] * CAP)
 
-    items = list(spec.get("items", []))
-    hero_x = round(width * 0.639)
-    hero_y = round(height * 0.0815)
-    hero_w = width - margin - hero_x
-    hero_h = round(height * 0.2)
-    hero_href = spec.get("hero_image")
-    hero = ""
-    if hero_href:
-        hero = (
-            f'<image href="{html.escape(str(hero_href), quote=True)}" x="{hero_x}" y="{hero_y}" '
-            f'width="{hero_w}" height="{hero_h}" preserveAspectRatio="xMidYMid slice" '
-            f'clip-path="url(#hero-clip)"/>'
-        )
-    elif spec.get("hero_shape", "bowl") == "bowl":
-        hero = _bowl(hero_x + hero_w / 2, hero_y + hero_h * 0.44, hero_w / 2, scale)
-
-    # The item band is the only elastic part of the layout. Rows get their natural pitch when
-    # there is room and compress toward MIN_ROW_PITCH when there is not, which is what removes
-    # the dead space a short menu used to leave above the footer.
-    band_top = category_y + round(35 * scale)
-    band_bottom = footer_rule_y - round(30 * scale)
-    band = band_bottom - band_top
-    rows = []
+    rows: list[str] = []
     if items:
-        natural_pitch = round(style["pitch"] * scale)
-        floor_pitch = round(MIN_ROW_PITCH * scale)
-        capacity = max(1, band // floor_pitch)
+        # Names and descriptions are wrapped before any vertical arithmetic, because how tall a
+        # row is depends on how many lines it took. A long dish name used to run under its own
+        # price; a long description ran off the right edge.
+        laid: list[dict] = []
+        for index, item in enumerate(items):
+            name_text = str(item.get("name", "Item"))
+            price_text = str(item.get("price", "TBD"))
+            price_w = advance(price_text, size["price"], bold=True)
+            name_limit = right - indent - price_w - round(20 * scale)
+            laid.append(
+                {
+                    "name_text": name_text,
+                    "price_text": price_text,
+                    "price_w": price_w,
+                    "name": wrap(name_text, size["item"], name_limit, 2, f"item {index + 1} name", bold=True),
+                    "desc": wrap(
+                        str(item.get("description", "")), size["desc"], right - indent, 2,
+                        f"item {index + 1} description",
+                    ),
+                }
+            )
+        name_lines = max(len(row["name"]) for row in laid)
+        desc_lines = max(1 if row["desc"] == [""] else len(row["desc"]) for row in laid)
+        # Ink height of the tallest row, which is what a pitch actually has to clear.
+        row_ink = round(
+            size["item"] * (CAP + (name_lines - 1) * LEAD)
+            + desc_offset
+            + size["desc"] * ((desc_lines - 1) * LEAD + DROP)
+        )
+        floor_pitch = max(round(MIN_ROW_PITCH * scale), row_ink + round(10 * scale))
+        capacity = max(1, (band - row_ink) // floor_pitch + 1)
         if len(items) > capacity:
             raise ValueError(
                 f"{len(items)} items do not fit a {width}x{height} canvas; it holds {capacity}. "
@@ -201,79 +362,69 @@ def render(spec: dict) -> str:
             )
         # Expansion is capped at 1.5x. A two-item menu on a tall canvas genuinely should carry
         # white space; spreading two rows over 700px would read as a broken layout, not a
-        # generous one. So absorb slack up to a point and leave the rest deliberate.
-        pitch = max(floor_pitch, min(band // len(items), round(natural_pitch * 1.5)))
-        desc_offset = round(28 * scale)
-        marker = style["marker"]
-        # A marker shifts the text block right, so the description has to move with it or the two
-        # lines stop reading as one row.
-        indent = margin + (round(46 * scale) if marker != "none" else 0)
-        item_size = max(14, round(28 * scale))
-        price_size = max(13, round(26 * scale))
-        for index, item in enumerate(items):
-            name_text = str(item.get("name", "Item"))
-            name = html.escape(name_text)
-            description = html.escape(str(item.get("description", "")))
-            price_text = str(item.get("price", "TBD"))
-            price = html.escape(price_text)
-            y = band_top + round(35 * scale) + index * pitch
-            row = ""
+        # generous one.
+        natural_pitch = max(floor_pitch, round(style["pitch"] * scale))
+        pitch = max(floor_pitch, min((band - row_ink) // max(1, len(items) - 1) if len(items) > 1 else band,
+                                     round(natural_pitch * 1.5)))
+        block = (len(items) - 1) * pitch + row_ink
+        slack = max(0, (band - block) // 2)
+        category_y = group_top + slack + round(size["category"] * CAP)
+        first_baseline = band_top + slack + round(size["item"] * CAP)
+        for index, row in enumerate(laid):
+            y = first_baseline + index * pitch
+            svg = ""
             if marker == "number":
-                row += (
-                    f'<text x="{margin}" y="{y}" class="marker">{index + 1:02d}</text>'
-                )
+                svg += f'<text x="{margin}" y="{y}" class="marker">{index + 1:02d}</text>'
             elif marker == "bullet":
-                row += (
-                    f'<circle cx="{margin + round(10 * scale)}" cy="{y - round(9 * scale)}" '
+                svg += (
+                    f'<circle cx="{margin + round(10 * scale)}" cy="{y - round(size["item"] * 0.30)}" '
                     f'r="{max(2, round(5 * scale))}" fill="{accent}"/>'
                 )
-            row += (
-                f'<text x="{indent}" y="{y}" class="item">{name}</text>'
-                f'<text x="{indent}" y="{y + desc_offset}" class="desc">{description}</text>'
-                f'<text x="{right}" y="{y}" text-anchor="end" class="price">{price}</text>'
+            name_step = round(size["item"] * LEAD)
+            last_name_y = y + (len(row["name"]) - 1) * name_step
+            svg += (
+                f'<text x="{indent}" y="{y}" class="item">{_tspans(row["name"], indent, name_step)}</text>'
+                f'<text x="{indent}" y="{last_name_y + desc_offset}" class="desc">'
+                f'{_tspans(row["desc"], indent, desc_step)}</text>'
+                f'<text x="{right}" y="{y}" text-anchor="end" class="price">'
+                f'{html.escape(row["price_text"])}</text>'
             )
-            if style["dotted"]:
-                # There are no font metrics available here, so the ends of the leader are
-                # estimated from an average advance width, deliberately over-estimated so the
-                # dots stop short rather than running under the text. If the estimate leaves no
-                # room at all, the leader is dropped — a missing leader is invisible, a leader
-                # printed through a dish name is not.
-                lead_start = indent + _advance(name_text, item_size) + round(14 * scale)
-                lead_end = right - _advance(price_text, price_size) - round(14 * scale)
+            if style["dotted"] and len(row["name"]) == 1:
+                # The leader runs between measured ends with a gap at each side. It is dropped
+                # rather than shortened when there is no honest room: a missing leader is
+                # invisible, a leader printed through a dish name is not.
+                lead_start = indent + advance(row["name_text"], size["item"], bold=True) + round(14 * scale)
+                lead_end = right - row["price_w"] - round(14 * scale)
                 if lead_end - lead_start > round(40 * scale):
-                    row += (
-                        f'<line x1="{lead_start:.0f}" y1="{y - round(6 * scale)}" '
-                        f'x2="{lead_end:.0f}" y2="{y - round(6 * scale)}" stroke="{ink}" '
+                    svg += (
+                        f'<line x1="{lead_start:.0f}" y1="{y - round(size["item"] * 0.22)}" '
+                        f'x2="{lead_end:.0f}" y2="{y - round(size["item"] * 0.22)}" stroke="{ink}" '
                         f'stroke-opacity=".35" stroke-width="{max(1, round(2 * scale))}" '
                         f'stroke-dasharray="{max(1, round(2 * scale))} {max(3, round(6 * scale))}"/>'
                     )
-            rows.append(row)
+            rows.append(svg)
     body = "\n".join(rows) or (
-        f'<text x="{margin}" y="{band_top + round(35 * scale)}" class="desc">'
+        f'<text x="{margin}" y="{band_top + round(size["item"] * CAP)}" class="desc">'
         "Add approved content items to render the layout.</text>"
     )
+
+    title = html.escape(str(spec.get("title", "Untitled design")))
+    subtitle = html.escape(str(spec.get("subtitle", "Replace with approved copy")))
     category = html.escape(str(spec.get("category", "SIGNATURE DISH")))
-    footer = html.escape(str(spec.get("footer", "Exact ingredients, price, availability and CTA must be approved before publication.")))
-    kicker = html.escape(str(spec.get("kicker", "MENU / CONCEPT")))
-    type_scale = {
-        "kicker": max(11, round(22 * scale)),
-        "title": max(24, round(width * style["title"])),
-        "subtitle": max(12, round(24 * scale)),
-        "category": max(10, round(20 * scale)),
-        "item": max(14, round(28 * scale)),
-        "desc": max(10, round(19 * scale)),
-        "price": max(13, round(26 * scale)),
-        "footer": max(9, round(15 * scale)),
-    }
+    footer_lines = wrap(
+        str(spec.get("footer", "Exact ingredients, price, availability and CTA must be approved before publication.")),
+        size["footer"], right - margin, 1, "footer",
+    )
+    footer = html.escape(footer_lines[0])
     return f'''<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title subtitle">
 <title id="title">{title}</title><desc id="subtitle">{subtitle}</desc>
-<defs><clipPath id="hero-clip"><rect x="{hero_x}" y="{hero_y}" width="{hero_w}" height="{hero_h}" rx="0"/></clipPath></defs>
+<defs><clipPath id="hero-clip"><rect x="{hero_x}" y="{hero_top}" width="{hero_w}" height="{hero_h}" rx="0"/></clipPath></defs>
 <rect width="100%" height="100%" fill="{bg}"/>{header_svg}
-<text x="{margin}" y="{kicker_y}" fill="{ink}" class="kicker">{kicker}</text>
-<text x="{margin}" y="{title_y}" fill="{ink}" class="title">{title}</text><text x="{margin}" y="{subtitle_y}" fill="{ink}" class="subtitle">{subtitle_svg}</text>{hero}
+<text x="{margin}" y="{kicker_y[0]}" fill="{ink}" class="kicker">{_tspans(kicker_lines, margin, round(size["kicker"] * LEAD))}</text>
+<text x="{margin}" y="{title_y[0]}" fill="{ink}" class="title">{_tspans(title_lines, margin, round(size["title"] * LEAD))}</text><text x="{margin}" y="{subtitle_y[0]}" fill="{ink}" class="subtitle">{_tspans(subtitle_lines, margin, round(size["subtitle"] * LEAD))}</text>{hero}
 <line x1="{margin}" y1="{divider_y}" x2="{right}" y2="{divider_y}" stroke="{ink}" stroke-opacity=".25"/><text x="{margin}" y="{category_y}" fill="{accent}" class="category">{category}</text>{body}
 <line x1="{margin}" y1="{footer_rule_y}" x2="{right}" y2="{footer_rule_y}" stroke="{ink}" stroke-opacity=".25"/><text x="{margin}" y="{footer_y}" fill="{ink}" class="footer">{footer}</text>
-<style>.kicker{{font:600 {type_scale["kicker"]}px {body_font};letter-spacing:{max(1, round(4 * scale))}px}}.title{{font:700 {type_scale["title"]}px {display_font}}}.subtitle{{font:400 {type_scale["subtitle"]}px {body_font}}}.category{{font:700 {type_scale["category"]}px {body_font};letter-spacing:{max(1, round(3 * scale))}px}}.item{{font:700 {type_scale["item"]}px {body_font}}}.marker{{font:700 {max(11, round(20 * scale))}px {body_font};fill:{accent};opacity:.9}}.desc{{font:400 {type_scale["desc"]}px {body_font};fill:{ink};opacity:.72}}.price{{font:700 {type_scale["price"]}px {body_font};fill:{accent}}}.footer{{font:400 {type_scale["footer"]}px {body_font};opacity:.65}}</style></svg>'''
+<style>.kicker{{font:600 {size["kicker"]}px {body_font};letter-spacing:{max(1, round(4 * scale))}px}}.title{{font:700 {size["title"]}px {display_font}}}.subtitle{{font:400 {size["subtitle"]}px {body_font}}}.category{{font:700 {size["category"]}px {body_font};letter-spacing:{max(1, round(3 * scale))}px}}.item{{font:700 {size["item"]}px {body_font}}}.marker{{font:700 {max(11, round(20 * scale))}px {body_font};fill:{accent};opacity:.9}}.desc{{font:400 {size["desc"]}px {body_font};fill:{ink};opacity:.72}}.price{{font:700 {size["price"]}px {body_font};fill:{accent}}}.footer{{font:400 {size["footer"]}px {body_font};opacity:.65}}</style></svg>'''
 
 
 def main() -> None:

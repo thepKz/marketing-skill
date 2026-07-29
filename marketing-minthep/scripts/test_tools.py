@@ -22,7 +22,7 @@ from plan_design_options import plan_options
 from plan_marketing_system import plan_marketing_system
 from plan_video_sequence import lock_block, resolve, shot_prompt
 from plan_virtual_person import plan_virtual_person
-from render_mockup import FONTS_WITHOUT_VIETNAMESE, SANS, SERIF, render
+from render_mockup import CAP, DROP, FONTS_WITHOUT_VIETNAMESE, SANS, SERIF, THEMES, advance, render, wrap
 from research_plan import build_plan, to_markdown
 from run_status import audit_file, audit_run
 from scaffold_campaign import build_record
@@ -148,21 +148,192 @@ class ToolTests(unittest.TestCase):
     def test_mockup_price_leader_never_runs_under_the_text(self) -> None:
         """heritage-craft draws a dotted leader between name and price from an estimated text
         width. If the estimate ran short the dots would print through a dish name, so the leader
-        must stay clear of both ends or be dropped entirely."""
+        must stay clear of both ends at every name length, or be dropped entirely."""
         base = {"theme": "heritage-craft", "title": "Bún bò", "width": 1080, "height": 1080}
-        crowded = render({
+        indent = round(1080 * 0.0972) + round(46)
+        stem = "Bún bò Huế đặc biệt thêm giò heo và chả cua"
+        drawn = 0
+        for length in range(6, len(stem) + 1, 4):
+            name, price = stem[:length].strip(), "129.000đ"
+            root = ET.fromstring(render({**base, "items": [{"name": name, "price": price}]}))
+            leaders = [node for node in root.iter() if node.get("stroke-dasharray")]
+            if not leaders:
+                continue
+            drawn += 1
+            name_end = indent + advance(name, 28, bold=True)
+            price_start = 975 - advance(price, 26, bold=True)
+            self.assertGreater(float(leaders[0].get("x1")), name_end, f"leader under {name!r}")
+            self.assertLess(float(leaders[0].get("x2")), price_start, f"leader under the price of {name!r}")
+        self.assertGreater(drawn, 3, "no leader was drawn at any name length")
+        # A name that took two lines has no single baseline to lead from, so it gets nothing.
+        wrapped = render({
             **base,
-            "items": [{"name": "Bún bò Huế đặc biệt thêm giò heo và chả cua", "price": "129.000đ"}],
+            "items": [{"name": "Bún bò Huế đặc biệt thêm giò heo, chả cua và huyết heo", "price": "129.000đ"}],
         })
-        leaders = [node for node in ET.fromstring(crowded).iter() if node.get("stroke-dasharray")]
-        # A name this long leaves no honest room, so drawing nothing is the correct output.
-        self.assertEqual(leaders, [], "leader drawn where there is no room for it")
-        roomy = render({**base, "items": [{"name": "Bún bò", "price": "79.000đ"}]})
-        leaders = [node for node in ET.fromstring(roomy).iter() if node.get("stroke-dasharray")]
-        self.assertEqual(len(leaders), 1, "a short name should get a leader")
-        margin = round(1080 * 0.0972)
-        self.assertGreater(float(leaders[0].get("x1")), margin, "leader starts inside the name")
-        self.assertLess(float(leaders[0].get("x2")), 1080 - margin, "leader crosses the margin")
+        self.assertEqual(
+            [node for node in ET.fromstring(wrapped).iter() if node.get("stroke-dasharray")],
+            [],
+            "leader drawn across a two-line dish name",
+        )
+
+    def test_width_estimate_stays_close_to_what_a_browser_draws(self) -> None:
+        """Every wrap, every leader and the hero clearance all rest on `advance`. The figures on
+        the right were read out of Chrome with getBBox on this exact SVG at 1080 wide; the
+        estimate has to stay above them, because erring narrow is what puts type off the page,
+        and within a third, because erring wide throws away usable line length."""
+        for text, size, bold, measured in (
+            ("Bún bò tiêu chuẩn", 28, True, 246.0),
+            ("Bún bò mỗi ngày", 64, True, 526.0),
+            ("Bản minh họa bố cục — giá và thành phần phải", 24, False, 510.0),
+            ("Bún bò Huế đặc biệt thêm giò heo và chả cua", 28, True, 565.5),
+        ):
+            estimate = advance(text, size, bold=bold)
+            self.assertGreater(estimate, measured, f"{text!r} is estimated narrower than it draws")
+            self.assertLess(estimate, measured * 1.33, f"{text!r} is estimated far too wide")
+
+    def test_wrapping_measures_pixels_not_characters(self) -> None:
+        """The character budget was computed as 48 divided by the scale, so a canvas twice as
+        wide got a measure half as long: the 2160px poster wrapped its subtitle after a third of
+        the sentence. A wider canvas must fit more per line, never less."""
+        sentence = "Bản minh họa bố cục — giá và thành phần phải được quán xác nhận trước khi in"
+        first_line = {}
+        for width in (1080, 2160):
+            lines = wrap(sentence, round(24 * width / 1080), round(width * 0.60), 3, "subtitle")
+            first_line[width] = len(lines[0])
+        self.assertGreaterEqual(first_line[2160], first_line[1080], f"wrap got tighter as the canvas grew: {first_line}")
+
+    def test_copy_is_never_silently_truncated(self) -> None:
+        """The subtitle was cut to two lines and the rest discarded, so a spec ending "...ruốc
+        Huế nguyên chất, không dùng bột ngọt" rendered as "...ruốc Huế nguyên chất," — ending on
+        a comma, the layout advertising that it ate the sentence. Refusing is the only honest
+        answer, the same answer an over-long item list already gets."""
+        long_subtitle = (
+            "Nước dùng nấu từ xương bò và giò heo trong mười hai giờ, sả tươi giã tay, ruốc Huế "
+            "nguyên chất, không dùng bột ngọt hay viên gia vị công nghiệp nào cả"
+        )
+        with self.assertRaises(ValueError) as caught:
+            render({"title": "Bún bò", "subtitle": long_subtitle, "items": [{"name": "Tô"}]})
+        self.assertIn("shorten it", str(caught.exception))
+        fits = "Nước dùng nấu từ xương bò và giò heo trong mười hai giờ, sả tươi giã tay"
+        svg = render({"title": "Bún bò", "subtitle": fits, "items": [{"name": "Tô"}]})
+        for word in fits.split():
+            self.assertIn(word, svg, f"{word!r} was dropped from the subtitle")
+
+    def test_header_type_never_overlaps_the_line_above_it(self) -> None:
+        """Kicker, title and subtitle sat at 11.1, 16.3 and 19.3 percent of the canvas height,
+        fractions chosen while the title happened to be one short line. Grow the title and its
+        ascenders reach the kicker baseline: "SIGNATURE MENU" rendered with the diacritic of
+        "mỗi" cutting through it. Vertical position has to come from the type sizes in use."""
+        for theme in THEMES:
+            for width, height in ((1080, 1080), (1080, 1350), (1440, 1440), (640, 960)):
+                spec = {
+                    "theme": theme, "width": width, "height": height,
+                    "kicker": "BÚN BÒ / SIGNATURE MENU",
+                    "title": "Bún bò Huế gia truyền cô Tám",
+                    "subtitle": "Bản minh họa bố cục — giá phải được quán xác nhận",
+                    "items": [{"name": "Tô đặc biệt", "price": "—"}],
+                }
+                svg = render(spec)
+                root = ET.fromstring(svg)
+                blocks = []
+                for name in ("kicker", "title", "subtitle"):
+                    node = next(n for n in root.iter() if n.get("class") == name)
+                    size = float(re.search(rf"\.{name}{{font:(?:\d+ )?(\d+)px", svg).group(1))
+                    top = float(node.get("y")) - size * CAP
+                    spans = list(node)
+                    step = size * 1.24
+                    bottom = float(node.get("y")) + max(0, len(spans) - 1) * step + size * DROP
+                    blocks.append((name, top, bottom))
+                for (upper, _, upper_bottom), (lower, lower_top, _) in zip(blocks, blocks[1:]):
+                    self.assertLess(
+                        upper_bottom, lower_top,
+                        f"{theme} {width}x{height}: {lower} rides into {upper}",
+                    )
+
+    def test_a_long_title_wraps_clear_of_the_hero(self) -> None:
+        """The title was one unwrapped line at the left margin and the bowl was a fixed box at
+        63.9 percent of the width, so "Bún bò Huế gia truyền cô Tám" ran under the bowl and the
+        last two words were painted over. Nothing in the header may reach the hero box."""
+        width = 1080
+        hero_x = width - round(width * 0.111) - round(width * 0.30)
+        svg = render({
+            "theme": "quiet-editorial", "width": width, "height": 1350,
+            "title": "Bún bò Huế gia truyền cô Tám", "hero_shape": "bowl",
+            "items": [{"name": "Tô đặc biệt", "price": "—"}],
+        })
+        title = next(node for node in ET.fromstring(svg).iter() if node.get("class") == "title")
+        lines = [span.text for span in title]
+        self.assertGreater(len(lines), 1, "a title this long has to wrap")
+        self.assertEqual(" ".join(lines), "Bún bò Huế gia truyền cô Tám")
+        size = float(re.search(r"\.title{font:700 (\d+)px", svg).group(1))
+        for line in lines:
+            end = round(width * 0.111) + advance(line, size, bold=True)
+            self.assertLess(end, hero_x, f"{line!r} reaches the hero box")
+
+    def test_a_dish_name_never_runs_under_its_own_price(self) -> None:
+        """Item names were emitted as one line at any length. A 45-character dish name at 28px
+        crossed the right-aligned price, so the two most important strings in a menu row
+        overprinted each other."""
+        svg = render({
+            "theme": "modern-street", "title": "Bún bò", "width": 1080, "height": 1350,
+            "items": [
+                {"name": "Bún bò Huế đặc biệt thêm giò heo, chả cua và huyết heo", "price": "129.000đ"},
+                {"name": "Trà đá", "price": "3.000đ"},
+            ],
+        })
+        root = ET.fromstring(svg)
+        indent = round(1080 * 0.0833) + 46
+        price_left = 1080 - round(1080 * 0.0833) - advance("129.000đ", 26, bold=True)
+        name = next(node for node in root.iter() if node.get("class") == "item")
+        for span in list(name) or [name]:
+            self.assertLess(
+                indent + advance(span.text, 28, bold=True), price_left,
+                f"{span.text!r} crosses the price column",
+            )
+
+    def test_items_leave_no_hole_over_the_footer(self) -> None:
+        """Rows were top-aligned in a band sized for eleven, so four dishes on a 1350px canvas
+        left a 250px gap above the footer rule while the category label sat far above them.
+        Label and rows travel together and the slack is split above and below."""
+        height = 1350
+        svg = render({
+            "theme": "modern-street", "title": "Bún bò", "width": 1080, "height": height,
+            "items": [{"name": f"Tô {index}", "description": "Chờ xác nhận", "price": "—"} for index in range(4)],
+        })
+        root = ET.fromstring(svg)
+        divider = max(
+            float(node.get("y1")) for node in root.iter()
+            if node.tag.endswith("line") and node.get("y1") == node.get("y2")
+            and float(node.get("y1")) < height * 0.5
+        )
+        descriptions = [float(node.get("y")) for node in root.iter() if node.get("class") == "desc"]
+        label = float(next(node for node in root.iter() if node.get("class") == "category").get("y"))
+        footer_rule = height - round(height * 0.0519)
+        above, below = label - divider, footer_rule - max(descriptions)
+        self.assertLess(
+            abs(above - below), max(above, below) * 0.5,
+            f"slack is lopsided: {above:.0f}px above the label, {below:.0f}px below the last row",
+        )
+        self.assertLess(max(descriptions), footer_rule, "a description crosses the footer rule")
+
+    def test_hero_placeholder_reads_as_a_bowl_not_a_disc(self) -> None:
+        """The bowl took one radius and derived its height from it, so on a hero box taller than
+        it was wide it flattened into two stacked ellipses — a hockey puck. It needs a wall with
+        real depth below the rim at every hero shape."""
+        for width, height in ((1080, 1080), (1080, 1620), (720, 1280)):
+            svg = render({
+                "title": "Bún bò", "width": width, "height": height, "hero_shape": "bowl",
+                "items": [{"name": "Tô đặc biệt", "price": "—"}],
+            })
+            rim = next(
+                node for node in ET.fromstring(svg).iter()
+                if node.tag.endswith("ellipse") and node.get("fill") == "#231f20"
+            )
+            wall = next(node for node in ET.fromstring(svg).iter() if node.tag.endswith("path")
+                        and node.get("fill") == "#231f20")
+            rim_ry = float(rim.get("ry"))
+            depth = max(float(value) for value in re.findall(r"L[-\d.]+ ([\d.]+)", wall.get("d"))) - float(rim.get("cy"))
+            self.assertGreater(depth, rim_ry, f"{width}x{height}: bowl is {depth:.0f}px deep on a {rim_ry:.0f}px rim")
 
     def test_scaffold_v3_separates_job_and_artifact_mode(self) -> None:
         record = build_record("Launch", "product", "beauty", "gpt-image-2", ["meta", "web"])

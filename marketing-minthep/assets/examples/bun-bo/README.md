@@ -76,7 +76,15 @@ thing to replace.
 
 - More items than the canvas can hold. It raises and tells you the capacity instead of
   silently truncating the list, because a partial menu presented as a whole menu is a lie.
+- A title, subtitle, dish name, description or footer that needs more lines than its block
+  holds. The error names the field and the character budget. This used to be a silent trim: a
+  158-character subtitle rendered as its first two lines, ending mid-clause on a comma.
 - A canvas under 480x480, which cannot carry legible type at any scale.
+
+Everything else is measured rather than guessed at. Type is placed by stacking real cap heights
+and descenders down from the top margin, not at fractions of the canvas height, so a long title
+cannot push the subtitle through the divider; and the title wraps inside the column beside the
+hero rather than running under the bowl.
 
 It will also quietly drop the dotted price leader when a dish name is long enough that the dots
 would collide with it. A missing leader is invisible; a leader printed through a dish name is not.
