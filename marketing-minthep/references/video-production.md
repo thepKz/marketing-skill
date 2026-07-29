@@ -34,6 +34,22 @@ shot ID + duration + narrative job + subject/action + framing/camera height/lens
 + transition reason + reference/identity/product locks + reject conditions
 ```
 
+Do not write these one at a time. Write one sequence spec where the `world` holds for the whole
+film and each shot declares only what *changes*, then generate the shot list and the per-shot
+prompts from it:
+
+```text
+python scripts/plan_video_sequence.py --input sequence.json --format prompts
+python scripts/plan_video_sequence.py --input sequence.json --format report   # bilingual plan
+python scripts/plan_video_sequence.py --input sequence.json --format csv      # 04-shot-list.csv
+```
+
+`assets/examples/bun-bo/video-sequence.json` is a working five-shot spec. The script carries the
+state in the next section forward automatically, emits one continuity lock byte-identical into
+every shot, and derives each shot's reject list from what that shot locked. Hand-written shot
+prompts describe the world afresh each time, and two descriptions of the same bowl are two
+different bowls: that is why unenforced shot lists came back not joining up.
+
 Keep movement motivated:
 
 - push in to increase attention or reveal detail;
@@ -47,9 +63,10 @@ For subtle depth, prefer a slow dolly with readable foreground/background parall
 
 ## Continuity and generative constraints
 
-- Lock product silhouette, label plane, cap/closure, material, color, person identity, wardrobe, handedness, and environment anchors across shots.
-- Carry screen direction, gaze, hand position, light direction, time of day, prop placement, and fluid/steam state through adjacent shots.
-- Prefer short controlled shots for generative video; cut around drift instead of accepting morphing.
+- Lock product silhouette, label plane, cap/closure, material, color, person identity, wardrobe, handedness, and environment anchors across shots. These go in the spec's `world`.
+- Carry screen direction, gaze, hand position, light direction, time of day, prop placement, and material state (steam, condensation, fill level, melt) through adjacent shots. These are the eight keys the sequencer inherits shot to shot; a shot that says nothing about one of them stays locked to it.
+- Never reverse screen direction on a straight cut. Crossing the line reads as the subject having turned around, so it needs a cutaway, declared as `"cutaway": true`.
+- Prefer short controlled shots for generative video; cut around drift instead of accepting morphing. Drift grows with shot length, so the sequencer refuses a generative shot over five seconds.
 - Use first/last frames, reference images, masks, or image-edit passes when the provider supports them.
 - Add exact typography, prices, subtitles, disclosures, and logos in the edit unless the provider is verified for exact text.
 

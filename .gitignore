@@ -17,3 +17,9 @@ runs/
 .vnmkt/
 .tmp_viet/
 undefined/
+
+# API keys. The image endpoint takes a bearer token; it must never reach a commit.
+.env
+.env.*
+*.key
+_secrets/

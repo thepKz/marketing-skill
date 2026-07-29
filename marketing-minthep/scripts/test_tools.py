@@ -20,6 +20,7 @@ from new_run import build_run, load_registry, route_pipeline, write_run
 from plan_image_generation import route_image_request
 from plan_design_options import plan_options
 from plan_marketing_system import plan_marketing_system
+from plan_video_sequence import lock_block, resolve, shot_prompt
 from plan_virtual_person import plan_virtual_person
 from render_mockup import FONTS_WITHOUT_VIETNAMESE, SANS, SERIF, render
 from research_plan import build_plan, to_markdown
@@ -392,6 +393,122 @@ class ToolTests(unittest.TestCase):
         self.assertAlmostEqual(result["cvr"], 0.1)
         self.assertAlmostEqual(result["roas"], 4.0)
         self.assertFalse(result["sample_warning"])
+
+
+def _sequence(**overrides: object) -> dict:
+    """A two-shot sequence whose second shot declares only what changes."""
+    spec: dict = {
+        "title": "Fixture",
+        "duration_s": 6,
+        "production_mode": "generative",
+        "world": {"product": "A plain white bowl", "location": "A steel counter"},
+        "shots": [
+            {
+                "id": "S1",
+                "job": "hook",
+                "duration_s": 3.0,
+                "action": "Broth pours into the bowl",
+                "set": {
+                    "screen_direction": "left-to-right",
+                    "light_direction": "soft key 45 degrees camera-left",
+                    "material_state": "steam rising continuously",
+                },
+            },
+            {
+                "id": "S2",
+                "job": "proof",
+                "duration_s": 3.0,
+                "action": "Chopsticks lift the noodles",
+                "set": {"material_state": "steam thinning after the pour"},
+            },
+        ],
+    }
+    spec.update(overrides)
+    return spec
+
+
+class VideoSequenceTests(unittest.TestCase):
+    """The bug these cover: shot prompts that each described the world in their own words, so
+    the light jumped sides and the steam reset at every cut. Continuity now has to be broken
+    on purpose, and the four guards below are the ones that used to be prose nobody enforced."""
+
+    def test_state_carries_into_a_shot_that_never_mentions_it(self) -> None:
+        """S2 says nothing about light or screen direction, and must still be locked to both."""
+        sequence = resolve(_sequence())
+        second = sequence["shots"][1]
+        self.assertEqual(sequence["problems"], [])
+        carried = dict(second["carried"])
+        self.assertEqual(carried["light_direction"], "soft key 45 degrees camera-left")
+        self.assertEqual(carried["screen_direction"], "left-to-right")
+        # What it did declare is reported as a change with both sides, so the prompt can say
+        # "from this, to that" rather than describing the new state in isolation.
+        self.assertEqual(
+            second["changed"],
+            [("material_state", "steam rising continuously", "steam thinning after the pour")],
+        )
+
+    def test_every_shot_shares_one_byte_identical_lock(self) -> None:
+        """Two paraphrases of the same bowl are two different bowls to a generative model."""
+        sequence = resolve(_sequence())
+        lock = lock_block(sequence)
+        self.assertIn("A plain white bowl", lock)
+        for index in range(len(sequence["shots"])):
+            self.assertIn(lock, shot_prompt(sequence, index))
+
+    def test_reject_list_is_derived_from_what_the_shot_carried(self) -> None:
+        """A hand-written reject list drifts out of agreement with the locks above it."""
+        sequence = resolve(_sequence())
+        prompt = shot_prompt(sequence, 1)
+        rejects = prompt.split("REJECT")[1]
+        self.assertIn("the key light jumping to the opposite side", rejects)
+        # material_state changed in S2, so forbidding the change would contradict the brief.
+        self.assertNotIn("steam resetting or looping", rejects)
+
+    def test_screen_direction_may_not_reverse_on_a_straight_cut(self) -> None:
+        """Crossing the line reads as the subject turning around. Legitimate, but only behind
+        a cutaway, so the spec has to declare one and take responsibility for it."""
+        spec = _sequence()
+        spec["shots"][1]["set"]["screen_direction"] = "right-to-left"
+        self.assertTrue(any("screen direction reverses" in p for p in resolve(spec)["problems"]))
+
+        spec["shots"][1]["cutaway"] = True
+        self.assertEqual(resolve(spec)["problems"], [])
+
+    def test_misspelled_continuity_key_is_refused(self) -> None:
+        """The worst failure available here: the value looks written down and reaches no prompt."""
+        spec = _sequence()
+        spec["shots"][1]["set"]["light_dir"] = "camera-right"
+        self.assertTrue(any("unknown continuity key" in p for p in resolve(spec)["problems"]))
+
+    def test_generative_shots_stay_under_the_drift_ceiling(self) -> None:
+        """Drift grows with shot length, so a long generative take is a defect, not a choice."""
+        spec = _sequence(duration_s=12)
+        spec["shots"][0]["duration_s"] = 9.0
+        self.assertTrue(any("generative ceiling" in p for p in resolve(spec)["problems"]))
+        # The same shot is fine when it is going to be filmed rather than generated.
+        self.assertEqual(resolve({**spec, "production_mode": "live-action"})["problems"], [])
+
+    def test_durations_must_add_up_to_the_placement(self) -> None:
+        spec = _sequence()
+        spec["shots"][0]["duration_s"] = 4.0
+        self.assertTrue(any("will not fit the placement" in p for p in resolve(spec)["problems"]))
+
+    def test_on_screen_numbers_are_flagged_for_verification(self) -> None:
+        """The script cannot know whether a price is real, only that somebody must check."""
+        spec = _sequence()
+        spec["shots"][1]["text"] = "Chỉ 45.000đ"
+        sequence = resolve(spec)
+        self.assertEqual(sequence["problems"], [])
+        self.assertTrue(any("verify before publishing" in note for note in sequence["notes"]))
+
+    def test_shipped_bun_bo_sequence_resolves_clean(self) -> None:
+        """The worked example is what a reader copies, so it must pass every guard above."""
+        path = SKILL_ROOT / "assets" / "examples" / "bun-bo" / "video-sequence.json"
+        sequence = resolve(json.loads(path.read_text(encoding="utf-8")))
+        self.assertEqual(sequence["problems"], [])
+        self.assertEqual(sequence["total_s"], 15.0)
+        # Nothing may be left unspecified, or no shot can lock it.
+        self.assertEqual([n for n in sequence["notes"] if "never specified" in n], [])
 
 
 SUBSTANTIVE_SECTION = (
