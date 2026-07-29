@@ -6,3 +6,6 @@ __pycache__/
 # Run workspaces are per-project output, not repository content. Worked examples that
 # ship with the skill live under marketing-minthep/assets/examples/ instead.
 runs/
+
+# Scratch written by research subagents while verifying arithmetic. Not deliverables.
+.tmpcolor/
