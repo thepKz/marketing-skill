@@ -6,6 +6,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import unicodedata
 import re
 import tempfile
 import unittest
@@ -20,7 +21,7 @@ from plan_image_generation import route_image_request
 from plan_design_options import plan_options
 from plan_marketing_system import plan_marketing_system
 from plan_virtual_person import plan_virtual_person
-from render_mockup import render
+from render_mockup import FONTS_WITHOUT_VIETNAMESE, SANS, SERIF, render
 from research_plan import build_plan, to_markdown
 from run_status import audit_file, audit_run
 from scaffold_campaign import build_record
@@ -91,6 +92,36 @@ class ToolTests(unittest.TestCase):
         svg = render({"title": "Bún bò", "items": [{"name": "Tô đặc biệt", "price": "79.000đ"}]})
         self.assertIn("sans-serif", svg)
         self.assertIn("Liberation", svg)
+
+    def test_mockup_fonts_can_render_vietnamese(self) -> None:
+        """Georgia led the serif stack and covers no two-diacritic Vietnamese letter, so
+        "Nấu theo lối cũ" rendered as "Nâ´u theo lô´i cũ" — the base letter with a loose
+        accent beside it. Every deliverable here is bilingual VI/EN, so a font that cannot
+        spell Vietnamese must not appear in a stack at all, not even as a fallback."""
+        for stack in (SANS, SERIF):
+            for family in FONTS_WITHOUT_VIETNAMESE:
+                self.assertNotIn(
+                    family,
+                    stack,
+                    f"{family} lacks the U+1EA0-U+1EF9 block and would mangle Vietnamese",
+                )
+            # A stack whose last resort is a bare generic is fine; one with no generic is not,
+            # because the browser then picks a default this layout was never measured against.
+            self.assertRegex(stack.strip(), r"(sans-serif|serif)$", f"no generic fallback: {stack}")
+
+    def test_rendered_examples_contain_no_loose_combining_accents(self) -> None:
+        """The same bug can also arrive from the other side: text stored decomposed (NFD)
+        puts a combining mark in the file itself, which renders identically wrong even in a
+        font with full coverage. Precomposed NFC is the only form that survives both paths."""
+        for path in sorted((REPO_ROOT / "docs" / "assets" / "generated").glob("*.svg")):
+            text = path.read_text(encoding="utf-8")
+            loose = sorted({character for character in text if unicodedata.combining(character)})
+            self.assertEqual(
+                loose,
+                [],
+                f"{path.name} stores combining marks {[unicodedata.name(c) for c in loose]}; "
+                "normalise the source JSON to NFC",
+            )
 
     def test_mockup_themes_differ_in_layout_not_only_palette(self) -> None:
         """plan_design_options.py sells the three themes as different design directions, with

@@ -17,9 +17,20 @@ from pathlib import Path
 
 # Full stacks, not bare family names. A bare "Arial" falls back to an unpredictable default on
 # any machine without it — including the Linux runners that build the handbook — which changes
-# every metric the layout depends on. The fallbacks are chosen for Vietnamese diacritic coverage.
-SANS = "Arial, 'Liberation Sans', 'DejaVu Sans', 'Noto Sans', sans-serif"
-SERIF = "Georgia, 'Liberation Serif', 'DejaVu Serif', 'Noto Serif', serif"
+# every metric the layout depends on.
+#
+# Every family here was checked against the two-diacritic Vietnamese letters (ấ ố ồ ế ữ ợ ử ẩ ẽ,
+# the U+1EA0–U+1EF9 block) by reading its cmap. Georgia used to lead the serif stack and covers
+# none of them: it has â and ô from Latin-1 but not ấ or ố, so a renderer drew the base letter
+# with a floating accent beside it and "Nấu theo lối cũ" came out as "Nâ´u theo lô´i cũ". A font
+# that silently mangles the language the deliverables are written in cannot be the first choice,
+# so it is gone rather than demoted. Do not add a family to either stack without checking its
+# coverage the same way — the failure is invisible in ASCII test fixtures.
+SANS = "Arial, 'Segoe UI', Tahoma, 'Liberation Sans', 'DejaVu Sans', 'Noto Sans', sans-serif"
+SERIF = "Cambria, Constantia, 'Times New Roman', 'Liberation Serif', 'DejaVu Serif', 'Noto Serif', serif"
+
+# Families measured as lacking the block above. None may appear in a stack.
+FONTS_WITHOUT_VIETNAMESE = ("Georgia", "Book Antiqua", "Garamond")
 
 # Below this the description line collides with the next item's name.
 MIN_ROW_PITCH = 58
