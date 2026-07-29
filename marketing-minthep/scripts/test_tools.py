@@ -24,6 +24,7 @@ from plan_marketing_system import PRODUCT_PROOF, plan_marketing_system
 from plan_video_sequence import lock_block, resolve, shot_prompt
 from plan_virtual_person import plan_virtual_person
 from render_mockup import CAP, DROP, FONTS_WITHOUT_VIETNAMESE, SANS, SERIF, THEMES, advance, render, wrap
+from render_social_post import PLACEMENTS, caption_sheet, render as render_post
 from research_plan import build_plan, to_markdown
 from run_status import audit_file, audit_run
 from scaffold_campaign import build_record, to_markdown as to_campaign_markdown
@@ -1158,6 +1159,75 @@ def _frontmatter_description(path: Path) -> str:
         if line.startswith("description:"):
             return line.split(":", 1)[1].strip().strip('"')
     raise AssertionError(f"{path} has no description in its frontmatter")
+
+
+class SocialPostTests(unittest.TestCase):
+    """The post renderer has one failure the menu renderer cannot have: a platform draws its own
+    buttons over the canvas. Copy inside those bands is not tight, it is hidden."""
+
+    def _spec(self, **overrides: object) -> dict:
+        spec = {
+            "placement": "feed-portrait",
+            "headline": "Nồi nước dùng bắt đầu từ 4 giờ sáng",
+            "subhead": "Bố cục mẫu cho bài feed.",
+            "proof": ["Giờ mở nồi: chờ quán xác nhận"],
+            "cta": "Xem menu",
+        }
+        spec.update(overrides)
+        return spec
+
+    def test_nothing_is_drawn_inside_the_platform_chrome(self) -> None:
+        """A story is 1080x1920 but the app owns the top 250px and the bottom 420px. A headline
+        there is behind the avatar row; a CTA there is behind the reply field."""
+        svg = render_post(self._spec(placement="story"))
+        place = PLACEMENTS["story"]
+        top, bottom = place["safe_top"], place["height"] - place["safe_bottom"]
+        self.assertGreater(top, 0, "the story placement stopped reserving room for app chrome")
+        for node in ET.fromstring(svg).iter():
+            if node.tag.endswith("text"):
+                y = float(node.get("y"))
+                self.assertGreater(y, top, f"{node.get('class')} baseline sits in the top chrome")
+                self.assertLess(y, bottom, f"{node.get('class')} baseline sits in the bottom chrome")
+            if node.tag.endswith("rect") and node.get("width") != "100%":
+                self.assertGreaterEqual(float(node.get("y")), top, "a filled box starts in the top chrome")
+
+    def test_the_cta_button_is_measured_against_its_own_label(self) -> None:
+        """A fixed-width chip either clips a long label or floats around a short one, and the
+        clipped version looks intentional, which is what makes it ship."""
+        widths = []
+        for label in ("Đặt bàn", "Xem menu", "Nhắn tin để giữ phần cuối ngày"):
+            root = ET.fromstring(render_post(self._spec(cta=label)))
+            chip = [node for node in root.iter() if node.tag.endswith("rect") and node.get("rx")][0]
+            width = float(chip.get("width"))
+            self.assertGreater(width, advance(label, 30, bold=True), f"chip narrower than {label!r}")
+            widths.append(width)
+        self.assertEqual(sorted(widths), widths, "a longer label did not produce a wider button")
+
+    def test_copy_that_cannot_fit_raises_instead_of_overprinting_the_button(self) -> None:
+        long_proofs = ["Một dòng bằng chứng dài để chiếm hết chiều cao còn lại của khối chữ"] * 3
+        with self.assertRaises(ValueError) as caught:
+            render_post(self._spec(placement="feed-square", hero_share=0.56, proof=long_proofs))
+        self.assertIn("CTA", str(caught.exception))
+
+    def test_the_caption_sheet_never_invents_the_caption(self) -> None:
+        """The image is half a post. The other half is copy nobody wrote yet, and filler there is
+        the same failure as a rendered price: it looks finished, so someone posts it."""
+        sheet = caption_sheet(self._spec())
+        for label in ("Caption (VI)", "Hashtags", "Disclosure"):
+            self.assertIn(label, sheet)
+        self.assertEqual(sheet.count("UNKNOWN —"), 6, sheet)
+        filled = caption_sheet(self._spec(caption_vi="Bán tới khi hết nồi.", hashtags=["#bunbo"]))
+        self.assertIn("Bán tới khi hết nồi.", filled)
+        self.assertEqual(filled.count("UNKNOWN —"), 4)
+
+    def test_the_shipped_sample_posts_still_render(self) -> None:
+        """The two files the README and the demo page point at are built from these specs, so a
+        change that breaks them has to fail here rather than in a browser."""
+        examples = SKILL_ROOT / "assets" / "examples" / "bun-bo"
+        for name in ("post-feed.json", "post-story.json"):
+            spec = json.loads((examples / name).read_text(encoding="utf-8"))
+            svg = render_post(spec)
+            self.assertIn("CONCEPT", svg, f"{name} lost its unapproved-content footer")
 
 
 class ReferenceIntegrityTests(unittest.TestCase):

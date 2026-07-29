@@ -10,6 +10,8 @@ Two more files carry the same shop into photography and video.
 python ../../../scripts/plan_design_options.py --input request.json
 python ../../../scripts/render_mockup.py --input menu-modern-street.json \
   --output out.svg --html-output out.html
+python ../../../scripts/render_social_post.py --input post-feed.json \
+  --output post.svg --caption-output post-caption.md
 python ../../../scripts/compile_prompt.py --input key-visual.json --provider generic
 python ../../../scripts/plan_video_sequence.py --input video-sequence.json --format report
 ```
@@ -21,6 +23,7 @@ then render it. The `--html-output` flag wraps the SVG in a page you can open in
 |---|---|
 | `request.json` | The original request, in the words a shop owner would use |
 | `menu-*.json` | The three design directions, ready to render |
+| `post-feed.json`, `post-story.json` | The same message as a 4:5 feed post and a 9:16 story, laid out separately |
 | `key-visual.json` | One photography brief, compiled to a provider-ready prompt |
 | `video-sequence.json` | Five shots for a 15s vertical, sequenced with carried continuity |
 
@@ -41,6 +44,21 @@ confirmed — a rendered price is an invented price.
 the sequencer carries light direction, screen direction, hand, props and steam state forward by
 itself. Run it with `--format prompts` for the per-shot prompts, `--format csv` for the shot list.
 Break continuity and it refuses to emit anything, which is the point.
+
+## The two posts
+
+`post-feed.json` and `post-story.json` carry one message to two placements. The story is not the
+feed post cropped: it is laid out again, and the top 250px and bottom 420px stay empty because
+that is where the app draws the avatar row, the reply field and the link sticker. Copy placed
+there is not tight against the edge, it is behind a button.
+
+Each spec renders with `--caption-output`, which writes the half of a post that is not the
+picture: caption VI, caption EN, hashtags, alt text and the disclosure line. Anything the spec did
+not state prints as `UNKNOWN` with the reason. Both files leave the caption blank on purpose —
+nobody wrote it yet, and a caption the skill invented would be exactly as dangerous as a price it
+invented.
+
+The proof lines say what is still missing, for the same reason every price is an em dash below.
 
 ## The three directions
 

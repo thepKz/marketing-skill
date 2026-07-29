@@ -285,6 +285,16 @@ h1 { max-width: 780px; margin: 26px 0 28px; font-size: clamp(3.5rem, 5.7vw, 6rem
    size and line treatment differ visibly in one glance; the dialog still opens each at full size. */
 .output-menu { grid-column: span 4; min-height: 0; aspect-ratio: 3 / 4; background: #f5f1e8; }
 .output-menu img { object-fit: contain; padding: 18px 18px 54px; }
+/* The two sample posts sit in one row beside each other for the same reason, and they carry their
+   real ratios rather than a shared one: the whole point of the story tile is that 9:16 is a
+   different layout, not the feed post cropped. Contain, because a post cropped by the demo page
+   would hide exactly the safe-zone margins it is there to show.
+   The spans are 7 and 5 rather than 6 and 6 so that 4:5 and 9:16 come out very nearly the same
+   height: at this column width a 4:5 tile is 1.25x its width and a 9:16 tile is 1.78x, so equal
+   widths would have left the feed post floating above a 300px hole. */
+.output-post { grid-column: span 7; min-height: 0; aspect-ratio: 4 / 5; background: #f5f1e8; }
+.output-post.is-story { grid-column: span 5; aspect-ratio: 9 / 16; }
+.output-post img { object-fit: contain; padding: 18px 18px 54px; }
 .concept-disclaimer { margin: 0; padding: 18px clamp(20px, 5vw, 72px); color: var(--ink); background: var(--orange); font-size: 0.68rem; font-weight: 700; }
 
 .step-image, .role-map, .variant-fan, .qa-stamp { height: 190px; border: 1px solid var(--line); }
@@ -455,7 +465,7 @@ footer p { max-width: 60ch; margin: 7px 0 0; color: var(--muted); }
   .starter-path-foot span { text-align: left; }
   .output-heading { padding: 56px 20px; }
   .output-wall { grid-template-columns: 1fr; }
-  .output-item, .output-product, .output-beauty, .output-art, .output-fashion, .output-menu { grid-column: auto; min-height: 480px; margin-top: 0; }
+  .output-item, .output-product, .output-beauty, .output-art, .output-fashion, .output-menu, .output-post, .output-post.is-story { grid-column: auto; min-height: 480px; margin-top: 0; }
   .output-item > span { flex-direction: column; gap: 4px; }
   .identity-visual { min-height: 590px; }
   .lock { font-size: 0.52rem; }

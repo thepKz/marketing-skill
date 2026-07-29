@@ -118,9 +118,10 @@ Palette được dựng, không phải được chọn. Dossier [`references/dos
 ```powershell
 python marketing-minthep/scripts/plan_design_options.py --input marketing-minthep/assets/examples/bun-bo/menu-modern-street.json
 python marketing-minthep/scripts/render_mockup.py --input marketing-minthep/assets/examples/bun-bo/menu-modern-street.json --output out.svg --html-output out.html
+python marketing-minthep/scripts/render_social_post.py --input marketing-minthep/assets/examples/bun-bo/post-story.json --output story.svg
 ```
 
-Bộ render đo chữ rồi dòng chữ chảy theo phép đo đó. Không có gì được đặt theo một phân số của chiều cao canvas — cách cũ đó đã tạo ra dấu tiếng Việt cắt xuyên dòng kicker và một tiêu đề bị vẽ chồng dưới ảnh hero. Copy không vừa chỗ sẽ báo lỗi thay vì bị cắt âm thầm, vì một mockup lặng lẽ xóa hai phần ba câu vẫn trông như đã hoàn thiện, và đó chính là chỗ nguy hiểm. Dossier: [`layout-wireframe-typography.md`](marketing-minthep/references/dossiers/layout-wireframe-typography.md), [`composition-and-layout-vision.md`](marketing-minthep/references/dossiers/composition-and-layout-vision.md), [`menu-design-and-engineering.md`](marketing-minthep/references/dossiers/menu-design-and-engineering.md).
+Bộ render đo chữ rồi dòng chữ chảy theo phép đo đó. Không có gì được đặt theo một phân số của chiều cao canvas — cách cũ đó đã tạo ra dấu tiếng Việt cắt xuyên dòng kicker và một tiêu đề bị vẽ chồng dưới ảnh hero. Copy không vừa chỗ sẽ báo lỗi thay vì bị cắt âm thầm, vì một mockup lặng lẽ xóa hai phần ba câu vẫn trông như đã hoàn thiện, và đó chính là chỗ nguy hiểm. Bộ render post thêm một ràng buộc mà menu không có: nền tảng tự vẽ nút của nó lên trên canvas, nên mỗi placement khai báo sẵn những dải nó không được dùng, và một khối chữ chạm vào CTA sẽ báo lỗi kèm số pixel bị lấn. Dossier: [`layout-wireframe-typography.md`](marketing-minthep/references/dossiers/layout-wireframe-typography.md), [`composition-and-layout-vision.md`](marketing-minthep/references/dossiers/composition-and-layout-vision.md), [`menu-design-and-engineering.md`](marketing-minthep/references/dossiers/menu-design-and-engineering.md).
 
 ## Output mẫu
 
@@ -129,6 +130,18 @@ Ba hướng menu cho cùng một quán bún bò, do `render_mockup.py` render t�
 | Modern street | Heritage craft | Quiet editorial |
 |---|---|---|
 | [SVG](docs/assets/generated/bun-bo-menu-modern-street.svg) | [SVG](docs/assets/generated/bun-bo-menu-heritage-craft.svg) | [SVG](docs/assets/generated/bun-bo-menu-quiet-editorial.svg) |
+
+Hai post mẫu cho cùng quán đó, do `render_social_post.py` render. Bản story không phải bản feed bị cắt: nó được dựng lại ở 1080x1920 và để trống 250px trên cùng với 420px dưới cùng cho khung giao diện của ứng dụng, nên nút CTA không thể nằm sau khung trả lời tin.
+
+| Feed 4:5 | Story 9:16 |
+|---|---|
+| [SVG](docs/assets/generated/bun-bo-post-feed.svg) | [SVG](docs/assets/generated/bun-bo-post-story.svg) |
+
+```powershell
+python marketing-minthep/scripts/render_social_post.py --input marketing-minthep/assets/examples/bun-bo/post-feed.json --output post.svg --html-output post.html --caption-output post-caption.md
+```
+
+`--caption-output` viết nửa còn lại của một bài đăng — caption, hashtag, alt text, dòng công bố tài trợ. Dòng nào không ai cung cấp thì in ra `UNKNOWN` kèm lý do, vì một caption bịa sai theo đúng cách một cái giá bịa sai: nó trông như đã xong, nên có người đem đăng.
 
 Các hướng ảnh do `compile_prompt.py` biên dịch rồi render qua provider:
 
@@ -165,7 +178,7 @@ marketing-minthep/
   SKILL.md                  điểm vào, dưới 150 dòng
   references/               45 file chủ đề, mỗi file dưới 150 dòng
     dossiers/               14 dossier craft chuyên sâu + index
-  scripts/                  19 công cụ + bộ test
+  scripts/                  20 công cụ + bộ test
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json và khung deliverable
@@ -183,7 +196,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-93 test. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
+99 test. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
 
 ## Những gì skill không làm
 

@@ -1,8 +1,15 @@
 window.HANDBOOK_I18N = {
   en: {
-    "Bốn hướng ảnh và ba hướng menu, cùng một skill: packshot, beauty, art campaign, fashion và ba bố cục menu dựng bằng code. Bấm vào bất kỳ ô nào để xem bản đầy đủ.": "Four image directions and three menu directions from one skill: packshot, beauty, art campaign, fashion, and three code-built menu layouts. Click any tile to open it full size.",
+    "Bốn hướng ảnh, ba hướng menu và hai post mẫu, cùng một skill: packshot, beauty, art campaign, fashion, ba bố cục menu và hai bài đăng — tất cả phần bố cục đều dựng bằng code. Bấm vào bất kỳ ô nào để xem bản đầy đủ.": "Four image directions, three menu directions, and two sample posts from one skill: packshot, beauty, art campaign, fashion, three menu layouts, and two posts — every layout built by code. Click any tile to open it full size.",
     "Menu system": "Menu system",
-    "Các hình trên là concept hư cấu để minh họa art direction. Menu SVG cố ý không bịa giá hoặc thành phần; đây chưa phải file in đã duyệt.": "These are fictional concepts for illustrating art direction. The SVG menu deliberately invents neither prices nor ingredients, and it is not an approved print file.",
+    // The disclaimer is three keys, not one, because `setLanguage` walks text nodes and skips
+    // anything inside <code>. The single key that used to live here matched nothing at all: the
+    // paragraph had been split by two <code> elements, so the whole line stayed Vietnamese in the
+    // English edition. Each fragment below is one text node, and they have to read as one
+    // sentence when the script names are put back between them.
+    "Các hình trên là concept hư cấu để minh họa art direction. Hai post mẫu dựng bằng": "These are fictional concepts illustrating art direction. The two sample posts are built by",
+    ": story không phải bản feed bị cắt, nó chừa 250px trên và 420px dưới cho khung giao diện của ứng dụng. Ba menu là cùng một nội dung, dựng bằng": ": the story is not the feed post cropped — it leaves 250px at the top and 420px at the bottom for the app's own interface. The three menus carry the same content, built by",
+    ", chỉ đổi hướng thiết kế — lề, cỡ chữ tiêu đề, giãn dòng và cách xử lý dòng món đều khác nhau, không chỉ đổi màu. Giá và thành phần cố ý để trống; đây chưa phải file in đã duyệt.": ", changing only the design direction — margin, title size, leading, and row treatment all differ, not just the colour. Prices and ingredients are deliberately left blank; this is not an approved print file.",
     "Bỏ qua điều hướng": "Skip navigation",
     "Bắt đầu": "Start",
     "Gửi ref.": "Send references.",
@@ -152,8 +159,6 @@ window.HANDBOOK_I18N = {
     "Bán sản phẩm": "Sell a product",
     "Không chỉ viết prompt.": "More than prompts.",
     "Tạo cả thế giới bán hàng.": "Build the whole selling world.",
-    "Bốn output demo cho thấy cùng một skill có thể chuyển giữa packshot, beauty, art campaign và fashion mà vẫn giữ logic sản phẩm, bố cục và mục đích kênh.": "Four demo outputs show how one skill moves between packshots, beauty, art campaigns, and fashion while preserving product logic, composition, and channel purpose.",
-    "Các hình trên là concept hư cấu để minh họa art direction, không phải sản phẩm thật, người thật hoặc endorsement.": "These are fictional concepts demonstrating art direction, not real products, real people, or endorsements.",
     "Gửi ref vào.": "Send references in.",
     "Nhận hệ thống ra.": "Get a system out.",
     "Skill biến những điều bạn nói bằng cảm giác thành một production contract rõ ràng: ảnh nào khóa identity, ảnh nào chỉ pose, ánh sáng nào được giữ và biến thể nào đáng thử.": "The skill turns subjective direction into a clear production contract: which image locks identity, which defines pose, which lighting stays, and which variants are worth exploring.",

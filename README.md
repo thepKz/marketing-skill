@@ -118,9 +118,10 @@ Palettes are built, not picked. The dossier [`references/dossiers/colour-science
 ```powershell
 python marketing-minthep/scripts/plan_design_options.py --input marketing-minthep/assets/examples/bun-bo/menu-modern-street.json
 python marketing-minthep/scripts/render_mockup.py --input marketing-minthep/assets/examples/bun-bo/menu-modern-street.json --output out.svg --html-output out.html
+python marketing-minthep/scripts/render_social_post.py --input marketing-minthep/assets/examples/bun-bo/post-story.json --output story.svg
 ```
 
-The renderer measures text and flows it. Nothing is positioned by a fraction of the canvas height — that approach produced diacritics cutting through a kicker line and a title painted under the hero image. Copy that does not fit raises an error instead of being silently truncated, because a mockup that quietly deletes two thirds of a sentence looks finished, which is what makes it dangerous. Dossiers: [`layout-wireframe-typography.md`](marketing-minthep/references/dossiers/layout-wireframe-typography.md), [`composition-and-layout-vision.md`](marketing-minthep/references/dossiers/composition-and-layout-vision.md), [`menu-design-and-engineering.md`](marketing-minthep/references/dossiers/menu-design-and-engineering.md).
+The renderer measures text and flows it. Nothing is positioned by a fraction of the canvas height — that approach produced diacritics cutting through a kicker line and a title painted under the hero image. Copy that does not fit raises an error instead of being silently truncated, because a mockup that quietly deletes two thirds of a sentence looks finished, which is what makes it dangerous. The post renderer adds the one constraint a menu does not have: the platform draws its own buttons over the canvas, so each placement declares the bands it may not use and a block that would collide with the CTA raises with the overflow in pixels. Dossiers: [`layout-wireframe-typography.md`](marketing-minthep/references/dossiers/layout-wireframe-typography.md), [`composition-and-layout-vision.md`](marketing-minthep/references/dossiers/composition-and-layout-vision.md), [`menu-design-and-engineering.md`](marketing-minthep/references/dossiers/menu-design-and-engineering.md).
 
 ## Sample output
 
@@ -129,6 +130,18 @@ Three menu directions for the same bún bò shop, rendered by `render_mockup.py`
 | Modern street | Heritage craft | Quiet editorial |
 |---|---|---|
 | [SVG](docs/assets/generated/bun-bo-menu-modern-street.svg) | [SVG](docs/assets/generated/bun-bo-menu-heritage-craft.svg) | [SVG](docs/assets/generated/bun-bo-menu-quiet-editorial.svg) |
+
+Two sample posts for the same shop, rendered by `render_social_post.py`. The story is not the feed post cropped: it is laid out again at 1080x1920 with the top 250px and the bottom 420px left to the app's own interface, so the CTA cannot end up behind the reply field.
+
+| Feed 4:5 | Story 9:16 |
+|---|---|
+| [SVG](docs/assets/generated/bun-bo-post-feed.svg) | [SVG](docs/assets/generated/bun-bo-post-story.svg) |
+
+```powershell
+python marketing-minthep/scripts/render_social_post.py --input marketing-minthep/assets/examples/bun-bo/post-feed.json --output post.svg --html-output post.html --caption-output post-caption.md
+```
+
+`--caption-output` writes the other half of a post — caption, hashtags, alt text, disclosure. Every line nobody supplied comes out as `UNKNOWN` with the reason, because an invented caption fails the same way an invented price does: it looks finished, so someone posts it.
 
 Image directions compiled by `compile_prompt.py` and rendered through a provider:
 
@@ -165,7 +178,7 @@ marketing-minthep/
   SKILL.md                  entry point, under 150 lines
   references/               45 topic files, each under 150 lines
     dossiers/               14 deep-craft dossiers + index
-  scripts/                  19 tools + test suite
+  scripts/                  20 tools + test suite
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json and deliverable skeletons
@@ -183,7 +196,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-93 tests. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
+99 tests. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
 
 ## What it will not do
 
