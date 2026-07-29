@@ -279,6 +279,8 @@ h1 { max-width: 780px; margin: 26px 0 28px; font-size: clamp(3.5rem, 5.7vw, 6rem
 .output-beauty { min-height: 720px; }
 .output-art { min-height: 680px; margin-top: -150px; }
 .output-fashion { min-height: 540px; }
+.output-menu { grid-column: span 12; min-height: 680px; background: #f5f1e8; }
+.output-menu img { object-fit: contain; padding: 28px 28px 72px; }
 .concept-disclaimer { margin: 0; padding: 18px clamp(20px, 5vw, 72px); color: var(--ink); background: var(--orange); font-size: 0.68rem; font-weight: 700; }
 
 .workflow { padding: clamp(64px, 8vw, 112px); color: var(--white); background: var(--blue); border-bottom: 1px solid var(--line); }
@@ -460,7 +462,7 @@ footer p { max-width: 60ch; margin: 7px 0 0; color: var(--muted); }
   .starter-path-foot span { text-align: left; }
   .output-heading { padding: 56px 20px; }
   .output-wall { grid-template-columns: 1fr; }
-  .output-item, .output-product, .output-beauty, .output-art, .output-fashion { grid-column: auto; min-height: 480px; margin-top: 0; }
+  .output-item, .output-product, .output-beauty, .output-art, .output-fashion, .output-menu { grid-column: auto; min-height: 480px; margin-top: 0; }
   .output-item > span { flex-direction: column; gap: 4px; }
   .workflow-track { grid-template-columns: 1fr; }
   .workflow-track li, .workflow-track li:nth-child(2) { border-right: 0; border-bottom: 1px solid var(--line); }

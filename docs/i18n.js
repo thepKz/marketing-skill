@@ -1,5 +1,8 @@
 window.HANDBOOK_I18N = {
   en: {
+    "Năm output demo cho thấy cùng một skill có thể chuyển giữa packshot, beauty, art campaign, fashion và menu mà vẫn giữ logic sản phẩm, bố cục và mục đích kênh.": "Five demo outputs show how one skill can move across packshots, beauty, art campaigns, fashion, and menus while preserving product truth, composition, and channel purpose.",
+    "Menu system": "Menu system",
+    "Các hình trên là concept hư cấu để minh họa art direction. Menu SVG cố ý không bịa giá hoặc thành phần; đây chưa phải file in đã duyệt.": "These are fictional concepts for illustrating art direction. The SVG menu deliberately invents neither prices nor ingredients, and it is not an approved print file.",
     "Bỏ qua điều hướng": "Skip navigation",
     "Bắt đầu": "Start",
     "Gửi ref.": "Send references.",
