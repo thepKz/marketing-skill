@@ -523,6 +523,13 @@ FILE_REFERENCE = re.compile(
 )
 
 
+def _frontmatter_description(path: Path) -> str:
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("description:"):
+            return line.split(":", 1)[1].strip().strip('"')
+    raise AssertionError(f"{path} has no description in its frontmatter")
+
+
 class ReferenceIntegrityTests(unittest.TestCase):
     """A reference the skill cannot open is worse than no reference: it reads as depth
     that does not ship. This caught three pointers into a gitignored research folder."""
@@ -548,6 +555,48 @@ class ReferenceIntegrityTests(unittest.TestCase):
                 if not any((base / ref).exists() for base in candidates):
                     unresolved.append(f"{document.relative_to(SKILL_ROOT)} -> {ref}")
         self.assertEqual(unresolved, [], f"unresolved file references: {unresolved}")
+
+    def test_no_reference_is_unreachable_from_the_router(self) -> None:
+        """A reference nothing routes to will never be loaded, so its knowledge is dead
+        weight. SKILL.md, the router, and the pipeline registry are the three entry points
+        an agent reads; every operational reference must be named by one of them."""
+        entries = [
+            SKILL_ROOT / "SKILL.md",
+            SKILL_ROOT / "references" / "marketing-system-router.md",
+            SKILL_ROOT / "assets" / "registries" / "pipelines.json",
+        ]
+        text = "\n".join(path.read_text(encoding="utf-8") for path in entries)
+        orphans = [
+            path.name
+            for path in sorted((SKILL_ROOT / "references").glob("*.md"))
+            # evaluation-suite.md is a maintainer's forward-test harness, not a module an
+            # agent loads mid-task. Routing to it would be wrong.
+            if path.name != "evaluation-suite.md" and path.name not in text
+        ]
+        self.assertEqual(orphans, [], f"references nothing routes to: {orphans}")
+
+    def test_skill_md_stays_within_the_progressive_disclosure_budget(self) -> None:
+        """SKILL.md is loaded on every activation, so its length is a tax on every request.
+        Detail belongs in references/, which load only when a decision needs them."""
+        skill = SKILL_ROOT / "SKILL.md"
+        lines = skill.read_text(encoding="utf-8").splitlines()
+        self.assertLess(len(lines), 150, f"SKILL.md is {len(lines)} lines")
+        value = _frontmatter_description(skill)
+        self.assertLess(len(value), 200, f"description is {len(value)} chars")
+
+    def test_runtime_adapters_advertise_the_canonical_description(self) -> None:
+        """The adapters are what each runtime actually indexes for skill discovery. When their
+        description drifts from the canonical one, the skill stops being found for the work it
+        now does — which is how both adapters ended up advertising a capability set two
+        rewrites out of date."""
+        canonical = _frontmatter_description(SKILL_ROOT / "SKILL.md")
+        for adapter in (".claude", ".codex"):
+            path = REPO_ROOT / adapter / "skills" / "marketing-minthep" / "SKILL.md"
+            self.assertEqual(
+                _frontmatter_description(path),
+                canonical,
+                f"{adapter} adapter description has drifted from the canonical SKILL.md",
+            )
 
     def test_dossiers_ship_and_are_indexed(self) -> None:
         dossier_dir = SKILL_ROOT / "references" / "dossiers"

@@ -41,6 +41,8 @@ When the user is a non-marketer, do not return a menu of disconnected marketing 
 Load only when relevant:
 
 - Product/business model: `product-category-playbooks.md`.
+- Campaign architecture and lanes: `campaign-systems.md`.
+- Content engine, pillars, editorial calendar: `content-system.md`.
 - Commerce: `commerce-merchandising.md`.
 - Paid media: `paid-media-creative.md`.
 - PR: `pr-communications.md`.
