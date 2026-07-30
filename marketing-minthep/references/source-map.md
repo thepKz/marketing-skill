@@ -93,6 +93,11 @@ These sources support `composition-light-color.md`, `menu-design.md`, `image-out
 
 Treat social profiles as discovery indexes. Record a specific post URL or user-supplied screenshot before claiming exact makeup, pose, lighting, or grade observations.
 
+Post-level observations taken from the four user references below are recorded in
+`data/reference-observations.csv`, one row per post actually opened, with the URL as the citation and no
+image stored anywhere in the repository. `reference-reading.md` sets out what may be recorded — pose
+geometry, light direction, palette structure, makeup placement — and what may not.
+
 | Source | URL | Use it for | Caution |
 |---|---|---|---|
 | User reference: Wonyoung | https://www.instagram.com/for_everyoung10/ | Romantic glossy beauty, pose, hair, and wardrobe discovery | Profile-level hypothesis only; do not copy identity |

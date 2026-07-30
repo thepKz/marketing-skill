@@ -1268,6 +1268,7 @@ class DataTableTests(unittest.TestCase):
         "makeup-diagnostics.csv": (15, 15),
         "mark-scale-ladder.csv": (7, 10),
         "market-data-sources.csv": (23, 12),
+        "reference-observations.csv": (7, 24),
     }
 
     # Most of these tables are keyed by their first column. The weights table is keyed by two, and
@@ -1441,6 +1442,35 @@ class DataTableTests(unittest.TestCase):
                     len(row[field]), 20,
                     f'{row["source_id"]}.{field} is too short to be a real limitation',
                 )
+
+    def test_every_observation_cites_one_post_and_grades_itself(self) -> None:
+        # source-map.md's own rule is that a profile is a discovery index and a claim needs a post.
+        # This table is what fills that gap, so a row citing only an account is a profile-level guess
+        # wearing an observation's clothes. The one honest exception is a comparison ACROSS posts on
+        # one account, which cannot cite a single URL and has to be graded as the anecdote it is.
+        grades = {"single-post-observation", "two-post-anecdote", "craft-heuristic"}
+        for row in self.rows("reference-observations.csv"):
+            self.assertIn(row["evidence_grade"], grades,
+                          f'{row["obs_id"]}: unknown evidence grade')
+            if row["evidence_grade"] == "two-post-anecdote":
+                self.assertIn("instagram.com/", row["post_url"])
+            else:
+                self.assertIn("/p/", row["post_url"],
+                              f'{row["obs_id"]} cites an account, not a post')
+            # The blind spot is the column that keeps a rule from being applied where it does not
+            # hold, so it cannot be a shrug. "Nothing" is not a limitation of a photograph.
+            self.assertGreater(len(row["what_this_cannot_tell_you"]), 25,
+                               f'{row["obs_id"]}: blind spot is too short to be one')
+            self.assertGreater(len(row["do_not_copy"]), 25,
+                               f'{row["obs_id"]}: does not say what is off limits')
+
+    def test_reading_a_reference_never_stores_the_reference(self) -> None:
+        """The whole stance of reference-reading.md is that a measurement is recordable and the
+        photograph is not. Seventeen files were deleted from docs/ for getting this wrong, so the
+        table is held to citations only: URLs in a CSV, no image anywhere under data/."""
+        stored = [path.name for path in (SKILL_ROOT / "data").iterdir()
+                  if path.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif"}]
+        self.assertEqual(stored, [], f"an image was stored alongside the observations: {stored}")
 
     def test_copy_examples_carry_no_printable_number(self) -> None:
         # Every figure in an example must be a bracketed slot. An example with a real-looking
