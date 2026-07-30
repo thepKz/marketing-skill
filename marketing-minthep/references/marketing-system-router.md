@@ -28,7 +28,7 @@ For requests that must become files on disk, use `scripts/start_workbench.py`. I
 | Pipeline | Trigger | Mandatory modules |
 |---|---|---|
 | `plan-from-zero` | Non-marketer or business has no usable plan | Research, market assessment, audience, positioning/offer, copy, channels, budget, calendar, measurement |
-| `deep-research` | Decision depends on market, customer, competitor, price, regulation, or feasibility evidence | `research-protocol.md`, `market-assessment.md`, `customer-evidence.md`, `source-map.md` |
+| `deep-research` | Decision depends on market, customer, competitor, price, regulation, or feasibility evidence | `research-protocol.md`, `market-assessment.md`, `customer-evidence.md`, `source-map.md`, `market-data-collection.md` |
 | `image-from-reference` | Source image A must become branded, commercial, artistic, or edited imagery | Reference locks, visual craft, edit/generation route, prompts/render, QA/export |
 | `design-render` | Menu, poster, layout, wireframe, one-pager, or other designed artifact | Options, recommendation, information architecture, wireframe, copy, render/spec, QA |
 | `video-campaign` | Video concept, storyboard, short ad, demo, or AI-video prompt pack | Script, beats, shots, continuity, audio/captions, cutdowns, delivery QA |
@@ -53,6 +53,8 @@ Load only when relevant:
 - Claims and proof: `claims-proof-ledger.md`.
 - Current placements/specs: `channel-spec-registry.md`.
 - Product/human/virtual imagery: relevant image references.
+- Logo, wordmark, favicon, banner grid, type scale: `identity-design.md`.
+- Where a number came from and what it actually measures: `market-data-collection.md`.
 
 ## Operating modes
 

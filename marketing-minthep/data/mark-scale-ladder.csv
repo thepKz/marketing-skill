@@ -1,0 +1,8 @@
+slot,px,total_pixels,where_it_appears,min_stroke_pct_of_mark_height,min_counter_pct_of_mark_height,max_distinct_elements,safe_circle_px,what_fails_first,source
+favicon-16,16,256,"Browser tab, bookmark bar, history list",6.25,12.5,2,-,"Counters fill in and become solid dots. Any wordmark becomes a grey smear; this slot is mark-only",https://web.dev/articles/add-manifest
+favicon-32,32,1024,"Retina tab, Windows taskbar, some search results",3.13,6.25,3,-,"Thin strokes drop to one pixel and alias into grey. Two-tone marks lose the lighter tone",https://web.dev/articles/add-manifest
+favicon-48,48,2304,"Windows site shortcut, some Android contexts",2.08,4.17,4,-,"Fine detail survives but a wordmark of more than about five characters is still unreadable",https://web.dev/articles/add-manifest
+apple-touch-180,180,32400,"iOS home screen. Corners are masked by the OS; do not pre-round",1.11,2.22,6,-,"Nothing structural. The usual failure is a designer pre-applying rounded corners, which the OS then rounds again",https://web.dev/articles/add-manifest
+manifest-192,192,36864,"Android home screen, PWA install prompt",1.04,2.08,6,153.6,"Anything outside the centre circle of radius 40% of width may be cropped by the platform mask",https://web.dev/articles/maskable-icon
+manifest-512,512,262144,"Splash screen, store listing, PWA maskable master",0.39,0.78,8,409.6,"Nothing at this size. This is the master; derive the smaller slots from it rather than upscaling",https://web.dev/articles/maskable-icon
+avatar-social,400,160000,"Profile photo on most platforms, usually displayed as a circle",0.5,1.0,6,320.0,"Square-composed marks lose their corners to the circular crop. Compose to the inscribed circle",platform-dependent-verify-live

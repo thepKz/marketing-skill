@@ -1266,6 +1266,8 @@ class DataTableTests(unittest.TestCase):
         "kpi-aspect-weights.csv": (16, 9),
         "makeup-looks.csv": (47, 22),
         "makeup-diagnostics.csv": (15, 15),
+        "mark-scale-ladder.csv": (7, 10),
+        "market-data-sources.csv": (23, 12),
     }
 
     # Most of these tables are keyed by their first column. The weights table is keyed by two, and
@@ -1356,6 +1358,88 @@ class DataTableTests(unittest.TestCase):
                 self.assertTrue(
                     low <= value <= high,
                     f'{row["dial"]}: {theme} default {value} is outside {low}–{high}',
+                )
+
+    def test_every_table_on_disk_is_declared_above(self) -> None:
+        # TABLES is an allow-list, so a table not named in it silently skips the three checks above:
+        # filled cells, declared shape, unique ids. That is an escape hatch nobody would notice,
+        # and it was already open — the two tables added on 2026-07-30 were on disk, reachable from
+        # the router, and untested, because adding a file does not add a dict entry.
+        self.assertEqual(
+            set(self.TABLES),
+            {path.name for path in (SKILL_ROOT / "data").glob("*.csv")},
+            "a data table is on disk but not declared in TABLES, so it is untested",
+        )
+
+    def test_the_stroke_floor_is_the_pixel_arithmetic_and_not_a_taste_judgement(self) -> None:
+        # The whole claim of the ladder is that these percentages are derived, not chosen. So they
+        # have to be recomputable from the slot size alone. Two tiers, because a slot you render at
+        # native size has a one-pixel floor and a slot the platform resamples has a two-pixel one;
+        # identity-design.md states both. Running this the first time is what surfaced the split —
+        # the prose said 1/px while four of the seven rows had been written at 2/px.
+        for row in self.rows("mark-scale-ladder.csv"):
+            slot = int(row["px"])
+            floor = 1 if slot <= 48 else 2
+            stroke = float(row["min_stroke_pct_of_mark_height"])
+            self.assertAlmostEqual(
+                stroke, 100 * floor / slot, places=1,
+                msg=f'{row["slot"]}: stroke floor {stroke}% is not {floor}px at {slot}px '
+                    f"({100 * floor / slot:.2f}%). The number was chosen, not derived.",
+            )
+            # A counter is a hole, and a hole closes under antialiasing at the width that would
+            # still render as a line. Twice the stroke is the cheapest rule that survives that.
+            self.assertAlmostEqual(
+                float(row["min_counter_pct_of_mark_height"]), 2 * stroke, places=1,
+                msg=f'{row["slot"]}: counter floor is not twice the stroke floor',
+            )
+            self.assertEqual(int(row["total_pixels"]), slot * slot,
+                             f'{row["slot"]}: total_pixels disagrees with {slot}x{slot}')
+
+    def test_the_maskable_safe_circle_is_the_specified_forty_percent_radius(self) -> None:
+        # The maskable-icon specification puts the safe zone at a radius of 40% of the icon width,
+        # which is a diameter of 80%. Stating it as a diameter in pixels is what a designer can
+        # actually draw, but it stops being a specification the moment the arithmetic drifts.
+        for row in self.rows("mark-scale-ladder.csv"):
+            if row["safe_circle_px"] == "-":
+                # Two slots honestly have no circle: a favicon is rendered at native size and is
+                # not masked at all, and iOS applies a rounded rectangle, not a circle. Quoting a
+                # circular safe zone at the iOS slot would be invented rigour — but the row still
+                # has to say the mask exists, or a designer pre-rounds the corners and the OS
+                # rounds them twice.
+                self.assertTrue(
+                    int(row["px"]) <= 48 or "mask" in row["where_it_appears"].lower(),
+                    f'{row["slot"]} declares no safe circle and does not say why',
+                )
+                continue
+            self.assertAlmostEqual(
+                float(row["safe_circle_px"]), 0.8 * int(row["px"]), places=1,
+                msg=f'{row["slot"]}: safe circle is not 80% of {row["px"]}px',
+            )
+
+    def test_every_source_records_its_blind_spot_and_a_status_that_matches_its_tier(self) -> None:
+        # A source list without blind spots is a list of things to over-trust. And the access tier
+        # is the actionable half: 403 means alive but blocking automation, which a human can open,
+        # while 000 means the host is gone and the citation has to be replaced. Collapsing the two
+        # into "broken" is what leaves a dead 'gso.gov.vn' in a deck for years.
+        expected = {"open": "200", "rate-limited": "429", "browser-required": "403",
+                    "intermittent": "503", "dead": "000"}
+        for row in self.rows("market-data-sources.csv"):
+            self.assertIn(row["access"], expected, f'{row["source_id"]}: unknown access tier')
+            self.assertEqual(
+                row["http_2026_07_30"], expected[row["access"]],
+                f'{row["source_id"]}: access {row["access"]} does not match its recorded status',
+            )
+            self.assertTrue(row["url"].startswith("http"),
+                            f'{row["source_id"]}: url is not resolvable as written')
+            # A dead host cannot see anything, and "Everything" is the complete answer rather than a
+            # short one. What a dead row still owes the reader is the replacement, which lives in
+            # do_not_use_for, so that column is held to the same bar as every other row's.
+            fields = ("do_not_use_for",) if row["access"] == "dead" \
+                else ("what_it_cannot_see", "do_not_use_for")
+            for field in fields:
+                self.assertGreater(
+                    len(row[field]), 20,
+                    f'{row["source_id"]}.{field} is too short to be a real limitation',
                 )
 
     def test_copy_examples_carry_no_printable_number(self) -> None:
