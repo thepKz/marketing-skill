@@ -761,6 +761,8 @@
         "market-assessment.md",
         "customer-evidence.md",
         "source-map.md",
+        "market-data-collection.md",
+        "how-companies-market.md",
         "claims-proof-ledger.md"
       ],
       "scripts": [

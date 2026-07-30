@@ -14,7 +14,7 @@
 
 ## What this unit is for
 
-Finding sources is not the hard part. `data/market-data-sources.csv` lists twenty-three of them with
+Finding sources is not the hard part. `data/market-data-sources.csv` lists thirty-seven of them with
 verified status. The hard part is that the cheapest and most-cited sources measure something
 different from what the deck says they measure, and the gap is largest in exactly the market this
 skill is most often pointed at.
@@ -22,6 +22,11 @@ skill is most often pointed at.
 Load this before `market-assessment.md` when the question is *where do the numbers come from*. Load
 `research-protocol.md` for the search procedure and `source-map.md` for creative and craft sources.
 This unit is about the numbers and their provenance.
+
+For numbers other people have already collected — disclosed advertising spend, budget benchmarks,
+advertising elasticity, the empirical generalisations — go to `how-companies-market.md` and
+`data/marketing-benchmarks.csv`. That unit covers what a published number means and which benchmark may
+be quoted at whom; this one covers collecting your own.
 
 ## The four measurement families
 

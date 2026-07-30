@@ -1268,7 +1268,8 @@ class DataTableTests(unittest.TestCase):
         "makeup-looks.csv": (47, 22),
         "makeup-diagnostics.csv": (15, 15),
         "mark-scale-ladder.csv": (7, 10),
-        "market-data-sources.csv": (23, 12),
+        "market-data-sources.csv": (37, 12),
+        "marketing-benchmarks.csv": (31, 12),
         "reference-observations.csv": (7, 24),
     }
 
@@ -1443,6 +1444,44 @@ class DataTableTests(unittest.TestCase):
                     len(row[field]), 20,
                     f'{row["source_id"]}.{field} is too short to be a real limitation',
                 )
+
+    def test_every_benchmark_carries_a_reachable_source_and_names_its_limit(self) -> None:
+        """A benchmark without its sample and its limit is how 60:40 became a law. So the table is
+        held to: a real URL, a fetch status that says how the source was actually reached, and a
+        what_it_does_not_establish column long enough to contain an actual thought."""
+        grades = {"regulatory-filing", "survey-self-report", "meta-analysis", "modelled-estimate",
+                  "vendor-list-price", "company-self-description", "platform-self-report",
+                  "author-heuristic", "peer-reviewed-abstract", "unverified-claim"}
+        statuses = {"fetched", "abstract-only", "wayback-only", "paywalled", "blocked"}
+        for row in self.rows("marketing-benchmarks.csv"):
+            with self.subTest(row["benchmark_id"]):
+                self.assertIn(row["evidence_grade"], grades)
+                self.assertIn(row["fetch_status"], statuses)
+                self.assertTrue(row["url"].startswith("http"), row["url"])
+                for field in ("what_it_does_not_establish", "how_to_use_it"):
+                    self.assertGreater(len(row[field]), 40, f'{row["benchmark_id"]}.{field} is a stub')
+
+    def test_a_survey_benchmark_states_the_sample_it_came_from(self) -> None:
+        # 9.0% of revenue is a fact about 308 US marketing leaders, and it is quoted at shop owners
+        # precisely because the sample gets dropped on the way to the slide.
+        for row in self.rows("marketing-benchmarks.csv"):
+            if row["evidence_grade"] not in {"survey-self-report", "meta-analysis"}:
+                continue
+            with self.subTest(row["benchmark_id"]):
+                self.assertRegex(row["sample"], r"\d",
+                                 f'{row["benchmark_id"]} is survey or meta evidence with no sample size')
+
+    def test_the_unverified_claim_is_not_dressed_up_as_a_number(self) -> None:
+        # The 60:40 split was never opened: it is on no free IPA page and the reports are paid. It
+        # stays in the table because the useful artefact is the citation everyone repeats blind, but
+        # it must not carry a figure that a reader could lift into a plan.
+        unverified = [row for row in self.rows("marketing-benchmarks.csv")
+                      if row["evidence_grade"] == "unverified-claim"]
+        self.assertTrue(unverified, "the unverified row was deleted rather than kept honest")
+        for row in unverified:
+            with self.subTest(row["benchmark_id"]):
+                self.assertNotRegex(row["figure"], r"\d", f'{row["benchmark_id"]} states a figure')
+                self.assertIn(row["fetch_status"], {"paywalled", "blocked"})
 
     def test_every_observation_cites_one_post_and_grades_itself(self) -> None:
         # source-map.md's own rule is that a profile is a discovery index and a claim needs a post.

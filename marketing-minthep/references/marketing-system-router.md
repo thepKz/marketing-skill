@@ -28,7 +28,7 @@ For requests that must become files on disk, use `scripts/start_workbench.py`. I
 | Pipeline | Trigger | Mandatory modules |
 |---|---|---|
 | `plan-from-zero` | Non-marketer or business has no usable plan | Research, market assessment, audience, positioning/offer, copy, channels, budget, calendar, measurement |
-| `deep-research` | Decision depends on market, customer, competitor, price, regulation, or feasibility evidence | `research-protocol.md`, `market-assessment.md`, `customer-evidence.md`, `source-map.md`, `market-data-collection.md` |
+| `deep-research` | Decision depends on market, customer, competitor, price, regulation, or feasibility evidence | `research-protocol.md`, `market-assessment.md`, `customer-evidence.md`, `source-map.md`, `market-data-collection.md`, `how-companies-market.md` |
 | `image-from-reference` | Source image A must become branded, commercial, artistic, or edited imagery | Reference locks, `reference-reading.md`, visual craft, edit/generation route, prompts/render, QA/export |
 | `design-render` | Menu, poster, layout, wireframe, one-pager, or other designed artifact | Options, recommendation, information architecture, wireframe, copy, render/spec, QA |
 | `video-campaign` | Video concept, storyboard, short ad, demo, or AI-video prompt pack | Script, beats, shots, continuity, audio/captions, cutdowns, delivery QA |
@@ -57,6 +57,9 @@ Load only when relevant:
 - Reading a live reference into pose, light, palette and makeup observations without storing the image:
   `reference-reading.md` plus `data/reference-observations.csv`.
 - Where a number came from and what it actually measures: `market-data-collection.md`.
+- How real organisations run marketing, what the largest advertisers disclose, and which benchmark may be
+  quoted at whom: `how-companies-market.md` plus `data/marketing-benchmarks.csv`. Load this before
+  answering "how much should we spend" or "how do companies like us do this".
 
 ## Operating modes
 
