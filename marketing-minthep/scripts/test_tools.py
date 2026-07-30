@@ -28,6 +28,7 @@ from compile_prompt import compile_provider
 import find_recipe
 import generate_image
 import list_capabilities
+import plan_identity
 import render_refsheet
 import rewrite_human
 import score_kpi
@@ -2312,6 +2313,79 @@ class KpiScoringTests(unittest.TestCase):
         for request, expected in unchanged.items():
             with self.subTest(request):
                 self.assertEqual(route_pipeline({"request": request}, registry)["pipeline"], expected)
+
+
+class IdentityPlanTests(unittest.TestCase):
+    """identity-design.md claims a logo can be checked before anyone opens a drawing tool. That is
+    only true if the checking is arithmetic, so these tests are about the arithmetic being real:
+    a mark that fails 16px has to be told so, and a ratio outside the dial has to be clamped with
+    the correct reason attached."""
+
+    HAIRLINE = {
+        "thinnest_stroke_pct_of_height": 2.0, "smallest_counter_pct_of_height": 9.0,
+        "distinct_elements": 4, "content_radius_pct_of_width": 47,
+        "mark_colour": "#2b6cb0", "approved_backgrounds": ["#ffffff"],
+        "smallest_required_slot": "favicon-16",
+    }
+
+    def test_a_hairline_mark_is_failed_at_the_favicon_and_told_which_element_broke(self) -> None:
+        plan = plan_identity.plan_identity(dict(self.HAIRLINE))
+        favicon = next(slot for slot in plan["slot_report"] if slot["slot"] == "favicon-16")
+        self.assertFalse(favicon["passes"])
+        # Three independent failures, each named. A single "too detailed" verdict would leave the
+        # designer guessing which of the three to fix.
+        self.assertEqual(len(favicon["fails"]), 3, favicon["fails"])
+        self.assertIn("simplified variant", plan["verdict"])
+
+    def test_a_mark_drawn_to_the_floor_passes_the_slot_it_was_drawn_for(self) -> None:
+        plan = plan_identity.plan_identity({
+            "thinnest_stroke_pct_of_height": 6.25, "smallest_counter_pct_of_height": 12.5,
+            "distinct_elements": 2, "content_radius_pct_of_width": 38,
+            "smallest_required_slot": "favicon-16",
+        })
+        self.assertEqual(plan["derived_minimum_size_px"], 16)
+        self.assertIn("descending-render test", plan["verdict"])
+
+    def test_the_logotype_exemption_stops_covering_a_mark_that_is_a_control(self) -> None:
+        # The exemption is the trap the reference is written around: a logo cannot fail SC 1.4.3,
+        # but the moment it is also the home link, SC 1.4.11 wants 3:1 and the exemption is silent.
+        # #8a8a8a is 3.45:1 and would pass, which is the point: mid greys are further from the floor
+        # than they look, so the test has to name a colour that genuinely fails.
+        low = {"mark_colour": "#a0a0a0", "approved_backgrounds": ["#ffffff"],
+               "thinnest_stroke_pct_of_height": 10, "distinct_elements": 1}
+        exempt = plan_identity.plan_identity(dict(low))["contrast"][0]
+        self.assertTrue(exempt["logotype_exemption_applies"])
+        self.assertLess(exempt["ratio"], 3.0)
+        self.assertIn("Exempt is not legible", exempt["verdict"])
+        as_control = plan_identity.plan_identity({**low, "mark_is_a_link_or_control": True})
+        self.assertIn("Fails SC 1.4.11", as_control["contrast"][0]["verdict"])
+
+    def test_sizes_sharing_a_ratio_share_one_master(self) -> None:
+        plan = plan_identity.plan_identity({
+            "thinnest_stroke_pct_of_height": 10, "distinct_elements": 1,
+            "banner_sizes": ["300x250", "336x280", "728x90", "1080x1920"],
+        })
+        families = {family["design_master"]: family for family in plan["banner_families"]}
+        # 300x250 and 336x280 are both close to 6:5, so they are one design and two exports.
+        self.assertEqual(families["336x280"]["derive_as_exports"], ["300x250"])
+        self.assertEqual(families["336x280"]["orientation"], "square-ish")
+        self.assertEqual(families["728x90"]["derive_as_exports"], [])
+        self.assertIn("safe band", families["1080x1920"]["note"])
+
+    def test_a_ratio_over_the_dial_is_clamped_with_the_ceiling_explained(self) -> None:
+        # The first version of this reported the dial's breaks_at sentence, which describes the
+        # BOTTOM of the range, as the reason for clamping at the top. A wrong explanation attached
+        # to a correct number is worse than no explanation, because it gets quoted.
+        plan = plan_identity.plan_identity({
+            "thinnest_stroke_pct_of_height": 10, "distinct_elements": 1,
+            "body_px": 16, "headline_ratio": 6.0, "type_steps": 5,
+        })["type_scale"]
+        self.assertTrue(plan["clamped"])
+        self.assertEqual(plan["headline_ratio_used"], 4.5)
+        self.assertNotIn("Below 1.6", plan["clamp_reason"])
+        self.assertIn("ceiling", plan["clamp_reason"])
+        self.assertEqual(plan["ladder_px"][0], 16.0)
+        self.assertAlmostEqual(plan["ladder_px"][-1], 16 * 4.5, delta=0.2)
 
 
 class VirtualModelTests(unittest.TestCase):

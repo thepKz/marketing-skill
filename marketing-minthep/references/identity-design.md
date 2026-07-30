@@ -25,6 +25,15 @@ Look up `data/mark-scale-ladder.csv` for the slot sizes and their detail budgets
 frame grids and the platform safe band. Do not restate the phi argument here; that table already
 settles it.
 
+Run `scripts/plan_identity.py --input request.json` to apply this unit rather than read it. Given the
+mark's thinnest stroke and smallest counter as percentages of mark height, its element count, how far
+its content reaches from centre, its colour and the backgrounds it is approved on, the script walks
+every slot on the ladder and reports which element fails where, derives the minimum size, computes the
+contrast ratios with the exemption and the SC 1.4.11 override applied, groups a list of banner sizes
+into one design master per aspect ratio, and builds the type ladder clamped to the `size_ratio` dial.
+Those five numbers are all readable off an artboard, which is the point: the check happens before the
+artwork, not after the rollout.
+
 ## The one-pixel rule
 
 A stroke narrower than one device pixel does not render as a thin line. It renders as a grey line, or
