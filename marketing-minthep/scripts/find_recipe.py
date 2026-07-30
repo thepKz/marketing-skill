@@ -35,10 +35,20 @@ TABLES = {
     "dials": ("layout-dials.csv", "dial", ("what_it_changes", "raise_it_when", "lower_it_when")),
     "slop": ("slop-tells.csv", "id", ("domain", "tell_vi", "tell_en", "look_where", "fix")),
     "copy": ("copy-formulas.csv", "id", ("name_vi", "name_en", "use_when", "structure")),
+    # Searched by the symptom, because somebody arrives saying the copy "sounds translated" or
+    # "nghe như AI viết". They do not arrive knowing the word calque.
+    "translation": ("translation-tells.csv", "id", ("tell_vi", "tell_en", "why_it_happens", "fix")),
     # Searched by the question rather than the axis name, because nobody arrives knowing they
     # want the "copy_behavior" axis — they arrive holding a picture and asking whether the words
     # on it are theirs to take.
     "axes": ("reference-axes.csv", "axis", ("question_vi", "question_en", "name_vi", "name_en")),
+    # Searched by where the asset is going, because the question arrives as "cho Reels" or "in ra
+    # giấy A4", never as "9:16" — and the answer has to carry which grid that ratio wants.
+    "ratios": ("frame-ratios.csv", "ratio_id", ("label", "native_home", "communicates", "grid")),
+    # Searched by the name someone half-remembers — tỉ lệ vàng, rule of thirds — because that is
+    # the form the question takes, and the row's job is to say what the evidence actually supports.
+    "grids": ("composition-grids.csv", "grid_id",
+              ("name_vi", "name_en", "what_it_claims", "use_when")),
 }
 
 # The fields of a brief that no lookup table can supply, with the reason each one has to come from
@@ -115,15 +125,87 @@ def one(table: str, row_id: str) -> dict[str, str]:
     raise SystemExit(f"no {table} row called {row_id!r}. Known ids: {known}")
 
 
+PHI = 1.6180339887
+PHI_SHORT = 1 / PHI  # 0.618..., so the short side of a phi split is 38.2%
+
+
+def ratio_lines(w: int, h: int) -> dict[str, float]:
+    """Where each grid system puts its lines on a w x h frame, as fractions of the side.
+
+    This is the numeric core. `ratio_geometry` below turns it into sentences and
+    `render_refsheet.sheet_ratios` turns it into drawn lines, so a frame's arithmetic exists once
+    and the sheet cannot claim a different eye position than the table printed.
+    """
+    eye = h * h / (w * w + h * h)
+    near = min(eye, 1 - eye)
+    return {
+        "decimal": w / h,
+        "thirds": 1 / 3,
+        "phi": 1 - PHI_SHORT,
+        "eye": eye,
+        "eye_near": near,
+        # How far the two grids actually sit apart, in pixels of this canvas's width. The gap is the
+        # whole argument: below about 5% nobody can point at it, above that it is a visible decision.
+        "eye_gap_px": abs(near - 1 / 3) * w,
+        "phi_gap_px": abs((1 - PHI_SHORT) - 1 / 3) * w,
+    }
+
+
+def ratio_geometry(row: dict[str, str]) -> dict[str, str]:
+    """Compute where each grid actually lands on this frame, instead of storing it in the table.
+
+    Only w and h are source data. Everything below follows from them, so the table cannot disagree
+    with itself the way the spreadsheet this replaces did — there a ratio's decimal and its grid
+    percentage were two typed cells, and one of them was stale.
+
+    The dynamic-symmetry eye reduces to a single number. For width W and height H the reciprocal
+    diagonal meets the full diagonal at x = W·H²/(W²+H²), which as a fraction of the width is
+    H²/(W²+H²); the matching y as a fraction of the height is W²/(W²+H²). Those two sum to 1, so
+    the four eyes land on the same pair of percentages on both axes, and one number describes the
+    whole grid. That identity is why this is computed and not tabulated.
+
+    The distance is measured to the *nearer* thirds line. Comparing the 76% eye against the 33%
+    line instead of the 67% one is what made the first version report 460 px of disagreement on a
+    9:16 frame, which is not a disagreement between grids — it is two different lines.
+    """
+    w, h = int(row["w"]), int(row["h"])
+    g = ratio_lines(w, h)
+    near, eye_px, thirds_px = g["eye_near"], g["eye_gap_px"], g["phi_gap_px"]
+    return {
+        "computed_decimal": f"{g['decimal']:.4f} ({w} x {h})",
+        "computed_thirds": "33.3% and 66.7% of each side, at every ratio",
+        "computed_phi": f"38.2% and 61.8% — {thirds_px:.0f} px from the thirds line on this canvas",
+        "computed_eye": (
+            f"{near * 100:.1f}% and {(1 - near) * 100:.1f}% of each side — "
+            f"{eye_px:.0f} px from the nearer thirds line on this canvas"
+        ),
+        "computed_grid_matters": (
+            "No. Every grid lands within 5% of the others here, so pick one and stop arguing"
+            if eye_px < w * 0.05 and thirds_px < w * 0.05 else
+            f"Yes. Thirds and dynamic symmetry disagree by {eye_px:.0f} px of {w}, which is "
+            f"{eye_px / w * 100:.1f}% of the frame and visible"
+        ),
+    }
+
+
 def table_lines(table: str, rows: list[dict[str, str]]) -> str:
     """One block per row, labelled, rather than a CSV dump nobody can read in a terminal."""
     if not rows:
+        # The tells table is the one people query by symptom ("dịch từng chữ", "sounds translated"),
+        # and the rows are written in the vocabulary of the fix rather than the complaint, so the
+        # search misses. Point at the matcher, which finds them from the draft itself.
+        if table == "translation":
+            return ("No row matched. This table is matched against a draft, not searched by symptom: "
+                    "run `python scripts/rewrite_human.py --check <file>` and it reports every tell "
+                    f"that fired. Run with an empty query to list all {len(load(table))}.\n")
         return "No row matched. Run with an empty query to list the table.\n"
     _, key, _ = TABLES[table]
     blocks = []
     for row in rows:
         lines = [f"## {row[key]}"]
         lines.extend(f"{field}: {value}" for field, value in row.items() if field != key and value)
+        if table == "ratios":
+            lines.extend(f"{field}: {value}" for field, value in ratio_geometry(row).items())
         blocks.append("\n".join(lines))
     return "\n\n".join(blocks) + "\n"
 

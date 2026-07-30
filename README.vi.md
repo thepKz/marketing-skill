@@ -142,6 +142,18 @@ python marketing-minthep/scripts/render_refsheet.py --sheet dials --dial margin_
 
 Cơ chế là một nhúm con số, và cách trung thực duy nhất để giải thích một con số là cho xem cùng một thứ hai lần với con số đó bị đổi. `data/layout-dials.csv` gọi tên 17 con số — tỉ lệ lề, tỉ lệ tiêu đề, bước dòng món, leading — mỗi cái có min, max, ba giá trị mặc định theo phong cách, nâng lên thì đổi cái gì, và vỡ ở đâu. `--sheet dials` vẽ đúng một menu bún bò bốn món ba lần ở min, mặc định và max, chỉ dial đang xét là dịch chuyển. Đưa cái đó cho người ta xem thay vì mô tả.
 
+```powershell
+python marketing-minthep/scripts/find_recipe.py --table ratios --query "reels"
+python marketing-minthep/scripts/find_recipe.py --table grids --query "tỉ lệ vàng"
+python marketing-minthep/scripts/render_refsheet.py --sheet ratios --output ratios.svg --html-output ratios.html
+```
+
+"Có nên dùng tỉ lệ vàng không?" là câu hỏi bố cục hay gặp nhất, và câu trả lời gần như luôn là không — nhưng "không" thì không dùng được, nên hai bảng này trả lời bằng số học chứ không bằng cảm nhận. `data/frame-ratios.csv` có 13 tỉ lệ, khóa theo chỗ tấm ảnh sẽ đi, vì câu hỏi đến dưới dạng *"cho Reels"* hoặc *"in ra giấy A4"*, chưa bao giờ dưới dạng *"9:16"*. `data/composition-grids.csv` xếp hạng bằng chứng cho bảy cái lưới người ta hay tranh nhau, và xếp hạng không hề dễ nghe: xoắn ốc vàng là `myth` — nó xoay, phóng, lật được thành tám hướng, nên trong bất cứ tấm ảnh nào cũng có thứ nằm trên một nhánh nào đó của nó, và một phép thử không thể trượt thì không phải phép thử. Lưới phi là `myth-adjacent`: số học thì đúng, còn cái khác biệt nó đang khẳng định là 38,2% so với 33,3% của chia ba, tức 4,9 điểm phần trăm, tức 53 px trên bề ngang 1080 px. Chia ba là `peer-reviewed-contested` — Amirshahi 2014 thấy điểm chia ba gần như không tương quan với đánh giá thẩm mỹ trên 2.415 tấm, còn Hoh & Zhang 2023 thấy người ta chọn chủ thể ở giữa khi phải chọn một trong hai.
+
+Chỉ `w` và `h` được lưu. Mọi vị trí đều tính ra từ một hàm duy nhất, nên bảng không thể tự mâu thuẫn với chính nó và sheet không thể nói khác bảng. Cái đáng đọc là *khoảng lệch*: trên hình vuông, mắt đối xứng động chính là tâm và cách đường chia ba 180 px; trên 16:9 nó ở 24% và cách 179 px; trên scope nó ở 14,9% và cách 377 px; còn trên 3:2 nó cách 42 px — dưới 5% khung, nên không ai chỉ ra được và lựa chọn đó là rỗng. `--sheet ratios` vẽ cả mười hai tỉ lệ phát hành theo đúng tỉ lệ thật với cả ba lưới đặt lên từng khung, và đó là cách kết quả bất ngờ duy nhất hiện ra bằng mắt: trên giấy A4 theo ISO, đường chia ba màu xám biến mất hẳn dưới đường mắt màu xanh, vì h² = 2w² đặt mắt đúng vào ⅓. Root-2 là tỉ lệ duy nhất mà hai cái lưới là cùng một cái lưới.
+
+Phép đo dừng ở chỗ đo. Nó báo khoảng lệch và không bao giờ nói nên dùng lưới nào, vì 5:4 lệch 5,7% mà vẫn muốn đặt giữa — nó gần vuông. Lời khuyên nằm trong dòng của bảng.
+
 Bộ render đo chữ rồi dòng chữ chảy theo phép đo đó. Không có gì được đặt theo một phân số của chiều cao canvas — cách cũ đó đã tạo ra dấu tiếng Việt cắt xuyên dòng kicker và một tiêu đề bị vẽ chồng dưới ảnh hero. Copy không vừa chỗ sẽ báo lỗi thay vì bị cắt âm thầm, vì một mockup lặng lẽ xóa hai phần ba câu vẫn trông như đã hoàn thiện, và đó chính là chỗ nguy hiểm. Bộ render post thêm một ràng buộc mà menu không có: nền tảng tự vẽ nút của nó lên trên canvas, nên mỗi placement khai báo sẵn những dải nó không được dùng, và một khối chữ chạm vào CTA sẽ báo lỗi kèm số pixel bị lấn. Dossier: [`layout-wireframe-typography.md`](marketing-minthep/references/dossiers/layout-wireframe-typography.md), [`composition-and-layout-vision.md`](marketing-minthep/references/dossiers/composition-and-layout-vision.md), [`menu-design-and-engineering.md`](marketing-minthep/references/dossiers/menu-design-and-engineering.md).
 
 ## Output mẫu
@@ -208,8 +220,9 @@ marketing-minthep/
   SKILL.md                  điểm vào, dưới 150 dòng
   references/               45 file chủ đề, mỗi file dưới 150 dòng
     dossiers/               14 dossier craft chuyên sâu + index
-  data/                     6 bảng tra: image recipe, palette, layout dial,
-                            slop tell, copy formula, reference axis
+  data/                     9 bảng tra: image recipe, palette, layout dial,
+                            slop tell, copy formula, translation tell,
+                            reference axis, frame ratio, composition grid
   scripts/                  22 công cụ + bộ test
   assets/
     registries/             pipelines.json, asset-formats.json
@@ -228,7 +241,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-121 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv` và test fail nếu một ví dụ copy chứa số in được. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
+137 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv` và test fail nếu một ví dụ copy chứa số in được. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
 
 ## Những gì skill không làm
 

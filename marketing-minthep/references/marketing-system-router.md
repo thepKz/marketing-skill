@@ -33,6 +33,7 @@ For requests that must become files on disk, use `scripts/start_workbench.py`. I
 | `design-render` | Menu, poster, layout, wireframe, one-pager, or other designed artifact | Options, recommendation, information architecture, wireframe, copy, render/spec, QA |
 | `video-campaign` | Video concept, storyboard, short ad, demo, or AI-video prompt pack | Script, beats, shots, continuity, audio/captions, cutdowns, delivery QA |
 | `optimize-iterate` | Existing work has evidence or performance to diagnose | Metric tree, hypotheses, one-variable tests, guardrails, decision log |
+| `rewrite-human` | A draft reads machine-written or machine-translated, or approved copy must move between Vietnamese and English | Fact inventory, `rewrite-human.md`, `scripts/rewrite_human.py` gates, `data/translation-tells.csv` repairs, re-measurement |
 
 When the user is a non-marketer, do not return a menu of disconnected marketing disciplines. Recommend the smallest coherent pipeline, explain why in plain language, and create the connected artifact pack. Copywriting is mandatory inside `plan-from-zero`; it is not an optional follow-up.
 

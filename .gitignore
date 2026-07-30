@@ -23,3 +23,7 @@ undefined/
 .env.*
 *.key
 _secrets/
+
+# 1 MB bundle of the agent definitions, rebuilt on demand. Not skill content;
+# scripts/install_global.py excludes it from installs for the same reason.
+marketing-minthep/agents.zip

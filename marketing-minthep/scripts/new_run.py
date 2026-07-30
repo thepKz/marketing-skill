@@ -77,6 +77,14 @@ PIPELINE_KEYWORDS = {
         ("optimize", "optimise", "performance", "roas", "cpa", "cpc", "ctr", "conversion", "diagnose",
          "audit", "tối", "ưu", "giảm", "báo", "cáo", "report", "experiment", "test", "a/b"),
     ),
+    "rewrite-human": (
+        ("viết lại", "viet lai", "rewrite", "sửa văn", "sound human", "sounds like ai", "reads like ai",
+         "nghe như ai viết", "giọng tự nhiên", "dịch máy", "dich may", "word by word", "word-by-word",
+         "dịch từng chữ", "humanize", "humanise", "làm cho tự nhiên", "biên tập lại", "transcreate",
+         "dịch sang tiếng anh", "dịch sang tiếng việt", "translate this copy", "bản dịch"),
+        ("rewrite", "reword", "rephrase", "humanize", "humanise", "transcreate", "viết", "lại", "dịch",
+         "biên", "tập", "polish", "cadence", "nhịp", "giọng", "translation", "calque"),
+    ),
 }
 
 

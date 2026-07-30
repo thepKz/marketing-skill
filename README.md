@@ -142,6 +142,18 @@ python marketing-minthep/scripts/render_refsheet.py --sheet dials --dial margin_
 
 The mechanism is a small set of numbers, and the only honest way to explain a number is to show the same thing twice with it changed. `data/layout-dials.csv` names 17 of them — margin ratio, title ratio, row pitch, line leading — each with a minimum, a maximum, three named defaults, what raising it changes and where it breaks. `--sheet dials` draws the same four-item bún bò menu three times at min, default and max, with only the dial under test moving. Show that to someone instead of describing it.
 
+```powershell
+python marketing-minthep/scripts/find_recipe.py --table ratios --query "reels"
+python marketing-minthep/scripts/find_recipe.py --table grids --query "tỉ lệ vàng"
+python marketing-minthep/scripts/render_refsheet.py --sheet ratios --output ratios.svg --html-output ratios.html
+```
+
+"Should I use the golden ratio?" is the most common layout question and the answer is almost always no — but "no" is not usable, so these two tables answer it with arithmetic instead of taste. `data/frame-ratios.csv` carries 13 ratios keyed by where the asset is going, because the question arrives as *"cho Reels"* or *"in ra giấy A4"* and never as *"9:16"*. `data/composition-grids.csv` grades the seven grids people argue about, and the grades are not flattering: the golden spiral is `myth` — it can be scaled, rotated and mirrored into eight orientations, so something in any photograph lands on some arm of it, and a test that cannot fail is not a test. The phi grid is `myth-adjacent`: the arithmetic is right, and the difference it is asserting is 38.2% against a thirds 33.3%, which is 4.9 percentage points, which is 53 px on a 1080 px width. Rule of thirds is `peer-reviewed-contested` — Amirshahi 2014 found thirds scores barely correlate with aesthetic ratings across 2,415 images, and Hoh & Zhang 2023 found people prefer centred subjects in forced choice.
+
+Only `w` and `h` are stored. Every position is computed by one function, so the table cannot disagree with itself and the sheet cannot disagree with the table. The useful output is the *gap*: on a square the dynamic-symmetry eye is the centre and sits 180 px from the thirds line, on 16:9 it is at 24% and 179 px away, on scope it is at 14.9% and 377 px away, and on 3:2 it is 42 px away — under 5% of the frame, so nobody can point at it and the choice is empty. `--sheet ratios` draws all twelve delivery ratios at true proportion with all three grids on each, which is how the one genuinely surprising result becomes visible: on ISO A4 paper the grey thirds line vanishes underneath the blue eye line, because h² = 2w² puts the eye on exactly ⅓. Root-2 is the one ratio where the two grids are the same grid.
+
+The measurement stops at measuring. It reports the gap and never says which grid to use, because 5:4 has a 5.7% gap and still wants centre — it is nearly square. The advice lives in the row.
+
 The renderer measures text and flows it. Nothing is positioned by a fraction of the canvas height — that approach produced diacritics cutting through a kicker line and a title painted under the hero image. Copy that does not fit raises an error instead of being silently truncated, because a mockup that quietly deletes two thirds of a sentence looks finished, which is what makes it dangerous. The post renderer adds the one constraint a menu does not have: the platform draws its own buttons over the canvas, so each placement declares the bands it may not use and a block that would collide with the CTA raises with the overflow in pixels. Dossiers: [`layout-wireframe-typography.md`](marketing-minthep/references/dossiers/layout-wireframe-typography.md), [`composition-and-layout-vision.md`](marketing-minthep/references/dossiers/composition-and-layout-vision.md), [`menu-design-and-engineering.md`](marketing-minthep/references/dossiers/menu-design-and-engineering.md).
 
 ## Sample output
@@ -208,8 +220,9 @@ marketing-minthep/
   SKILL.md                  entry point, under 150 lines
   references/               45 topic files, each under 150 lines
     dossiers/               14 deep-craft dossiers + index
-  data/                     6 lookup tables: image recipes, palettes, layout
-                            dials, slop tells, copy formulas, reference axes
+  data/                     9 lookup tables: image recipes, palettes, layout
+                            dials, slop tells, copy formulas, translation
+                            tells, reference axes, frame ratios, grids
   scripts/                  22 tools + test suite
   assets/
     registries/             pipelines.json, asset-formats.json
@@ -228,7 +241,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-121 tests, including ones that recompute every contrast ratio in `data/palettes.csv` and fail if a copy example contains a printable number. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
+137 tests, including ones that recompute every contrast ratio in `data/palettes.csv` and fail if a copy example contains a printable number. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
 
 ## What it will not do
 

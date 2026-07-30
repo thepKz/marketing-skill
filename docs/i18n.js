@@ -6,7 +6,7 @@ window.HANDBOOK_I18N = {
     "Bảng tham chiếu": "Reference sheets",
     "Không mô tả cơ chế.": "Do not describe the mechanism.",
     "Vẽ nó ra rồi chỉ.": "Draw it and point.",
-    "Bốn bảng tham chiếu dựng bằng code từ đúng những bảng dữ liệu mà skill tra khi ra quyết định, nên bảng không thể lệch khỏi lời khuyên. Không cần API key, không gọi provider nào. Bấm để xem bản đầy đủ.": "Four reference sheets, built by code from the same data tables the skill consults when it decides, so a sheet cannot drift from the advice. No API key, no image provider. Click to open one full size.",
+    "Năm bảng tham chiếu dựng bằng code từ đúng những bảng dữ liệu mà skill tra khi ra quyết định, nên bảng không thể lệch khỏi lời khuyên. Không cần API key, không gọi provider nào. Bấm để xem bản đầy đủ.": "Five reference sheets, built by code from the same data tables the skill consults when it decides, so a sheet cannot drift from the advice. No API key, no image provider. Click to open one full size.",
     "Bố cục là một nhúm con số": "Layout is a handful of numbers",
     "17 dial · min · mặc định · max": "17 dials · min · default · max",
     "“45/45 soft key” là gì": "What \"45/45 soft key\" means",
@@ -15,8 +15,11 @@ window.HANDBOOK_I18N = {
     "5 khung · safe zone · lề cắt": "5 frames · safe zones · trim margin",
     "Màu nào đọc được ngoài nắng": "Which colours survive sunlight",
     "20 palette · tỉ lệ tính, không khai": "20 palettes · ratios computed, not claimed",
-    "Bốn bảng này là artefact thật, không phải concept: chạy": "These four sheets are real artefacts, not concepts: running",
-    "là ra đúng những hình trên. Cột tương phản trong bảng palette là tính ra chứ không khai ra, và hai trong hai mươi accent thật sự không đạt ngưỡng 3:1 nên bị đánh dấu chỉ dùng để tô, không dùng cho chữ. Như vậy hữu ích hơn một bộ palette mà cái nào cũng đạt.": "produces exactly the images above. The contrast column in the palette sheet is computed rather than claimed, and two of the twenty accents genuinely miss the 3:1 threshold, so they are marked fill-only and not for text. That is more useful than a palette set where everything passes.",
+    "Có nên dùng tỉ lệ vàng": "Whether to use the golden ratio",
+    "12 tỉ lệ · 3 lưới · số đo, không cãi": "12 ratios · 3 grids · measured, not argued",
+    "Năm bảng này là artefact thật, không phải concept: chạy": "These five sheets are real artefacts, not concepts: running",
+    "là ra đúng những hình trên. Cột tương phản trong bảng palette là tính ra chứ không khai ra, và hai trong hai mươi accent thật sự không đạt ngưỡng 3:1 nên bị đánh dấu chỉ dùng để tô, không dùng cho chữ. Như vậy hữu ích hơn một bộ palette mà cái nào cũng đạt. Bảng tỉ lệ cũng vậy: nó không khen tỉ lệ vàng, nó đo — xoắn ốc vàng bị xếp là": "produces exactly the images above. The contrast column in the palette sheet is computed rather than claimed, and two of the twenty accents genuinely miss the 3:1 threshold, so they are marked fill-only and not for text. That is more useful than a palette set where everything passes. The ratio sheet works the same way: it does not flatter the golden ratio, it measures it — the golden spiral is graded",
+    ", và trên giấy A4 thì chia ba với đối xứng động là cùng một cái lưới.": ", and on A4 paper thirds and dynamic symmetry are the same grid.",
     "Bốn hướng ảnh, ba hướng menu và hai post mẫu, cùng một skill: packshot, beauty, art campaign, fashion, ba bố cục menu và hai bài đăng — tất cả phần bố cục đều dựng bằng code. Bấm vào bất kỳ ô nào để xem bản đầy đủ.": "Four image directions, three menu directions, and two sample posts from one skill: packshot, beauty, art campaign, fashion, three menu layouts, and two posts — every layout built by code. Click any tile to open it full size.",
     // The disclaimer is three keys, not one, because `setLanguage` walks text nodes and skips
     // anything inside <code>. The single key that used to live here matched nothing at all: the

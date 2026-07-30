@@ -6,6 +6,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import math
 import unicodedata
 import re
 import tempfile
@@ -22,6 +23,7 @@ from compile_prompt import compile_provider
 # would leave one test silently asserting against the other module's table.
 import find_recipe
 import render_refsheet
+import rewrite_human
 from new_run import build_run, load_registry, route_pipeline, write_run
 from plan_image_generation import route_image_request
 from plan_design_options import plan_options
@@ -1241,13 +1243,18 @@ class DataTableTests(unittest.TestCase):
     a slop tell scoped to a recipe id that had been renamed, and a palette whose contrast claim
     was typed rather than computed."""
 
+    # (rows, columns). Both, spelled out, because the single number this replaced meant columns for
+    # five of these tables and rows for the other two, and nothing had ever compared it to the file.
     TABLES = {
-        "image-recipes.csv": 13,
-        "palettes.csv": 15,
-        "layout-dials.csv": 11,
-        "slop-tells.csv": 9,
-        "copy-formulas.csv": 22,
-        "reference-axes.csv": 9,
+        "image-recipes.csv": (39, 13),
+        "palettes.csv": (20, 15),
+        "layout-dials.csv": (17, 11),
+        "slop-tells.csv": (33, 9),
+        "copy-formulas.csv": (22, 9),
+        "translation-tells.csv": (30, 10),
+        "reference-axes.csv": (11, 9),
+        "frame-ratios.csv": (13, 12),
+        "composition-grids.csv": (7, 10),
     }
 
     @staticmethod
@@ -1265,6 +1272,16 @@ class DataTableTests(unittest.TestCase):
                         value and value.strip(),
                         f"{name}: row {list(row.values())[0]!r} has an empty {field}",
                     )
+
+    def test_table_shapes_match_what_this_test_declares(self) -> None:
+        # The numbers above were decoration until this existed: nothing read them, so a column
+        # quietly added or dropped changed the tables without changing a single test. A count is
+        # only a check if something compares it. Running it the first time proved the point — two
+        # of the seven numbers were row counts sitting in a dict everyone read as columns.
+        for name, (rows, columns) in self.TABLES.items():
+            found = self.rows(name)
+            self.assertEqual(len(found), rows, f"{name} no longer has {rows} rows")
+            self.assertEqual(len(found[0]), columns, f"{name} no longer has {columns} columns")
 
     def test_ids_are_unique(self) -> None:
         for name in self.TABLES:
@@ -1449,6 +1466,89 @@ class RefSheetTests(unittest.TestCase):
         rows = DataTableTests.rows("reference-axes.csv")
         moved = [row["axis"] for row in rows if row["verdict"] == "transform"]
         self.assertGreaterEqual(len(moved), 3, f"only {moved} would move; the rule asks for three")
+
+    def test_ratio_geometry_is_derived_from_w_and_h_alone(self) -> None:
+        """Recompute every eye position from scratch and compare against `ratio_lines`.
+
+        The formula is the one thing on the ratios sheet nobody can eyeball. It is asserted here
+        against an independent construction — actually intersecting the full diagonal with the
+        reciprocal diagonal — rather than against itself, because a test that reruns the same
+        expression only proves Python is deterministic.
+        """
+        for row in DataTableTests.rows("frame-ratios.csv"):
+            w, h = int(row["w"]), int(row["h"])
+            # Full diagonal from (0,0) to (w,h). The reciprocal diagonal leaves (0,h) along the
+            # perpendicular to it, so its direction is (h,-w) rotated: slope -w/h through (0,h).
+            # Intersect y = (h/w)x with y = h - (w/h)x and solve for x.
+            x = h * h * w / (w * w + h * h)
+            geometry = find_recipe.ratio_lines(w, h)
+            self.assertAlmostEqual(geometry["eye"], x / w, places=9,
+                                   msg=f'{row["ratio_id"]}: eye is not the diagonal intersection')
+            self.assertAlmostEqual(geometry["decimal"], w / h, places=9)
+            self.assertAlmostEqual(
+                geometry["eye_gap_px"], abs(min(geometry["eye"], 1 - geometry["eye"]) - 1 / 3) * w,
+                places=6, msg=f'{row["ratio_id"]}: the gap is not measured to the nearer thirds line',
+            )
+
+    def test_root_two_paper_is_where_the_two_grids_coincide(self) -> None:
+        """h squared = 2 w squared puts the eye on exactly 1/3, so on ISO paper thirds and dynamic
+        symmetry are the same grid. Both tables now say so in prose, and this is the arithmetic
+        they are claiming. It is also the sheet's clearest moment, where the grey line disappears
+        under the blue one, so a regression here would silently delete the payoff."""
+        # The identity is exact in the reals: h**2 == 2 * w**2 gives eye = 2/3 and near = 1/3. It
+        # cannot be tested at full precision through ratio_lines, which takes whole pixels, and
+        # sqrt(2) is irrational — so 1000 x 1414 is off by 6.7e-5. Assert the algebra separately
+        # from the pixels rather than loosening one test until it covers both.
+        w = 1000.0
+        self.assertAlmostEqual((2 * w * w) / (w * w + 2 * w * w), 2 / 3, places=12)
+        near_pixels = find_recipe.ratio_lines(1000, round(1000 * math.sqrt(2)))["eye_near"]
+        self.assertLess(abs(near_pixels - 1 / 3), 1e-4,
+                        "rounding 1000·sqrt(2) to a whole pixel should cost well under 0.01%")
+        a4 = find_recipe.ratio_lines(1240, 1754)
+        self.assertLess(a4["eye_gap_px"], 1.0, "the A4 row should round to 0 px of disagreement")
+        for row in DataTableTests.rows("frame-ratios.csv"):
+            if row["ratio_id"] == "a4-print":
+                self.assertIn("same grid", row["consequence"])
+
+    def test_every_ratio_names_a_grid_the_grid_table_defines(self) -> None:
+        # The two tables are only useful joined: a ratio says which grid it wants and the grid table
+        # says what the evidence for that grid is. A ratio pointing at a grid_id that does not exist
+        # is a dead end the reader only finds by running the lookup and getting nothing.
+        grids = {row["grid_id"] for row in DataTableTests.rows("composition-grids.csv")}
+        grids.add("phi-as-sizing")  # the sizing use, deliberately not a placement grid
+        for row in DataTableTests.rows("frame-ratios.csv"):
+            self.assertIn(row["grid"], grids,
+                          f'{row["ratio_id"]} wants grid {row["grid"]!r}, which no row defines')
+
+    def test_grids_that_the_evidence_does_not_support_say_so(self) -> None:
+        """Every graded row has to carry a grade the vocabulary knows, and the phi rows have to keep
+        their retraction. This exists because the honest version of this table is the whole point of
+        it: a golden-ratio row that quietly loses its `myth` grade becomes the advice it warns
+        against, and reads more authoritative for having a citation next to it."""
+        allowed = {"peer-reviewed", "peer-reviewed-contested", "myth", "myth-adjacent",
+                   "craft-heuristic", "industry-primary", "third-party-cache", "physics"}
+        for name, key in (("composition-grids.csv", "grid_id"), ("frame-ratios.csv", "ratio_id")):
+            for row in DataTableTests.rows(name):
+                self.assertIn(row["evidence_grade"], allowed,
+                              f'{name} {row[key]}: unknown grade {row["evidence_grade"]!r}')
+        graded = {row["grid_id"]: row["evidence_grade"]
+                  for row in DataTableTests.rows("composition-grids.csv")}
+        self.assertEqual(graded["golden-spiral"], "myth")
+        self.assertEqual(graded["phi-grid"], "myth-adjacent")
+
+    def test_ratios_sheet_draws_all_three_grids_and_keeps_phi_out_of_the_strip(self) -> None:
+        # phi is not a delivery ratio, so drawing it beside 16:9 would teach the error the table
+        # spends a paragraph correcting. It gets its own panel instead, and this pins that split.
+        svg = self.sheet("ratios")
+        for row in DataTableTests.rows("frame-ratios.csv"):
+            if row["family"] == "phi":
+                self.assertNotIn(f'{row["w"]} x {row["h"]}', svg,
+                                 "the phi ratio was drawn as if it were a delivery ratio")
+                continue
+            self.assertIn(f'{row["w"]} x {row["h"]}', svg, f'{row["ratio_id"]}: missing')
+        self.assertIn(render_refsheet.COBALT, svg)
+        self.assertIn(render_refsheet.ORANGE, svg)
+        self.assertIn("stroke-dasharray", svg, "thirds and phi must be distinguishable from the eye")
 
     def test_frames_reserve_stays_inside_the_platform_bands(self) -> None:
         for name, _pw, ph, top, bottom, _note, reserve, _why in render_refsheet.PLACEMENTS:
@@ -1696,6 +1796,109 @@ class HandbookTranslationTests(unittest.TestCase):
         page it was written for no longer exists and nobody noticed the English went missing."""
         dead = sorted(key for key in self.keys if key not in self.nodes)
         self.assertEqual(dead, [], f"{len(dead)} keys match no text node: {dead[:5]}")
+
+
+class RewriteHumanTests(unittest.TestCase):
+    """The cadence gates are statistical, which means a human reviewer cannot check them by
+    reading and a wrong measurement would go unnoticed for as long as the copy kept passing.
+    These tests are the only thing standing between a plausible number and a wrong one."""
+
+    def test_self_check_passes(self) -> None:
+        # rewrite_human.self_check() carries the assertions that belong next to the measurement
+        # code. Calling it here means one failing measurement fails the whole suite.
+        self.assertEqual(rewrite_human.self_check().strip(), "self-check passed")
+
+    def test_uniform_prose_fails_the_burstiness_gate(self) -> None:
+        flat = " ".join(["The broth is simmered from bone each morning here."] * 6)
+        gates = {row["gate"]: row for row in rewrite_human.gates(rewrite_human.measure(flat, "en"))}
+        self.assertFalse(gates["burstiness-cv"]["pass"])
+        self.assertEqual(gates["burstiness-cv"]["severity"], "critical")
+
+    def test_every_tell_regex_compiles_and_declares_a_scope(self) -> None:
+        # A broken regex would silently stop detecting its tell, and the report would say the
+        # draft was clean. A missing scope would make a heading tell look for headings in text
+        # that has had its headings stripped.
+        for row in DataTableTests.rows("translation-tells.csv"):
+            with self.subTest(row["id"]):
+                re.compile(row["detect_regex"])
+                self.assertIn(row["scope"], ("prose", "raw"))
+                self.assertIn(row["language"], ("vi", "en", "any"))
+                self.assertIn(row["severity"], ("critical", "high", "medium", "low"))
+
+    def test_no_tell_fires_on_clean_copy_in_either_language(self) -> None:
+        """A detector that flags good copy gets ignored, and an ignored gate is worse than none.
+        Both samples below are written to the skill's own targets."""
+        clean = {
+            "vi": ("Trưa nay bạn có bốn mươi phút. Nồi nước dùng nấu từ xương từ bốn giờ sáng. "
+                   "Chín năm, cùng một nồi, cùng một góc phố. Ghé trước 11h30 thì khỏi chờ."),
+            "en": ("Lunch is forty minutes long. The broth is simmered from bone from four in the "
+                   "morning, not made to order one bowl at a time, which is the only reason it holds. "
+                   "Nine years at the same corner. Come before eleven thirty and you will not wait."),
+        }
+        for language, text in clean.items():
+            with self.subTest(language):
+                blocking = [row for row in rewrite_human.find_tells(text, language)
+                            if row.get("severity") in ("critical", "high")]
+                self.assertEqual(blocking, [], f"{language}: clean copy tripped {blocking}")
+
+    def test_machine_translated_vietnamese_is_caught(self) -> None:
+        draft = ("Trong thế giới ngày nay, việc tìm một quán uy tín là không dễ. Chúng tôi tự hào "
+                 "là đơn vị chuyên nghiệp và tận tâm nhất. Món này được nấu bởi đầu bếp trưởng. "
+                 "Điều này có nghĩa là bạn sẽ hài lòng. Hơn nữa, giá cả hợp lý.")
+        hits = {row["id"] for row in rewrite_human.find_tells(draft, "vi")}
+        for expected in ("trong-the-gioi-ngay-nay", "su-viec-nominal", "uy-tin-chuyen-nghiep",
+                         "tu-hao", "duoc-boi-passive", "dieu-nay-co-nghia", "hon-nua-stack"):
+            self.assertIn(expected, hits)
+
+    def test_language_is_detected_without_a_hint(self) -> None:
+        self.assertEqual(rewrite_human.detect_language("Nồi nước dùng nấu từ xương."), "vi")
+        self.assertEqual(rewrite_human.detect_language("The broth is simmered from bone."), "en")
+
+    def test_the_pipeline_is_registered_with_its_reference_and_script(self) -> None:
+        pipeline = load_registry()["pipelines"]["rewrite-human"]
+        self.assertIn("rewrite-human.md", pipeline["references"])
+        self.assertIn("rewrite_human.py", pipeline["scripts"])
+        self.assertTrue((SKILL_ROOT / "references" / "rewrite-human.md").exists())
+
+    def test_rewrite_requests_route_to_the_rewrite_pipeline(self) -> None:
+        registry = load_registry()
+        for request in ("viết lại đoạn này cho tự nhiên, đang bị dịch máy",
+                        "rewrite this landing page so it does not sound like AI",
+                        "bản dịch tiếng Anh nghe như dịch từng chữ, sửa lại giúp"):
+            with self.subTest(request):
+                routed = route_pipeline({"request": request}, registry)["pipeline"]
+                self.assertEqual(routed, "rewrite-human")
+
+    def test_adding_the_route_did_not_steal_other_requests(self) -> None:
+        """The trigger list contains "viết" and "dịch", which appear in plenty of requests that
+        are not rewrites. This is the regression that would make the new route a net loss."""
+        registry = load_registry()
+        unchanged = {
+            "lên kế hoạch marketing cho quán bún bò": "plan-from-zero",
+            "thiết kế menu quán cà phê": "design-render",
+            "nghiên cứu thị trường trà sữa": "deep-research",
+            "chụp ảnh sản phẩm từ hình này": "image-from-reference",
+            "viết kịch bản video TikTok cho sản phẩm": "video-campaign",
+        }
+        for request, expected in unchanged.items():
+            with self.subTest(request):
+                self.assertEqual(route_pipeline({"request": request}, registry)["pipeline"], expected)
+
+    def test_the_worked_example_still_demonstrates_what_its_readme_claims(self) -> None:
+        """The example is the only place a reader sees the whole loop, so a threshold change that
+        made the bad draft pass, or the rewrite fail, would quietly turn it into a lesson in
+        nothing. The README quotes these verdicts."""
+        folder = SKILL_ROOT / "assets" / "examples" / "rewrite-human"
+
+        def blocking(name: str, language: str) -> int:
+            text = (folder / name).read_text(encoding="utf-8")
+            return rewrite_human.blocking_count(
+                rewrite_human.gates(rewrite_human.measure(text, language)),
+                rewrite_human.find_tells(text, language))
+
+        self.assertGreater(blocking("01-draft-vi.md", "vi"), 0, "the bad draft stopped failing")
+        self.assertEqual(blocking("02-rewrite-vi.md", "vi"), 0, "the shipped rewrite stopped passing")
+        self.assertEqual(blocking("03-transcreation-en.md", "en"), 0, "the shipped English stopped passing")
 
 
 if __name__ == "__main__":

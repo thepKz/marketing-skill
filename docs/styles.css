@@ -319,6 +319,10 @@ h1 { max-width: 780px; margin: 26px 0 28px; font-size: clamp(3.5rem, 5.7vw, 6rem
 .sheet-item:nth-child(2) { grid-column: span 5; }
 .sheet-item:nth-child(3) { grid-column: span 8; }
 .sheet-item:nth-child(4) { grid-column: span 4; }
+/* The ratio sheet carries twelve frames across, so it takes the whole row rather than half of one.
+   At span 6 it renders each frame about 100px wide and the three grid lines land on top of each
+   other, which is the one thing that sheet exists to separate. */
+.sheet-item:nth-child(5) { grid-column: span 12; }
 
 .step-image, .role-map, .variant-fan, .qa-stamp { height: 190px; border: 1px solid var(--line); }
 .step-image img { object-position: center 27%; }
@@ -512,7 +516,7 @@ footer p { max-width: 60ch; margin: 7px 0 0; color: var(--muted); }
   .output-item, .output-product, .output-beauty, .output-art, .output-fashion, .output-menu, .output-post, .output-post.is-story { grid-column: auto; min-height: 480px; margin-top: 0; }
   .output-item > span { flex-direction: column; gap: 4px; }
   .sheet-wall { grid-template-columns: 1fr; }
-  .sheet-item, .sheet-item:nth-child(1), .sheet-item:nth-child(2), .sheet-item:nth-child(3), .sheet-item:nth-child(4) { grid-column: auto; }
+  .sheet-item, .sheet-item:nth-child(1), .sheet-item:nth-child(2), .sheet-item:nth-child(3), .sheet-item:nth-child(4), .sheet-item:nth-child(5) { grid-column: auto; }
   .sheet-item > span { flex-direction: column; gap: 4px; }
   .reference-wall { grid-template-columns: 1fr; }
   .verdict-key { padding: 32px 20px; }

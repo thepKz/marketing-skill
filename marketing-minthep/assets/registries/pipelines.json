@@ -1017,6 +1017,78 @@
           ]
         }
       ]
+    },
+    "rewrite-human": {
+      "title": "Rewrite human",
+      "title_vi": "Viết lại cho ra tiếng người",
+      "default_mode": "focused",
+      "use_when": "A draft already exists and reads machine-written or machine-translated. Includes any request to make copy sound human, to fix word-by-word translation between Vietnamese and English, or to transcreate an approved text into the other language.",
+      "references": ["rewrite-human.md", "copywriting.md", "brand-dna.md", "anti-ai-quality.md", "claims-proof-ledger.md"],
+      "scripts": ["rewrite_human.py", "find_recipe.py", "run_status.py"],
+      "deliverables": [
+        {
+          "id": "01-intake",
+          "file": "01-intake.md",
+          "kind": "md",
+          "bilingual": false,
+          "modes": ["focused", "system", "production"],
+          "title": "Intake",
+          "title_vi": "Tiếp nhận",
+          "gate": "The source language, the target language, and which version is the original are stated. Every checkable fact in the draft is listed before any rewriting.",
+          "sections": [
+            {"en": "Draft as received", "vi": "Bản nháp gốc", "write": "The text verbatim, with its source and who approved it."},
+            {"en": "Direction", "vi": "Hướng dịch", "write": "Which language is the original and which is transcreated, and why. Default: Vietnamese original, English transcreated."},
+            {"en": "Fact inventory", "vi": "Kiểm kê dữ kiện", "write": "Every checkable thing: numbers, dates, address, mechanism, price, guarantee. Label each confirmed/observed/inferred/unknown. Fewer than three means the copy has no content and rewriting cannot fix it."},
+            {"en": "Locks", "vi": "Điều không được đổi", "write": "Claims, numbers, legal disclosures, brand names and trademarked phrasing that must survive the rewrite byte for byte."}
+          ]
+        },
+        {
+          "id": "02-diagnosis",
+          "file": "02-diagnosis.md",
+          "kind": "md",
+          "bilingual": false,
+          "modes": ["focused", "system", "production"],
+          "title": "Diagnosis",
+          "title_vi": "Chẩn đoán",
+          "gate": "The measured output of scripts/rewrite_human.py is pasted, not summarised. Cadence failures and calque failures are separated.",
+          "sections": [
+            {"en": "Measured before", "vi": "Đo bản gốc", "write": "Paste the gate table and tell table from `python scripts/rewrite_human.py --check <draft>`."},
+            {"en": "Cadence failures", "vi": "Lỗi nhịp", "write": "Which gates failed and where in the draft each one comes from."},
+            {"en": "Translation tells", "vi": "Dấu hiệu dịch máy", "write": "Which rows of data/translation-tells.csv fired, with the fix each one specifies."},
+            {"en": "Not a cadence problem", "vi": "Không phải lỗi nhịp", "write": "Anything wrong with the truth, claim, offer, or audience fit. Say plainly if the real problem is that the copy has nothing to say."}
+          ]
+        },
+        {
+          "id": "03-rewrite",
+          "file": "03-rewrite",
+          "kind": "md",
+          "bilingual": true,
+          "modes": ["focused", "system", "production"],
+          "title": "Rewrite",
+          "title_vi": "Bản viết lại",
+          "gate": "Every fact from the intake inventory is present in the rewrite. The rewrite is not longer than the original unless a named fact was added.",
+          "sections": [
+            {"en": "Rewrite", "vi": "Bản viết lại", "write": "The finished copy. Calques repaired first, then rhythm rebuilt around where each claim lands."},
+            {"en": "What changed and why", "vi": "Đã đổi gì và vì sao", "write": "Per edit: the failure it repairs. Not a list of synonyms swapped."},
+            {"en": "Facts preserved", "vi": "Dữ kiện được giữ", "write": "The intake inventory, ticked off against the rewrite. Name anything dropped and why."}
+          ]
+        },
+        {
+          "id": "04-verification",
+          "file": "04-verification.md",
+          "kind": "md",
+          "bilingual": false,
+          "modes": ["focused", "system", "production"],
+          "title": "Verification",
+          "title_vi": "Kiểm chứng",
+          "gate": "The re-measured output is pasted and no critical or high gate fails. A lowered target is not a pass.",
+          "sections": [
+            {"en": "Measured after", "vi": "Đo bản mới", "write": "Paste the second run of `scripts/rewrite_human.py --check`."},
+            {"en": "Read aloud", "vi": "Đọc thành tiếng", "write": "Three consecutive sentences, checked for a repeating shape. Note what the ear caught that the script did not."},
+            {"en": "Residual risk", "vi": "Rủi ro còn lại", "write": "What still needs a human: unproven claims, market-specific legality, brand-voice judgement."}
+          ]
+        }
+      ]
     }
   }
 }

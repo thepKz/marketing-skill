@@ -92,10 +92,12 @@ one dial, with everything else held still. It is the fastest way to show someone
 this for a living what "side margin 11.1% against 8.3%" actually does to a page. Swap `--dial` for
 `title_ratio`, `row_pitch_ratio` or `line_leading` to isolate a different number.
 
-Four more sheets come off the same tables: `--sheet lighting` for the six setups a photography
+Five more sheets come off the same tables: `--sheet lighting` for the six setups a photography
 brief can ask for, `--sheet frames` for the five placements at true proportion with the reserved
-bands shaded, `--sheet palettes` for 20 palettes with their measured contrast printed on them, and
-`--sheet reference` for the 11 axes that decide which half of a borrowed picture you may keep.
+bands shaded, `--sheet palettes` for 20 palettes with their measured contrast printed on them,
+`--sheet reference` for the 11 axes that decide which half of a borrowed picture you may keep, and
+`--sheet ratios` for the twelve delivery ratios with all three composition grids drawn on each — the
+sheet to reach for when somebody asks whether the menu should use the golden ratio.
 None of them call an image provider and none need an API key.
 
 ## Where the craft values came from

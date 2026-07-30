@@ -27,9 +27,11 @@ SKILL_NAME = SKILL_ROOT.name
 
 # Caches and scratch must never reach a global install: they are large, machine-specific, and
 # would be read as skill content by an agent that does not know better.
-EXCLUDE = shutil.ignore_patterns("__pycache__", "*.pyc", ".tmp*", "undefined", ".impeccable")
+# agents.zip is a 1 MB build artifact of the repo, not skill content. Shipping it made every
+# install a megabyte heavier for a file no agent reads.
+EXCLUDE = shutil.ignore_patterns("__pycache__", "*.pyc", ".tmp*", "undefined", ".impeccable", "*.zip")
 # Names EXCLUDE drops, so --check does not report them as drift the install failed to fix.
-IGNORED = {"__pycache__", ".impeccable", "undefined"}
+IGNORED = {"__pycache__", ".impeccable", "undefined", "agents.zip"}
 
 
 def targets() -> list[Path]:

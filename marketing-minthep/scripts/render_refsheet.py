@@ -32,6 +32,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _emit import emit, use_utf8_stdout  # noqa: E402
+from find_recipe import PHI, ratio_lines  # noqa: E402
 from render_mockup import CAP, LEAD, advance, wrap  # noqa: E402
 
 DATA = Path(__file__).resolve().parent.parent / "data"
@@ -285,6 +286,145 @@ def sheet_frames() -> str:
             parts.append(body)
     height = cursor + plate_h + 230 + margin
     return _open(width, height) + "".join(parts) + "</svg>"
+
+
+def _grid_overlay(ox: float, oy: float, fw: float, fh: float, near: float) -> str:
+    """Draw the three competing grids on one frame, so the argument about them can be looked at.
+
+    Only the lower-left line of each pair is drawn. Each grid is symmetric about the centre, so the
+    second line carries no information the first does not, and six lines on a frame 80 px tall is
+    mush. What survives is the only thing in dispute: how far apart the three verticals sit.
+    """
+    marks = [
+        (1 / 3, MUTED, '4 4', 1.0),
+        (1 - 1 / PHI, ORANGE, '2 3', 1.0),
+        (near, COBALT, None, 1.6),
+    ]
+    parts = []
+    for fraction, colour, dash, weight in marks:
+        stroke = f' stroke-dasharray="{dash}"' if dash else ""
+        x, y = ox + fw * fraction, oy + fh * fraction
+        parts.append(f'<line x1="{x:.1f}" y1="{oy:.1f}" x2="{x:.1f}" y2="{oy + fh:.1f}" '
+                     f'stroke="{colour}" stroke-width="{weight}"{stroke}/>')
+        parts.append(f'<line x1="{ox:.1f}" y1="{y:.1f}" x2="{ox + fw:.1f}" y2="{y:.1f}" '
+                     f'stroke="{colour}" stroke-width="{weight}"{stroke}/>')
+    parts.append(f'<circle cx="{ox + fw * near:.1f}" cy="{oy + fh * near:.1f}" r="3.4" fill="{COBALT}"/>')
+    return "".join(parts)
+
+
+def _golden_panel(x: float, y: float, width: float) -> tuple[str, float]:
+    """phi used the way it survives scrutiny: to pick sizes, never to place a subject.
+
+    Drawn rather than asserted because the claim in the table is comparative — a 61.8/38.2 split of
+    a layout is a real decision, and 38.2% against a thirds 33.3% is 5% of a frame. One of those is
+    worth defending to a client and the other is not, and they are the same number.
+    """
+    parts = [_text(x, y, "phi, doing the one job it is good at", 22, bold=True)]
+    body, cursor = _block(x, y + 30, (
+        "The golden ratio is not a delivery ratio — no channel accepts 1.618:1 and no viewer reads "
+        "it as anything. It is a generator for sizes. Split a layout 61.8 / 38.2 and every panel "
+        "relates to every other by one constant, which is why the result looks decided. Use the "
+        "same number to place a subject and you are defending 5% of a frame with mathematics that "
+        "does not cover the claim."
+    ), 15, width, "golden", fill=MUTED, max_lines=4)
+    parts.append(body)
+
+    split_w, split_h = width * 0.52, 150
+    sx, sy = x, cursor + 12
+    image_w = split_w / PHI
+    parts.append(f'<rect x="{sx:.0f}" y="{sy:.0f}" width="{image_w:.0f}" height="{split_h}" '
+                 f'fill="{COBALT}" opacity="0.16"/>')
+    parts.append(f'<rect x="{sx + image_w:.0f}" y="{sy:.0f}" width="{split_w - image_w:.0f}" '
+                 f'height="{split_h}" fill="#E7E1D4"/>')
+    parts.append(f'<rect x="{sx:.0f}" y="{sy:.0f}" width="{split_w:.0f}" height="{split_h}" '
+                 f'fill="none" stroke="{INK}" stroke-width="2"/>')
+    parts.append(_text(sx + image_w / 2, sy + split_h / 2 + 5, "image  61.8%", 15,
+                       fill=INK, bold=True, anchor="middle"))
+    parts.append(_text(sx + image_w + (split_w - image_w) / 2, sy + split_h / 2 + 5, "copy  38.2%", 14,
+                       fill=MUTED, anchor="middle"))
+    parts.append(_text(sx, sy + split_h + 24, "A split you can defend: one constant, every panel.", 13,
+                       fill=MUTED))
+
+    tx = x + split_w + 46
+    parts.append(_text(tx, sy + 16, "Type scale, each step x1.618", 14, bold=True))
+    step_y = sy + 34
+    size = 15.0
+    for _rung in range(4):
+        step_y += size * 1.15
+        parts.append(_text(tx, step_y, f"{size:.0f} px", size, fill=INK))
+        size *= PHI
+    parts.append(_text(tx, step_y + 26, "15 / 24 / 39 / 64 — four sizes, one decision.", 13, fill=MUTED))
+    return "".join(parts), sy + split_h + 46
+
+
+def sheet_ratios() -> str:
+    """Every delivery ratio at true proportion, with the three grids drawn on each one.
+
+    The point of the sheet is the migration. Thirds sits at 33.3% whatever the frame; the
+    dynamic-symmetry eye walks from 14.9% on scope to 50% on a square, so the two grids agree on
+    3:2 and ISO paper and disagree by 377 px on scope. That is an argument nobody can settle from
+    prose, which is why it is drawn. Every number comes from `ratio_lines`, the same function the
+    terminal lookup prints, so the sheet cannot claim a position the table denies.
+    """
+    rows = [r for r in _table("frame-ratios.csv") if r["family"] != "phi"]
+    rows.sort(key=lambda r: -int(r["w"]) / int(r["h"]))
+    # Six across rather than the four the other sheets use, on a wider canvas that keeps each
+    # column the same width. Twelve ratios in three bands makes a sheet twice as tall as it is
+    # wide, and a page that has to show it beside anything else can only do that by leaving half a
+    # row empty. Two bands of six is the same twelve frames in a shape a layout can actually use.
+    width, margin, gap, cols = 2020, 60, 26, 6
+    head, cursor = _header(
+        "Which ratio, and which grid that ratio wants",
+        "Each frame is its true proportion. Grey dashed is thirds at 33.3%, orange dotted is the phi "
+        "line at 38.2%, cobalt is the dynamic-symmetry eye with its dot. Only the lower-left line of "
+        "each pair is drawn; all three grids are symmetric, so the second line says nothing new. "
+        "Watch the cobalt line move as the frames get narrower and the grey one stay put — that gap, "
+        "in pixels, is the entire disagreement between the two grids.",
+        width, margin, max_lines=4,
+    )
+    parts = [head]
+    box = (width - margin * 2 - gap * (cols - 1)) / cols
+
+    for band_start in range(0, len(rows), cols):
+        band = rows[band_start:band_start + cols]
+        plate_h = box * max(int(r["h"]) / int(r["w"]) for r in band)
+        caption_bottom = cursor + plate_h
+        for index, row in enumerate(band):
+            pw, ph = int(row["w"]), int(row["h"])
+            geo = ratio_lines(pw, ph)
+            scale = min(box / pw, plate_h / ph)
+            fw, fh = pw * scale, ph * scale
+            ox = margin + index * (box + gap)
+            oy = cursor + (plate_h - fh)
+            parts.append(f'<rect x="{ox:.0f}" y="{oy:.0f}" width="{fw:.0f}" height="{fh:.0f}" '
+                         f'fill="#E7E1D4"/>')
+            parts.append(_grid_overlay(ox, oy, fw, fh, geo["eye_near"]))
+            parts.append(f'<rect x="{ox:.0f}" y="{oy:.0f}" width="{fw:.0f}" height="{fh:.0f}" '
+                         f'fill="none" stroke="{INK}" stroke-width="2"/>')
+            text_y = cursor + plate_h + 30
+            parts.append(_text(ox, text_y, row["label"], 20, bold=True))
+            parts.append(_text(ox, text_y + 21, f"{pw} x {ph}  ·  {geo['decimal']:.3f}", 13, fill=COBALT))
+            # The computed line reports the gap and stops. It does not say which grid to use, because
+            # the row already answers that in its grid column and the two would contradict each
+            # other: 5:4 has a 5.7% gap, which is "visible", and still wants centre because it is
+            # nearly square. A measurement that also gives advice will eventually give bad advice.
+            gap_px = geo["eye_gap_px"]
+            verdict = (
+                f"Eye {geo['eye_near'] * 100:.1f}%, thirds 33.3% — {gap_px:.0f} px apart on "
+                f"{pw} px of width, {gap_px / pw * 100:.1f}% of the frame. "
+            ) + ("Under 5%: the grids agree here and the choice is empty."
+                 if gap_px < pw * 0.05 else "Over 5%: they disagree and the choice shows.")
+            body, text_y = _block(ox, text_y + 44, verdict, 12.5, box, "verdict", max_lines=4)
+            parts.append(body)
+            body, text_y = _block(ox, text_y + 4, f"Grid: {row['grid']} — {row['anchor_rule']}",
+                                  12.5, box, "anchor", fill=MUTED, max_lines=4)
+            parts.append(body)
+            caption_bottom = max(caption_bottom, text_y)
+        cursor = caption_bottom + 54
+
+    golden, cursor = _golden_panel(margin, cursor + 14, width - margin * 2)
+    parts.append(golden)
+    return _open(width, cursor + margin) + "".join(parts) + "</svg>"
 
 
 def sheet_palettes() -> str:
@@ -613,6 +753,7 @@ def sheet_reference() -> str:
 SHEETS = {
     "lighting": sheet_lighting,
     "frames": sheet_frames,
+    "ratios": sheet_ratios,
     "palettes": sheet_palettes,
     "dials": sheet_dials,
     "reference": sheet_reference,
