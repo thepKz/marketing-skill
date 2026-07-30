@@ -57,6 +57,16 @@ TABLES = {
     # a range with a reason rather than a number.
     "kpi_weights": ("kpi-aspect-weights.csv", "aspect",
                     ("block", "name_vi", "name_en", "rationale")),
+    # Searched by what is visible rather than by style name, because the person holding the photo
+    # does not know it is called mul-gwang. They know the skin looks wet. signature_tell and
+    # discriminator are in the search set for the same reason: they carry the sentence that settles
+    # which of two near-identical looks this actually is.
+    "makeup": ("makeup-looks.csv", "look_id",
+               ("name_vi", "name_en", "family", "signature_tell", "discriminator", "use_when")),
+    # Searched by the question, because that is how it gets used: somebody wants to know what to
+    # ask next, not which q_id to look up.
+    "makeup_ask": ("makeup-diagnostics.csv", "q_id",
+                   ("question_vi", "question_en", "look_where", "why_it_matters")),
 }
 
 # The fields of a brief that no lookup table can supply, with the reason each one has to come from

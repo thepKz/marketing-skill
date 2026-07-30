@@ -1116,6 +1116,7 @@
       "references": [
         "reference-first-image-flow.md",
         "reference-analysis.md",
+        "makeup-art-direction.md",
         "visual-craft.md",
         "composition-light-color.md",
         "image-output-and-sharpening.md",
@@ -1129,6 +1130,7 @@
       "scripts": [
         "start_workbench.py",
         "new_run.py",
+        "read_makeup.py",
         "plan_design_options.py",
         "compile_prompt.py",
         "plan_image_generation.py",

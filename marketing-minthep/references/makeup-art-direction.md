@@ -5,6 +5,7 @@
 - Reference confidence
 - Makeup contract
 - Look lanes
+- Identifying a look from a photograph
 - Beauty pose contract
 - Reference mixing
 - QA
@@ -51,6 +52,40 @@ Use a lane as a starting system, then write all nine axes explicitly.
 | `smoky-grunge` | Smudged liner, deeper lash line, imperfect edge, muted or deep lip, harder flash | Accidental raccoon eye or crushed shadow detail |
 | `graphic-editorial` | Color block, graphic liner, metallic or gem accent with one dominant device | Combining every experimental device at once |
 | `monochrome-tonal` | One hue family repeated across eye, cheek, and lip with varied texture | Flat color with no material separation |
+
+## Identifying a look from a photograph
+
+A lane above is a starting mood. It cannot answer the question that actually arrives, which is somebody pasting a photo and asking what this is and how to brief it. That needs rows, and `data/makeup-looks.csv` holds 47 of them: ten families, each row carrying all nine axes plus the tell that identifies it, the look it gets mistaken for, and the one observation that separates the two.
+
+Run `scripts/read_makeup.py`:
+
+- `--observe "wet skin, no crease, blush under the eye"` ranks candidates by which of your observations each row accounts for, and names which column matched. Free text, Vietnamese or English, diacritics optional. Exit 2 means more than one candidate survived, which is a state to continue from rather than a failure.
+- `--ask` prints the whole diagnostic sequence from `data/makeup-diagnostics.csv`.
+- `--brief LOOK_ID` prints one look as the nine-axis contract with its light requirement, its `use_when` and `avoid_when`, and the questions that have to be settled before shooting.
+
+### Misidentification is the failure mode, not ignorance
+
+Nobody briefs the wrong look because they have never heard of it. They brief the wrong look because two looks share a name in casual use and differ in exactly one place. That one place is the `discriminator` column, and it is the most load-bearing content in the table.
+
+| Confused pair | Where to look |
+|---|---|
+| `kr-mul-gwang` vs `us-glass-skin` | Edges. Glass skin has a visible highlight boundary; mul-gwang has none, because the glow is the base rather than a product on top of it. The most common misidentification in the table. |
+| `kr-gradient-lip` vs `us-overlined-lip` | Which side of the lip border the colour falls on. A gradient fades out before it; an overline crosses it. One hides the outline, the other invents one. |
+| `us-siren-eye` vs `jp-ulzzang-doll` | Placement, and they are exact opposites. Siren empties the inner corner and loads the outer; doll-eye loads the centre and brightens the inner corner. |
+| `kr-mul-gwang` vs `ed-wet-editorial` | Whether the water is real. Wet editorial has discrete droplets with their own highlights and pigment that has visibly run; mul-gwang is dry to the touch. |
+| `cn-douyin` vs `us-instagram-glam` | Direction of the sculpting. Douyin narrows the whole face; Instagram glam widens the eye and the lip. One shrinks features, the other inflates them. |
+
+### The order to ask in
+
+Eleven questions read the photograph. `--observe` sorts them by how many candidates the worst-case answer would remove from the current shortlist, so the order changes with the shortlist rather than being fixed. The single highest-yield question in general is where the liner is thickest, because that one placement separates the Korean, Japanese, Western-commercial and editorial families at once.
+
+Four questions have `information_value: blocking` and no photograph answers any of them: whether the reference is licensed and whether the person in it is the person being published, what the product claims and whether the base contradicts it, what size the image will be seen at, and which market it is for. A brief that omits these is executable and still wrong. `--brief` prints them whether or not they were asked.
+
+### What the grades mean here
+
+Every row is graded, and the grades are not flattering. 28 rows are `craft-heuristic`, 8 are `inferred`, 7 are `industry-primary`, one is `physics` (`tech-flashback-safe`, where titanium dioxide reflecting flash is measurable rather than stylistic), and one is `myth-adjacent`: `us-glass-skin`, because the Western usage detached from the Korean original and now names a different look than the word implies. Every `source` cell begins `Recall, unverified 2026-07-30` and names a specific place to check. None of it was verified against a primary source, because web access was unavailable when the table was written. Read the source cell before quoting a row to a client.
+
+Four rows are not styles at all. `tech-flashback-safe`, `tech-ecommerce-swatch`, `tech-before-after` and `af-deep-skin-editorial` are the makeup decisions that determine whether a frame is usable or a claim is supportable, and they are in a marketing skill for that reason.
 
 ## Beauty pose contract
 

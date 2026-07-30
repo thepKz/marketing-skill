@@ -1259,6 +1259,8 @@ class DataTableTests(unittest.TestCase):
         "composition-grids.csv": (7, 10),
         "kpi-metrics.csv": (27, 14),
         "kpi-aspect-weights.csv": (16, 9),
+        "makeup-looks.csv": (47, 22),
+        "makeup-diagnostics.csv": (15, 15),
     }
 
     # Most of these tables are keyed by their first column. The weights table is keyed by two, and
@@ -1364,6 +1366,74 @@ class DataTableTests(unittest.TestCase):
                     re.search(r"\d", stripped),
                     f'{row["id"]}.{field} contains a bare number: {row[field]!r}',
                 )
+
+    def test_confused_with_points_at_a_look_that_exists(self) -> None:
+        # The discriminator column is the whole point of the looks table, and it is written as a
+        # comparison against a named twin. A twin that is not in the table makes the sentence
+        # unreadable, which is exactly what happened first time: a doll-eye row compared itself to
+        # a cat eye that had not been written yet.
+        known = {row["look_id"] for row in self.rows("makeup-looks.csv")}
+        for row in self.rows("makeup-looks.csv"):
+            self.assertIn(row["confused_with"], known,
+                          f'{row["look_id"]} compares itself to unknown look '
+                          f'{row["confused_with"]}')
+            self.assertNotEqual(row["confused_with"], row["look_id"],
+                                f'{row["look_id"]} is confused with itself')
+
+    def test_diagnostic_option_lists_stay_the_same_length(self) -> None:
+        # options_vi, options_en and patterns are three parallel lists read by index. A missing
+        # entry in one does not break anything visibly: it pairs a Vietnamese label with the wrong
+        # match pattern, and the narrowing comes out confidently wrong rather than empty.
+        for row in self.rows("makeup-diagnostics.csv"):
+            lengths = {field: len(row[field].split("|"))
+                       for field in ("options_vi", "options_en", "patterns")}
+            self.assertEqual(len(set(lengths.values())), 1,
+                             f'{row["q_id"]}: option lists disagree on length {lengths}')
+
+    def test_every_diagnostic_pattern_actually_divides_the_looks(self) -> None:
+        # A question earns its place by cutting the field. A pattern matching no look eliminates
+        # nothing when chosen; a pattern matching every look eliminates nothing when chosen either.
+        # Both are dead weight that reads as diagnosis. The first run of this found one: three rows
+        # phrased overlining three different ways, so no substring covered them all.
+        looks = self.rows("makeup-looks.csv")
+        columns = set(looks[0])
+        for row in self.rows("makeup-diagnostics.csv"):
+            if row["field"] == "none":
+                # Two honest reasons a question names no column: it is asked of the person rather
+                # than the photograph, or it is a whole-face triage question — "could any of this
+                # appear on an ordinary street face" — that routes between families instead of
+                # reading one axis. Neither has anything to match, so the patterns must be the
+                # inert sentinel rather than something that looks queryable and is not.
+                self.assertEqual(row["patterns"], row["options_en"],
+                                 f'{row["q_id"]}: names no column, so its patterns cannot mean '
+                                 f'anything, but they differ from its options')
+                continue
+            self.assertIn(row["field"], columns,
+                          f'{row["q_id"]} names column {row["field"]}, which the looks table '
+                          f'does not have')
+            for pattern in row["patterns"].split("|"):
+                hits = sum(1 for look in looks
+                           if pattern.lower() in look[row["field"]].lower())
+                self.assertGreater(hits, 0, f'{row["q_id"]}: answer {pattern!r} matches no look, '
+                                            f'so choosing it eliminates the whole table')
+                self.assertLess(hits, len(looks), f'{row["q_id"]}: answer {pattern!r} matches all '
+                                                  f'{len(looks)} looks, so it eliminates nothing')
+
+    def test_diagnostics_are_sequenced_without_gaps(self) -> None:
+        # The sequence column decides the order questions get asked in, so a duplicate makes the
+        # order arbitrary and a gap usually means a row was deleted rather than renumbered.
+        found = sorted(int(row["sequence"]) for row in self.rows("makeup-diagnostics.csv"))
+        self.assertEqual(found, list(range(1, len(found) + 1)),
+                         "makeup-diagnostics.csv sequence has a gap or a duplicate")
+
+    def test_photo_questions_come_before_the_ones_only_a_person_can_answer(self) -> None:
+        # Reading the image is free and asking the client costs a round trip, so every question the
+        # photograph can settle is asked first. If a blocking question drifts into the middle, the
+        # narrowing stalls waiting on a reply it did not need yet.
+        kinds = [row["ask_of"] for row in
+                 sorted(self.rows("makeup-diagnostics.csv"), key=lambda r: int(r["sequence"]))]
+        self.assertEqual(kinds, sorted(kinds, key=lambda kind: kind == "user"),
+                         "a question for the person is sequenced before a question for the photo")
 
 
 class FindRecipeTests(unittest.TestCase):

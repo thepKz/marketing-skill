@@ -66,7 +66,7 @@ Load only what the decision needs.
 
 ## Look it up, do not recall it
 
-`data/` holds eleven tables, all queryable through `scripts/find_recipe.py`. Query them instead of writing craft values from memory, because a remembered lighting setup is a guess and a table row is a decision somebody already made and wrote down why. The eight a run reaches for directly are below; `frame-ratios.csv`, `composition-grids.csv` and `reference-axes.csv` are documented with the reference sheets they draw.
+`data/` holds thirteen tables, all queryable through `scripts/find_recipe.py`. Query them instead of writing craft values from memory, because a remembered lighting setup is a guess and a table row is a decision somebody already made and wrote down why. The eight a run reaches for directly are below; `frame-ratios.csv`, `composition-grids.csv` and `reference-axes.csv` are documented with the reference sheets they draw, and `makeup-looks.csv` (47 looks across thirteen families) and `makeup-diagnostics.csv` (15 questions) with the identification script below and in `makeup-art-direction.md`.
 
 | Table | Rows | What it settles |
 |---|---|---|
@@ -85,9 +85,9 @@ Search by the job, in Vietnamese or English — `--query "giao đồ ăn"`, not 
 
 `scripts/score_kpi.py --input CARD.json` scores a scorecard rather than dividing actual by target. An achievement rate has four branches depending on whether the KPI is a ratio, a rung scale, a date, or already given as a percentage, and choosing the wrong branch changes the number without changing its plausibility. The script picks the branch from the row, applies the cap that belongs to that aspect, and refuses — exit 1, no total printed — when a KPI has no measured actual or two KPIs share a code. A partial total presented as a total looks finished. Read `references/kpi-scorecards.md` before designing a card, and run `assets/examples/bsc-2024/` first: it is a real card whose reported total is right by coincidence, because two opposite errors cancel.
 
-`references/dossiers/` holds long-form research behind these references. Open one only when a decision needs depth the short reference cannot settle, and read the section rather than the file. Its `README.md` lists what each dossier answers and which topics have no dossier yet.
+`scripts/read_makeup.py` identifies the makeup in a reference photo by asking rather than labelling, because misidentification — gradient lip briefed as overline, mul-gwang briefed as glass skin — is the failure mode, not ignorance. `--observe "wet skin, no crease, blush under the eye"` (free text, VI or EN, diacritics optional) ranks the looks by which observations each accounts for, prints the discriminator between candidates it cannot yet tell apart, then the question that would cut the shortlist most, recomputed against the shortlist each time. `--brief LOOK_ID` prints the nine-axis contract with the light it needs, when it argues against the product, and the four questions no photograph answers — rights, product-versus-claim, delivery size, market. Exit 2 means several candidates survive: keep asking, do not pick.
 
-If `BRAND.md` exists, read it before public-facing work. Otherwise use `assets/templates/brand-context.md` only when continuity matters, and mark inferred fields.
+`references/dossiers/` holds long-form research behind these references; open one only when a decision needs depth the short reference cannot settle, and read the section rather than the file — its `README.md` lists what each answers. If `BRAND.md` exists, read it before public-facing work; otherwise use `assets/templates/brand-context.md` only when continuity matters, and mark inferred fields.
 
 ## Intake
 
