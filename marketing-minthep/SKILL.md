@@ -11,9 +11,7 @@ Turn one incomplete brief into the smallest complete system that creates demand,
 
 Every path here - `references/`, `data/`, `scripts/`, `assets/` - is relative to the skill root, and some runtimes load this file alone without its folders. Then the paths resolve to nothing, and answering from memory produces the exact failure this skill exists to prevent: invented craft values presented as looked-up ones. So resolve the root before anything else. Take the first candidate holding both `references/` and `scripts/`: the directory containing this `SKILL.md`; `~/.claude/skills/marketing-minthep` or `~/.codex/skills/marketing-minthep`; a working copy of the repository, found by searching the mounted folders for the marker `marketing-minthep/scripts/find_recipe.py`. Look for the marker, never a hardcoded path. Then list `references/` and `data/` and confirm the reference your pipeline names is really there.
 
-If none of them has it, say so, name what you could not read, and work only from what this file states. Do not rebuild a table from memory, cite a reference you did not open, or claim a script ran. `scripts/install_global.py --check` reports drift between the repository and an installed copy; a copy behind the source answers with stale knowledge silently.
-
-Adapt tool calls to the active runtime. Never claim that a research tool, browser, image provider, or subagent was used unless it was actually available and invoked.
+If none of them has it, say so, name what you could not read, and work only from what this file states. Do not rebuild a table from memory, cite a reference you did not open, or claim a script ran. `scripts/install_global.py --check` reports drift between the repository and an installed copy; a copy behind the source answers with stale knowledge silently. Adapt tool calls to the active runtime, and never claim that a research tool, browser, image provider, or subagent was used unless it was actually available and invoked.
 
 ## Core rules
 
@@ -41,6 +39,7 @@ Pick exactly one primary pipeline. `assets/registries/pipelines.json` is the sou
 | `video-campaign` | Short-form vertical, product demo, founder story, testimonial, or ad cutdowns. |
 | `optimize-iterate` | Something already runs and its results are known, weak, or confusing. |
 | `rewrite-human` | A draft exists and reads machine-written or machine-translated. Also the route for transcreating approved copy between Vietnamese and English. |
+| `score-kpi` | Targets have to be set, weighted, cascaded to a team or a person, or scored at period end. Covers balanced scorecards, marketing KPI trees, and the arithmetic of an achievement rate. |
 
 `scripts/start_workbench.py` selects the pipeline and creates linked supporting runs when one request spans several. Run it rather than choosing by intuition; override it only when you can say why.
 
@@ -63,10 +62,11 @@ Load only what the decision needs.
 | Visual QA and export | `anti-ai-quality.md`, `creative-evaluation.md`, `production-pipeline.md` |
 | Claims that will be published | `claims-proof-ledger.md`, `rights-and-claims.md` |
 | Copy that reads machine-written, or translated word for word | `rewrite-human.md`, `copywriting.md` |
+| Targets, weights, achievement rates, a scorecard to cascade or score | `kpi-scorecards.md`, `claims-proof-ledger.md` |
 
 ## Look it up, do not recall it
 
-`data/` holds six tables. Query them with `scripts/find_recipe.py` instead of writing craft values from memory, because a remembered lighting setup is a guess and a table row is a decision somebody already made and wrote down why.
+`data/` holds eleven tables, all queryable through `scripts/find_recipe.py`. Query them instead of writing craft values from memory, because a remembered lighting setup is a guess and a table row is a decision somebody already made and wrote down why. The eight a run reaches for directly are below; `frame-ratios.csv`, `composition-grids.csv` and `reference-axes.csv` are documented with the reference sheets they draw.
 
 | Table | Rows | What it settles |
 |---|---|---|
@@ -76,13 +76,14 @@ Load only what the decision needs.
 | `slop-tells.csv` | 33 | Every AI-slop tell across prompt, image, copy, layout, and campaign, scoped to the recipes it can occur in |
 | `copy-formulas.csv` | 22 | 22 structures with a worked VI and EN example, when each fails, and a plain-language note for someone who has never written an ad |
 | `translation-tells.csv` | 30 | Every calque and machine-cadence tell in VI and EN, each with a detection regex, why it survives translation, and the specific repair |
+| `kpi-metrics.csv` | 27 | Each measurable: its aspect, unit, which direction is good, how it is calculated, whether it is financial, whether it leads or lags, when to use it, and the specific way it gets gamed |
+| `kpi-aspect-weights.csv` | 16 | What share of a card each aspect should carry at company, front-office, middle-office and back-office level, with the reason the share differs |
 
-Search by the job, in Vietnamese or English — `--query "giao đồ ăn"`, not a style name. Then:
-
-- `--brief RECIPE_ID [--palette PALETTE_ID]` composes a brief `scripts/compile_prompt.py` accepts, with every field only the owner can know left as an explicit `TBD` and a `_tbd` block saying why each one must come from them. Fill those in from the truth map. Never guess `product_truth`.
-- `--checklist RECIPE_ID` prints what to look at on the render, filtered to the tells that can actually occur in that frame and ordered by severity. Look at the render against it. Re-reading the prompt proves nothing.
+Search by the job, in Vietnamese or English — `--query "giao đồ ăn"`, not a style name. Then `--brief RECIPE_ID [--palette PALETTE_ID]` composes a brief `scripts/compile_prompt.py` accepts, with every field only the owner can know left as an explicit `TBD` and a `_tbd` block saying why each one must come from them; fill those from the truth map and never guess `product_truth`. And `--checklist RECIPE_ID` prints what to look at on the render, filtered to the tells that can actually occur in that frame and ordered by severity — look at the render against it, because re-reading the prompt proves nothing.
 
 `scripts/render_refsheet.py` draws six reference sheets as real SVG from those same tables, with no API key and no image provider: `--sheet lighting` (six setups in plan view, shadow drawn from the key so it always agrees with the light), `--sheet frames` (every placement at true proportion with the copy reserve and the platform's own interface bands shaded), `--sheet palettes` (every palette as a card with its measured ratio printed on it), `--sheet dials --dial NAME` (one layout drawn three times at the minimum, default and maximum of one number), `--sheet reference` (the 11 axes that decide which half of a borrowed picture you may keep), `--sheet ratios` (twelve delivery ratios at true proportion with thirds, the phi line and the dynamic-symmetry eye drawn on each, so the golden-ratio question gets settled by looking instead of asserting). Show a sheet to a non-marketer instead of describing it; the dial sheet is how the layout mechanism gets explained in a second rather than a paragraph.
+
+`scripts/score_kpi.py --input CARD.json` scores a scorecard rather than dividing actual by target. An achievement rate has four branches depending on whether the KPI is a ratio, a rung scale, a date, or already given as a percentage, and choosing the wrong branch changes the number without changing its plausibility. The script picks the branch from the row, applies the cap that belongs to that aspect, and refuses — exit 1, no total printed — when a KPI has no measured actual or two KPIs share a code. A partial total presented as a total looks finished. Read `references/kpi-scorecards.md` before designing a card, and run `assets/examples/bsc-2024/` first: it is a real card whose reported total is right by coincidence, because two opposite errors cancel.
 
 `references/dossiers/` holds long-form research behind these references. Open one only when a decision needs depth the short reference cannot settle, and read the section rather than the file. Its `README.md` lists what each dossier answers and which topics have no dossier yet.
 
@@ -130,11 +131,9 @@ If filesystem writes are unavailable, reproduce the same deliverable structure i
 
 ## Delivery modes
 
-- `focused`: one pipeline, assumptions, recommended direction, requested artifacts, QA, next step.
+- `focused`: one pipeline, assumptions, recommended direction, requested artifacts, QA, next step. The default. Expand only when the user asks for a system or production scope, or the work genuinely depends on several pipelines.
 - `system`: connected strategy plus the minimum cross-channel asset and measurement system.
 - `production`: machine-readable brief, manifests, provider prompts, specs, owners, approvals, export handoff.
-
-Default to `focused`. Expand only when the user asks for a system or production scope, or the work genuinely depends on several pipelines.
 
 ## Hard rules
 

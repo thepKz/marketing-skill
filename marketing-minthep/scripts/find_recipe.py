@@ -49,6 +49,14 @@ TABLES = {
     # the form the question takes, and the row's job is to say what the evidence actually supports.
     "grids": ("composition-grids.csv", "grid_id",
               ("name_vi", "name_en", "what_it_claims", "use_when")),
+    # Searched by what the person wants to measure — "MER", "tỉ lệ nghỉ việc", "brand awareness" —
+    # and the row that comes back carries the trap, because the expensive mistake with a KPI is
+    # almost never picking the wrong one. It is scoring the right one the wrong way round.
+    "kpis": ("kpi-metrics.csv", "kpi_id", ("name_vi", "name_en", "measurement", "use_when", "trap")),
+    # Searched by the block, because the question is "phòng tôi thì chia bao nhiêu" and the answer is
+    # a range with a reason rather than a number.
+    "kpi_weights": ("kpi-aspect-weights.csv", "aspect",
+                    ("block", "name_vi", "name_en", "rationale")),
 }
 
 # The fields of a brief that no lookup table can supply, with the reason each one has to come from

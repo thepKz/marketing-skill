@@ -85,6 +85,18 @@ PIPELINE_KEYWORDS = {
         ("rewrite", "reword", "rephrase", "humanize", "humanise", "transcreate", "viết", "lại", "dịch",
          "biên", "tập", "polish", "cadence", "nhịp", "giọng", "translation", "calque"),
     ),
+    # "kpi" and "bsc" are the words that actually arrive, and they arrive far more often as an
+    # acronym than as "balanced scorecard". Note what is deliberately absent from the word list:
+    # "target", "mục tiêu" and "đo" all belong to half the other pipelines, and adding them here
+    # would pull ordinary planning requests into a scoring engine that cannot serve them.
+    "score-kpi": (
+        ("kpi", "bsc", "balanced scorecard", "scorecard", "thẻ điểm cân bằng", "xây dựng kpi",
+         "xay dung kpi", "lên kpi", "giao kpi", "chấm điểm kpi", "chấm điểm bsc", "đánh giá kpi",
+         "kpi cho phòng", "kpi cá nhân", "trọng số kpi", "achievement rate", "% achievement",
+         "tỉ lệ hoàn thành kpi", "cascade kpi", "phân bổ kpi", "okr"),
+        ("kpi", "bsc", "scorecard", "okr", "cascade", "lagging", "leading", "weighting",
+         "trọng", "số"),
+    ),
 }
 
 

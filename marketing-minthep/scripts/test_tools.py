@@ -12,6 +12,7 @@ import re
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
+from decimal import Decimal
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -24,6 +25,7 @@ from compile_prompt import compile_provider
 import find_recipe
 import render_refsheet
 import rewrite_human
+import score_kpi
 from new_run import build_run, load_registry, route_pipeline, write_run
 from plan_image_generation import route_image_request
 from plan_design_options import plan_options
@@ -1255,6 +1257,15 @@ class DataTableTests(unittest.TestCase):
         "reference-axes.csv": (11, 9),
         "frame-ratios.csv": (13, 12),
         "composition-grids.csv": (7, 10),
+        "kpi-metrics.csv": (27, 14),
+        "kpi-aspect-weights.csv": (16, 9),
+    }
+
+    # Most of these tables are keyed by their first column. The weights table is keyed by two, and
+    # this dict exists rather than a reshuffled header because the natural reading order of that file
+    # is block-then-aspect and a uniqueness test should not dictate column order.
+    UNIQUE_KEYS = {
+        "kpi-aspect-weights.csv": ("block", "aspect"),
     }
 
     @staticmethod
@@ -1286,9 +1297,10 @@ class DataTableTests(unittest.TestCase):
     def test_ids_are_unique(self) -> None:
         for name in self.TABLES:
             rows = self.rows(name)
-            key = list(rows[0])[0]
-            ids = [row[key] for row in rows]
-            self.assertEqual(len(ids), len(set(ids)), f"{name} has a duplicate {key}")
+            keys = self.UNIQUE_KEYS.get(name) or (list(rows[0])[0],)
+            ids = [tuple(row[key] for key in keys) for row in rows]
+            self.assertEqual(len(ids), len(set(ids)),
+                             f"{name} has a duplicate {'+'.join(keys)}")
 
     def test_palette_body_contrast_passes_and_is_computed(self) -> None:
         def luminance(hex_colour: str) -> float:
@@ -1899,6 +1911,218 @@ class RewriteHumanTests(unittest.TestCase):
         self.assertGreater(blocking("01-draft-vi.md", "vi"), 0, "the bad draft stopped failing")
         self.assertEqual(blocking("02-rewrite-vi.md", "vi"), 0, "the shipped rewrite stopped passing")
         self.assertEqual(blocking("03-transcreation-en.md", "en"), 0, "the shipped English stopped passing")
+
+
+class KpiScoringTests(unittest.TestCase):
+    """Every number in here was read out of BSC_2025_template.xlsx sheet 2024, not invented.
+
+    A scoring engine is the wrong place to be approximately right: the output is attached to
+    somebody's bonus, and a formula that is wrong in the fourth branch stays wrong for a year
+    because the first three branches keep producing plausible numbers. The fixtures are the real
+    2024 card, including its bugs, so a rewrite that loses a branch fails here rather than in front
+    of the person being scored.
+    """
+
+    EXAMPLES = SKILL_ROOT / "assets" / "examples" / "bsc-2024"
+
+    @staticmethod
+    def card(name: str) -> dict:
+        return json.loads((KpiScoringTests.EXAMPLES / name).read_text(encoding="utf-8"))
+
+    def test_revenue_ratio_matches_the_workbook_to_the_cent(self) -> None:
+        got = score_kpi.achievement({
+            "code": "F1.1.1", "direction": "higher_better", "calc_method": "ratio",
+            "target": "3400000", "actual": "2890353.4840580029"})
+        self.assertEqual(f"{got * 100:.2f}", "85.01")
+
+    def test_cost_is_scored_target_over_actual(self) -> None:
+        """The branch that inverts a whole year if it is wrong. F2.1 came in under plan, so it
+        scores 143.20%; the higher-is-better formula on the same two numbers returns 69.81% and
+        reports a well-run year as a failed one."""
+        kpi = {"code": "F2.1", "direction": "lower_better", "calc_method": "ratio",
+               "target": "1752681", "actual": "1223952.5694800001"}
+        self.assertEqual(f"{score_kpi.achievement(kpi) * 100:.2f}", "143.20")
+        inverted = dict(kpi, direction="higher_better")
+        self.assertEqual(f"{score_kpi.achievement(inverted) * 100:.2f}", "69.83")
+
+    def test_a_scale_is_not_a_ratio_where_the_rungs_are_misaligned(self) -> None:
+        """C3.1: rungs of 0/1/2/3/4 against a target of 3 put the full rung at 4, so an actual of 3
+        that met its target scores 75% on the scale and 100% as a ratio. The workbook typed 100%.
+        This test exists to keep both numbers visible, because a rewrite that quietly reaches for
+        actual/target here would agree with the shipped file and still be wrong."""
+        rungs = {"0.00": "0", "0.25": "1", "0.50": "2", "0.75": "3", "1.00": "4"}
+        scaled = score_kpi.achievement({
+            "code": "C3.1", "direction": "higher_better", "calc_method": "scale",
+            "target": "3", "actual": "3", "scale": rungs})
+        self.assertEqual(scaled, Decimal("0.75"))
+        as_ratio = score_kpi.achievement({
+            "code": "C3.1", "direction": "higher_better", "calc_method": "ratio",
+            "target": "3", "actual": "3"})
+        self.assertEqual(as_ratio, Decimal("1"))
+
+    def test_an_aligned_scale_agrees_with_the_ratio(self) -> None:
+        """C2.2, the row where the two formulas give the same answer. Worth pinning: a suite that
+        only tested this row would pass with the scale branch deleted."""
+        got = score_kpi.achievement({
+            "code": "C2.2", "direction": "higher_better", "calc_method": "scale",
+            "target": "4", "actual": "3",
+            "scale": {"0.00": "0", "0.25": "1", "0.50": "2", "0.75": "3", "1.00": "4"}})
+        self.assertEqual(got, Decimal("0.75"))
+
+    def test_dates_score_on_a_day_axis_and_earlier_is_better(self) -> None:
+        kpi = {"code": "P2.1", "direction": "lower_better", "calc_method": "date",
+               "target": "2024-06-30", "actual": "2024-01-30",
+               "scale": {"0.00": "2024-11-30", "0.25": "2024-10-30", "0.50": "2024-09-30",
+                         "0.75": "2024-07-30", "1.00": "2024-06-30"}}
+        self.assertEqual(score_kpi.achievement(kpi), Decimal("1"))
+        # Each rung, walked. A single on-time fixture passes even if the comparison is reversed.
+        for actual, expected in (("2024-06-30", "1.00"), ("2024-07-15", "0.75"),
+                                 ("2024-08-01", "0.50"), ("2024-10-01", "0.25"),
+                                 ("2024-12-25", "0.00")):
+            with self.subTest(actual):
+                self.assertEqual(score_kpi.achievement(dict(kpi, actual=actual)),
+                                 Decimal(expected))
+
+    def test_caps_differ_by_whether_the_kpi_is_financial(self) -> None:
+        over = Decimal("1.4319844115729352")
+        self.assertEqual(score_kpi.capped(over, True), (Decimal("1.30"), True))
+        self.assertEqual(score_kpi.capped(over, False), (Decimal("1.00"), True))
+        # An override keeps the raw figure and still reports that the cap was breached, so the
+        # decision stays auditable. The workbook's hand-typed 1.2 loses both.
+        self.assertEqual(score_kpi.capped(over, False, override=True), (over, True))
+        under = Decimal("0.8501")
+        self.assertEqual(score_kpi.capped(under, True), (under, False))
+
+    def test_rank_boundaries_including_the_one_that_uses_less_than_or_equal(self) -> None:
+        for total, expected in (("0.6999", "C"), ("0.70", "B"), ("0.7999", "B"), ("0.80", "A3"),
+                                ("0.90", "A3"), ("0.9001", "A2"), ("1.0499", "A2"),
+                                ("1.05", "A1"), ("1.30", "A1")):
+            with self.subTest(total):
+                self.assertEqual(score_kpi.rank(Decimal(total))[0], expected)
+        # A1 has to sort above A3, which it does not do alphabetically. This is why rank_order is
+        # stored as an integer rather than the code being sorted.
+        self.assertGreater(score_kpi.rank(Decimal("1.10"))[1], score_kpi.rank(Decimal("0.85"))[1])
+
+    def test_a_missing_actual_refuses_instead_of_scoring_full_marks(self) -> None:
+        """The most expensive bug in the source file: G1.1 carries a tenth of the card, has no
+        actual, and reports 100%."""
+        with self.assertRaises(score_kpi.Unscoreable):
+            score_kpi.achievement({"code": "G1.1", "direction": "higher_better",
+                                   "calc_method": "ratio", "target": "1.00", "actual": None})
+
+    def test_a_zero_actual_on_a_cost_kpi_refuses(self) -> None:
+        # Not the mirror of a zero actual on a revenue KPI, which scores zero and is fine. Spending
+        # nothing is a missing number far more often than it is a perfect year.
+        with self.assertRaises(score_kpi.Unscoreable):
+            score_kpi.achievement({"code": "F2.1", "direction": "lower_better",
+                                   "calc_method": "ratio", "target": "1752681", "actual": "0"})
+        zero_revenue = score_kpi.achievement({"code": "F1.1.1", "direction": "higher_better",
+                                              "calc_method": "ratio", "target": "3400000",
+                                              "actual": "0"})
+        self.assertEqual(zero_revenue, Decimal(0))
+
+    def test_arithmetic_is_decimal_all_the_way_through(self) -> None:
+        """The workbook leaks 0.9500000000000001 and 0.31749999999999995 into cells a bonus is read
+        from. Float would reproduce both."""
+        result = score_kpi.score(self.card("card-repaired.json"))
+        self.assertIsInstance(result["total_score"], Decimal)
+        customer = result["aspects"]["C"]["score"]
+        self.assertEqual(customer, Decimal("0.275"))
+        self.assertNotEqual(str(customer), str(0.1 + 0.05 + 0.05 + 0.0375 + 0.0375))
+
+    def test_the_card_as_shipped_refuses_and_names_all_three_faults(self) -> None:
+        result = score_kpi.score(self.card("card-as-shipped.json"))
+        self.assertFalse(result["scoreable"])
+        self.assertIsNone(result["total_score"])
+        joined = " ".join(result["blocking_problems"])
+        self.assertIn("G1.1 has no actual", joined)
+        self.assertIn("F1.2.1 appears 2 times", joined)
+        # And the weight sum must NOT be reported as a fault: the weights are exactly 100%, and an
+        # earlier version of this engine said 90% because it summed only the rows that scored.
+        self.assertNotIn("weights sum to", joined)
+
+    def test_the_repaired_card_reproduces_the_workbook_total_the_workbook_should_have_had(self) -> None:
+        """98.79% is what the file reports. 94.47% is what it scores once the caps are applied, and
+        also what the engine computes from the raw targets and actuals — by two different routes,
+        because the two remaining achievement bugs are both 25 points at a 5% weight with opposite
+        signs and cancel exactly. That coincidence is the reason a total agreeing with a spreadsheet
+        is not evidence the spreadsheet is right."""
+        result = score_kpi.score(self.card("card-repaired.json"))
+        self.assertTrue(result["scoreable"], result["blocking_problems"])
+        self.assertEqual(f"{result['total_score'] * 100:.2f}", "94.47")
+        self.assertEqual(result["rank"], "A2")
+        self.assertEqual(f"{result['aspects']['F']['score'] * 100:.2f}", "46.97")
+        # The file's own Finance subtotal, for contrast: it uses the uncapped 143.20%.
+        self.assertEqual(f"{Decimal('0.482882291706882506') * 100:.2f}", "48.29")
+
+    def test_aspect_weights_match_the_proportions_the_card_declares(self) -> None:
+        """The check that caught a live bug: C1.2 names a library metric filed under Processes, so
+        the library's aspect silently moved 5% of the card out of Customer and the two subtotals
+        were wrong while the total stayed right."""
+        result = score_kpi.score(self.card("card-repaired.json"))
+        for aspect, share in (("F", "0.50"), ("C", "0.30"), ("P", "0.10"), ("G", "0.10")):
+            with self.subTest(aspect):
+                self.assertEqual(result["aspects"][aspect]["weight"], Decimal(share))
+
+    def test_an_aspect_of_only_lagging_kpis_is_warned_about_not_blocked(self) -> None:
+        result = score_kpi.score(self.card("card-repaired.json"))
+        self.assertTrue(any("only lagging" in warning for warning in result["warnings"]))
+        self.assertTrue(result["scoreable"])
+
+    def test_every_catalogued_metric_is_scoreable_by_the_engine(self) -> None:
+        """A metric row whose calc_method or direction the engine does not implement is a lookup
+        that produces an unrunnable answer."""
+        for row in score_kpi.catalog().values():
+            with self.subTest(row["kpi_id"]):
+                self.assertIn(row["calc_method"], ("ratio", "scale", "date"))
+                self.assertIn(row["direction"], ("higher_better", "lower_better"))
+                self.assertIn(row["aspect"], score_kpi.ASPECTS)
+                self.assertIn(row["indicator_type"], ("leading", "lagging"))
+                self.assertIn(row["is_financial"], ("yes", "no"))
+
+    def test_guideline_aspect_weights_are_ordered_and_reachable(self) -> None:
+        rows = DataTableTests.rows("kpi-aspect-weights.csv")
+        for row in rows:
+            with self.subTest(f"{row['block']}/{row['aspect']}"):
+                low, high = Decimal(row["min_share"]), Decimal(row["max_share"])
+                self.assertLessEqual(low, high, "min_share above max_share")
+                self.assertIn(row["aspect"], score_kpi.ASPECTS)
+        for block in {row["block"] for row in rows}:
+            members = [row for row in rows if row["block"] == block]
+            with self.subTest(block):
+                self.assertEqual(len(members), 4, "a block must allocate all four aspects")
+                low = sum(Decimal(row["min_share"]) for row in members)
+                high = sum(Decimal(row["max_share"]) for row in members)
+                # The band has to contain 100%, or no legal allocation exists inside the guideline.
+                self.assertLessEqual(low, Decimal(1), f"{block} cannot reach 100%")
+                self.assertGreaterEqual(high, Decimal(1), f"{block} cannot come down to 100%")
+
+    def test_the_pipeline_is_registered_with_its_reference_and_script(self) -> None:
+        pipeline = load_registry()["pipelines"]["score-kpi"]
+        self.assertIn("kpi-scorecards.md", pipeline["references"])
+        self.assertIn("score_kpi.py", pipeline["scripts"])
+        self.assertTrue((SKILL_ROOT / "references" / "kpi-scorecards.md").exists())
+
+    def test_kpi_requests_route_to_the_kpi_pipeline(self) -> None:
+        registry = load_registry()
+        for request in ("xây dựng KPI cho phòng marketing năm nay",
+                        "build a balanced scorecard for the company",
+                        "chấm điểm BSC 2024 giúp tôi"):
+            with self.subTest(request):
+                self.assertEqual(route_pipeline({"request": request}, registry)["pipeline"],
+                                 "score-kpi")
+
+    def test_adding_the_kpi_route_did_not_steal_other_requests(self) -> None:
+        registry = load_registry()
+        unchanged = {
+            "lên kế hoạch marketing cho quán bún bò": "plan-from-zero",
+            "thiết kế menu quán cà phê": "design-render",
+            "nghiên cứu thị trường trà sữa": "deep-research",
+            "viết lại đoạn này cho tự nhiên, đang bị dịch máy": "rewrite-human",
+        }
+        for request, expected in unchanged.items():
+            with self.subTest(request):
+                self.assertEqual(route_pipeline({"request": request}, registry)["pipeline"], expected)
 
 
 if __name__ == "__main__":

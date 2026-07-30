@@ -1,0 +1,17 @@
+block,aspect,name_vi,name_en,min_share,max_share,rationale,evidence_grade,source
+company,F,Tài chính,Finance,0.50,0.50,The guideline fixes Finance at half the company card and leaves no range — the one row in the table with nothing to negotiate.,guideline,BSC_2025_template.xlsx sheet Guidelines
+company,C,Khách hàng,Customer,0.25,0.25,A quarter to the customer aspect keeps the card from becoming a P&L with extra steps.,guideline,BSC_2025_template.xlsx sheet Guidelines
+company,P,Quy trình & Hệ thống,Processes & System,0.10,0.10,"The floor. Processes at company level is oversight of the blocks that own it, not the work itself.",guideline,BSC_2025_template.xlsx sheet Guidelines
+company,G,Con người,People,0.15,0.15,"Half again the processes weight, because the company card is the only level where the headcount plan is decided.",guideline,BSC_2025_template.xlsx sheet Guidelines
+front_office,F,Tài chính,Finance,0.60,0.60,Heaviest Finance weight in the table. A block that touches revenue directly is scored on revenue.,guideline,BSC_2025_template.xlsx sheet Guidelines
+front_office,C,Khách hàng,Customer,0.20,0.25,"The customer is in front of them, so the aspect is real work rather than a proxy — but it stays below Finance.",guideline,BSC_2025_template.xlsx sheet Guidelines
+front_office,P,Quy trình & Hệ thống,Processes & System,0.10,0.10,The floor again. Front office follows process; it does not own it.,guideline,BSC_2025_template.xlsx sheet Guidelines
+front_office,G,Con người,People,0.05,0.10,"Lightest People weight anywhere in the table, and the row that makes the low end of this block sum to 95%.",guideline,BSC_2025_template.xlsx sheet Guidelines
+middle_office,F,Tài chính,Finance,0.30,0.30,Half the front-office weight. Manufacturing affects cost and margin without owning the sale.,guideline,BSC_2025_template.xlsx sheet Guidelines
+middle_office,C,Khách hàng,Customer,0.25,0.30,"Their customer is often the front office, which is why this aspect can outweigh Finance here.",guideline,BSC_2025_template.xlsx sheet Guidelines
+middle_office,P,Quy trình & Hệ thống,Processes & System,0.20,0.30,Where process stops being oversight and becomes the job.,guideline,BSC_2025_template.xlsx sheet Guidelines
+middle_office,G,Con người,People,0.15,0.20,"Skilled work with a training cost, so People carries more than it does out front.",guideline,BSC_2025_template.xlsx sheet Guidelines
+back_office,F,Tài chính,Finance,0.10,0.20,Lowest Finance weight. A block with no revenue line scored heavily on revenue is being scored on somebody else's work.,guideline,BSC_2025_template.xlsx sheet Guidelines
+back_office,C,Khách hàng,Customer,0.15,0.25,Their customer is internal. The aspect survives because internal service is still service.,guideline,BSC_2025_template.xlsx sheet Guidelines
+back_office,P,Quy trình & Hệ thống,Processes & System,0.20,0.40,"Widest range in the table, and the heaviest ceiling. Back office is where process is the product.",guideline,BSC_2025_template.xlsx sheet Guidelines
+back_office,G,Con người,People,0.25,0.50,"Half a card at the ceiling. HR and admin own the People aspect, so it can dominate theirs.",guideline,BSC_2025_template.xlsx sheet Guidelines

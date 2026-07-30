@@ -12,25 +12,73 @@
       "title_vi": "Kế hoạch marketing từ đầu",
       "default_mode": "system",
       "use_when": "User has a product, service, or shop and no marketing plan. Includes market assessment, positioning, offer, messaging, copy, channels, budget, calendar, measurement.",
-      "references": ["research-protocol.md", "market-assessment.md", "customer-evidence.md", "marketing-foundation.md", "brand-dna.md", "claims-proof-ledger.md", "copywriting.md", "channel-deliverables.md", "learning-loop.md", "product-category-playbooks.md", "industry-playbooks.md", "menu-engineering.md", "menu-design.md"],
-      "scripts": ["start_workbench.py", "new_run.py", "research_plan.py", "plan_marketing_system.py", "run_status.py"],
+      "references": [
+        "research-protocol.md",
+        "market-assessment.md",
+        "customer-evidence.md",
+        "marketing-foundation.md",
+        "brand-dna.md",
+        "claims-proof-ledger.md",
+        "copywriting.md",
+        "channel-deliverables.md",
+        "learning-loop.md",
+        "product-category-playbooks.md",
+        "industry-playbooks.md",
+        "menu-engineering.md",
+        "menu-design.md"
+      ],
+      "scripts": [
+        "start_workbench.py",
+        "new_run.py",
+        "research_plan.py",
+        "plan_marketing_system.py",
+        "run_status.py"
+      ],
       "deliverables": [
         {
           "id": "01-intake",
           "file": "01-intake.md",
           "kind": "md",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Intake and truth map",
           "title_vi": "Tiếp nhận và bản đồ sự thật",
           "gate": "Every field is labelled confirmed / observed / inferred / unknown. No unknown has been promoted into a fact.",
           "sections": [
-            {"en": "Request as stated", "vi": "Yêu cầu nguyên văn", "write": "Quote the user verbatim. Do not clean it up."},
-            {"en": "Product truth", "vi": "Sự thật về sản phẩm", "write": "What the thing actually is, what it does, how it works, what it costs, where it is available."},
-            {"en": "Confirmed / observed / inferred / unknown", "vi": "Đã xác nhận / quan sát / suy luận / chưa biết", "write": "One table. Every row carries a label and a source or the reason for the inference."},
-            {"en": "Rights and constraints", "vi": "Quyền và giới hạn", "write": "Usable assets, licences, people who may appear, claims that are prohibited."},
-            {"en": "Open questions", "vi": "Câu hỏi còn mở", "write": "At most three, and only where the answer changes the plan. State the assumption you will run on if unanswered."},
-            {"en": "Scope decision", "vi": "Quyết định phạm vi", "write": "Pipeline, mode, languages, and what is explicitly out of scope."}
+            {
+              "en": "Request as stated",
+              "vi": "Yêu cầu nguyên văn",
+              "write": "Quote the user verbatim. Do not clean it up."
+            },
+            {
+              "en": "Product truth",
+              "vi": "Sự thật về sản phẩm",
+              "write": "What the thing actually is, what it does, how it works, what it costs, where it is available."
+            },
+            {
+              "en": "Confirmed / observed / inferred / unknown",
+              "vi": "Đã xác nhận / quan sát / suy luận / chưa biết",
+              "write": "One table. Every row carries a label and a source or the reason for the inference."
+            },
+            {
+              "en": "Rights and constraints",
+              "vi": "Quyền và giới hạn",
+              "write": "Usable assets, licences, people who may appear, claims that are prohibited."
+            },
+            {
+              "en": "Open questions",
+              "vi": "Câu hỏi còn mở",
+              "write": "At most three, and only where the answer changes the plan. State the assumption you will run on if unanswered."
+            },
+            {
+              "en": "Scope decision",
+              "vi": "Quyết định phạm vi",
+              "write": "Pipeline, mode, languages, and what is explicitly out of scope."
+            }
           ]
         },
         {
@@ -38,15 +86,34 @@
           "file": "02-research-plan.md",
           "kind": "md",
           "bilingual": false,
-          "modes": ["system", "production"],
+          "modes": [
+            "system",
+            "production"
+          ],
           "title": "Research plan",
           "title_vi": "Kế hoạch nghiên cứu",
           "gate": "Every research question names its source tier and its stop condition.",
           "sections": [
-            {"en": "Decomposed questions", "vi": "Câu hỏi đã phân rã", "write": "Turn the vague request into independently answerable questions, typed (market size, competitor fact, customer language, platform spec, regulation, price, trend)."},
-            {"en": "Search plan", "vi": "Kế hoạch tìm kiếm", "write": "Query set per question, including Vietnamese-language and platform-native queries."},
-            {"en": "Source tiers", "vi": "Phân tầng nguồn", "write": "Which tier of source may support which claim type."},
-            {"en": "Stop conditions", "vi": "Điều kiện dừng", "write": "What counts as enough evidence per question."}
+            {
+              "en": "Decomposed questions",
+              "vi": "Câu hỏi đã phân rã",
+              "write": "Turn the vague request into independently answerable questions, typed (market size, competitor fact, customer language, platform spec, regulation, price, trend)."
+            },
+            {
+              "en": "Search plan",
+              "vi": "Kế hoạch tìm kiếm",
+              "write": "Query set per question, including Vietnamese-language and platform-native queries."
+            },
+            {
+              "en": "Source tiers",
+              "vi": "Phân tầng nguồn",
+              "write": "Which tier of source may support which claim type."
+            },
+            {
+              "en": "Stop conditions",
+              "vi": "Điều kiện dừng",
+              "write": "What counts as enough evidence per question."
+            }
           ]
         },
         {
@@ -54,20 +121,60 @@
           "file": "03-market-assessment",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Market assessment",
           "title_vi": "Đánh giá thị trường",
           "gate": "Every number has a source URL with a retrieval date or is marked inferred with its arithmetic shown. Sizing is bottom-up and expressed as a range.",
           "sections": [
-            {"en": "Scope and method", "vi": "Phạm vi và phương pháp", "write": "What was researched, how, and what was not."},
-            {"en": "Category definition", "vi": "Định nghĩa ngành hàng", "write": "The category as the customer would describe it, not as the industry names it."},
-            {"en": "Demand evidence", "vi": "Bằng chứng nhu cầu", "write": "Triangulate at least three independent signals. Name the bias in each."},
-            {"en": "Market size", "vi": "Quy mô thị trường", "write": "Bottom-up build with the arithmetic visible: reachable population, frequency, average order value, capture rate. Give a low/base/high range."},
-            {"en": "Competitive set", "vi": "Bối cảnh cạnh tranh", "write": "Direct, indirect, substitute, and do-nothing. Comparison matrix on axes that predict switching."},
-            {"en": "Positioning map", "vi": "Bản đồ định vị", "write": "Two axes built from observable attributes. Mark the empty space and say whether it is empty for a good reason."},
-            {"en": "Price ladder", "vi": "Bậc giá", "write": "Observed competitor prices with sources, and where this product can sit."},
-            {"en": "Risks and regulation", "vi": "Rủi ro và pháp lý", "write": "Regulatory, supply, seasonality, platform dependency, concentration."},
-            {"en": "Confidence and what would change this", "vi": "Độ tin cậy và điều có thể thay đổi kết luận", "write": "Per-conclusion confidence label, plus the specific evidence that would overturn it."}
+            {
+              "en": "Scope and method",
+              "vi": "Phạm vi và phương pháp",
+              "write": "What was researched, how, and what was not."
+            },
+            {
+              "en": "Category definition",
+              "vi": "Định nghĩa ngành hàng",
+              "write": "The category as the customer would describe it, not as the industry names it."
+            },
+            {
+              "en": "Demand evidence",
+              "vi": "Bằng chứng nhu cầu",
+              "write": "Triangulate at least three independent signals. Name the bias in each."
+            },
+            {
+              "en": "Market size",
+              "vi": "Quy mô thị trường",
+              "write": "Bottom-up build with the arithmetic visible: reachable population, frequency, average order value, capture rate. Give a low/base/high range."
+            },
+            {
+              "en": "Competitive set",
+              "vi": "Bối cảnh cạnh tranh",
+              "write": "Direct, indirect, substitute, and do-nothing. Comparison matrix on axes that predict switching."
+            },
+            {
+              "en": "Positioning map",
+              "vi": "Bản đồ định vị",
+              "write": "Two axes built from observable attributes. Mark the empty space and say whether it is empty for a good reason."
+            },
+            {
+              "en": "Price ladder",
+              "vi": "Bậc giá",
+              "write": "Observed competitor prices with sources, and where this product can sit."
+            },
+            {
+              "en": "Risks and regulation",
+              "vi": "Rủi ro và pháp lý",
+              "write": "Regulatory, supply, seasonality, platform dependency, concentration."
+            },
+            {
+              "en": "Confidence and what would change this",
+              "vi": "Độ tin cậy và điều có thể thay đổi kết luận",
+              "write": "Per-conclusion confidence label, plus the specific evidence that would overturn it."
+            }
           ]
         },
         {
@@ -75,18 +182,49 @@
           "file": "04-audience-insight",
           "kind": "md",
           "bilingual": true,
-          "modes": ["system", "production"],
+          "modes": [
+            "system",
+            "production"
+          ],
           "title": "Audience insight",
           "title_vi": "Hiểu biết khách hàng",
           "gate": "Customer language is quoted verbatim from a real source, not paraphrased or invented.",
           "sections": [
-            {"en": "Beachhead segment", "vi": "Phân khúc mũi nhọn", "write": "One segment, chosen behaviourally or situationally, not demographically. Say why this one first."},
-            {"en": "Situation and job to be done", "vi": "Bối cảnh và việc cần làm", "write": "The moment the need appears, described concretely enough to film."},
-            {"en": "Awareness stage", "vi": "Mức độ nhận thức", "write": "Unaware, problem-aware, solution-aware, product-aware, or most-aware. This decides the headline job."},
-            {"en": "Forces of progress", "vi": "Bốn lực chuyển đổi", "write": "Push, pull, habit, anxiety. Anxiety and habit are what actually block the sale."},
-            {"en": "Objections", "vi": "Phản đối", "write": "Ranked, with where in the read each one surfaces."},
-            {"en": "Customer language", "vi": "Ngôn ngữ khách hàng", "write": "Verbatim phrases with source. This becomes the copy vocabulary."},
-            {"en": "Where they already are", "vi": "Họ đang ở đâu", "write": "Platforms, surfaces, and moments, with evidence."}
+            {
+              "en": "Beachhead segment",
+              "vi": "Phân khúc mũi nhọn",
+              "write": "One segment, chosen behaviourally or situationally, not demographically. Say why this one first."
+            },
+            {
+              "en": "Situation and job to be done",
+              "vi": "Bối cảnh và việc cần làm",
+              "write": "The moment the need appears, described concretely enough to film."
+            },
+            {
+              "en": "Awareness stage",
+              "vi": "Mức độ nhận thức",
+              "write": "Unaware, problem-aware, solution-aware, product-aware, or most-aware. This decides the headline job."
+            },
+            {
+              "en": "Forces of progress",
+              "vi": "Bốn lực chuyển đổi",
+              "write": "Push, pull, habit, anxiety. Anxiety and habit are what actually block the sale."
+            },
+            {
+              "en": "Objections",
+              "vi": "Phản đối",
+              "write": "Ranked, with where in the read each one surfaces."
+            },
+            {
+              "en": "Customer language",
+              "vi": "Ngôn ngữ khách hàng",
+              "write": "Verbatim phrases with source. This becomes the copy vocabulary."
+            },
+            {
+              "en": "Where they already are",
+              "vi": "Họ đang ở đâu",
+              "write": "Platforms, surfaces, and moments, with evidence."
+            }
           ]
         },
         {
@@ -94,19 +232,55 @@
           "file": "05-positioning",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Positioning",
           "title_vi": "Định vị",
           "gate": "The differentiating idea survives the substitution test: a competitor cannot claim it truthfully.",
           "sections": [
-            {"en": "Frame of reference", "vi": "Khung tham chiếu", "write": "The set the customer compares against. Choosing the frame is most of positioning."},
-            {"en": "Target and moment", "vi": "Đối tượng và thời điểm", "write": "Who, in what situation, at what trigger."},
-            {"en": "Single differentiating idea", "vi": "Ý tưởng khác biệt duy nhất", "write": "One sentence. If it needs two, positioning is not decided yet."},
-            {"en": "Mechanism", "vi": "Cơ chế", "write": "Why the claim is structurally true. The most skipped and highest-leverage element."},
-            {"en": "Proof", "vi": "Bằng chứng", "write": "What makes it believable today, with what exists now, not what could be gathered later."},
-            {"en": "What we deliberately give up", "vi": "Điều chủ động từ bỏ", "write": "A position with no sacrifice is not a position."},
-            {"en": "Positioning statement", "vi": "Phát biểu định vị", "write": "Internal working sentence, not a tagline."},
-            {"en": "Anti-positioning", "vi": "Định vị cần tránh", "write": "The claims and looks this brand must not adopt, and why."}
+            {
+              "en": "Frame of reference",
+              "vi": "Khung tham chiếu",
+              "write": "The set the customer compares against. Choosing the frame is most of positioning."
+            },
+            {
+              "en": "Target and moment",
+              "vi": "Đối tượng và thời điểm",
+              "write": "Who, in what situation, at what trigger."
+            },
+            {
+              "en": "Single differentiating idea",
+              "vi": "Ý tưởng khác biệt duy nhất",
+              "write": "One sentence. If it needs two, positioning is not decided yet."
+            },
+            {
+              "en": "Mechanism",
+              "vi": "Cơ chế",
+              "write": "Why the claim is structurally true. The most skipped and highest-leverage element."
+            },
+            {
+              "en": "Proof",
+              "vi": "Bằng chứng",
+              "write": "What makes it believable today, with what exists now, not what could be gathered later."
+            },
+            {
+              "en": "What we deliberately give up",
+              "vi": "Điều chủ động từ bỏ",
+              "write": "A position with no sacrifice is not a position."
+            },
+            {
+              "en": "Positioning statement",
+              "vi": "Phát biểu định vị",
+              "write": "Internal working sentence, not a tagline."
+            },
+            {
+              "en": "Anti-positioning",
+              "vi": "Định vị cần tránh",
+              "write": "The claims and looks this brand must not adopt, and why."
+            }
           ]
         },
         {
@@ -114,18 +288,50 @@
           "file": "06-offer",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Offer",
           "title_vi": "Chào bán",
           "gate": "Scarcity, guarantee, and price are all real and deliverable. Nothing here would embarrass the business if audited.",
           "sections": [
-            {"en": "Core outcome", "vi": "Kết quả cốt lõi", "write": "What the buyer actually walks away with, in their words."},
-            {"en": "Value equation read", "vi": "Đọc phương trình giá trị", "write": "Dream outcome, perceived likelihood, time delay, effort. Score each and name the weakest lever."},
-            {"en": "Offer anatomy", "vi": "Cấu trúc chào bán", "write": "Core, bonuses, guarantee, urgency, name, price presentation."},
-            {"en": "Price and presentation", "vi": "Giá và cách trình bày", "write": "Number, currency formatting, anchoring, and what is bundled or unbundled."},
-            {"en": "Risk reversal", "vi": "Đảo ngược rủi ro", "write": "The specific mechanism that removes the buyer's downside, and its real cost to the business."},
-            {"en": "Real urgency or none", "vi": "Khẩn cấp thật hoặc không có", "write": "If there is no genuine deadline or limit, say so and do not fabricate one."},
-            {"en": "Offer name", "vi": "Tên gói", "write": "Concrete and specific. Not 'Premium Package'."}
+            {
+              "en": "Core outcome",
+              "vi": "Kết quả cốt lõi",
+              "write": "What the buyer actually walks away with, in their words."
+            },
+            {
+              "en": "Value equation read",
+              "vi": "Đọc phương trình giá trị",
+              "write": "Dream outcome, perceived likelihood, time delay, effort. Score each and name the weakest lever."
+            },
+            {
+              "en": "Offer anatomy",
+              "vi": "Cấu trúc chào bán",
+              "write": "Core, bonuses, guarantee, urgency, name, price presentation."
+            },
+            {
+              "en": "Price and presentation",
+              "vi": "Giá và cách trình bày",
+              "write": "Number, currency formatting, anchoring, and what is bundled or unbundled."
+            },
+            {
+              "en": "Risk reversal",
+              "vi": "Đảo ngược rủi ro",
+              "write": "The specific mechanism that removes the buyer's downside, and its real cost to the business."
+            },
+            {
+              "en": "Real urgency or none",
+              "vi": "Khẩn cấp thật hoặc không có",
+              "write": "If there is no genuine deadline or limit, say so and do not fabricate one."
+            },
+            {
+              "en": "Offer name",
+              "vi": "Tên gói",
+              "write": "Concrete and specific. Not 'Premium Package'."
+            }
           ]
         },
         {
@@ -133,18 +339,50 @@
           "file": "07-messaging",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Messaging architecture",
           "title_vi": "Kiến trúc thông điệp",
           "gate": "Every message links to a claim ID in claims.csv. Prohibited claims are listed explicitly.",
           "sections": [
-            {"en": "Message ladder", "vi": "Bậc thông điệp", "write": "Tension, promise, mechanism, proof, action. Write all five as sentences."},
-            {"en": "Primary message", "vi": "Thông điệp chính", "write": "One line that survives being read alone, out of context."},
-            {"en": "Proof map", "vi": "Bản đồ bằng chứng", "write": "Message to proof to claim ID. Any message without proof is downgraded or cut."},
-            {"en": "Message by awareness stage", "vi": "Thông điệp theo mức nhận thức", "write": "The same product, said five ways, one per stage."},
-            {"en": "Message by channel", "vi": "Thông điệp theo kênh", "write": "How the primary message compresses into each surface without becoming a different promise."},
-            {"en": "Prohibited claims", "vi": "Tuyên bố bị cấm", "write": "Superlatives, health or efficacy claims, comparative claims, and anything unverified. Cite the rule where one applies."},
-            {"en": "Voice and tone", "vi": "Giọng và sắc thái", "write": "Register, address form, three do-say and three never-say examples, in both languages."}
+            {
+              "en": "Message ladder",
+              "vi": "Bậc thông điệp",
+              "write": "Tension, promise, mechanism, proof, action. Write all five as sentences."
+            },
+            {
+              "en": "Primary message",
+              "vi": "Thông điệp chính",
+              "write": "One line that survives being read alone, out of context."
+            },
+            {
+              "en": "Proof map",
+              "vi": "Bản đồ bằng chứng",
+              "write": "Message to proof to claim ID. Any message without proof is downgraded or cut."
+            },
+            {
+              "en": "Message by awareness stage",
+              "vi": "Thông điệp theo mức nhận thức",
+              "write": "The same product, said five ways, one per stage."
+            },
+            {
+              "en": "Message by channel",
+              "vi": "Thông điệp theo kênh",
+              "write": "How the primary message compresses into each surface without becoming a different promise."
+            },
+            {
+              "en": "Prohibited claims",
+              "vi": "Tuyên bố bị cấm",
+              "write": "Superlatives, health or efficacy claims, comparative claims, and anything unverified. Cite the rule where one applies."
+            },
+            {
+              "en": "Voice and tone",
+              "vi": "Giọng và sắc thái",
+              "write": "Register, address form, three do-say and three never-say examples, in both languages."
+            }
           ]
         },
         {
@@ -152,19 +390,54 @@
           "file": "08-copy-pack",
           "kind": "md",
           "bilingual": true,
-          "modes": ["system", "production"],
+          "modes": [
+            "system",
+            "production"
+          ],
           "title": "Copy pack",
           "title_vi": "Bộ nội dung",
           "gate": "Passes the edit sweep: no filler, no unproven claim, no LLM tell, no untranslatable direct rendering between languages.",
           "sections": [
-            {"en": "Headlines", "vi": "Tiêu đề", "write": "Ten or more, tagged by pattern and awareness stage. Kill any that could headline a competitor."},
-            {"en": "Landing page blocks", "vi": "Khối trang đích", "write": "Block by block with the job of each block named."},
-            {"en": "Ad copy set", "vi": "Bộ nội dung quảng cáo", "write": "Primary text, headline, description per placement, within real character limits."},
-            {"en": "Social captions", "vi": "Caption mạng xã hội", "write": "Native to each platform's reading behaviour, not one caption reposted."},
-            {"en": "Short-video scripts", "vi": "Kịch bản video ngắn", "write": "Hook in the first three seconds, then beats with on-screen text."},
-            {"en": "Lifecycle sequence", "vi": "Chuỗi vòng đời", "write": "Email, SMS, or Zalo, with trigger, delay, single job, and suppression rule per message."},
-            {"en": "Product and item descriptions", "vi": "Mô tả sản phẩm và món", "write": "Sensory and specific. For menus, respect the length the layout allows."},
-            {"en": "CTA set", "vi": "Bộ CTA", "write": "One primary action per surface, with the friction-reducing microcopy underneath."}
+            {
+              "en": "Headlines",
+              "vi": "Tiêu đề",
+              "write": "Ten or more, tagged by pattern and awareness stage. Kill any that could headline a competitor."
+            },
+            {
+              "en": "Landing page blocks",
+              "vi": "Khối trang đích",
+              "write": "Block by block with the job of each block named."
+            },
+            {
+              "en": "Ad copy set",
+              "vi": "Bộ nội dung quảng cáo",
+              "write": "Primary text, headline, description per placement, within real character limits."
+            },
+            {
+              "en": "Social captions",
+              "vi": "Caption mạng xã hội",
+              "write": "Native to each platform's reading behaviour, not one caption reposted."
+            },
+            {
+              "en": "Short-video scripts",
+              "vi": "Kịch bản video ngắn",
+              "write": "Hook in the first three seconds, then beats with on-screen text."
+            },
+            {
+              "en": "Lifecycle sequence",
+              "vi": "Chuỗi vòng đời",
+              "write": "Email, SMS, or Zalo, with trigger, delay, single job, and suppression rule per message."
+            },
+            {
+              "en": "Product and item descriptions",
+              "vi": "Mô tả sản phẩm và món",
+              "write": "Sensory and specific. For menus, respect the length the layout allows."
+            },
+            {
+              "en": "CTA set",
+              "vi": "Bộ CTA",
+              "write": "One primary action per surface, with the friction-reducing microcopy underneath."
+            }
           ]
         },
         {
@@ -172,16 +445,40 @@
           "file": "09-channel-plan",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Channel plan",
           "title_vi": "Kế hoạch kênh",
           "gate": "At most two or three starting channels, each with a stated reason, cost, time-to-signal, and failure mode.",
           "sections": [
-            {"en": "Channel scoring", "vi": "Chấm điểm kênh", "write": "Score candidates on audience presence, intent depth, money cost, time cost, speed of signal, compounding value, platform risk."},
-            {"en": "Chosen channels", "vi": "Kênh được chọn", "write": "Two or three. Say what each is responsible for."},
-            {"en": "Per-channel operating plan", "vi": "Kế hoạch vận hành từng kênh", "write": "Asset types, cadence, targeting or distribution mechanic, owner, first-week actions."},
-            {"en": "What we are not doing", "vi": "Điều không làm", "write": "Name the rejected channels and the reason. This is the part that protects the plan."},
-            {"en": "Platform dependency risk", "vi": "Rủi ro phụ thuộc nền tảng", "write": "What breaks if one platform changes its rules, and the owned-audience hedge."}
+            {
+              "en": "Channel scoring",
+              "vi": "Chấm điểm kênh",
+              "write": "Score candidates on audience presence, intent depth, money cost, time cost, speed of signal, compounding value, platform risk."
+            },
+            {
+              "en": "Chosen channels",
+              "vi": "Kênh được chọn",
+              "write": "Two or three. Say what each is responsible for."
+            },
+            {
+              "en": "Per-channel operating plan",
+              "vi": "Kế hoạch vận hành từng kênh",
+              "write": "Asset types, cadence, targeting or distribution mechanic, owner, first-week actions."
+            },
+            {
+              "en": "What we are not doing",
+              "vi": "Điều không làm",
+              "write": "Name the rejected channels and the reason. This is the part that protects the plan."
+            },
+            {
+              "en": "Platform dependency risk",
+              "vi": "Rủi ro phụ thuộc nền tảng",
+              "write": "What breaks if one platform changes its rules, and the owned-audience hedge."
+            }
           ]
         },
         {
@@ -189,17 +486,44 @@
           "file": "10-calendar-90d",
           "kind": "md",
           "bilingual": true,
-          "modes": ["system", "production"],
+          "modes": [
+            "system",
+            "production"
+          ],
           "title": "90-day calendar",
           "title_vi": "Lịch 90 ngày",
           "gate": "Every item has an owner, a lead time, and a dependency. No week is fully booked.",
           "sections": [
-            {"en": "Phase 0 pre-launch", "vi": "Giai đoạn 0 trước khi chạy", "write": "What must exist before day one: assets, tracking, inventory, permissions."},
-            {"en": "Days 1-30", "vi": "Ngày 1-30", "write": "Week by week. Learning goal per week, not just activity."},
-            {"en": "Days 31-60", "vi": "Ngày 31-60", "write": "What scales, what gets cut, based on which signal."},
-            {"en": "Days 61-90", "vi": "Ngày 61-90", "write": "Compounding work and the second channel."},
-            {"en": "Lead times and dependencies", "vi": "Thời gian chuẩn bị và phụ thuộc", "write": "Print, shoot, approval, platform review. The things always underestimated."},
-            {"en": "Weekly operating rhythm", "vi": "Nhịp vận hành hàng tuần", "write": "The recurring meeting, the recurring report, the recurring decision."}
+            {
+              "en": "Phase 0 pre-launch",
+              "vi": "Giai đoạn 0 trước khi chạy",
+              "write": "What must exist before day one: assets, tracking, inventory, permissions."
+            },
+            {
+              "en": "Days 1-30",
+              "vi": "Ngày 1-30",
+              "write": "Week by week. Learning goal per week, not just activity."
+            },
+            {
+              "en": "Days 31-60",
+              "vi": "Ngày 31-60",
+              "write": "What scales, what gets cut, based on which signal."
+            },
+            {
+              "en": "Days 61-90",
+              "vi": "Ngày 61-90",
+              "write": "Compounding work and the second channel."
+            },
+            {
+              "en": "Lead times and dependencies",
+              "vi": "Thời gian chuẩn bị và phụ thuộc",
+              "write": "Print, shoot, approval, platform review. The things always underestimated."
+            },
+            {
+              "en": "Weekly operating rhythm",
+              "vi": "Nhịp vận hành hàng tuần",
+              "write": "The recurring meeting, the recurring report, the recurring decision."
+            }
           ]
         },
         {
@@ -207,18 +531,49 @@
           "file": "11-budget-and-unit-economics",
           "kind": "md",
           "bilingual": true,
-          "modes": ["system", "production"],
+          "modes": [
+            "system",
+            "production"
+          ],
           "title": "Budget and unit economics",
           "title_vi": "Ngân sách và kinh tế đơn vị",
           "gate": "The CAC ceiling is derived from contribution margin with arithmetic shown, not asserted.",
           "sections": [
-            {"en": "Unit economics", "vi": "Kinh tế đơn vị", "write": "Price, variable cost, contribution margin per unit, in local currency, with the arithmetic."},
-            {"en": "CAC ceiling", "vi": "Trần chi phí thu khách", "write": "Derive from contribution margin, repeat rate, and acceptable payback period. Show the calculation."},
-            {"en": "Budget split", "vi": "Phân bổ ngân sách", "write": "By channel and by phase, at the actual budget available."},
-            {"en": "Production versus media", "vi": "Sản xuất so với truyền thông", "write": "The ratio, and why. Under-producing creative wastes media; over-producing starves it."},
-            {"en": "Test carve-out", "vi": "Ngân sách thử nghiệm", "write": "A fixed percentage reserved for learning, protected from performance pressure."},
-            {"en": "Break-even", "vi": "Điểm hòa vốn", "write": "Units and days at the planned spend."},
-            {"en": "Reallocation rules", "vi": "Quy tắc tái phân bổ", "write": "Written in advance: what evidence moves money, and how much."}
+            {
+              "en": "Unit economics",
+              "vi": "Kinh tế đơn vị",
+              "write": "Price, variable cost, contribution margin per unit, in local currency, with the arithmetic."
+            },
+            {
+              "en": "CAC ceiling",
+              "vi": "Trần chi phí thu khách",
+              "write": "Derive from contribution margin, repeat rate, and acceptable payback period. Show the calculation."
+            },
+            {
+              "en": "Budget split",
+              "vi": "Phân bổ ngân sách",
+              "write": "By channel and by phase, at the actual budget available."
+            },
+            {
+              "en": "Production versus media",
+              "vi": "Sản xuất so với truyền thông",
+              "write": "The ratio, and why. Under-producing creative wastes media; over-producing starves it."
+            },
+            {
+              "en": "Test carve-out",
+              "vi": "Ngân sách thử nghiệm",
+              "write": "A fixed percentage reserved for learning, protected from performance pressure."
+            },
+            {
+              "en": "Break-even",
+              "vi": "Điểm hòa vốn",
+              "write": "Units and days at the planned spend."
+            },
+            {
+              "en": "Reallocation rules",
+              "vi": "Quy tắc tái phân bổ",
+              "write": "Written in advance: what evidence moves money, and how much."
+            }
           ]
         },
         {
@@ -226,18 +581,50 @@
           "file": "12-measurement",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Measurement contract",
           "title_vi": "Hợp đồng đo lường",
           "gate": "No awareness asset is judged on last-click. Every metric has a decision attached to it.",
           "sections": [
-            {"en": "North star and metric tree", "vi": "Chỉ số cốt lõi và cây chỉ số", "write": "One business outcome, decomposed into the leading indicators that actually drive it."},
-            {"en": "Legitimate metric per stage", "vi": "Chỉ số hợp lệ theo giai đoạn", "write": "What each funnel stage may be judged on, and what it may not."},
-            {"en": "Instrumentation", "vi": "Thiết lập đo lường", "write": "What must be installed or named before spend starts: events, UTMs, codes, call tracking."},
-            {"en": "Attribution honesty", "vi": "Trung thực về quy kết", "write": "Platform-reported versus actual, view-through inflation, and what this business can legitimately conclude."},
-            {"en": "Guardrails", "vi": "Ngưỡng bảo vệ", "write": "The metrics that stop a false winner: margin, refund rate, review score, cost per qualified action."},
-            {"en": "Reporting cadence", "vi": "Nhịp báo cáo", "write": "Weekly and monthly, with the template and the audience for each."},
-            {"en": "Decision rules", "vi": "Quy tắc quyết định", "write": "Written before the data arrives: at what threshold do we scale, hold, fix, or kill."}
+            {
+              "en": "North star and metric tree",
+              "vi": "Chỉ số cốt lõi và cây chỉ số",
+              "write": "One business outcome, decomposed into the leading indicators that actually drive it."
+            },
+            {
+              "en": "Legitimate metric per stage",
+              "vi": "Chỉ số hợp lệ theo giai đoạn",
+              "write": "What each funnel stage may be judged on, and what it may not."
+            },
+            {
+              "en": "Instrumentation",
+              "vi": "Thiết lập đo lường",
+              "write": "What must be installed or named before spend starts: events, UTMs, codes, call tracking."
+            },
+            {
+              "en": "Attribution honesty",
+              "vi": "Trung thực về quy kết",
+              "write": "Platform-reported versus actual, view-through inflation, and what this business can legitimately conclude."
+            },
+            {
+              "en": "Guardrails",
+              "vi": "Ngưỡng bảo vệ",
+              "write": "The metrics that stop a false winner: margin, refund rate, review score, cost per qualified action."
+            },
+            {
+              "en": "Reporting cadence",
+              "vi": "Nhịp báo cáo",
+              "write": "Weekly and monthly, with the template and the audience for each."
+            },
+            {
+              "en": "Decision rules",
+              "vi": "Quy tắc quyết định",
+              "write": "Written before the data arrives: at what threshold do we scale, hold, fix, or kill."
+            }
           ]
         },
         {
@@ -245,16 +632,39 @@
           "file": "13-creative-direction",
           "kind": "md",
           "bilingual": true,
-          "modes": ["system", "production"],
+          "modes": [
+            "system",
+            "production"
+          ],
           "title": "Creative direction",
           "title_vi": "Định hướng sáng tạo",
           "gate": "Direction is derived from the product mechanism and audience behaviour, not from a visual trend.",
           "sections": [
-            {"en": "Creative territory", "vi": "Vùng sáng tạo", "write": "The idea space this brand owns, expressed so a photographer and a copywriter both know what to do."},
-            {"en": "Three lanes", "vi": "Ba làn sáng tạo", "write": "Clear, distinctive-signature, and departure. What each is for and how budget splits."},
-            {"en": "Visual grammar", "vi": "Ngữ pháp thị giác", "write": "Palette, light character, composition signature, type, texture, and the anti-references."},
-            {"en": "Asset system", "vi": "Hệ thống tài sản", "write": "The minimum set of assets, with ratios and channels, that covers the plan. No blind Cartesian product."},
-            {"en": "Handoff", "vi": "Chuyển giao", "write": "Which follow-on pipeline runs next (image-from-reference, design-render, video-campaign) and with what locked inputs."}
+            {
+              "en": "Creative territory",
+              "vi": "Vùng sáng tạo",
+              "write": "The idea space this brand owns, expressed so a photographer and a copywriter both know what to do."
+            },
+            {
+              "en": "Three lanes",
+              "vi": "Ba làn sáng tạo",
+              "write": "Clear, distinctive-signature, and departure. What each is for and how budget splits."
+            },
+            {
+              "en": "Visual grammar",
+              "vi": "Ngữ pháp thị giác",
+              "write": "Palette, light character, composition signature, type, texture, and the anti-references."
+            },
+            {
+              "en": "Asset system",
+              "vi": "Hệ thống tài sản",
+              "write": "The minimum set of assets, with ratios and channels, that covers the plan. No blind Cartesian product."
+            },
+            {
+              "en": "Handoff",
+              "vi": "Chuyển giao",
+              "write": "Which follow-on pipeline runs next (image-from-reference, design-render, video-campaign) and with what locked inputs."
+            }
           ]
         },
         {
@@ -262,7 +672,11 @@
           "file": "claims.csv",
           "kind": "csv",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Claim ledger",
           "title_vi": "Sổ tuyên bố",
           "gate": "Every public-facing claim appears here with evidence, owner, status, and review date.",
@@ -273,15 +687,35 @@
           "file": "sources.md",
           "kind": "md",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Source map",
           "title_vi": "Bản đồ nguồn",
           "gate": "Every URL was actually opened. No URL is reconstructed from memory.",
           "sections": [
-            {"en": "Primary sources", "vi": "Nguồn sơ cấp", "write": "Official docs, regulation text, platform developer docs, the company's own pages. URL plus retrieval date plus what it supports."},
-            {"en": "Secondary sources", "vi": "Nguồn thứ cấp", "write": "Trade press and research with disclosed methodology."},
-            {"en": "Voice of customer", "vi": "Tiếng nói khách hàng", "write": "Where customer language was mined, how it was sampled, how many items."},
-            {"en": "Could not verify", "vi": "Không thể xác minh", "write": "What was searched for and not found. This section is a feature, not an admission."}
+            {
+              "en": "Primary sources",
+              "vi": "Nguồn sơ cấp",
+              "write": "Official docs, regulation text, platform developer docs, the company's own pages. URL plus retrieval date plus what it supports."
+            },
+            {
+              "en": "Secondary sources",
+              "vi": "Nguồn thứ cấp",
+              "write": "Trade press and research with disclosed methodology."
+            },
+            {
+              "en": "Voice of customer",
+              "vi": "Tiếng nói khách hàng",
+              "write": "Where customer language was mined, how it was sampled, how many items."
+            },
+            {
+              "en": "Could not verify",
+              "vi": "Không thể xác minh",
+              "write": "What was searched for and not found. This section is a feature, not an admission."
+            }
           ]
         },
         {
@@ -289,14 +723,30 @@
           "file": "99-decision-log.md",
           "kind": "md",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Decision log",
           "title_vi": "Sổ quyết định",
           "gate": "Every material choice has a recorded alternative that was rejected and why.",
           "sections": [
-            {"en": "Decisions", "vi": "Các quyết định", "write": "Date, decision, alternative rejected, reason, confidence, who decides if wrong."},
-            {"en": "Assumptions running", "vi": "Giả định đang chạy", "write": "Unresolved assumptions the plan depends on, and what would invalidate each."},
-            {"en": "Next actions", "vi": "Hành động tiếp theo", "write": "Concrete, owned, dated."}
+            {
+              "en": "Decisions",
+              "vi": "Các quyết định",
+              "write": "Date, decision, alternative rejected, reason, confidence, who decides if wrong."
+            },
+            {
+              "en": "Assumptions running",
+              "vi": "Giả định đang chạy",
+              "write": "Unresolved assumptions the plan depends on, and what would invalidate each."
+            },
+            {
+              "en": "Next actions",
+              "vi": "Hành động tiếp theo",
+              "write": "Concrete, owned, dated."
+            }
           ]
         }
       ]
@@ -306,23 +756,54 @@
       "title_vi": "Nghiên cứu thị trường chuyên sâu",
       "default_mode": "system",
       "use_when": "User wants to understand a market, competitors, customers, demand, or feasibility before committing. Also runs as the research stage inside plan-from-zero.",
-      "references": ["research-protocol.md", "market-assessment.md", "customer-evidence.md", "source-map.md", "claims-proof-ledger.md"],
-      "scripts": ["start_workbench.py", "new_run.py", "research_plan.py", "run_status.py"],
+      "references": [
+        "research-protocol.md",
+        "market-assessment.md",
+        "customer-evidence.md",
+        "source-map.md",
+        "claims-proof-ledger.md"
+      ],
+      "scripts": [
+        "start_workbench.py",
+        "new_run.py",
+        "research_plan.py",
+        "run_status.py"
+      ],
       "deliverables": [
         {
           "id": "01-intake",
           "file": "01-intake.md",
           "kind": "md",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Research intake",
           "title_vi": "Tiếp nhận nghiên cứu",
           "gate": "The decision the research must inform is stated in one sentence.",
           "sections": [
-            {"en": "Decision to inform", "vi": "Quyết định cần hỗ trợ", "write": "Research with no decision attached is trivia. Name the decision."},
-            {"en": "What is already known", "vi": "Điều đã biết", "write": "Labelled confirmed / observed / inferred / unknown."},
-            {"en": "Constraints", "vi": "Giới hạn", "write": "Geography, language, budget, timeline, and access limits."},
-            {"en": "Out of scope", "vi": "Ngoài phạm vi", "write": "Explicit."}
+            {
+              "en": "Decision to inform",
+              "vi": "Quyết định cần hỗ trợ",
+              "write": "Research with no decision attached is trivia. Name the decision."
+            },
+            {
+              "en": "What is already known",
+              "vi": "Điều đã biết",
+              "write": "Labelled confirmed / observed / inferred / unknown."
+            },
+            {
+              "en": "Constraints",
+              "vi": "Giới hạn",
+              "write": "Geography, language, budget, timeline, and access limits."
+            },
+            {
+              "en": "Out of scope",
+              "vi": "Ngoài phạm vi",
+              "write": "Explicit."
+            }
           ]
         },
         {
@@ -330,15 +811,35 @@
           "file": "02-research-plan.md",
           "kind": "md",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Research plan",
           "title_vi": "Kế hoạch nghiên cứu",
           "gate": "Every question has a typed source strategy and a stop condition.",
           "sections": [
-            {"en": "Decomposed questions", "vi": "Câu hỏi đã phân rã", "write": "Independently answerable, typed by claim category."},
-            {"en": "Multi-modal search plan", "vi": "Kế hoạch tìm kiếm đa hướng", "write": "By entity, category, complaint language, comparison, price, local-language term, platform-native search."},
-            {"en": "Source tiers and rules", "vi": "Phân tầng nguồn và quy tắc", "write": "What may support a client-facing claim and what may not."},
-            {"en": "Stop conditions", "vi": "Điều kiện dừng", "write": "Per question."}
+            {
+              "en": "Decomposed questions",
+              "vi": "Câu hỏi đã phân rã",
+              "write": "Independently answerable, typed by claim category."
+            },
+            {
+              "en": "Multi-modal search plan",
+              "vi": "Kế hoạch tìm kiếm đa hướng",
+              "write": "By entity, category, complaint language, comparison, price, local-language term, platform-native search."
+            },
+            {
+              "en": "Source tiers and rules",
+              "vi": "Phân tầng nguồn và quy tắc",
+              "write": "What may support a client-facing claim and what may not."
+            },
+            {
+              "en": "Stop conditions",
+              "vi": "Điều kiện dừng",
+              "write": "Per question."
+            }
           ]
         },
         {
@@ -346,17 +847,45 @@
           "file": "03-market-assessment",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Market assessment",
           "title_vi": "Đánh giá thị trường",
           "gate": "Bottom-up sizing with visible arithmetic and a stated range. Every external number sourced and dated.",
           "sections": [
-            {"en": "Scope and method", "vi": "Phạm vi và phương pháp", "write": "What was done and what was not."},
-            {"en": "Category and boundaries", "vi": "Ngành hàng và ranh giới", "write": "As the customer defines it."},
-            {"en": "Demand evidence", "vi": "Bằng chứng nhu cầu", "write": "Three or more triangulated signals with their biases named."},
-            {"en": "Sizing", "vi": "Quy mô", "write": "TAM, SAM, SOM. Bottom-up build shown. Low, base, high."},
-            {"en": "Category maturity and timing", "vi": "Độ chín và thời điểm", "write": "Stage of the category, and what marketing works at that stage."},
-            {"en": "Confidence and overturn conditions", "vi": "Độ tin cậy và điều kiện đảo ngược", "write": "Per conclusion."}
+            {
+              "en": "Scope and method",
+              "vi": "Phạm vi và phương pháp",
+              "write": "What was done and what was not."
+            },
+            {
+              "en": "Category and boundaries",
+              "vi": "Ngành hàng và ranh giới",
+              "write": "As the customer defines it."
+            },
+            {
+              "en": "Demand evidence",
+              "vi": "Bằng chứng nhu cầu",
+              "write": "Three or more triangulated signals with their biases named."
+            },
+            {
+              "en": "Sizing",
+              "vi": "Quy mô",
+              "write": "TAM, SAM, SOM. Bottom-up build shown. Low, base, high."
+            },
+            {
+              "en": "Category maturity and timing",
+              "vi": "Độ chín và thời điểm",
+              "write": "Stage of the category, and what marketing works at that stage."
+            },
+            {
+              "en": "Confidence and overturn conditions",
+              "vi": "Độ tin cậy và điều kiện đảo ngược",
+              "write": "Per conclusion."
+            }
           ]
         },
         {
@@ -364,17 +893,45 @@
           "file": "04-competitor-analysis",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Competitor analysis",
           "title_vi": "Phân tích đối thủ",
           "gate": "Competitor claims are quoted from their own live surfaces with URLs, not characterised from memory.",
           "sections": [
-            {"en": "Competitor set", "vi": "Tập đối thủ", "write": "Direct, indirect, substitute, do-nothing. Say how the set was built."},
-            {"en": "Comparison matrix", "vi": "Ma trận so sánh", "write": "Axes that predict switching, not feature checklists."},
-            {"en": "Positioning and message audit", "vi": "Kiểm toán định vị và thông điệp", "write": "What each actually says, quoted, with URL and date."},
-            {"en": "Price and offer ladder", "vi": "Bậc giá và chào bán", "write": "Observed prices, bundles, guarantees, and promotional behaviour."},
-            {"en": "Creative and channel audit", "vi": "Kiểm toán sáng tạo và kênh", "write": "Where they show up, what their creative pattern is, and what is saturated."},
-            {"en": "Openings", "vi": "Khoảng trống", "write": "Where the set is uniformly weak, and whether that weakness is a real opportunity or a structural constraint."}
+            {
+              "en": "Competitor set",
+              "vi": "Tập đối thủ",
+              "write": "Direct, indirect, substitute, do-nothing. Say how the set was built."
+            },
+            {
+              "en": "Comparison matrix",
+              "vi": "Ma trận so sánh",
+              "write": "Axes that predict switching, not feature checklists."
+            },
+            {
+              "en": "Positioning and message audit",
+              "vi": "Kiểm toán định vị và thông điệp",
+              "write": "What each actually says, quoted, with URL and date."
+            },
+            {
+              "en": "Price and offer ladder",
+              "vi": "Bậc giá và chào bán",
+              "write": "Observed prices, bundles, guarantees, and promotional behaviour."
+            },
+            {
+              "en": "Creative and channel audit",
+              "vi": "Kiểm toán sáng tạo và kênh",
+              "write": "Where they show up, what their creative pattern is, and what is saturated."
+            },
+            {
+              "en": "Openings",
+              "vi": "Khoảng trống",
+              "write": "Where the set is uniformly weak, and whether that weakness is a real opportunity or a structural constraint."
+            }
           ]
         },
         {
@@ -382,16 +939,39 @@
           "file": "05-customer-evidence",
           "kind": "md",
           "bilingual": true,
-          "modes": ["system", "production"],
+          "modes": [
+            "system",
+            "production"
+          ],
           "title": "Customer evidence",
           "title_vi": "Bằng chứng khách hàng",
           "gate": "Quotes are verbatim with source and date. Theme frequencies are counted, not estimated.",
           "sections": [
-            {"en": "Mining method and sample", "vi": "Phương pháp và mẫu", "write": "Where, how many, how sampled, over what period."},
-            {"en": "Coded themes with frequency", "vi": "Chủ đề đã mã hóa và tần suất", "write": "Theme, count, share, representative verbatim."},
-            {"en": "Pain and gain map", "vi": "Bản đồ khó khăn và mong đợi", "write": "What actually hurts and what actually delights, ranked by frequency and intensity."},
-            {"en": "Verbatim vocabulary", "vi": "Từ vựng nguyên văn", "write": "The exact words customers use. This becomes copy."},
-            {"en": "Objections and anxieties", "vi": "Phản đối và lo lắng", "write": "Including the ones people do not say out loud."}
+            {
+              "en": "Mining method and sample",
+              "vi": "Phương pháp và mẫu",
+              "write": "Where, how many, how sampled, over what period."
+            },
+            {
+              "en": "Coded themes with frequency",
+              "vi": "Chủ đề đã mã hóa và tần suất",
+              "write": "Theme, count, share, representative verbatim."
+            },
+            {
+              "en": "Pain and gain map",
+              "vi": "Bản đồ khó khăn và mong đợi",
+              "write": "What actually hurts and what actually delights, ranked by frequency and intensity."
+            },
+            {
+              "en": "Verbatim vocabulary",
+              "vi": "Từ vựng nguyên văn",
+              "write": "The exact words customers use. This becomes copy."
+            },
+            {
+              "en": "Objections and anxieties",
+              "vi": "Phản đối và lo lắng",
+              "write": "Including the ones people do not say out loud."
+            }
           ]
         },
         {
@@ -399,16 +979,39 @@
           "file": "06-risk-and-regulation",
           "kind": "md",
           "bilingual": true,
-          "modes": ["system", "production"],
+          "modes": [
+            "system",
+            "production"
+          ],
           "title": "Risk and regulation",
           "title_vi": "Rủi ro và pháp lý",
           "gate": "Each restriction cites the instrument. Anything unconfirmed is marked unverified rather than paraphrased as settled law.",
           "sections": [
-            {"en": "Advertising and claim restrictions", "vi": "Giới hạn quảng cáo và tuyên bố", "write": "Superlatives, comparative claims, health, food, cosmetic. Cite the law, decree, or circular."},
-            {"en": "Product and labelling obligations", "vi": "Nghĩa vụ sản phẩm và nhãn", "write": "Notification, food safety, labelling, and licensing where relevant."},
-            {"en": "Data and platform rules", "vi": "Quy định dữ liệu và nền tảng", "write": "Personal data obligations, ecommerce registration, invoicing, and platform policy."},
-            {"en": "Commercial risks", "vi": "Rủi ro thương mại", "write": "Supply, seasonality, concentration, dependency."},
-            {"en": "Unverified and to re-check", "vi": "Chưa xác minh và cần kiểm tra lại", "write": "What could not be confirmed and who should confirm it."}
+            {
+              "en": "Advertising and claim restrictions",
+              "vi": "Giới hạn quảng cáo và tuyên bố",
+              "write": "Superlatives, comparative claims, health, food, cosmetic. Cite the law, decree, or circular."
+            },
+            {
+              "en": "Product and labelling obligations",
+              "vi": "Nghĩa vụ sản phẩm và nhãn",
+              "write": "Notification, food safety, labelling, and licensing where relevant."
+            },
+            {
+              "en": "Data and platform rules",
+              "vi": "Quy định dữ liệu và nền tảng",
+              "write": "Personal data obligations, ecommerce registration, invoicing, and platform policy."
+            },
+            {
+              "en": "Commercial risks",
+              "vi": "Rủi ro thương mại",
+              "write": "Supply, seasonality, concentration, dependency."
+            },
+            {
+              "en": "Unverified and to re-check",
+              "vi": "Chưa xác minh và cần kiểm tra lại",
+              "write": "What could not be confirmed and who should confirm it."
+            }
           ]
         },
         {
@@ -416,16 +1019,40 @@
           "file": "07-findings-brief",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Findings brief",
           "title_vi": "Bản tóm kết quả",
           "gate": "Readable in five minutes. Leads with the recommendation, not the process.",
           "sections": [
-            {"en": "Recommendation", "vi": "Khuyến nghị", "write": "The answer to the decision named in intake. First, not last."},
-            {"en": "Five findings that matter", "vi": "Năm phát hiện quan trọng", "write": "Each with its number and its source."},
-            {"en": "What surprised us", "vi": "Điều gây bất ngờ", "write": "The findings that contradicted the starting assumption."},
-            {"en": "Residual uncertainty", "vi": "Bất định còn lại", "write": "What is still unknown and how much it matters."},
-            {"en": "Next actions", "vi": "Hành động tiếp theo", "write": "Owned and dated."}
+            {
+              "en": "Recommendation",
+              "vi": "Khuyến nghị",
+              "write": "The answer to the decision named in intake. First, not last."
+            },
+            {
+              "en": "Five findings that matter",
+              "vi": "Năm phát hiện quan trọng",
+              "write": "Each with its number and its source."
+            },
+            {
+              "en": "What surprised us",
+              "vi": "Điều gây bất ngờ",
+              "write": "The findings that contradicted the starting assumption."
+            },
+            {
+              "en": "Residual uncertainty",
+              "vi": "Bất định còn lại",
+              "write": "What is still unknown and how much it matters."
+            },
+            {
+              "en": "Next actions",
+              "vi": "Hành động tiếp theo",
+              "write": "Owned and dated."
+            }
           ]
         },
         {
@@ -433,7 +1060,11 @@
           "file": "claims.csv",
           "kind": "csv",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Claim ledger",
           "title_vi": "Sổ tuyên bố",
           "gate": "Every load-bearing number appears here with source, date, and confidence.",
@@ -444,15 +1075,35 @@
           "file": "sources.md",
           "kind": "md",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Source map",
           "title_vi": "Bản đồ nguồn",
           "gate": "Every URL was actually opened.",
           "sections": [
-            {"en": "Primary sources", "vi": "Nguồn sơ cấp", "write": "URL, retrieval date, what it supports."},
-            {"en": "Secondary sources", "vi": "Nguồn thứ cấp", "write": "With methodology noted."},
-            {"en": "Voice of customer", "vi": "Tiếng nói khách hàng", "write": "Surfaces mined and sample size."},
-            {"en": "Could not verify", "vi": "Không thể xác minh", "write": "Searched for and not found."}
+            {
+              "en": "Primary sources",
+              "vi": "Nguồn sơ cấp",
+              "write": "URL, retrieval date, what it supports."
+            },
+            {
+              "en": "Secondary sources",
+              "vi": "Nguồn thứ cấp",
+              "write": "With methodology noted."
+            },
+            {
+              "en": "Voice of customer",
+              "vi": "Tiếng nói khách hàng",
+              "write": "Surfaces mined and sample size."
+            },
+            {
+              "en": "Could not verify",
+              "vi": "Không thể xác minh",
+              "write": "Searched for and not found."
+            }
           ]
         }
       ]
@@ -462,24 +1113,69 @@
       "title_vi": "Ảnh từ ảnh tham chiếu",
       "default_mode": "system",
       "use_when": "User supplies photo A (product, dish, person, packaging, space) and wants branding imagery, product shots, or artistic key visuals derived from it.",
-      "references": ["reference-first-image-flow.md", "reference-analysis.md", "visual-craft.md", "composition-light-color.md", "image-output-and-sharpening.md", "product-imagery.md", "image-editing.md", "prompt-contracts.md", "provider-compilers.md", "creative-evaluation.md", "anti-ai-quality.md"],
-      "scripts": ["start_workbench.py", "new_run.py", "plan_design_options.py", "compile_prompt.py", "plan_image_generation.py", "build_asset_manifest.py", "score_creative.py", "run_status.py"],
+      "references": [
+        "reference-first-image-flow.md",
+        "reference-analysis.md",
+        "visual-craft.md",
+        "composition-light-color.md",
+        "image-output-and-sharpening.md",
+        "product-imagery.md",
+        "image-editing.md",
+        "prompt-contracts.md",
+        "provider-compilers.md",
+        "creative-evaluation.md",
+        "anti-ai-quality.md"
+      ],
+      "scripts": [
+        "start_workbench.py",
+        "new_run.py",
+        "plan_design_options.py",
+        "compile_prompt.py",
+        "plan_image_generation.py",
+        "build_asset_manifest.py",
+        "score_creative.py",
+        "run_status.py"
+      ],
       "deliverables": [
         {
           "id": "01-intake",
           "file": "01-intake.md",
           "kind": "md",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Intake and rights",
           "title_vi": "Tiếp nhận và quyền sử dụng",
           "gate": "Rights to every reference image are stated. If a real person appears, authorisation is recorded or the work stops.",
           "sections": [
-            {"en": "Reference inventory", "vi": "Danh mục ảnh tham chiếu", "write": "Each file, what it actually shows, resolution, and quality problems."},
-            {"en": "Rights and consent", "vi": "Quyền và đồng thuận", "write": "Who owns it, who appears in it, what use is authorised."},
-            {"en": "Job and destination", "vi": "Công việc và điểm đến", "write": "What the image must accomplish, where it will appear, at what size."},
-            {"en": "Locks", "vi": "Yếu tố phải giữ nguyên", "write": "Identity, product form, label text, colour, proportion. Anything not locked can drift."},
-            {"en": "Freedoms and rejects", "vi": "Được phép và bị loại", "write": "What may change, and what is an automatic rejection."}
+            {
+              "en": "Reference inventory",
+              "vi": "Danh mục ảnh tham chiếu",
+              "write": "Each file, what it actually shows, resolution, and quality problems."
+            },
+            {
+              "en": "Rights and consent",
+              "vi": "Quyền và đồng thuận",
+              "write": "Who owns it, who appears in it, what use is authorised."
+            },
+            {
+              "en": "Job and destination",
+              "vi": "Công việc và điểm đến",
+              "write": "What the image must accomplish, where it will appear, at what size."
+            },
+            {
+              "en": "Locks",
+              "vi": "Yếu tố phải giữ nguyên",
+              "write": "Identity, product form, label text, colour, proportion. Anything not locked can drift."
+            },
+            {
+              "en": "Freedoms and rejects",
+              "vi": "Được phép và bị loại",
+              "write": "What may change, and what is an automatic rejection."
+            }
           ]
         },
         {
@@ -487,7 +1183,11 @@
           "file": "02-reference-map.json",
           "kind": "json",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Reference role map",
           "title_vi": "Bản đồ vai trò ảnh tham chiếu",
           "gate": "Every reference is assigned exactly one primary role. Unassigned references are removed, not passed through.",
@@ -498,15 +1198,35 @@
           "file": "03-visual-strategy",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Visual strategy",
           "title_vi": "Chiến lược thị giác",
           "gate": "The direction is traceable to product mechanism and audience, not to a trend reference.",
           "sections": [
-            {"en": "What this image must make someone believe", "vi": "Điều ảnh phải khiến người xem tin", "write": "One sentence. Not 'look premium'."},
-            {"en": "Read order", "vi": "Thứ tự đọc", "write": "First fixation, second, third. Design backwards from this."},
-            {"en": "Territory and anti-references", "vi": "Vùng sáng tạo và tham chiếu cần tránh", "write": "Including the category default this must escape."},
-            {"en": "Copy space plan", "vi": "Vùng dành cho chữ", "write": "Where type will live, as a fraction of frame, so composition reserves it."}
+            {
+              "en": "What this image must make someone believe",
+              "vi": "Điều ảnh phải khiến người xem tin",
+              "write": "One sentence. Not 'look premium'."
+            },
+            {
+              "en": "Read order",
+              "vi": "Thứ tự đọc",
+              "write": "First fixation, second, third. Design backwards from this."
+            },
+            {
+              "en": "Territory and anti-references",
+              "vi": "Vùng sáng tạo và tham chiếu cần tránh",
+              "write": "Including the category default this must escape."
+            },
+            {
+              "en": "Copy space plan",
+              "vi": "Vùng dành cho chữ",
+              "write": "Where type will live, as a fraction of frame, so composition reserves it."
+            }
           ]
         },
         {
@@ -514,19 +1234,55 @@
           "file": "04-craft-spec",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Craft specification",
           "title_vi": "Đặc tả kỹ thuật hình ảnh",
           "gate": "Every craft field is a specific value or range, never an adjective. Lighting is specified geometrically.",
           "sections": [
-            {"en": "Capture mode", "vi": "Chế độ chụp", "write": "Studio, editorial, documentary, or native-social. This governs everything below."},
-            {"en": "Optics", "vi": "Quang học", "write": "Focal length, aperture, subject distance, and the perspective consequence."},
-            {"en": "Lighting geometry", "vi": "Hình học ánh sáng", "write": "Key source, modifier, size, azimuth and elevation in degrees, distance, ratio, fill, separation, background."},
-            {"en": "Shadow behaviour", "vi": "Hành vi bóng đổ", "write": "Contact shadow, cast shadow direction and softness, occlusion. The most common generative failure."},
-            {"en": "Colour and grade", "vi": "Màu và grade", "write": "Palette with hue angles, lightness spread, saturation budget, white balance in Kelvin, grade direction."},
-            {"en": "Materials and surfaces", "vi": "Vật liệu và bề mặt", "write": "Per surface: what light does to it, and the phrase that makes a model render it."},
-            {"en": "Composition and crop", "vi": "Bố cục và khung", "write": "Shot size, camera height, placement, negative space budget, and the master ratio."},
-            {"en": "Output specification", "vi": "Đặc tả xuất file", "write": "Pixel dimensions, colour space, format, sharpening recipe, per destination."}
+            {
+              "en": "Capture mode",
+              "vi": "Chế độ chụp",
+              "write": "Studio, editorial, documentary, or native-social. This governs everything below."
+            },
+            {
+              "en": "Optics",
+              "vi": "Quang học",
+              "write": "Focal length, aperture, subject distance, and the perspective consequence."
+            },
+            {
+              "en": "Lighting geometry",
+              "vi": "Hình học ánh sáng",
+              "write": "Key source, modifier, size, azimuth and elevation in degrees, distance, ratio, fill, separation, background."
+            },
+            {
+              "en": "Shadow behaviour",
+              "vi": "Hành vi bóng đổ",
+              "write": "Contact shadow, cast shadow direction and softness, occlusion. The most common generative failure."
+            },
+            {
+              "en": "Colour and grade",
+              "vi": "Màu và grade",
+              "write": "Palette with hue angles, lightness spread, saturation budget, white balance in Kelvin, grade direction."
+            },
+            {
+              "en": "Materials and surfaces",
+              "vi": "Vật liệu và bề mặt",
+              "write": "Per surface: what light does to it, and the phrase that makes a model render it."
+            },
+            {
+              "en": "Composition and crop",
+              "vi": "Bố cục và khung",
+              "write": "Shot size, camera height, placement, negative space budget, and the master ratio."
+            },
+            {
+              "en": "Output specification",
+              "vi": "Đặc tả xuất file",
+              "write": "Pixel dimensions, colour space, format, sharpening recipe, per destination."
+            }
           ]
         },
         {
@@ -534,14 +1290,30 @@
           "file": "05-option-cards",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Direction option cards",
           "title_vi": "Thẻ lựa chọn định hướng",
           "gate": "Three to five coded options. Each differs on a named axis, not on adjectives. A non-expert can choose by reading only the cards.",
           "sections": [
-            {"en": "How to choose", "vi": "Cách chọn", "write": "One line: reply with the code. Say what happens next."},
-            {"en": "Options", "vi": "Các lựa chọn", "write": "Per option: code, name, one-line promise, the craft delta, best for, weakness, and cost or difficulty."},
-            {"en": "Recommendation", "vi": "Khuyến nghị", "write": "Name one and give the reason in one sentence."}
+            {
+              "en": "How to choose",
+              "vi": "Cách chọn",
+              "write": "One line: reply with the code. Say what happens next."
+            },
+            {
+              "en": "Options",
+              "vi": "Các lựa chọn",
+              "write": "Per option: code, name, one-line promise, the craft delta, best for, weakness, and cost or difficulty."
+            },
+            {
+              "en": "Recommendation",
+              "vi": "Khuyến nghị",
+              "write": "Name one and give the reason in one sentence."
+            }
           ]
         },
         {
@@ -549,7 +1321,10 @@
           "file": "06-shot-list.csv",
           "kind": "csv",
           "bilingual": false,
-          "modes": ["system", "production"],
+          "modes": [
+            "system",
+            "production"
+          ],
           "title": "Shot list",
           "title_vi": "Danh sách cảnh",
           "gate": "Every row has a defined job, channel, ratio, and acceptance gate.",
@@ -560,7 +1335,11 @@
           "file": "07-prompts",
           "kind": "dir",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Provider prompts",
           "title_vi": "Prompt cho nhà cung cấp",
           "gate": "One file per variant. Each names its provider, its single changed axis, and its locks. Producing a prompt is not rendering an image; never report otherwise.",
@@ -571,15 +1350,34 @@
           "file": "08-qa-and-scoring",
           "kind": "md",
           "bilingual": true,
-          "modes": ["system", "production"],
+          "modes": [
+            "system",
+            "production"
+          ],
           "title": "QA and scoring",
           "title_vi": "Kiểm tra và chấm điểm",
           "gate": "Critical failures reject outright regardless of score. Scores are recorded per variant with the rejection label.",
           "sections": [
-            {"en": "Critical gates", "vi": "Cổng loại trực tiếp", "write": "Identity drift, product or label falsehood, anatomy, physics, claim, rights, disclosure."},
-            {"en": "Scores", "vi": "Điểm", "write": "Strategy, fidelity, distinction, craft, channel, rights. Per variant, with the reason for each deduction."},
-            {"en": "Physics audit", "vi": "Kiểm tra vật lý", "write": "Shadow direction agreement, contact shadow presence, reflection plausibility, depth-of-field consistency, scale."},
-            {"en": "Decision", "vi": "Quyết định", "write": "Ship, revise one axis, or reject. Name the axis."}
+            {
+              "en": "Critical gates",
+              "vi": "Cổng loại trực tiếp",
+              "write": "Identity drift, product or label falsehood, anatomy, physics, claim, rights, disclosure."
+            },
+            {
+              "en": "Scores",
+              "vi": "Điểm",
+              "write": "Strategy, fidelity, distinction, craft, channel, rights. Per variant, with the reason for each deduction."
+            },
+            {
+              "en": "Physics audit",
+              "vi": "Kiểm tra vật lý",
+              "write": "Shadow direction agreement, contact shadow presence, reflection plausibility, depth-of-field consistency, scale."
+            },
+            {
+              "en": "Decision",
+              "vi": "Quyết định",
+              "write": "Ship, revise one axis, or reject. Name the axis."
+            }
           ]
         },
         {
@@ -587,16 +1385,38 @@
           "file": "09-export-spec",
           "kind": "md",
           "bilingual": true,
-          "modes": ["production"],
+          "modes": [
+            "production"
+          ],
           "title": "Export and handoff",
           "title_vi": "Xuất file và chuyển giao",
           "gate": "Every destination has verified live platform specs cited with a retrieval date.",
           "sections": [
-            {"en": "Per-destination specification", "vi": "Đặc tả theo điểm đến", "write": "Pixels, ratio, colour space, format, maximum file size, safe zones. Cite the official source."},
-            {"en": "Recomposition plan", "vi": "Kế hoạch tái bố cục", "write": "How the master becomes each ratio without blind cropping."},
-            {"en": "Sharpening and compression", "vi": "Làm nét và nén", "write": "Recipe per destination, applied last."},
-            {"en": "Naming and versioning", "vi": "Đặt tên và phiên bản", "write": "The convention, applied consistently."},
-            {"en": "Alt text and disclosures", "vi": "Văn bản thay thế và công bố", "write": "Per asset, in both languages, plus any AI-generation or advertising disclosure required."}
+            {
+              "en": "Per-destination specification",
+              "vi": "Đặc tả theo điểm đến",
+              "write": "Pixels, ratio, colour space, format, maximum file size, safe zones. Cite the official source."
+            },
+            {
+              "en": "Recomposition plan",
+              "vi": "Kế hoạch tái bố cục",
+              "write": "How the master becomes each ratio without blind cropping."
+            },
+            {
+              "en": "Sharpening and compression",
+              "vi": "Làm nét và nén",
+              "write": "Recipe per destination, applied last."
+            },
+            {
+              "en": "Naming and versioning",
+              "vi": "Đặt tên và phiên bản",
+              "write": "The convention, applied consistently."
+            },
+            {
+              "en": "Alt text and disclosures",
+              "vi": "Văn bản thay thế và công bố",
+              "write": "Per asset, in both languages, plus any AI-generation or advertising disclosure required."
+            }
           ]
         },
         {
@@ -604,7 +1424,9 @@
           "file": "manifest.csv",
           "kind": "csv",
           "bilingual": false,
-          "modes": ["production"],
+          "modes": [
+            "production"
+          ],
           "title": "Asset manifest",
           "title_vi": "Danh mục tài sản",
           "gate": "Generated by scripts/build_asset_manifest.py so filenames and the shot list cannot diverge.",
@@ -617,24 +1439,62 @@
       "title_vi": "Thiết kế và dựng bản",
       "default_mode": "system",
       "use_when": "User needs a designed artefact: menu, wireframe, landing page layout, poster, packaging layout, one-pager, key visual with type. Produces option cards, a spec, and real rendered SVG or HTML output.",
-      "references": ["menu-engineering.md", "menu-design.md", "visual-craft.md", "copywriting.md", "creative-tool-interfaces.md", "production-pipeline.md", "channel-spec-registry.md"],
-      "scripts": ["start_workbench.py", "new_run.py", "plan_design_options.py", "render_mockup.py", "run_status.py"],
+      "references": [
+        "menu-engineering.md",
+        "menu-design.md",
+        "visual-craft.md",
+        "copywriting.md",
+        "creative-tool-interfaces.md",
+        "production-pipeline.md",
+        "channel-spec-registry.md"
+      ],
+      "scripts": [
+        "start_workbench.py",
+        "new_run.py",
+        "plan_design_options.py",
+        "render_mockup.py",
+        "run_status.py"
+      ],
       "deliverables": [
         {
           "id": "01-intake",
           "file": "01-intake.md",
           "kind": "md",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Intake",
           "title_vi": "Tiếp nhận",
           "gate": "Format, physical or pixel dimensions, production method, and budget are known or explicitly assumed.",
           "sections": [
-            {"en": "Artefact and format", "vi": "Sản phẩm và khổ", "write": "What is being designed, at what size, produced how."},
-            {"en": "Audience and reading situation", "vi": "Người đọc và bối cảnh đọc", "write": "Lighting, distance, time available, device. This sets minimum type size."},
-            {"en": "Content status", "vi": "Trạng thái nội dung", "write": "What copy, prices, and images actually exist versus what is still placeholder."},
-            {"en": "Brand inputs", "vi": "Đầu vào thương hiệu", "write": "Existing logo, palette, type, and whether they are locked or open."},
-            {"en": "Constraints", "vi": "Giới hạn", "write": "Print capability, budget, timeline, languages, accessibility requirements."}
+            {
+              "en": "Artefact and format",
+              "vi": "Sản phẩm và khổ",
+              "write": "What is being designed, at what size, produced how."
+            },
+            {
+              "en": "Audience and reading situation",
+              "vi": "Người đọc và bối cảnh đọc",
+              "write": "Lighting, distance, time available, device. This sets minimum type size."
+            },
+            {
+              "en": "Content status",
+              "vi": "Trạng thái nội dung",
+              "write": "What copy, prices, and images actually exist versus what is still placeholder."
+            },
+            {
+              "en": "Brand inputs",
+              "vi": "Đầu vào thương hiệu",
+              "write": "Existing logo, palette, type, and whether they are locked or open."
+            },
+            {
+              "en": "Constraints",
+              "vi": "Giới hạn",
+              "write": "Print capability, budget, timeline, languages, accessibility requirements."
+            }
           ]
         },
         {
@@ -642,15 +1502,35 @@
           "file": "02-content-inventory",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Content inventory",
           "title_vi": "Kiểm kê nội dung",
           "gate": "Every element that must appear is listed with its real length. No layout is designed against imaginary copy.",
           "sections": [
-            {"en": "Required elements", "vi": "Thành phần bắt buộc", "write": "Everything that must appear, with priority rank."},
-            {"en": "Real content with lengths", "vi": "Nội dung thật và độ dài", "write": "Actual strings and character counts, in both languages. Vietnamese runs longer; measure it."},
-            {"en": "Hierarchy decision", "vi": "Quyết định thứ bậc", "write": "What is level one, two, three. A layout supports few levels; choose them."},
-            {"en": "Missing content", "vi": "Nội dung còn thiếu", "write": "What must be written or photographed before this can be produced."}
+            {
+              "en": "Required elements",
+              "vi": "Thành phần bắt buộc",
+              "write": "Everything that must appear, with priority rank."
+            },
+            {
+              "en": "Real content with lengths",
+              "vi": "Nội dung thật và độ dài",
+              "write": "Actual strings and character counts, in both languages. Vietnamese runs longer; measure it."
+            },
+            {
+              "en": "Hierarchy decision",
+              "vi": "Quyết định thứ bậc",
+              "write": "What is level one, two, three. A layout supports few levels; choose them."
+            },
+            {
+              "en": "Missing content",
+              "vi": "Nội dung còn thiếu",
+              "write": "What must be written or photographed before this can be produced."
+            }
           ]
         },
         {
@@ -658,15 +1538,34 @@
           "file": "03-analysis",
           "kind": "md",
           "bilingual": true,
-          "modes": ["system", "production"],
+          "modes": [
+            "system",
+            "production"
+          ],
           "title": "Commercial analysis",
           "title_vi": "Phân tích thương mại",
           "gate": "For a menu: contribution margin and popularity are calculated per item with the arithmetic shown. For a page: the conversion job of each section is named.",
           "sections": [
-            {"en": "Item or section economics", "vi": "Kinh tế theo món hoặc theo khối", "write": "For menus, cost, price, and contribution margin per item. For pages, the action each section drives."},
-            {"en": "Popularity and margin matrix", "vi": "Ma trận độ phổ biến và biên lợi nhuận", "write": "Classify every item, then say what to do with each class: promote, reprice, redesign, or remove."},
-            {"en": "Placement decisions", "vi": "Quyết định vị trí", "write": "What gets prime position and why, tied to the matrix rather than to taste."},
-            {"en": "Evidence quality note", "vi": "Ghi chú chất lượng bằng chứng", "write": "Which design-psychology effects used here are well supported and which are folklore. Do not present folklore as fact."}
+            {
+              "en": "Item or section economics",
+              "vi": "Kinh tế theo món hoặc theo khối",
+              "write": "For menus, cost, price, and contribution margin per item. For pages, the action each section drives."
+            },
+            {
+              "en": "Popularity and margin matrix",
+              "vi": "Ma trận độ phổ biến và biên lợi nhuận",
+              "write": "Classify every item, then say what to do with each class: promote, reprice, redesign, or remove."
+            },
+            {
+              "en": "Placement decisions",
+              "vi": "Quyết định vị trí",
+              "write": "What gets prime position and why, tied to the matrix rather than to taste."
+            },
+            {
+              "en": "Evidence quality note",
+              "vi": "Ghi chú chất lượng bằng chứng",
+              "write": "Which design-psychology effects used here are well supported and which are folklore. Do not present folklore as fact."
+            }
           ]
         },
         {
@@ -674,14 +1573,30 @@
           "file": "04-option-cards",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Design option cards",
           "title_vi": "Thẻ lựa chọn thiết kế",
           "gate": "Three coded directions that differ structurally, not decoratively. Each names its production cost and its risk.",
           "sections": [
-            {"en": "How to choose", "vi": "Cách chọn", "write": "Reply with the code. State what gets rendered next."},
-            {"en": "Options", "vi": "Các lựa chọn", "write": "Per option: code, name, positioning it signals, type and palette approach, grid, photo policy, format, production cost, weakness."},
-            {"en": "Recommendation", "vi": "Khuyến nghị", "write": "One choice, one reason, tied to the analysis rather than to preference."}
+            {
+              "en": "How to choose",
+              "vi": "Cách chọn",
+              "write": "Reply with the code. State what gets rendered next."
+            },
+            {
+              "en": "Options",
+              "vi": "Các lựa chọn",
+              "write": "Per option: code, name, positioning it signals, type and palette approach, grid, photo policy, format, production cost, weakness."
+            },
+            {
+              "en": "Recommendation",
+              "vi": "Khuyến nghị",
+              "write": "One choice, one reason, tied to the analysis rather than to preference."
+            }
           ]
         },
         {
@@ -689,16 +1604,40 @@
           "file": "05-design-spec",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Design specification",
           "title_vi": "Đặc tả thiết kế",
           "gate": "Fully deterministic: another person could rebuild this file's output without asking a question.",
           "sections": [
-            {"en": "Canvas and grid", "vi": "Khổ và lưới", "write": "Trim, bleed, safe margin, columns, gutters, baseline, spacing unit."},
-            {"en": "Type scale", "vi": "Bậc chữ", "write": "Ratio, computed sizes, weights, line-heights, letter-spacing, and the minimum legible size for the reading situation. Confirm Vietnamese diacritic support and increase line-height accordingly."},
-            {"en": "Palette", "vi": "Bảng màu", "write": "Roles with hex and perceptual lightness, the accessible-pair matrix, and the CMYK or screen caveats."},
-            {"en": "Components", "vi": "Thành phần", "write": "Each repeating element specified once: item row, price treatment, section header, callout, image frame."},
-            {"en": "Rules a non-designer can follow", "vi": "Quy tắc người không phải designer làm được", "write": "Written as do-this-not-that, so execution survives without the designer."}
+            {
+              "en": "Canvas and grid",
+              "vi": "Khổ và lưới",
+              "write": "Trim, bleed, safe margin, columns, gutters, baseline, spacing unit."
+            },
+            {
+              "en": "Type scale",
+              "vi": "Bậc chữ",
+              "write": "Ratio, computed sizes, weights, line-heights, letter-spacing, and the minimum legible size for the reading situation. Confirm Vietnamese diacritic support and increase line-height accordingly."
+            },
+            {
+              "en": "Palette",
+              "vi": "Bảng màu",
+              "write": "Roles with hex and perceptual lightness, the accessible-pair matrix, and the CMYK or screen caveats."
+            },
+            {
+              "en": "Components",
+              "vi": "Thành phần",
+              "write": "Each repeating element specified once: item row, price treatment, section header, callout, image frame."
+            },
+            {
+              "en": "Rules a non-designer can follow",
+              "vi": "Quy tắc người không phải designer làm được",
+              "write": "Written as do-this-not-that, so execution survives without the designer."
+            }
           ]
         },
         {
@@ -706,15 +1645,35 @@
           "file": "06-wireframe.md",
           "kind": "md",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Wireframe",
           "title_vi": "Khung giao diện",
           "gate": "Text notation is unambiguous about order, hierarchy, and proportion. Responsive or multi-panel variants are included where the format needs them.",
           "sections": [
-            {"en": "Notation key", "vi": "Chú giải ký hiệu", "write": "So the reader needs no prior knowledge."},
-            {"en": "Primary layout", "vi": "Bố cục chính", "write": "Block by block, top to bottom, with proportions and the job of each block."},
-            {"en": "Variants", "vi": "Biến thể", "write": "Mobile, second panel, or alternate size."},
-            {"en": "Annotations", "vi": "Ghi chú", "write": "Behaviour, states, constraints, and anything the render must honour."}
+            {
+              "en": "Notation key",
+              "vi": "Chú giải ký hiệu",
+              "write": "So the reader needs no prior knowledge."
+            },
+            {
+              "en": "Primary layout",
+              "vi": "Bố cục chính",
+              "write": "Block by block, top to bottom, with proportions and the job of each block."
+            },
+            {
+              "en": "Variants",
+              "vi": "Biến thể",
+              "write": "Mobile, second panel, or alternate size."
+            },
+            {
+              "en": "Annotations",
+              "vi": "Ghi chú",
+              "write": "Behaviour, states, constraints, and anything the render must honour."
+            }
           ]
         },
         {
@@ -722,7 +1681,11 @@
           "file": "07-render",
           "kind": "dir",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Rendered output",
           "title_vi": "Bản dựng",
           "gate": "Real SVG or HTML files that open, plus the machine-readable JSON spec used by scripts/render_mockup.py. A wireframe render must not be described as final photography, print PDF, or video.",
@@ -733,15 +1696,34 @@
           "file": "08-print-and-export",
           "kind": "md",
           "bilingual": true,
-          "modes": ["system", "production"],
+          "modes": [
+            "system",
+            "production"
+          ],
           "title": "Print and export",
           "title_vi": "In ấn và xuất file",
           "gate": "A print shop could run this without a follow-up question.",
           "sections": [
-            {"en": "Production specification", "vi": "Đặc tả sản xuất", "write": "Trim, bleed, stock, weight, finish, colour mode, ink limit, quantity."},
-            {"en": "Preflight checklist", "vi": "Danh sách kiểm tra trước in", "write": "Resolution, fonts, colour conversion, minimum type size, rich black."},
-            {"en": "Screen export", "vi": "Xuất bản màn hình", "write": "Pixel sizes, formats, and compression per destination."},
-            {"en": "What will look different in print", "vi": "Điều sẽ khác khi in", "write": "The specific colours that will shift, and the compensation."}
+            {
+              "en": "Production specification",
+              "vi": "Đặc tả sản xuất",
+              "write": "Trim, bleed, stock, weight, finish, colour mode, ink limit, quantity."
+            },
+            {
+              "en": "Preflight checklist",
+              "vi": "Danh sách kiểm tra trước in",
+              "write": "Resolution, fonts, colour conversion, minimum type size, rich black."
+            },
+            {
+              "en": "Screen export",
+              "vi": "Xuất bản màn hình",
+              "write": "Pixel sizes, formats, and compression per destination."
+            },
+            {
+              "en": "What will look different in print",
+              "vi": "Điều sẽ khác khi in",
+              "write": "The specific colours that will shift, and the compensation."
+            }
           ]
         },
         {
@@ -749,7 +1731,10 @@
           "file": "09-image-prompts",
           "kind": "dir",
           "bilingual": false,
-          "modes": ["system", "production"],
+          "modes": [
+            "system",
+            "production"
+          ],
           "title": "Image prompts for this design",
           "title_vi": "Prompt ảnh cho thiết kế này",
           "gate": "Each prompt states the exact crop, ratio, and copy-space the layout requires. Producing prompts is not producing images.",
@@ -762,23 +1747,57 @@
       "title_vi": "Chiến dịch video",
       "default_mode": "system",
       "use_when": "User needs video: short-form vertical, product demo, founder story, testimonial, or ad cutdowns. Produces script, shot list, per-shot AI prompts, audio and caption direction, and delivery specs.",
-      "references": ["video-production.md", "copywriting.md", "visual-craft.md", "prompt-contracts.md", "production-pipeline.md", "channel-spec-registry.md", "rights-and-claims.md"],
-      "scripts": ["start_workbench.py", "new_run.py", "plan_video_sequence.py", "compile_prompt.py", "run_status.py"],
+      "references": [
+        "video-production.md",
+        "copywriting.md",
+        "visual-craft.md",
+        "prompt-contracts.md",
+        "production-pipeline.md",
+        "channel-spec-registry.md",
+        "rights-and-claims.md"
+      ],
+      "scripts": [
+        "start_workbench.py",
+        "new_run.py",
+        "plan_video_sequence.py",
+        "compile_prompt.py",
+        "run_status.py"
+      ],
       "deliverables": [
         {
           "id": "01-intake",
           "file": "01-intake.md",
           "kind": "md",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Intake",
           "title_vi": "Tiếp nhận",
           "gate": "Production reality is stated: what can actually be filmed, what must be generated, what already exists.",
           "sections": [
-            {"en": "Objective and placement", "vi": "Mục tiêu và vị trí phát", "write": "Where this plays, at what length, to whom, and what it must cause."},
-            {"en": "Production reality", "vi": "Thực tế sản xuất", "write": "Phone, camera crew, AI generation, or existing footage. Budget and timeline."},
-            {"en": "Existing assets", "vi": "Tài sản có sẵn", "write": "Footage, stills, music licences, brand motion rules."},
-            {"en": "Locks and prohibitions", "vi": "Yếu tố cố định và điều cấm", "write": "Product truth, claims, people, music rights, and required disclosures."}
+            {
+              "en": "Objective and placement",
+              "vi": "Mục tiêu và vị trí phát",
+              "write": "Where this plays, at what length, to whom, and what it must cause."
+            },
+            {
+              "en": "Production reality",
+              "vi": "Thực tế sản xuất",
+              "write": "Phone, camera crew, AI generation, or existing footage. Budget and timeline."
+            },
+            {
+              "en": "Existing assets",
+              "vi": "Tài sản có sẵn",
+              "write": "Footage, stills, music licences, brand motion rules."
+            },
+            {
+              "en": "Locks and prohibitions",
+              "vi": "Yếu tố cố định và điều cấm",
+              "write": "Product truth, claims, people, music rights, and required disclosures."
+            }
           ]
         },
         {
@@ -786,16 +1805,40 @@
           "file": "02-video-strategy",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Video strategy",
           "title_vi": "Chiến lược video",
           "gate": "The hook is designed as a specific first-three-second event, not described as 'attention-grabbing'.",
           "sections": [
-            {"en": "One thing this video must land", "vi": "Điều duy nhất video phải truyền tải", "write": "One sentence."},
-            {"en": "Format and structure choice", "vi": "Chọn định dạng và cấu trúc", "write": "Demo, story, testimonial, process, before-after, UGC-native, explainer. Say why this one for this audience."},
-            {"en": "Hook design", "vi": "Thiết kế hook", "write": "The exact first three seconds: what is on screen, what is said, what tension it opens."},
-            {"en": "Sound-off survival", "vi": "Xem không có tiếng", "write": "How it reads with sound off, since much of the audience will watch that way."},
-            {"en": "Retention plan", "vi": "Kế hoạch giữ người xem", "write": "Where attention will drop and what re-hooks it."}
+            {
+              "en": "One thing this video must land",
+              "vi": "Điều duy nhất video phải truyền tải",
+              "write": "One sentence."
+            },
+            {
+              "en": "Format and structure choice",
+              "vi": "Chọn định dạng và cấu trúc",
+              "write": "Demo, story, testimonial, process, before-after, UGC-native, explainer. Say why this one for this audience."
+            },
+            {
+              "en": "Hook design",
+              "vi": "Thiết kế hook",
+              "write": "The exact first three seconds: what is on screen, what is said, what tension it opens."
+            },
+            {
+              "en": "Sound-off survival",
+              "vi": "Xem không có tiếng",
+              "write": "How it reads with sound off, since much of the audience will watch that way."
+            },
+            {
+              "en": "Retention plan",
+              "vi": "Kế hoạch giữ người xem",
+              "write": "Where attention will drop and what re-hooks it."
+            }
           ]
         },
         {
@@ -803,14 +1846,30 @@
           "file": "03-script",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Script",
           "title_vi": "Kịch bản",
           "gate": "Spoken lines are timed and speakable aloud. On-screen text fits the safe area at the real font size.",
           "sections": [
-            {"en": "Timed script", "vi": "Kịch bản có thời lượng", "write": "Timecode, visual, spoken line, on-screen text, sound. One table."},
-            {"en": "On-screen text", "vi": "Chữ trên hình", "write": "Exact strings in both languages, with character counts against the safe area."},
-            {"en": "Claims used", "vi": "Tuyên bố sử dụng", "write": "Every claim spoken or shown, with its claim ID."}
+            {
+              "en": "Timed script",
+              "vi": "Kịch bản có thời lượng",
+              "write": "Timecode, visual, spoken line, on-screen text, sound. One table."
+            },
+            {
+              "en": "On-screen text",
+              "vi": "Chữ trên hình",
+              "write": "Exact strings in both languages, with character counts against the safe area."
+            },
+            {
+              "en": "Claims used",
+              "vi": "Tuyên bố sử dụng",
+              "write": "Every claim spoken or shown, with its claim ID."
+            }
           ]
         },
         {
@@ -818,7 +1877,11 @@
           "file": "04-shot-list.csv",
           "kind": "csv",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Shot list",
           "title_vi": "Danh sách cảnh",
           "gate": "Generated by scripts/plan_video_sequence.py from a sequence spec, not typed by hand. The script refuses a screen-direction reversal on a straight cut, a generative shot over the drift ceiling, and durations that do not sum to the target, so a shot list that exists has already passed those checks.",
@@ -829,14 +1892,29 @@
           "file": "05-storyboard.md",
           "kind": "md",
           "bilingual": false,
-          "modes": ["system", "production"],
+          "modes": [
+            "system",
+            "production"
+          ],
           "title": "Storyboard",
           "title_vi": "Bảng phân cảnh",
           "gate": "Frame notation shows composition and movement clearly enough to shoot from.",
           "sections": [
-            {"en": "Notation key", "vi": "Chú giải ký hiệu", "write": "So a non-filmmaker can read it."},
-            {"en": "Frames", "vi": "Các khung", "write": "Per shot: framing sketch in notation, movement arrow, subject position, text position."},
-            {"en": "Continuity map", "vi": "Bản đồ liên tục", "write": "Screen direction, eyeline, and what must match between shots."}
+            {
+              "en": "Notation key",
+              "vi": "Chú giải ký hiệu",
+              "write": "So a non-filmmaker can read it."
+            },
+            {
+              "en": "Frames",
+              "vi": "Các khung",
+              "write": "Per shot: framing sketch in notation, movement arrow, subject position, text position."
+            },
+            {
+              "en": "Continuity map",
+              "vi": "Bản đồ liên tục",
+              "write": "Screen direction, eyeline, and what must match between shots."
+            }
           ]
         },
         {
@@ -844,7 +1922,11 @@
           "file": "06-prompts",
           "kind": "dir",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "AI video prompts",
           "title_vi": "Prompt video AI",
           "gate": "Every shot prompt carries the same continuity lock, character for character, plus what it inherited from the shot before it. A prompt is not a rendered video.",
@@ -855,15 +1937,34 @@
           "file": "07-audio-and-captions",
           "kind": "md",
           "bilingual": true,
-          "modes": ["system", "production"],
+          "modes": [
+            "system",
+            "production"
+          ],
           "title": "Audio and captions",
           "title_vi": "Âm thanh và phụ đề",
           "gate": "Music licence status is stated per track. Captions exist in both languages.",
           "sections": [
-            {"en": "Music", "vi": "Nhạc", "write": "Track direction, tempo, licence source and status. Never assume a track is cleared."},
-            {"en": "Voice", "vi": "Giọng đọc", "write": "Language, register, pace, and whether human or synthetic. Disclose synthetic voice where required."},
-            {"en": "Sound design", "vi": "Thiết kế âm thanh", "write": "The specific diegetic sounds that make the product feel real."},
-            {"en": "Captions", "vi": "Phụ đề", "write": "Full caption file content in both languages, with line-length limits and reading speed."}
+            {
+              "en": "Music",
+              "vi": "Nhạc",
+              "write": "Track direction, tempo, licence source and status. Never assume a track is cleared."
+            },
+            {
+              "en": "Voice",
+              "vi": "Giọng đọc",
+              "write": "Language, register, pace, and whether human or synthetic. Disclose synthetic voice where required."
+            },
+            {
+              "en": "Sound design",
+              "vi": "Thiết kế âm thanh",
+              "write": "The specific diegetic sounds that make the product feel real."
+            },
+            {
+              "en": "Captions",
+              "vi": "Phụ đề",
+              "write": "Full caption file content in both languages, with line-length limits and reading speed."
+            }
           ]
         },
         {
@@ -871,14 +1972,29 @@
           "file": "08-cutdowns",
           "kind": "md",
           "bilingual": true,
-          "modes": ["system", "production"],
+          "modes": [
+            "system",
+            "production"
+          ],
           "title": "Cutdowns",
           "title_vi": "Bản cắt ngắn",
           "gate": "Each cutdown still contains a hook, a mechanism, and a call to action. A cutdown is re-edited, not truncated.",
           "sections": [
-            {"en": "Cutdown map", "vi": "Bản đồ bản cắt", "write": "Per length: which shots survive, what the new hook is, what the new CTA is."},
-            {"en": "Ratio variants", "vi": "Biến thể tỷ lệ", "write": "How each ratio is recomposed rather than centre-cropped, and where text moves."},
-            {"en": "Variant axis", "vi": "Trục biến thể", "write": "For testing: the one thing that differs between test variants."}
+            {
+              "en": "Cutdown map",
+              "vi": "Bản đồ bản cắt",
+              "write": "Per length: which shots survive, what the new hook is, what the new CTA is."
+            },
+            {
+              "en": "Ratio variants",
+              "vi": "Biến thể tỷ lệ",
+              "write": "How each ratio is recomposed rather than centre-cropped, and where text moves."
+            },
+            {
+              "en": "Variant axis",
+              "vi": "Trục biến thể",
+              "write": "For testing: the one thing that differs between test variants."
+            }
           ]
         },
         {
@@ -886,15 +2002,33 @@
           "file": "09-delivery-spec",
           "kind": "md",
           "bilingual": true,
-          "modes": ["production"],
+          "modes": [
+            "production"
+          ],
           "title": "Delivery specification",
           "title_vi": "Đặc tả bàn giao",
           "gate": "Every platform spec is verified against the official source with a retrieval date.",
           "sections": [
-            {"en": "Per-platform specification", "vi": "Đặc tả theo nền tảng", "write": "Resolution, ratio, frame rate, codec, bitrate, maximum length and file size, caption format. Cite the source."},
-            {"en": "Safe areas", "vi": "Vùng an toàn", "write": "Where platform UI covers the frame, per surface, with measurements."},
-            {"en": "Naming and versioning", "vi": "Đặt tên và phiên bản", "write": "Applied consistently across cutdowns and ratios."},
-            {"en": "Accessibility", "vi": "Khả năng tiếp cận", "write": "Captions, contrast of on-screen text, no flashing, audio description where relevant."}
+            {
+              "en": "Per-platform specification",
+              "vi": "Đặc tả theo nền tảng",
+              "write": "Resolution, ratio, frame rate, codec, bitrate, maximum length and file size, caption format. Cite the source."
+            },
+            {
+              "en": "Safe areas",
+              "vi": "Vùng an toàn",
+              "write": "Where platform UI covers the frame, per surface, with measurements."
+            },
+            {
+              "en": "Naming and versioning",
+              "vi": "Đặt tên và phiên bản",
+              "write": "Applied consistently across cutdowns and ratios."
+            },
+            {
+              "en": "Accessibility",
+              "vi": "Khả năng tiếp cận",
+              "write": "Captions, contrast of on-screen text, no flashing, audio description where relevant."
+            }
           ]
         }
       ]
@@ -904,22 +2038,49 @@
       "title_vi": "Tối ưu và cải tiến",
       "default_mode": "focused",
       "use_when": "Something is already running and results are known, weak, or confusing. Diagnose, form hypotheses, and change one variable at a time.",
-      "references": ["learning-loop.md", "creative-evaluation.md", "production-pipeline.md", "claims-proof-ledger.md"],
-      "scripts": ["start_workbench.py", "new_run.py", "analyze_performance.py", "score_creative.py", "run_status.py"],
+      "references": [
+        "learning-loop.md",
+        "creative-evaluation.md",
+        "production-pipeline.md",
+        "claims-proof-ledger.md"
+      ],
+      "scripts": [
+        "start_workbench.py",
+        "new_run.py",
+        "analyze_performance.py",
+        "score_creative.py",
+        "run_status.py"
+      ],
       "deliverables": [
         {
           "id": "01-intake",
           "file": "01-intake.md",
           "kind": "md",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Intake",
           "title_vi": "Tiếp nhận",
           "gate": "The symptom is stated as an observation with numbers, not as an interpretation.",
           "sections": [
-            {"en": "Symptom", "vi": "Triệu chứng", "write": "What is observed, with numbers and dates. Not the assumed cause."},
-            {"en": "What changed and when", "vi": "Điều gì đã thay đổi và khi nào", "write": "Creative, budget, audience, landing page, price, season, platform. Timeline."},
-            {"en": "Data available", "vi": "Dữ liệu có sẵn", "write": "What exists, at what granularity, and what is missing or untrustworthy."}
+            {
+              "en": "Symptom",
+              "vi": "Triệu chứng",
+              "write": "What is observed, with numbers and dates. Not the assumed cause."
+            },
+            {
+              "en": "What changed and when",
+              "vi": "Điều gì đã thay đổi và khi nào",
+              "write": "Creative, budget, audience, landing page, price, season, platform. Timeline."
+            },
+            {
+              "en": "Data available",
+              "vi": "Dữ liệu có sẵn",
+              "write": "What exists, at what granularity, and what is missing or untrustworthy."
+            }
           ]
         },
         {
@@ -927,15 +2088,35 @@
           "file": "02-data-audit",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Data audit",
           "title_vi": "Kiểm toán dữ liệu",
           "gate": "Small samples are flagged before any conclusion is drawn from them.",
           "sections": [
-            {"en": "Data quality", "vi": "Chất lượng dữ liệu", "write": "Tracking gaps, double counting, attribution window, date range problems."},
-            {"en": "Sample sufficiency", "vi": "Đủ mẫu hay không", "write": "Per comparison: is there enough volume to conclude anything. Say plainly when there is not."},
-            {"en": "Derived metrics", "vi": "Chỉ số dẫn xuất", "write": "Computed with the formula shown."},
-            {"en": "Confounds", "vi": "Yếu tố gây nhiễu", "write": "What else was different between the conditions being compared."}
+            {
+              "en": "Data quality",
+              "vi": "Chất lượng dữ liệu",
+              "write": "Tracking gaps, double counting, attribution window, date range problems."
+            },
+            {
+              "en": "Sample sufficiency",
+              "vi": "Đủ mẫu hay không",
+              "write": "Per comparison: is there enough volume to conclude anything. Say plainly when there is not."
+            },
+            {
+              "en": "Derived metrics",
+              "vi": "Chỉ số dẫn xuất",
+              "write": "Computed with the formula shown."
+            },
+            {
+              "en": "Confounds",
+              "vi": "Yếu tố gây nhiễu",
+              "write": "What else was different between the conditions being compared."
+            }
           ]
         },
         {
@@ -943,15 +2124,35 @@
           "file": "03-diagnosis",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Diagnosis",
           "title_vi": "Chẩn đoán",
           "gate": "Causes are ranked by evidence strength. Correlation is never written as causation.",
           "sections": [
-            {"en": "Funnel read", "vi": "Đọc phễu", "write": "Where the loss actually happens, stage by stage, with numbers."},
-            {"en": "Candidate causes ranked", "vi": "Nguyên nhân khả năng theo thứ tự", "write": "Each with supporting and contradicting evidence."},
-            {"en": "Ruled out", "vi": "Đã loại trừ", "write": "What was considered and eliminated, with the reason."},
-            {"en": "Most likely cause", "vi": "Nguyên nhân khả năng nhất", "write": "One, with a confidence label and the cheapest test that would confirm it."}
+            {
+              "en": "Funnel read",
+              "vi": "Đọc phễu",
+              "write": "Where the loss actually happens, stage by stage, with numbers."
+            },
+            {
+              "en": "Candidate causes ranked",
+              "vi": "Nguyên nhân khả năng theo thứ tự",
+              "write": "Each with supporting and contradicting evidence."
+            },
+            {
+              "en": "Ruled out",
+              "vi": "Đã loại trừ",
+              "write": "What was considered and eliminated, with the reason."
+            },
+            {
+              "en": "Most likely cause",
+              "vi": "Nguyên nhân khả năng nhất",
+              "write": "One, with a confidence label and the cheapest test that would confirm it."
+            }
           ]
         },
         {
@@ -959,14 +2160,30 @@
           "file": "04-hypotheses",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Hypotheses",
           "title_vi": "Giả thuyết",
           "gate": "Each hypothesis is falsifiable and names the metric that would move.",
           "sections": [
-            {"en": "Hypotheses", "vi": "Các giả thuyết", "write": "Because we observed X, we believe Y, so if we change Z then metric M moves by N."},
-            {"en": "Prioritisation", "vi": "Ưu tiên", "write": "Expected impact, confidence, and effort. Order the queue."},
-            {"en": "Guardrails", "vi": "Ngưỡng bảo vệ", "write": "What must not get worse while this is tested."}
+            {
+              "en": "Hypotheses",
+              "vi": "Các giả thuyết",
+              "write": "Because we observed X, we believe Y, so if we change Z then metric M moves by N."
+            },
+            {
+              "en": "Prioritisation",
+              "vi": "Ưu tiên",
+              "write": "Expected impact, confidence, and effort. Order the queue."
+            },
+            {
+              "en": "Guardrails",
+              "vi": "Ngưỡng bảo vệ",
+              "write": "What must not get worse while this is tested."
+            }
           ]
         },
         {
@@ -974,15 +2191,34 @@
           "file": "05-test-plan",
           "kind": "md",
           "bilingual": true,
-          "modes": ["system", "production"],
+          "modes": [
+            "system",
+            "production"
+          ],
           "title": "Test plan",
           "title_vi": "Kế hoạch thử nghiệm",
           "gate": "One variable per test. Required sample is calculated. If it is unreachable, an honest alternative is proposed.",
           "sections": [
-            {"en": "Test design", "vi": "Thiết kế thử nghiệm", "write": "Variable, variants, split, duration, and the single success metric."},
-            {"en": "Sample requirement", "vi": "Yêu cầu về mẫu", "write": "Calculated, with the baseline rate and the minimum detectable effect stated."},
-            {"en": "If sample is unreachable", "vi": "Nếu không đủ mẫu", "write": "Holdout, geo test, sequential read, or a qualitative decision. Say which and accept the limitation."},
-            {"en": "Decision rules", "vi": "Quy tắc quyết định", "write": "Written before launch: scale, hold, revise, or kill, at what threshold."}
+            {
+              "en": "Test design",
+              "vi": "Thiết kế thử nghiệm",
+              "write": "Variable, variants, split, duration, and the single success metric."
+            },
+            {
+              "en": "Sample requirement",
+              "vi": "Yêu cầu về mẫu",
+              "write": "Calculated, with the baseline rate and the minimum detectable effect stated."
+            },
+            {
+              "en": "If sample is unreachable",
+              "vi": "Nếu không đủ mẫu",
+              "write": "Holdout, geo test, sequential read, or a qualitative decision. Say which and accept the limitation."
+            },
+            {
+              "en": "Decision rules",
+              "vi": "Quy tắc quyết định",
+              "write": "Written before launch: scale, hold, revise, or kill, at what threshold."
+            }
           ]
         },
         {
@@ -990,15 +2226,34 @@
           "file": "06-next-creative",
           "kind": "md",
           "bilingual": true,
-          "modes": ["system", "production"],
+          "modes": [
+            "system",
+            "production"
+          ],
           "title": "Next creative brief",
           "title_vi": "Brief sáng tạo tiếp theo",
           "gate": "The brief changes exactly one named axis from the current creative and states what is preserved.",
           "sections": [
-            {"en": "What is preserved", "vi": "Điều giữ lại", "write": "The elements that evidence says are working. Do not restart from zero."},
-            {"en": "The one axis changed", "vi": "Một trục thay đổi", "write": "Named explicitly, with the reasoning from the diagnosis."},
-            {"en": "Production requirement", "vi": "Yêu cầu sản xuất", "write": "What must be made, at what cost, by when."},
-            {"en": "Handoff", "vi": "Chuyển giao", "write": "Which pipeline runs next and with what locked inputs."}
+            {
+              "en": "What is preserved",
+              "vi": "Điều giữ lại",
+              "write": "The elements that evidence says are working. Do not restart from zero."
+            },
+            {
+              "en": "The one axis changed",
+              "vi": "Một trục thay đổi",
+              "write": "Named explicitly, with the reasoning from the diagnosis."
+            },
+            {
+              "en": "Production requirement",
+              "vi": "Yêu cầu sản xuất",
+              "write": "What must be made, at what cost, by when."
+            },
+            {
+              "en": "Handoff",
+              "vi": "Chuyển giao",
+              "write": "Which pipeline runs next and with what locked inputs."
+            }
           ]
         },
         {
@@ -1006,14 +2261,30 @@
           "file": "99-decision-log.md",
           "kind": "md",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Decision log",
           "title_vi": "Sổ quyết định",
           "gate": "Each entry records what was believed, what was done, and what actually happened.",
           "sections": [
-            {"en": "Decisions", "vi": "Các quyết định", "write": "Date, decision, evidence, alternative rejected, outcome once known."},
-            {"en": "What we learned", "vi": "Điều đã học", "write": "Written so the next run does not repeat this."},
-            {"en": "Next actions", "vi": "Hành động tiếp theo", "write": "Owned and dated."}
+            {
+              "en": "Decisions",
+              "vi": "Các quyết định",
+              "write": "Date, decision, evidence, alternative rejected, outcome once known."
+            },
+            {
+              "en": "What we learned",
+              "vi": "Điều đã học",
+              "write": "Written so the next run does not repeat this."
+            },
+            {
+              "en": "Next actions",
+              "vi": "Hành động tiếp theo",
+              "write": "Owned and dated."
+            }
           ]
         }
       ]
@@ -1023,23 +2294,53 @@
       "title_vi": "Viết lại cho ra tiếng người",
       "default_mode": "focused",
       "use_when": "A draft already exists and reads machine-written or machine-translated. Includes any request to make copy sound human, to fix word-by-word translation between Vietnamese and English, or to transcreate an approved text into the other language.",
-      "references": ["rewrite-human.md", "copywriting.md", "brand-dna.md", "anti-ai-quality.md", "claims-proof-ledger.md"],
-      "scripts": ["rewrite_human.py", "find_recipe.py", "run_status.py"],
+      "references": [
+        "rewrite-human.md",
+        "copywriting.md",
+        "brand-dna.md",
+        "anti-ai-quality.md",
+        "claims-proof-ledger.md"
+      ],
+      "scripts": [
+        "rewrite_human.py",
+        "find_recipe.py",
+        "run_status.py"
+      ],
       "deliverables": [
         {
           "id": "01-intake",
           "file": "01-intake.md",
           "kind": "md",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Intake",
           "title_vi": "Tiếp nhận",
           "gate": "The source language, the target language, and which version is the original are stated. Every checkable fact in the draft is listed before any rewriting.",
           "sections": [
-            {"en": "Draft as received", "vi": "Bản nháp gốc", "write": "The text verbatim, with its source and who approved it."},
-            {"en": "Direction", "vi": "Hướng dịch", "write": "Which language is the original and which is transcreated, and why. Default: Vietnamese original, English transcreated."},
-            {"en": "Fact inventory", "vi": "Kiểm kê dữ kiện", "write": "Every checkable thing: numbers, dates, address, mechanism, price, guarantee. Label each confirmed/observed/inferred/unknown. Fewer than three means the copy has no content and rewriting cannot fix it."},
-            {"en": "Locks", "vi": "Điều không được đổi", "write": "Claims, numbers, legal disclosures, brand names and trademarked phrasing that must survive the rewrite byte for byte."}
+            {
+              "en": "Draft as received",
+              "vi": "Bản nháp gốc",
+              "write": "The text verbatim, with its source and who approved it."
+            },
+            {
+              "en": "Direction",
+              "vi": "Hướng dịch",
+              "write": "Which language is the original and which is transcreated, and why. Default: Vietnamese original, English transcreated."
+            },
+            {
+              "en": "Fact inventory",
+              "vi": "Kiểm kê dữ kiện",
+              "write": "Every checkable thing: numbers, dates, address, mechanism, price, guarantee. Label each confirmed/observed/inferred/unknown. Fewer than three means the copy has no content and rewriting cannot fix it."
+            },
+            {
+              "en": "Locks",
+              "vi": "Điều không được đổi",
+              "write": "Claims, numbers, legal disclosures, brand names and trademarked phrasing that must survive the rewrite byte for byte."
+            }
           ]
         },
         {
@@ -1047,15 +2348,35 @@
           "file": "02-diagnosis.md",
           "kind": "md",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Diagnosis",
           "title_vi": "Chẩn đoán",
           "gate": "The measured output of scripts/rewrite_human.py is pasted, not summarised. Cadence failures and calque failures are separated.",
           "sections": [
-            {"en": "Measured before", "vi": "Đo bản gốc", "write": "Paste the gate table and tell table from `python scripts/rewrite_human.py --check <draft>`."},
-            {"en": "Cadence failures", "vi": "Lỗi nhịp", "write": "Which gates failed and where in the draft each one comes from."},
-            {"en": "Translation tells", "vi": "Dấu hiệu dịch máy", "write": "Which rows of data/translation-tells.csv fired, with the fix each one specifies."},
-            {"en": "Not a cadence problem", "vi": "Không phải lỗi nhịp", "write": "Anything wrong with the truth, claim, offer, or audience fit. Say plainly if the real problem is that the copy has nothing to say."}
+            {
+              "en": "Measured before",
+              "vi": "Đo bản gốc",
+              "write": "Paste the gate table and tell table from `python scripts/rewrite_human.py --check <draft>`."
+            },
+            {
+              "en": "Cadence failures",
+              "vi": "Lỗi nhịp",
+              "write": "Which gates failed and where in the draft each one comes from."
+            },
+            {
+              "en": "Translation tells",
+              "vi": "Dấu hiệu dịch máy",
+              "write": "Which rows of data/translation-tells.csv fired, with the fix each one specifies."
+            },
+            {
+              "en": "Not a cadence problem",
+              "vi": "Không phải lỗi nhịp",
+              "write": "Anything wrong with the truth, claim, offer, or audience fit. Say plainly if the real problem is that the copy has nothing to say."
+            }
           ]
         },
         {
@@ -1063,14 +2384,30 @@
           "file": "03-rewrite",
           "kind": "md",
           "bilingual": true,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Rewrite",
           "title_vi": "Bản viết lại",
           "gate": "Every fact from the intake inventory is present in the rewrite. The rewrite is not longer than the original unless a named fact was added.",
           "sections": [
-            {"en": "Rewrite", "vi": "Bản viết lại", "write": "The finished copy. Calques repaired first, then rhythm rebuilt around where each claim lands."},
-            {"en": "What changed and why", "vi": "Đã đổi gì và vì sao", "write": "Per edit: the failure it repairs. Not a list of synonyms swapped."},
-            {"en": "Facts preserved", "vi": "Dữ kiện được giữ", "write": "The intake inventory, ticked off against the rewrite. Name anything dropped and why."}
+            {
+              "en": "Rewrite",
+              "vi": "Bản viết lại",
+              "write": "The finished copy. Calques repaired first, then rhythm rebuilt around where each claim lands."
+            },
+            {
+              "en": "What changed and why",
+              "vi": "Đã đổi gì và vì sao",
+              "write": "Per edit: the failure it repairs. Not a list of synonyms swapped."
+            },
+            {
+              "en": "Facts preserved",
+              "vi": "Dữ kiện được giữ",
+              "write": "The intake inventory, ticked off against the rewrite. Name anything dropped and why."
+            }
           ]
         },
         {
@@ -1078,14 +2415,197 @@
           "file": "04-verification.md",
           "kind": "md",
           "bilingual": false,
-          "modes": ["focused", "system", "production"],
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
           "title": "Verification",
           "title_vi": "Kiểm chứng",
           "gate": "The re-measured output is pasted and no critical or high gate fails. A lowered target is not a pass.",
           "sections": [
-            {"en": "Measured after", "vi": "Đo bản mới", "write": "Paste the second run of `scripts/rewrite_human.py --check`."},
-            {"en": "Read aloud", "vi": "Đọc thành tiếng", "write": "Three consecutive sentences, checked for a repeating shape. Note what the ear caught that the script did not."},
-            {"en": "Residual risk", "vi": "Rủi ro còn lại", "write": "What still needs a human: unproven claims, market-specific legality, brand-voice judgement."}
+            {
+              "en": "Measured after",
+              "vi": "Đo bản mới",
+              "write": "Paste the second run of `scripts/rewrite_human.py --check`."
+            },
+            {
+              "en": "Read aloud",
+              "vi": "Đọc thành tiếng",
+              "write": "Three consecutive sentences, checked for a repeating shape. Note what the ear caught that the script did not."
+            },
+            {
+              "en": "Residual risk",
+              "vi": "Rủi ro còn lại",
+              "write": "What still needs a human: unproven claims, market-specific legality, brand-voice judgement."
+            }
+          ]
+        }
+      ]
+    },
+    "score-kpi": {
+      "title": "Score KPI",
+      "title_vi": "Xây và chấm KPI",
+      "default_mode": "focused",
+      "use_when": "A scorecard has to be built, weighted, cascaded or scored. Includes building KPIs for a company, a department or a person, deciding aspect weights, choosing between lagging and leading indicators, and computing achievement and rank from targets and actuals.",
+      "references": [
+        "kpi-scorecards.md",
+        "claims-proof-ledger.md",
+        "anti-ai-quality.md"
+      ],
+      "scripts": [
+        "score_kpi.py",
+        "find_recipe.py",
+        "run_status.py"
+      ],
+      "deliverables": [
+        {
+          "id": "01-intake",
+          "file": "01-intake.md",
+          "kind": "md",
+          "bilingual": false,
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
+          "title": "Intake",
+          "title_vi": "Tiếp nhận",
+          "gate": "The level, the fiscal year and the owner are named. Every KPI has a stated source for its target, and a baseline or the absence of one is recorded.",
+          "sections": [
+            {
+              "en": "Level and owner",
+              "vi": "Cấp và người sở hữu",
+              "write": "Company, department or individual, and whose card this is. A department card carries a fifth aspect for Dept Function; a company card does not."
+            },
+            {
+              "en": "Strategy the card serves",
+              "vi": "Chiến lược mà thẻ điểm phục vụ",
+              "write": "The objectives this card is meant to move. A KPI that serves no stated objective is a measurement, not a scorecard row."
+            },
+            {
+              "en": "Baselines",
+              "vi": "Số nền",
+              "write": "Last year's actual for every proposed KPI. Say plainly where there is none: a target set from no baseline is a guess, and it has to be marked as one."
+            },
+            {
+              "en": "Target sources",
+              "vi": "Nguồn của chỉ tiêu",
+              "write": "Per KPI: who set the target and from what. Budget, board commitment, extrapolation or judgement."
+            }
+          ]
+        },
+        {
+          "id": "02-design",
+          "file": "02-design.md",
+          "kind": "md",
+          "bilingual": false,
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
+          "title": "Card design",
+          "title_vi": "Thiết kế thẻ điểm",
+          "gate": "Weights sum to 100%, no KPI is under 5%, and every KPI states its direction and calculation method. Each aspect carries at least one leading indicator.",
+          "sections": [
+            {
+              "en": "Aspect weights",
+              "vi": "Trọng số bốn khía cạnh",
+              "write": "The proportion per aspect, checked against data/kpi-aspect-weights.csv for the block. State the reason for any figure outside the guideline range."
+            },
+            {
+              "en": "KPI table",
+              "vi": "Bảng KPI",
+              "write": "Per row: code, aspect, KPI, measurement, unit, direction, calculation method, overall weight, lagging or leading. Overall weight is the stored figure; portion weight is computed from it, never typed."
+            },
+            {
+              "en": "Direction and method",
+              "vi": "Chiều và cách tính",
+              "write": "Per KPI, which of the four branches applies and why: ratio higher-is-better, ratio lower-is-better, a named scale, or a date. Cost KPIs are scored target over actual."
+            },
+            {
+              "en": "Traps checked",
+              "vi": "Bẫy đã kiểm",
+              "write": "The trap column from data/kpi-metrics.csv for every KPI used, and what was done about it."
+            },
+            {
+              "en": "Cascade",
+              "vi": "Phân bổ xuống dưới",
+              "write": "Which rows come down from the level above and which come up from this level, roughly 70-80% down and 20-30% up. For an indirect cascade, name the parent KPI and say why this row is a leading indicator of it."
+            }
+          ]
+        },
+        {
+          "id": "03-scorecard",
+          "file": "03-scorecard",
+          "kind": "md",
+          "bilingual": true,
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
+          "title": "Scorecard",
+          "title_vi": "Thẻ điểm",
+          "gate": "The card is a JSON file that scripts/score_kpi.py scores without a blocking problem. Raw and capped achievement are both shown. A hand-typed achievement figure is a fail.",
+          "sections": [
+            {
+              "en": "Card file",
+              "vi": "Tệp thẻ điểm",
+              "write": "The scorecard as JSON: level, owner, fiscal year and one entry per KPI carrying its weight, target, actual and scale."
+            },
+            {
+              "en": "Scored output",
+              "vi": "Kết quả chấm",
+              "write": "Paste the output of `python scripts/score_kpi.py --input <card>.json`. Not a summary of it, and not a total retyped by hand."
+            },
+            {
+              "en": "Caps applied",
+              "vi": "Mức trần đã áp",
+              "write": "Every KPI where the cap bit, with the raw figure beside the capped one. An override needs a named approver."
+            },
+            {
+              "en": "Adjusted actuals",
+              "vi": "Số thực tế đã điều chỉnh",
+              "write": "Any actual that differs from the raw measurement, with the raw figure, the adjusted figure and the reason. An excluded month is an adjustment."
+            }
+          ]
+        },
+        {
+          "id": "04-review",
+          "file": "04-review.md",
+          "kind": "md",
+          "bilingual": false,
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
+          "title": "Review",
+          "title_vi": "Rà soát",
+          "gate": "Every warning from the scoring run is answered, either with a fix or with a stated reason for keeping it. A total that agrees with a previous spreadsheet is not evidence.",
+          "sections": [
+            {
+              "en": "Warnings answered",
+              "vi": "Trả lời cảnh báo",
+              "write": "Each warning from the run, and the decision taken. An aspect with only lagging KPIs is reported but cannot be steered; say whether that is acceptable for the year."
+            },
+            {
+              "en": "What this card rewards",
+              "vi": "Thẻ điểm này thưởng cho điều gì",
+              "write": "Read the weights back as behaviour. If the heaviest rows can all be hit without the strategy moving, the card is measuring the wrong things."
+            },
+            {
+              "en": "Gaming routes",
+              "vi": "Đường lách",
+              "write": "Per heavy KPI, the cheapest way to hit it without doing the work, and what stops that. On-time delivery is hit by quoting longer lead times."
+            },
+            {
+              "en": "Version history",
+              "vi": "Lịch sử phiên bản",
+              "write": "Any target changed after the card was agreed, with the version number and a mandatory reason. Version two without a reason is not a version."
+            }
           ]
         }
       ]
