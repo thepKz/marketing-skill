@@ -2611,6 +2611,196 @@
           ]
         }
       ]
+    },
+    "virtual-model": {
+      "title": "Virtual model and outfit",
+      "title_vi": "Người mẫu ảo và trang phục",
+      "default_mode": "system",
+      "use_when": "A recurring fictional presenter, brand ambassador, or AI model is needed across many looks and campaigns, with outfits or products dressed onto one consistent identity rather than photographed on a real person.",
+      "references": [
+        "virtual-person-system.md",
+        "human-imagery.md",
+        "makeup-art-direction.md",
+        "image-editing.md",
+        "prompt-contracts.md",
+        "provider-compilers.md",
+        "api-image-orchestration.md",
+        "rights-and-claims.md",
+        "anti-ai-quality.md"
+      ],
+      "scripts": [
+        "start_workbench.py",
+        "new_run.py",
+        "plan_virtual_person.py",
+        "compile_prompt.py",
+        "plan_image_generation.py",
+        "generate_image.py",
+        "run_status.py"
+      ],
+      "deliverables": [
+        {
+          "id": "01-intake",
+          "file": "01-intake.md",
+          "kind": "md",
+          "bilingual": false,
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
+          "title": "Intake",
+          "title_vi": "Tiếp nhận",
+          "gate": "The subject is confirmed fictional and adult before any design begins. Purpose, platforms, and how many looks this identity must carry are stated.",
+          "sections": [
+            {
+              "en": "Purpose and platforms",
+              "vi": "Mục đích và nền tảng",
+              "write": "What this identity is for, where it appears, and roughly how long it needs to stay recognisable."
+            },
+            {
+              "en": "Fictional-adult confirmation",
+              "vi": "Xác nhận nhân vật hư cấu trưởng thành",
+              "write": "State plainly that the subject is fictional and an adult. A request for a minor or a real person's likeness stops the run here."
+            },
+            {
+              "en": "Consistency requirement",
+              "vi": "Yêu cầu nhất quán",
+              "write": "How many looks, campaigns, or angles must share this identity, and over what period."
+            },
+            {
+              "en": "Locks and rejects",
+              "vi": "Yếu tố khoá và bị loại",
+              "write": "What may never change between looks, and what is an automatic rejection."
+            }
+          ]
+        },
+        {
+          "id": "02-identity-profile",
+          "file": "02-identity-profile.md",
+          "kind": "md",
+          "bilingual": true,
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
+          "title": "Identity profile",
+          "title_vi": "Hồ sơ danh tính",
+          "gate": "Every field comes from scripts/plan_virtual_person.py, not free recall. Face, body, makeup, and pose locks are listed before any image is requested.",
+          "sections": [
+            {
+              "en": "Recommended profile",
+              "vi": "Hồ sơ khuyến nghị",
+              "write": "Paste the output of `python scripts/plan_virtual_person.py` verbatim, including the adult_only gate."
+            },
+            {
+              "en": "Identity locks",
+              "vi": "Yếu tố khoá danh tính",
+              "write": "Face, body, and pose locks from virtual-person-system.md, copied field by field, not summarised."
+            },
+            {
+              "en": "Name and continuity",
+              "vi": "Tên và tính liên tục",
+              "write": "The name and short bio this identity carries across future runs, so later work loads the same profile instead of drifting."
+            }
+          ]
+        },
+        {
+          "id": "03-identity-sheet",
+          "file": "03-identity-sheet",
+          "kind": "dir",
+          "bilingual": false,
+          "modes": [
+            "system",
+            "production"
+          ],
+          "title": "Identity reference sheet",
+          "title_vi": "Bảng tham chiếu danh tính",
+          "gate": "Neutral head and full-body references exist at four angles before any wardrobe or campaign image is requested. A sheet built after the first campaign image is a rebuild, not a reference.",
+          "readme": "One image per angle plus one expression sheet, named identity-<slug>-<angle>.png. Compile the prompt with scripts/compile_prompt.py --mode virtual-person from 02-identity-profile, then produce it with scripts/generate_image.py --mode generate when a provider is configured, or hand the compiled prompt to whichever provider is available. Producing a prompt is not producing an image; never report otherwise."
+        },
+        {
+          "id": "04-wardrobe-looks",
+          "file": "04-wardrobe-looks.md",
+          "kind": "md",
+          "bilingual": true,
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
+          "title": "Wardrobe looks",
+          "title_vi": "Các bộ trang phục",
+          "gate": "Every look states Change, Lock, Match, and Reject per image-editing.md's wardrobe contract. Face, identity, hair, body proportions, pose, hands, camera, crop, light, and background are locked unless the request names one as a variable.",
+          "sections": [
+            {
+              "en": "Look brief",
+              "vi": "Mô tả trang phục",
+              "write": "Per look: garment, fit, occasion, source or brand reference, and whether it is a real product that must match exactly."
+            },
+            {
+              "en": "Wardrobe contract",
+              "vi": "Hợp đồng chỉnh trang phục",
+              "write": "Change / Lock / Match / Reject, one block per look, with the identity sheet as the edit target."
+            },
+            {
+              "en": "Compiled prompts",
+              "vi": "Prompt đã biên soạn",
+              "write": "Output of scripts/compile_prompt.py --mode outfit-edit per look, pasted verbatim."
+            }
+          ]
+        },
+        {
+          "id": "05-generation-log",
+          "file": "05-generation-log.csv",
+          "kind": "csv",
+          "bilingual": false,
+          "modes": [
+            "system",
+            "production"
+          ],
+          "title": "Generation log",
+          "title_vi": "Nhật ký tạo ảnh",
+          "gate": "Generated from scripts/generate_image.py output, never hand-typed. No row or note field ever contains the API key. A row exists for every attempt, including rejected ones.",
+          "header": "call_id,look_id,mode,provider,model,size,quality,n,status,output_file,notes"
+        },
+        {
+          "id": "06-qa",
+          "file": "06-qa.md",
+          "kind": "md",
+          "bilingual": true,
+          "modes": [
+            "focused",
+            "system",
+            "production"
+          ],
+          "title": "Consistency QA",
+          "title_vi": "Kiểm tra tính nhất quán",
+          "gate": "Every rejection criterion from virtual-person-system.md and every stop condition from rights-and-claims.md is checked. A consistency break between looks is a fail, not a style note.",
+          "sections": [
+            {
+              "en": "Identity consistency",
+              "vi": "Tính nhất quán danh tính",
+              "write": "Compare the identity sheet against every wardrobe look: face, body proportions, skin tone, hair, and any feature named as a lock."
+            },
+            {
+              "en": "Rejection criteria checked",
+              "vi": "Tiêu chí loại đã kiểm",
+              "write": "Each rejection criterion from virtual-person-system.md, with pass or fail."
+            },
+            {
+              "en": "Rights and disclosure",
+              "vi": "Quyền và công bố",
+              "write": "Confirm no real person's likeness was used without authorisation, and that any required AI-generation disclosure is planned for publication."
+            },
+            {
+              "en": "Decision",
+              "vi": "Quyết định",
+              "write": "Ship, regenerate one look, or rebuild the identity sheet. Name which."
+            }
+          ]
+        }
+      ]
     }
   }
 }

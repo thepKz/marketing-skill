@@ -97,6 +97,17 @@ PIPELINE_KEYWORDS = {
         ("kpi", "bsc", "scorecard", "okr", "cascade", "lagging", "leading", "weighting",
          "trọng", "số"),
     ),
+    # "model" and "outfit swap" already live in image-from-reference for editing a
+    # supplied photo. These triggers are deliberately more specific, so a one-off edit
+    # request does not get pulled into building a whole recurring identity.
+    "virtual-model": (
+        ("virtual model", "ai model", "digital model", "brand ambassador", "virtual influencer",
+         "ai influencer", "digital human", "consistent character", "virtual try-on", "try-on model",
+         "người mẫu ảo", "người mẫu ai", "nhân vật ảo", "đại diện thương hiệu ảo", "mascot ảo",
+         "nguoi mau ao", "nguoi mau ai", "nhan vat ao"),
+        ("virtual", "ảo", "ambassador", "influencer", "persona", "presenter", "avatar", "mascot",
+         "nhân", "vật"),
+    ),
 }
 
 

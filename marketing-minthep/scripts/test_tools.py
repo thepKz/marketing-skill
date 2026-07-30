@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import argparse
+import contextlib
 import csv
 import io
 import json
@@ -15,6 +17,7 @@ import xml.etree.ElementTree as ET
 from decimal import Decimal
 from html.parser import HTMLParser
 from pathlib import Path
+from unittest import mock
 
 from _signals import BUDGET_TIERS, phase_plan, read_signals
 from analyze_performance import analyze
@@ -23,6 +26,8 @@ from compile_prompt import compile_provider
 # Imported as modules, not names: both define PLACEMENTS, and `from ... import PLACEMENTS` twice
 # would leave one test silently asserting against the other module's table.
 import find_recipe
+import generate_image
+import list_capabilities
 import render_refsheet
 import rewrite_human
 import score_kpi
@@ -2193,6 +2198,132 @@ class KpiScoringTests(unittest.TestCase):
         for request, expected in unchanged.items():
             with self.subTest(request):
                 self.assertEqual(route_pipeline({"request": request}, registry)["pipeline"], expected)
+
+
+class VirtualModelTests(unittest.TestCase):
+    """A recurring identity is a different job from editing one supplied photo, and the two
+    pipelines must stay disambiguated by phrasing alone, since a router that guesses wrong
+    sends a one-off edit through a whole identity build or vice versa."""
+
+    def test_the_pipeline_is_registered_with_its_references_and_scripts(self) -> None:
+        pipeline = load_registry()["pipelines"]["virtual-model"]
+        for reference in pipeline["references"]:
+            with self.subTest(reference):
+                self.assertTrue((SKILL_ROOT / "references" / reference).exists())
+        for script in pipeline["scripts"]:
+            with self.subTest(script):
+                self.assertTrue((SKILL_ROOT / "scripts" / script).exists())
+
+    def test_a_recurring_identity_request_routes_to_the_virtual_model_pipeline(self) -> None:
+        registry = load_registry()
+        for request in ("build a virtual AI model for our brand's Instagram",
+                        "we need a consistent virtual influencer to wear our outfits",
+                        "tôi cần một người mẫu ảo nhất quán cho các bộ trang phục mới"):
+            with self.subTest(request):
+                self.assertEqual(route_pipeline({"request": request}, registry)["pipeline"],
+                                 "virtual-model")
+
+    def test_a_one_off_photo_edit_still_routes_to_image_from_reference(self) -> None:
+        registry = load_registry()
+        for request in ("sửa lại ảnh này, đổi áo cho người trong ảnh",
+                        "change the outfit on this photo of our model",
+                        "edit this product photo and swap the model outfit"):
+            with self.subTest(request):
+                self.assertEqual(route_pipeline({"request": request}, registry)["pipeline"],
+                                 "image-from-reference")
+
+    def test_adding_the_virtual_model_route_did_not_steal_other_requests(self) -> None:
+        registry = load_registry()
+        unchanged = {
+            "lên kế hoạch marketing cho quán bún bò": "plan-from-zero",
+            "thiết kế menu quán cà phê": "design-render",
+            "chấm điểm BSC 2024 giúp tôi": "score-kpi",
+        }
+        for request, expected in unchanged.items():
+            with self.subTest(request):
+                self.assertEqual(route_pipeline({"request": request}, registry)["pipeline"], expected)
+
+
+class GenerateImageTests(unittest.TestCase):
+    """`generate_image.py` is the one script that can reach a real network endpoint holding a
+    real key, so every test here stays offline: the key is mocked to an empty string, the base
+    and model are fake, and no test ever inspects `.env` or prints a real credential."""
+
+    def test_a_prompt_must_come_from_somewhere(self) -> None:
+        with self.assertRaises(ValueError):
+            generate_image._read_prompt(argparse.Namespace(prompt=None, prompt_file=None))
+
+    def test_generate_request_carries_only_the_fields_that_were_set(self) -> None:
+        args = argparse.Namespace(n=2, size=None, quality=None, output_format=None)
+        body = generate_image._build_generate_request(args, "fake-model", "a red fox in snow")
+        self.assertEqual(body, {"model": "fake-model", "prompt": "a red fox in snow", "n": 2})
+
+    def test_edit_request_uses_the_singular_field_for_one_image_and_plural_for_several(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            one = Path(tmp) / "a.png"
+            one.write_bytes(b"\x89PNG\r\n\x1a\n")
+            two = Path(tmp) / "b.png"
+            two.write_bytes(b"\x89PNG\r\n\x1a\n")
+
+            single = argparse.Namespace(input=[str(one)], mask=None, n=1, size=None,
+                                        quality=None, output_format=None)
+            body, content_type = generate_image._build_edit_request(single, "fake-model", "swap the jacket")
+            self.assertIn("multipart/form-data", content_type)
+            self.assertIn(b'name="image"', body)
+            self.assertNotIn(b'name="image[]"', body)
+
+            several = argparse.Namespace(input=[str(one), str(two)], mask=None, n=1, size=None,
+                                         quality=None, output_format=None)
+            body_several, _ = generate_image._build_edit_request(several, "fake-model", "swap the jacket")
+            self.assertIn(b'name="image[]"', body_several)
+
+    def test_dry_run_builds_the_request_and_needs_no_key(self) -> None:
+        argv = ["generate_image.py", "--prompt", "a red fox in snow", "--base", "http://example.test",
+                "--model", "fake-model", "--dry-run"]
+        with mock.patch.object(generate_image.sys, "argv", argv), \
+             mock.patch.object(generate_image, "env_get", return_value=""):
+            buffer = io.StringIO()
+            with contextlib.redirect_stdout(buffer):
+                exit_code = generate_image.main()
+        self.assertEqual(exit_code, 0)
+        payload = json.loads(buffer.getvalue())
+        self.assertEqual(payload["url"], "http://example.test/v1/images/generations")
+        self.assertEqual(payload["authorization"], "(none configured)")
+
+    def test_a_missing_key_is_refused_before_any_network_call(self) -> None:
+        argv = ["generate_image.py", "--prompt", "a red fox in snow", "--base", "http://example.test",
+                "--model", "fake-model"]
+        with mock.patch.object(generate_image.sys, "argv", argv), \
+             mock.patch.object(generate_image, "env_get", return_value=""):
+            buffer = io.StringIO()
+            with contextlib.redirect_stderr(buffer):
+                exit_code = generate_image.main()
+        self.assertEqual(exit_code, 1)
+        self.assertIn("MINTHEP_IMAGE_KEY is not configured", buffer.getvalue())
+
+
+class ListCapabilitiesTests(unittest.TestCase):
+    def test_every_pipeline_reference_table_and_script_is_listed(self) -> None:
+        capabilities = list_capabilities.build_capabilities()
+        registry = load_registry()
+        self.assertEqual({p["name"] for p in capabilities["pipelines"]}, set(registry["pipelines"]))
+        self.assertEqual({r["file"] for r in capabilities["references"]},
+                         {path.name for path in (SKILL_ROOT / "references").glob("*.md")})
+        self.assertEqual({d["file"] for d in capabilities["data_tables"]},
+                         {path.name for path in (SKILL_ROOT / "data").glob("*.csv")})
+        script_files = {s["file"] for s in capabilities["scripts"]}
+        self.assertNotIn("test_tools.py", script_files)
+        self.assertNotIn("_env.py", script_files)
+        self.assertIn("generate_image.py", script_files)
+
+    def test_a_query_narrows_every_section_to_what_it_matches(self) -> None:
+        capabilities = list_capabilities.build_capabilities("virtual")
+        self.assertEqual([p["name"] for p in capabilities["pipelines"]], ["virtual-model"])
+        self.assertTrue(capabilities["references"])
+        for reference in capabilities["references"]:
+            with self.subTest(reference["file"]):
+                self.assertTrue("virtual" in reference["file"].lower()
+                               or "virtual" in reference["title"].lower())
 
 
 if __name__ == "__main__":
