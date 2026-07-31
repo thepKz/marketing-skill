@@ -1459,6 +1459,7 @@ class DataTableTests(unittest.TestCase):
         "product-compositions.csv": (18, 18),
         "address-registers.csv": (25, 15),
         "prompt-grammar.csv": (69, 9),
+        "reference-set-calibration.csv": (11, 10),
     }
 
     # Most of these tables are keyed by their first column. The weights table is keyed by two, and
@@ -4042,6 +4043,178 @@ class ColourGateTests(unittest.TestCase):
                        "colour-brand-personality", "colour-product-congruity"):
             self.assertIn(wanted, ids, f"{wanted} left the benchmark table")
             self.assertIn(wanted, prose, f"{wanted} is in the table but not cited in the reference")
+
+
+class ReferenceSetCalibrationTests(unittest.TestCase):
+    """A calibration is only worth the honesty of its verdict column.
+
+    `data/reference-set-calibration.csv` grades eleven axes of this skill's own craft prose against
+    244 measured photographs, and the failure mode is not a wrong number - it is a table that agrees
+    with itself. A row saying `confirmed` next to a claim the sample never actually tested reads
+    exactly like a row saying `confirmed` next to one it did, and the reader cannot tell them apart.
+    So the tests below defend the two things that keep the verdicts readable: a graded row has to
+    name a claim that really exists where it says it does, and a `confirmed` has to be earned.
+
+    The other thing they defend is the absence of the images. The set was 244 files on this machine
+    and none of them are in the repository, which is the same rule that emptied `docs/` of seventeen
+    photographs. A calibration is the honest way to keep what those files taught; a folder of them is
+    not.
+    """
+
+    TABLE = "reference-set-calibration.csv"
+    REFERENCE = "reference-set-calibration.md"
+    SAMPLE = 244
+
+    # A verdict has to mean one of four things, and the middle two are the ones worth having. Without
+    # `consistent-but-untested` the only way to record "nothing broke it, but nothing tried" is to
+    # call it confirmed, and that is the overclaim this column exists to stop.
+    VERDICTS = {"confirmed", "refined", "consistent-but-untested", "baseline"}
+
+    # The axes that grade a rule the skill actually asserts. Everything else is a baseline, and a
+    # baseline is allowed to have no claim - but it is not allowed to be graded as though it had one.
+    # Listed here rather than derived from the table, because the split between "we had a rule and
+    # measured it" and "we had nothing" is the finding, and a derived set would agree with any edit.
+    GRADED = {"loud-surface-share", "loud-colour-count", "frame-ratio-share",
+              "ratio-by-account-register", "hue-family-count", "neutral-share"}
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.rows = {row["axis_id"]: row for row in DataTableTests.rows(cls.TABLE)}
+        cls.prose = (SKILL_ROOT / "references" / cls.REFERENCE).read_text(encoding="utf-8")
+
+    def test_every_verdict_is_one_of_the_four(self) -> None:
+        for axis, row in self.rows.items():
+            with self.subTest(axis=axis):
+                self.assertIn(row["verdict"], self.VERDICTS)
+
+    def test_a_graded_row_names_a_claim_and_a_baseline_admits_it_has_none(self) -> None:
+        """The pairing is what makes the table checkable. A row that grades a claim has to say where
+        the claim lives, in a file that exists; a row that grades nothing has to say so in the same
+        two columns rather than leaving a plausible-looking citation behind."""
+        self.assertEqual({axis for axis, row in self.rows.items() if row["verdict"] != "baseline"},
+                         self.GRADED, "an axis changed sides between grading a rule and having none")
+        for axis, row in self.rows.items():
+            with self.subTest(axis=axis):
+                if row["verdict"] == "baseline":
+                    self.assertRegex(row["claim_it_grades"], r"^None\b",
+                                     "a baseline row is claiming to grade something")
+                    self.assertRegex(row["where_that_claim_lives"], r"^Nowhere\b",
+                                     "a baseline row cites a home for a claim it says does not exist")
+                else:
+                    self.assertNotRegex(row["claim_it_grades"], r"^None\b")
+                    self.assertNotRegex(row["where_that_claim_lives"], r"^Nowhere\b")
+
+    def test_every_cited_file_exists(self) -> None:
+        """A citation to a file or column that has been renamed is worse than no citation, because it
+        looks checked. This is the test that catches the calibration going stale when a table moves."""
+        for axis, row in self.rows.items():
+            cited = re.findall(r"\b(?:data|scripts|references)/[\w./-]+\b",
+                               row["where_that_claim_lives"] + " " + row["what_changes"])
+            for target in cited:
+                with self.subTest(axis=axis, target=target):
+                    self.assertTrue((SKILL_ROOT / target).exists(), f"{axis} cites a missing {target}")
+
+    def test_a_graded_claim_is_quoted_from_the_file_it_names(self) -> None:
+        """The strongest check available without the images: a graded row's claim has to be findable
+        in the file the row says holds it. This is what stops a calibration from grading a rule
+        somebody remembered."""
+        checkable = {
+            "loud-surface-share": ("colour-gates.csv", "20 percent of the visible area"),
+            "loud-colour-count": ("colour-gates.csv", "at most 1 colour at or above C 0.19"),
+            "frame-ratio-share": ("frame-ratios.csv", "legacy IG feed"),
+            "hue-family-count": ("reference-observations.csv", "Two hues plus skin"),
+            "neutral-share": ("reference-observations.csv", "without competing"),
+        }
+        for axis, (table, quoted) in checkable.items():
+            with self.subTest(axis=axis):
+                self.assertIn(table, self.rows[axis]["where_that_claim_lives"])
+                text = (SKILL_ROOT / "data" / table).read_text(encoding="utf-8")
+                self.assertIn(quoted, text, f"{axis} grades a claim {table} does not make")
+
+    def test_the_two_chroma_gates_are_graded_and_say_so_in_their_own_table(self) -> None:
+        """The calibration is useless if a reader of `colour-gates.csv` never learns it happened. Both
+        chroma gates now cite it, and neither was promoted off it: the count gate keeps house-rule
+        because the sample never reaches its limit, and the share gate keeps 20 percent because a
+        brand panel is not a photograph."""
+        gates = {row["gate"]: row for row in DataTableTests.rows("colour-gates.csv")}
+        for gate in ("chroma-budget-by-count", "chroma-budget-by-surface-share"):
+            with self.subTest(gate=gate):
+                self.assertEqual(gates[gate]["evidence_grade"], "house-rule",
+                                 "a house rule was promoted on a photograph sample")
+                self.assertIn(self.REFERENCE, " ".join(gates[gate].values()),
+                              f"{gate} was measured and its row does not say where")
+
+    def test_the_untestable_gate_is_not_recorded_as_confirmed(self) -> None:
+        """This is the one overclaim the whole exercise was set up to avoid. No frame in 244 carries
+        two loud hue families, which looks like confirmation until you notice almost none of them
+        reach the threshold at all. The row has to say that in the cell, not just in the verdict."""
+        row = self.rows["loud-colour-count"]
+        self.assertEqual(row["verdict"], "consistent-but-untested")
+        self.assertRegex(row["what_changes"], r"(?i)cannot confirm|never approached|rarely")
+        self.assertIn("house-rule", row["what_changes"])
+
+    def test_every_row_states_a_sample_size_or_a_percentile(self) -> None:
+        """A measured cell with no number in it is a sentence about a feeling. Each row has to carry
+        arithmetic in `measured` and a spread in `distribution`, because a median with no distribution
+        behind it is the statistic that made "two hues plus skin" look like a rule."""
+        for axis, row in self.rows.items():
+            with self.subTest(axis=axis):
+                self.assertRegex(row["measured"], r"\d", "measured carries no number")
+                self.assertRegex(row["distribution"], r"\d", "distribution carries no number")
+                self.assertGreater(len(row["how_it_was_measured"]), 40,
+                                   "the method is too short to be repeatable")
+
+    def test_every_row_names_a_blind_spot_that_is_not_a_shrug(self) -> None:
+        for axis, row in self.rows.items():
+            with self.subTest(axis=axis):
+                self.assertGreater(len(row["what_this_cannot_tell_you"]), 40,
+                                   "the blind spot is too short to be one")
+                self.assertNotRegex(row["what_this_cannot_tell_you"], r"(?i)^(nothing|n/a|none)\b")
+
+    def test_the_reference_carries_every_axis_and_the_sample_size(self) -> None:
+        """Same rule the colour unit is held to: prose is read more often than a CSV, so a reference
+        that names ten of eleven axes is teaching a calibration that does not exist."""
+        for axis in self.rows:
+            self.assertIn(axis, self.prose, f"{axis} is measured and the reference never names it")
+        for verdict in sorted(self.VERDICTS):
+            self.assertIn(verdict, self.prose, f"the reference does not explain a {verdict} verdict")
+        self.assertIn(str(self.SAMPLE), self.prose, "the reference does not state its sample size")
+
+    def test_the_reference_states_the_sample_bias_before_the_findings(self) -> None:
+        """A one-industry, one-platform, one-day portrait set produced every number in the table. A
+        reader who reaches the findings before the limits will carry them somewhere they do not hold,
+        so the order of the sections is part of the content."""
+        limits = self.prose.index("The sample, and what it is not")
+        findings = self.prose.index("that changed something")
+        self.assertLess(limits, findings, "the findings are stated before the sample's limits")
+        for admission in ("one platform", "portrait set", "posted frames"):
+            self.assertIn(admission, self.prose, f"the sample section does not admit {admission!r}")
+
+    def test_the_calibration_stored_none_of_the_photographs(self) -> None:
+        """244 files were read on one machine and none of them are here. The images stay out because
+        their own manifest says copyright remains with the original owners, which is the sentence
+        that emptied docs/ of seventeen photographs, and the instrument stays out because it needs
+        Pillow while all the shipped tools need nothing. The reference has to say both, because an
+        absence nobody explained reads as an omission."""
+        images = [path.name for path in SKILL_ROOT.rglob("*")
+                  if path.suffix.lower() in {".jpg", ".jpeg", ".webp", ".avif"}]
+        self.assertEqual(images, [], f"a photograph from the measured set landed here: {images}")
+        for reason in ("Pillow", "standard library", "not ours to publish"):
+            self.assertIn(reason, self.prose, f"the reference does not explain {reason!r}")
+        # This file is excluded because it is a harness rather than a tool a customer runs, and
+        # because the two assertions below are themselves the string they are looking for.
+        shipped = "\n".join(path.read_text(encoding="utf-8")
+                            for path in sorted((SKILL_ROOT / "scripts").glob("*.py"))
+                            if path.stem != "test_tools")
+        self.assertNotIn("from PIL", shipped, "a shipped tool now needs Pillow")
+        self.assertNotIn("import PIL", shipped, "a shipped tool now needs Pillow")
+
+    def test_the_router_sends_a_reader_here_before_they_quote_the_old_rule(self) -> None:
+        router = (SKILL_ROOT / "references" / "marketing-system-router.md").read_text(encoding="utf-8")
+        self.assertIn(self.REFERENCE, router)
+        self.assertIn(self.TABLE, router)
+        self.assertIn("two hues plus skin", router.lower(),
+                      "the router does not warn the reader off the rule this refined")
 
 
 class OperatingLoadTests(unittest.TestCase):

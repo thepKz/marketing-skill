@@ -63,6 +63,10 @@ Load only when relevant:
   answering "how do I do marketing for my shop".
 - Reading a live reference into pose, light, palette and makeup observations without storing the image:
   `reference-reading.md` plus `data/reference-observations.csv`.
+- What professional output actually measures, and which of this skill's own craft rules survived being
+  measured: `reference-set-calibration.md` plus `data/reference-set-calibration.csv`. Load this before
+  quoting "two hues plus skin", before offering 1:1 for a feed post, and before treating a chroma-budget
+  pass on a photograph as meaningful.
 - How many frames one existing product photograph can actually produce, which need a second exposure,
   which are legal as a marketplace main image, and what to declare in IPTC metadata:
   `product-composition-set.md` plus `data/product-compositions.csv` and
