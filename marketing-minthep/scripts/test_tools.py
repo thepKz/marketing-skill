@@ -2693,6 +2693,18 @@ class UseCaseGridTests(unittest.TestCase):
                 request = self.entries[slug][lang]["request"]
                 self.assertIn(script, request, f"{slug}.{lang} does not name {script}")
 
+    def test_the_placement_panel_asks_for_the_sweep_and_counts_its_own_rows(self) -> None:
+        """A visitor who copies this request and gets a remembered ratio back is worse off than one
+        who never clicked, because the answer arrives looking computed. Both languages have to name
+        --survey. Both also state a placement count, and that count is the CSV's row count rather
+        than a number typed once: adding a row to the table has to move the front page with it."""
+        placements = str(len(check_channel_spec.load_rows()))
+        for lang in ("vi", "en"):
+            entry = self.entries["channel"][lang]
+            with self.subTest(lang=lang):
+                self.assertIn("check_channel_spec.py --survey", entry["request"])
+                self.assertIn(placements, entry["title"])
+
     def test_the_virtual_panel_no_longer_promises_a_choice_of_adjectives(self) -> None:
         """It used to open on "impression options before facial design", which stopped being true
         when the adjectives became a parameter table. A person described as warm and elegant renders

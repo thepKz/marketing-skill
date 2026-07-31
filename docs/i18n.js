@@ -95,6 +95,7 @@ window.HANDBOOK_I18N = {
     "Photoshoot": "Photoshoot",
     "Video brief": "Video brief",
     "Edit ảnh ref": "Edit reference",
+    "File đăng ở đâu": "Where a file fits",
     // The four decision tabs. Their panel text comes from the useCases object in app.js, which
     // carries its own English; only these button labels are static text nodes and need a key here.
     "Giá & khuyến mãi": "Pricing & offers",
