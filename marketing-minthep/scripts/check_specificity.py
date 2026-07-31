@@ -86,11 +86,15 @@ UNITS_VI = (
     "món|bàn|chỗ|đơn|combo|set|sao|tầng|phòng|chi nhánh|cửa hàng|điểm"
 )
 UNITS_EN = (
-    "%|usd|vnd|eur|"
+    # `percent` and `degrees` spelled out were missing while `%` and `deg` were present, and
+    # Vietnamese already had `%` and `độ`. Found by running this gate on a parameter sheet full of
+    # `12 degrees` and `30 percent` and getting zero facts back. A closed list undercounts by design;
+    # undercounting the written-out form of a unit whose symbol is already listed is just a gap.
+    "%|percent|percentage|usd|vnd|eur|"
     "sec|second|seconds|min|minute|minutes|hr|hrs|hour|hours|day|days|week|weeks|month|months|year|years|"
     "kg|g|gram|grams|mg|ml|l|litre|litres|liter|liters|oz|lb|lbs|"
     "mm|cm|m|km|in|ft|inch|inches|"
-    "deg|kcal|cal|w|kw|v|hz|mah|gb|mb|tb|px|dpi|"
+    "deg|degree|degrees|kcal|cal|w|kw|v|hz|mah|gb|mb|tb|px|dpi|"
     "people|person|customers|guests|seats|orders|times|units|items|servings|"
     "stars|floors|rooms|branches|stores|locations|points"
 )

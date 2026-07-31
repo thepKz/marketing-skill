@@ -644,18 +644,61 @@ class ToolTests(unittest.TestCase):
         self.assertIn("MATCH:", prompt)
         self.assertIn("MASK:", prompt)
 
-    def test_virtual_person_planner_recommends_douyin_direction(self) -> None:
-        result = plan_virtual_person(
-            {
-                "purpose": "Recurring beauty creator",
-                "vibe": "Romantic Douyin idol",
-                "audience": "Beauty shoppers",
-            }
-        )
-        self.assertTrue(result["adult_only"])
-        self.assertEqual(result["recommended_selection"]["build"], "B1")
-        self.assertEqual(result["recommended_selection"]["makeup"], "M3")
-        self.assertEqual(result["selected_profile"]["makeup"], "douyin-luminous")
+    def test_virtual_person_is_reproducible_from_its_parameters(self) -> None:
+        # The one thing a brand face has to do is appear in the next fifty posts as the same person.
+        # The version this replaced keyword-matched four adjective bundles with no seed, so two runs
+        # of one request produced the same words and different people. Identity is now a function of
+        # the locked parameter values, which means flag order cannot change it.
+        one = plan_virtual_person({"values": {"canthal-tilt": "6", "stature-head-units": "7.4"}})
+        two = plan_virtual_person({"values": {"stature-head-units": "7.4", "canthal-tilt": "6"}})
+        self.assertTrue(one["adult_only"])
+        self.assertEqual(one["identity"]["person_id"], two["identity"]["person_id"])
+        self.assertEqual(one["identity"]["seed"], two["identity"]["seed"])
+        self.assertTrue(one["identity"]["person_id"].startswith("vp-"))
+
+        moved = plan_virtual_person({"values": {"canthal-tilt": "9", "stature-head-units": "7.4"}})
+        self.assertNotEqual(one["identity"]["person_id"], moved["identity"]["person_id"])
+
+    def test_virtual_person_separates_locked_identity_from_campaign_styling(self) -> None:
+        sheet = plan_virtual_person({"values": {}})
+        locked = set(sheet["locked_identity"])
+        styling = set(sheet["campaign_styling"])
+        self.assertFalse(locked & styling, "an axis cannot be both the person and the campaign")
+        # Pose and camera are what a campaign changes; face and build are what it must not.
+        self.assertIn("canthal-tilt", locked)
+        self.assertIn("stature-head-units", locked)
+        self.assertIn("camera-height", styling)
+        self.assertIn("weight-distribution", styling)
+        self.assertEqual(sheet["identity"]["hashed_axes"], len(locked))
+
+    def test_virtual_person_refuses_a_minor_and_rejects_out_of_range_values(self) -> None:
+        with self.assertRaises(ValueError):
+            plan_virtual_person({"minor": True})
+        with self.assertRaises(ValueError):
+            plan_virtual_person({"values": {"not-an-axis": "3"}})
+        out_of_range = plan_virtual_person({"values": {"stature-head-units": "9.2"}})
+        self.assertEqual(out_of_range["verdict"], "failed")
+        self.assertTrue(any("9.2" in problem for problem in out_of_range["errors"]))
+
+    def test_virtual_person_prompt_fragment_carries_the_supplied_number(self) -> None:
+        # A fragment that quotes the table's neutral phrasing for a value somebody chose would print
+        # "about seven and a half head heights" for a supplied 7.4. The numbers are what the render
+        # gets checked against, so a fragment contradicting them is worse than no fragment at all.
+        sheet = plan_virtual_person({"values": {"stature-head-units": "7.4"}})
+        identity_fragment = sheet["prompt_fragments"]["identity"]
+        self.assertIn("7.4", identity_fragment)
+        self.assertNotIn("seven and a half", identity_fragment)
+        # An unspecified axis still has to carry its neutral value into the prompt.
+        self.assertIn("1.40", identity_fragment)
+
+    def test_virtual_person_makeup_comes_from_the_makeup_table(self) -> None:
+        # The version this replaced carried seven bare strings and never touched the 47-row table on
+        # disk, so its makeup vocabulary and the skill's makeup unit could drift apart indefinitely.
+        good = plan_virtual_person({"values": {}, "makeup": "kr-crying-eye"})
+        self.assertEqual(good["makeup"]["look_id"], "kr-crying-eye")
+        bad = plan_virtual_person({"values": {}, "makeup": "douyin-luminous"})
+        self.assertEqual(bad["verdict"], "failed")
+        self.assertTrue(any("makeup-looks.csv" in problem for problem in bad["errors"]))
 
     def test_virtual_person_prompt_keeps_identity_separate_from_styling(self) -> None:
         prompt = compile_provider(
@@ -1277,7 +1320,8 @@ class DataTableTests(unittest.TestCase):
         "mark-scale-ladder.csv": (7, 10),
         "market-data-sources.csv": (37, 12),
         "marketing-benchmarks.csv": (35, 12),
-        "reference-observations.csv": (7, 24),
+        "reference-observations.csv": (10, 24),
+        "person-parameters.csv": (31, 13),
         "command-artifacts.csv": (28, 11),
         "colour-gates.csv": (9, 9),
         "vn-marketer-roles.csv": (13, 11),
@@ -1532,20 +1576,74 @@ class DataTableTests(unittest.TestCase):
                 self.assertRegex(row["what_it_does_not_establish"], r"search",
                                  f'{row["benchmark_id"]} does not say what was searched')
 
+    def test_no_person_parameter_is_described_with_an_adjective(self) -> None:
+        # This is the whole reason the table exists, so it is the invariant worth enforcing. The
+        # registry it replaced described a face as "warm, polished, inviting" and a build as
+        # "slender-light-frame"; check_specificity.py fails that vocabulary at 0 checkable things and
+        # 100 percent brand-swap. Without a test, the table drifts straight back to adjectives, because
+        # an adjective is quicker to write than a measurement.
+        banned = re.compile(r"(?i)\b(soft|slender|elegant|beautiful|pretty|attractive|luxurious|"
+                            r"premium|natural-looking|romantic|cool|warm-toned|feminine|delicate)\b")
+        groups, locks, grades = set(), set(), set()
+        for row in self.rows("person-parameters.csv"):
+            pid = row["param_id"]
+            groups.add(row["group"])
+            locks.add(row["lock_class"])
+            grades.add(row["term_grade"])
+            self.assertNotRegex(row["neutral_value"], banned,
+                                f"{pid}: neutral value is an adjective, not a measurement")
+            self.assertNotRegex(row["input_domain"], banned,
+                                f"{pid}: input domain is an adjective, not a measurement")
+            # A neutral value is a number, or a name the unit column itself enumerates, or the
+            # explicit refusal to pick one. It is never a mood. Requiring the name to appear in its
+            # own unit column is what stops a fifth pose curve being invented in the value column
+            # while the closed set says there are four.
+            value = row["neutral_value"].strip()
+            named = re.search(rf"\b{re.escape(value)}\b", row["unit"])
+            self.assertTrue(re.search(r"\d", value) or named or value == "none until chosen",
+                            f"{pid}: neutral value {value!r} is neither a number nor one of the "
+                            f"names its unit column lists ({row['unit']!r})")
+            self.assertTrue(row["unit"].strip(), f"{pid}: a measurement with no unit is a number")
+            # Every axis has to say what it controls and how it fails, because an axis nobody can
+            # connect to an outcome is one they will leave at its default forever.
+            self.assertGreater(len(row["what_it_controls"]), 40, f"{pid}: what_it_controls is a stub")
+            self.assertGreater(len(row["failure_when_wrong"]), 40,
+                               f"{pid}: failure_when_wrong is a stub")
+            self.assertGreater(len(row["prompt_phrasing"]), 10, f"{pid}: no prompt phrasing")
+            self.assertTrue(row["source"].strip(), f"{pid}: no source column")
+            # house-axis is this skill's own construction and is allowed. What is not allowed is
+            # claiming a standard term while pointing at nothing.
+            if row["term_grade"] != "house-axis":
+                self.assertGreater(len(row["source"]), 30,
+                                   f"{pid}: claims a standard term without saying where to verify it")
+        self.assertEqual(locks, {"locked", "styling"})
+        self.assertEqual(groups, {"face", "build", "pose", "camera"})
+        self.assertLessEqual(grades, {"standard-anatomical-term", "art-instruction-term",
+                                      "photographic-standard", "house-axis"})
+
     def test_every_observation_cites_one_post_and_grades_itself(self) -> None:
         # source-map.md's own rule is that a profile is a discovery index and a claim needs a post.
         # This table is what fills that gap, so a row citing only an account is a profile-level guess
         # wearing an observation's clothes. The one honest exception is a comparison ACROSS posts on
         # one account, which cannot cite a single URL and has to be graded as the anecdote it is.
-        grades = {"single-post-observation", "two-post-anecdote", "craft-heuristic"}
+        grades = {"single-post-observation", "two-post-anecdote", "craft-heuristic",
+                  "four-post-comparison-confounded"}
+        across_posts = {"two-post-anecdote", "four-post-comparison-confounded"}
         for row in self.rows("reference-observations.csv"):
             self.assertIn(row["evidence_grade"], grades,
                           f'{row["obs_id"]}: unknown evidence grade')
-            if row["evidence_grade"] == "two-post-anecdote":
+            if row["evidence_grade"] in across_posts:
                 self.assertIn("instagram.com/", row["post_url"])
             else:
                 self.assertIn("/p/", row["post_url"],
                               f'{row["obs_id"]} cites an account, not a post')
+            # A comparison grade that says "confounded" has to name the variable that was not held
+            # still. Otherwise the grade is a disclaimer, and a disclaimer with no named confound
+            # reads as caution while licensing the comparison anyway.
+            if row["evidence_grade"].endswith("-confounded"):
+                self.assertRegex(row["what_this_cannot_tell_you"],
+                                 r"(?i)(not constant|not held|confound)",
+                                 f'{row["obs_id"]}: graded confounded without naming the confound')
             # The blind spot is the column that keeps a rule from being applied where it does not
             # hold, so it cannot be a shrug. "Nothing" is not a limitation of a photograph.
             self.assertGreater(len(row["what_this_cannot_tell_you"]), 25,
