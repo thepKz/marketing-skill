@@ -88,6 +88,14 @@ Load only when relevant:
   usually cannot win them at any length. The script measures the draft and refuses to estimate
   volume, difficulty or position, because those are live facts and inventing them is fabrication.
 - Where a number came from and what it actually measures: `market-data-collection.md`.
+- Whether a number can be measured at all, and whether the thing measured is the thing promised:
+  `measurement-plan.md` plus `data/tracking-events.csv`, `data/attribution-windows.csv` and
+  `scripts/check_tracking_plan.py`. Load this before the first campaign ships, because a naming
+  convention fixed afterwards does not merge what was already collected, and before anybody adds
+  platform-reported conversions across platforms - that sum is a total of claims, not of conversions.
+  On cash on delivery, load it before quoting any efficiency figure at all: a `purchase` event is an
+  order request, and the gap to delivered orders is the largest correction most Vietnamese reports
+  are missing.
 - Which customer source can answer the question you actually have, how many people a theme needs before
   it is a theme, and whether a share may be spoken out loud: `customer-evidence.md` plus
   `data/evidence-sources.csv` and `scripts/check_evidence_saturation.py`. Load this before quoting any

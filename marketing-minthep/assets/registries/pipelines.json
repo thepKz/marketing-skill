@@ -2082,10 +2082,12 @@
         "learning-loop.md",
         "creative-evaluation.md",
         "production-pipeline.md",
-        "claims-proof-ledger.md"
+        "claims-proof-ledger.md",
+        "measurement-plan.md"
       ],
       "scripts": [
         "start_workbench.py",
+        "check_tracking_plan.py",
         "new_run.py",
         "analyze_performance.py",
         "score_creative.py",
@@ -2500,10 +2502,12 @@
       "references": [
         "kpi-scorecards.md",
         "claims-proof-ledger.md",
-        "anti-ai-quality.md"
+        "anti-ai-quality.md",
+        "measurement-plan.md"
       ],
       "scripts": [
         "score_kpi.py",
+        "check_tracking_plan.py",
         "find_recipe.py",
         "run_status.py"
       ],

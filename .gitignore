@@ -10,6 +10,13 @@ runs/
 # Scratch written by research subagents while verifying arithmetic. Not deliverables.
 .tmpcolor/
 
+# Reference material gathered while researching, never shipped. Two kinds have landed here and both
+# are somebody else's property: photographs whose own README reserves copyright to the original
+# owners, and vendor help-centre pages cached to verify a platform default. Reading them locally is
+# the point. Publishing them out of a repository that serves GitHub Pages is not, so the directory is
+# ignored by name rather than trusted to a careful commit.
+research_assets/
+
 # Scratch written by research subagents (fetched HTML, arithmetic checks). Not deliverables.
 .tmp*/
 .tmp_*

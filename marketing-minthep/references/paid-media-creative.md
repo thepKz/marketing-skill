@@ -51,6 +51,19 @@ Keep a variant parent and change one named variable. Do not call a winner from m
 
 ## Tracking gate
 
-Confirm event definition, destination, UTM/naming, pixel/tag status, deduplication, attribution limitations, and guardrails before claiming optimization. Connect each asset to `campaign_id`, `asset_id`, placement, concept, angle, hook, proof, offer, CTA, and variant parent.
+A creative test is only as trustworthy as the event it is scored on, so this gate is not a checklist
+here. It is `measurement-plan.md`, and the two things it blocks on are the two that invalidate a
+result rather than degrade it: the winning variant scored on an event that fires on a button click
+instead of a successful write, and two spellings of the campaign name splitting one test across two
+rows.
+
+```
+python scripts/check_tracking_plan.py --url "<one real tagged link from this campaign>"
+python scripts/check_tracking_plan.py --event <the event this test is scored on>
+```
+
+Run both before the first ad goes live. A naming convention fixed afterwards does not merge what was
+already collected. Then connect each asset to `campaign_id`, `asset_id`, placement, concept, angle,
+hook, proof, offer, CTA, and variant parent.
 
 Use `channel-spec-registry.md` and verify live placement specs before upload.

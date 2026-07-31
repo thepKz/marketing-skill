@@ -32,6 +32,7 @@ import check_address_register
 import check_evidence_saturation
 import check_prompt_grammar
 import check_test_readout
+import check_tracking_plan
 import price_offer
 import check_specificity
 import find_recipe
@@ -1451,7 +1452,7 @@ class DataTableTests(unittest.TestCase):
         "makeup-looks.csv": (47, 22),
         "makeup-diagnostics.csv": (15, 15),
         "mark-scale-ladder.csv": (7, 10),
-        "market-data-sources.csv": (37, 12),
+        "market-data-sources.csv": (38, 12),
         "marketing-benchmarks.csv": (35, 12),
         "reference-observations.csv": (10, 24),
         "person-parameters.csv": (35, 13),
@@ -1464,6 +1465,8 @@ class DataTableTests(unittest.TestCase):
         "reference-set-calibration.csv": (11, 10),
         "evidence-sources.csv": (20, 12),
         "seo-intents.csv": (10, 12),
+        "tracking-events.csv": (15, 12),
+        "attribution-windows.csv": (9, 12),
     }
 
     # Most of these tables are keyed by their first column. The weights table is keyed by two, and
@@ -5744,6 +5747,391 @@ class SeoWritingTests(unittest.TestCase):
         blocking = [row["gate"] for row in rows
                     if not row["pass"] and row["severity"] in ("critical", "high")]
         self.assertEqual(blocking, [], blocking)
+        self.assertEqual(rewrite_human.blocking_count(rows, tells), 0,
+                         [row["gate"] for row in rows if not row["pass"]] + [t["id"] for t in tells])
+
+
+class MeasurementTests(unittest.TestCase):
+    """The measurement unit, and the two things a test can protect here that review cannot.
+
+    The first is the gate list. Every gate name below is spelled out rather than read off the module,
+    because a test that derives its expectations from the code under test still passes after a gate has
+    been deleted, and the gates most likely to be deleted are the annoying ones - the two critical
+    ones about personal data, which fail on links that somebody is already sending.
+
+    The second is harder and matters more. This unit's whole promise is that a number in it can be
+    checked, and the failure mode is not a wrong gate but a confident sentence with nothing behind it.
+    So several tests below assert an absence: that no window row cites a domain that is not the
+    vendor's, that `verify-in-account` always arrives with the screen to read instead of it, that
+    `reconcile` never returns a point estimate, and that the worked arithmetic printed in the prose is
+    the arithmetic the functions actually produce. That last one caught nothing yet. It exists because
+    a worked example is the first thing to drift when a constant changes, and it drifts silently.
+    """
+
+    REFERENCE = "measurement-plan.md"
+    EVENTS = "tracking-events.csv"
+    WINDOWS = "attribution-windows.csv"
+    UNPUBLISHED = "verify-in-account"
+    NO_PATH = "path-unpublished"
+
+    # Spelled out, in the order the script emits them. The two critical personal-data gates are the
+    # point of the list.
+    URL_GATES = ["personal-data-in-url", "required-parameters", "medium-routes-to-a-channel",
+                 "lowercase-values", "no-whitespace", "no-double-encoding",
+                 "campaign-name-is-a-filter-key", "campaign-name-carries-a-period", "one-separator",
+                 "campaign-id-present"]
+    EVENT_GATES = ["event-name-charset", "event-name-length", "event-name-not-reserved",
+                   "event-name-prefix", "event-name-lowercase", "parameters-per-event",
+                   "parameter-name-length", "parameter-value-length",
+                   "parameter-name-not-reserved", "personal-data-in-parameters"]
+
+    # Each enforced constant paired with the words the reference has to use for it. A limit the prose
+    # does not state is a limit the reader meets for the first time as a failure.
+    IN_WORDS = {"EVENT_NAME_MAX": "forty", "CAMPAIGN_SEGMENTS_MIN": "three segments"}
+
+    # A link that should clear everything: three required tags, lowercase, three segments, a yyyymm
+    # period, one separator, a campaign id, no personal data, no fragment.
+    GOOD_URL = ("https://minthep.vn/ao-linen-nam?utm_source=facebook&utm_medium=cpc"
+                "&utm_campaign=202608_linen_hcm&utm_id=c-8842")
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.events = {row["id"]: row for row in DataTableTests.rows(cls.EVENTS)}
+        cls.windows = {row["id"]: row for row in DataTableTests.rows(cls.WINDOWS)}
+        cls.prose = (SKILL_ROOT / "references" / cls.REFERENCE).read_text(encoding="utf-8")
+        cls.flat = " ".join(cls.prose.split())
+
+    def gates(self, url: str) -> dict[str, dict]:
+        return {row["gate"]: row for row in check_tracking_plan.url_gates(
+            check_tracking_plan.read_url(url))}
+
+    def event_gates(self, name: str, params: str = "", key_event: bool = False) -> dict[str, dict]:
+        stats = check_tracking_plan.read_event(
+            name, check_tracking_plan.parse_pairs(params), key_event)
+        return {row["gate"]: row for row in check_tracking_plan.event_gates(stats)}
+
+    def test_the_self_check_passes(self) -> None:
+        self.assertEqual(check_tracking_plan.self_check(), "self-check passed")
+
+    def test_a_correctly_tagged_link_clears_every_gate(self) -> None:
+        rows = self.gates(self.GOOD_URL)
+        self.assertEqual(sorted(rows), sorted(self.URL_GATES))
+        failed = [gate for gate, row in rows.items() if not row["pass"]]
+        self.assertEqual(failed, [], failed)
+
+    def test_every_named_url_gate_still_exists(self) -> None:
+        """The list is hardcoded so that deleting a gate breaks a test instead of quietly passing."""
+        rows = self.gates("https://minthep.vn/x?utm_source=Facebook%2520Ads&utm_medium=paid social"
+                          "&utm_campaign=sale-linen_2026")
+        for gate in self.URL_GATES:
+            self.assertIn(gate, rows, gate)
+
+    def test_a_leaky_link_fails_the_critical_gate_and_blocks(self) -> None:
+        """A phone number in a query string, which is the gate most often failed on purpose."""
+        rows = self.gates("https://minthep.vn/dat-hang?utm_source=zalo&utm_medium=social"
+                          "&utm_campaign=202608_linen_hcm&sdt=0912345678")
+        self.assertFalse(rows["personal-data-in-url"]["pass"])
+        self.assertEqual(rows["personal-data-in-url"]["severity"], "critical")
+        self.assertTrue(check_tracking_plan.blocking_count(list(rows.values())))
+
+    def test_personal_data_is_caught_by_name_and_by_shape(self) -> None:
+        """Two detectors, because the accidental paste and the design decision look different."""
+        by_shape = check_tracking_plan.personal_data([("ref", "khach@gmail.com")])
+        by_name = check_tracking_plan.personal_data([("ho_ten", "Nguyen Van A")])
+        self.assertTrue(by_shape)
+        self.assertTrue(by_name)
+        # A campaign name and an order id must not trip either detector, or the gate gets switched off.
+        self.assertEqual(check_tracking_plan.personal_data(
+            [("utm_campaign", "202608_linen_hcm"), ("order", "SO-2026-08-0117")]), [])
+
+    def test_a_vietnamese_mobile_number_is_recognised_and_a_long_id_is_not(self) -> None:
+        self.assertTrue(check_tracking_plan.personal_data([("x", "0912345678")]))
+        self.assertTrue(check_tracking_plan.personal_data([("x", "+84912345678")]))
+        # Eleven digits is not a Vietnamese mobile, and a transaction id must survive.
+        self.assertEqual(check_tracking_plan.personal_data([("x", "20260801123456")]), [])
+
+    def test_the_medium_routing_conflict_stays_fixed(self) -> None:
+        """`cpm` is on the Display list and also matches the paid pattern. A first-match loop with the
+        paid rule on top labelled it Paid Other, confidently and wrongly."""
+        self.assertEqual(check_tracking_plan.channel_for("cpm"), "Display")
+        self.assertEqual(check_tracking_plan.channel_for("cpc"), "Paid Search or Paid Other")
+        self.assertEqual(check_tracking_plan.channel_for("cpv"), "Paid Search or Paid Other")
+
+    def test_the_push_rule_is_not_an_exact_match(self) -> None:
+        """Merging it with the audio and sms rules would have rejected both of these."""
+        self.assertEqual(check_tracking_plan.channel_for("mobile_push"),
+                         "Mobile Push Notifications")
+        self.assertEqual(check_tracking_plan.channel_for("web_notification"),
+                         "Mobile Push Notifications")
+
+    def test_the_underscored_medium_is_the_near_miss(self) -> None:
+        """`social media` routes and `social_media` does not, and nothing else about it looks wrong."""
+        self.assertEqual(check_tracking_plan.channel_for("social media"), "Organic Social")
+        self.assertIsNone(check_tracking_plan.channel_for("social_media"))
+        rows = self.gates("https://minthep.vn/x?utm_source=facebook&utm_medium=social_media"
+                          "&utm_campaign=202608_linen_hcm&utm_id=c-1")
+        self.assertFalse(rows["medium-routes-to-a-channel"]["pass"])
+        others = [gate for gate, row in rows.items()
+                  if gate != "medium-routes-to-a-channel" and not row["pass"]]
+        self.assertEqual(others, [], others)
+
+    def test_the_paid_label_refuses_to_pick_between_two_channels(self) -> None:
+        """The source half of the Paid Search rule needs a site list published as a spreadsheet, so
+        the medium alone cannot tell them apart and the label says so instead of guessing."""
+        self.assertIn(" or ", check_tracking_plan.channel_for("ppc"))
+
+    def test_tags_after_the_fragment_are_absent_rather_than_present(self) -> None:
+        rows = self.gates("https://minthep.vn/x#utm_source=facebook&utm_medium=cpc")
+        self.assertIn("tags-after-the-fragment", rows)
+        self.assertFalse(rows["tags-after-the-fragment"]["pass"])
+        self.assertNotIn("tags-after-the-fragment", self.gates(self.GOOD_URL))
+
+    def test_a_reserved_or_malformed_event_name_blocks(self) -> None:
+        for name, gate in [("session_start", "event-name-not-reserved"),
+                           ("firebase_thing", "event-name-prefix"),
+                           ("add to cart", "event-name-charset"),
+                           ("a" * 41, "event-name-length")]:
+            rows = self.event_gates(name)
+            self.assertFalse(rows[gate]["pass"], name)
+
+    def test_a_registry_event_missing_a_required_parameter_blocks(self) -> None:
+        rows = self.event_gates("purchase", "currency=VND")
+        self.assertIn("required-parameters-for-this-event", rows)
+        self.assertFalse(rows["required-parameters-for-this-event"]["pass"])
+
+    def test_the_ecommerce_parameters_are_not_treated_as_reserved(self) -> None:
+        """`currency` and `value` are reserved to *register* and correct to *send*. Blocking them
+        would have made the gate wrong on every purchase event in the registry."""
+        rows = self.event_gates(
+            "purchase", "currency=VND,value=450000,transaction_id=SO-1,items=1")
+        self.assertTrue(rows["parameter-name-not-reserved"]["pass"])
+        self.assertTrue(rows["required-parameters-for-this-event"]["pass"])
+
+    def test_a_long_page_path_is_exempt_and_a_long_ordinary_value_is_not(self) -> None:
+        long_url = "https://minthep.vn/" + "a" * 200
+        self.assertTrue(self.event_gates("page_view", f"page_location={long_url}")
+                        ["parameter-value-length"]["pass"])
+        self.assertFalse(self.event_gates("page_view", f"item_name={'a' * 200}")
+                         ["parameter-value-length"]["pass"])
+
+    def test_the_key_event_margin_is_a_note_and_never_blocks(self) -> None:
+        name = "a" * 39
+        rows = self.event_gates(name, key_event=True)
+        self.assertFalse(rows["key-event-name-margin"]["pass"])
+        self.assertEqual(rows["key-event-name-margin"]["severity"], "low")
+        self.assertEqual(check_tracking_plan.blocking_count([rows["key-event-name-margin"]]), 0)
+        # Absent when the flag is not passed, because an inference should not appear as a finding.
+        self.assertNotIn("key-event-name-margin", self.event_gates(name))
+
+    def test_the_overlap_floor_is_a_floor_and_never_negative(self) -> None:
+        result = check_tracking_plan.reconcile({"meta": 120, "google": 80, "tiktok": 40}, 190)
+        self.assertEqual(result["minimum_double_counted"], 50)
+        self.assertEqual(result["minimum_share"], round(50 / 240, 4))
+        # A sum below the analytics total says nothing, and must not report a negative overlap.
+        self.assertEqual(check_tracking_plan.reconcile({"meta": 10}, 90)["minimum_double_counted"], 0)
+
+    def test_the_floor_is_absent_rather_than_guessed_without_an_analytics_total(self) -> None:
+        result = check_tracking_plan.reconcile({"meta": 120, "google": 80}, None)
+        self.assertIsNone(result["minimum_double_counted"])
+
+    def test_no_gate_or_result_claims_to_know_which_platform_is_right(self) -> None:
+        """The unit computes one number on the gap and refuses the interesting question, which is the
+        only defensible position without both accounts open."""
+        rows = (check_tracking_plan.url_gates(check_tracking_plan.read_url(self.GOOD_URL))
+                + check_tracking_plan.event_gates(check_tracking_plan.read_event("purchase", [], False)))
+        for row in rows:
+            self.assertNotIn("which platform", row["why"].lower(), row["gate"])
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            check_tracking_plan.main(["--url", self.GOOD_URL])
+        self.assertIn("Which platform is right when two disagree", buffer.getvalue())
+
+    def test_every_run_prints_what_it_did_not_establish(self) -> None:
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            check_tracking_plan.main(["--event", "purchase"])
+        text = buffer.getvalue()
+        self.assertIn("Not established by this run", text)
+        self.assertIn("reads strings, not a browser", text)
+
+    def test_an_unknown_event_routes_to_the_table_instead_of_being_accepted(self) -> None:
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            check_tracking_plan.main(["--event", "mua_hang"])
+        self.assertIn("not in the registry", buffer.getvalue().lower())
+        self.assertIn(self.EVENTS, buffer.getvalue())
+
+    def test_every_event_row_names_the_moment_it_fires_and_what_it_does_not_prove(self) -> None:
+        for name, row in self.events.items():
+            self.assertGreater(len(row["fires_exactly_when"].split()), 4, name)
+            self.assertGreater(len(row["what_it_does_not_prove"].split()), 2, name)
+            self.assertGreater(len(row["common_error"].split()), 4, name)
+            self.assertIn(row["counted_as_conversion"], ("yes", "no", "sometimes"), name)
+
+    def test_the_cash_on_delivery_stages_are_first_class_events(self) -> None:
+        """The four stages the platforms do not offer. Without them a purchase event is reported as
+        revenue, which on cash on delivery it is not."""
+        for name in ("order-confirmed", "order-delivered", "order-returned"):
+            self.assertIn(name, self.events, name)
+        self.assertIn("revenue", self.events["purchase"]["what_it_does_not_prove"].lower())
+
+    def test_the_outbound_click_is_marked_as_not_a_conversion(self) -> None:
+        """A click to Shopee is the last thing this business can see, and calling it a conversion is
+        how a marketplace-heavy report reads as though it converted."""
+        self.assertEqual(self.events["marketplace-outbound"]["counted_as_conversion"], "no")
+        # `contact-click-phone` is deliberately `sometimes`. A lead business may count a tap;
+        # what it may not do is call it a call, so the honesty lives in the other column.
+        self.assertEqual(self.events["contact-click-phone"]["counted_as_conversion"],
+                         "sometimes")
+        self.assertIn("call", self.events["contact-click-phone"]["what_it_does_not_prove"]
+                      .lower())
+
+    def test_every_window_row_cites_the_vendor_and_only_the_vendor(self) -> None:
+        for name, row in self.windows.items():
+            pages = row["vendor_page"].split()
+            self.assertTrue(pages, name)
+            for page in pages:
+                self.assertTrue(page.startswith("https://"), (name, page))
+                self.assertTrue(any(host in page for host in check_tracking_plan.VENDOR_HOSTS),
+                                (name, page))
+
+    def test_an_unpublished_default_names_the_screen_to_read_instead(self) -> None:
+        """`verify-in-account` is not a research gap. It is a record that the vendor publishes no
+        default, and it is only honest if it arrives with the place to find the real one.
+
+        Lazada is the case that forced the second branch. Every other row can name a menu path,
+        because every other vendor documents its own interface. Lazada documents neither the window
+        nor the screen, so demanding a `>` here would have made the row invent a navigation path,
+        which is a worse defect than admitting there is none. `path-unpublished` is the admission,
+        and it costs more than the `>` it replaces: the row has to name a human with an account and
+        say what to bring back."""
+        unpublished = [row for row in self.windows.values()
+                       if self.UNPUBLISHED in row["default_click_window"]]
+        self.assertTrue(unpublished, "the token should still be in use")
+        for row in unpublished:
+            where = row["where_to_read_it"]
+            self.assertGreater(len(where.split()), 8, row["id"])
+            if self.NO_PATH in where:
+                self.assertIn("screenshot", where.lower(), row["id"])
+            else:
+                self.assertIn(">", where, row["id"])
+
+    def test_the_no_path_token_is_not_a_way_out_of_naming_a_screen(self) -> None:
+        """One row may use it. Two would mean the token had become the easy answer, which is how
+        `verify-in-account` would have decayed too if nothing counted it."""
+        excused = [row for row in self.windows.values() if self.NO_PATH in row["where_to_read_it"]]
+        self.assertEqual([row["id"] for row in excused], ["lazada-seller"])
+
+    def test_every_window_row_explains_the_disagreement_in_its_own_terms(self) -> None:
+        seen = set()
+        for name, row in self.windows.items():
+            why = row["why_it_disagrees_with_analytics"]
+            self.assertGreater(len(why.split()), 20, name)
+            self.assertNotIn(why, seen, f"{name} repeats another row's explanation")
+            seen.add(why)
+
+    def test_the_tiktok_contradiction_is_recorded_rather_than_resolved(self) -> None:
+        """Three live vendor pages give two different sets of selectable windows. Picking one and
+        printing it as the answer is exactly the failure this table exists to prevent."""
+        row = self.windows["tiktok-ads-manager"]
+        self.assertEqual(len(row["vendor_page"].split()), 3)
+        self.assertIn("contradicts itself", row["configurable_click"])
+        # The operational fact that outranks the numbers: it is frozen at publish.
+        self.assertIn("cannot be changed", row["where_to_read_it"])
+
+    def test_the_view_through_asymmetry_is_recorded_on_both_sides(self) -> None:
+        """The single largest source of a gap that looks like fraud. Meta puts view-through inside the
+        headline number and Google Ads puts it outside, so the same word means two things."""
+        self.assertTrue(self.windows["meta-ads"]["view_through_in_default_number"].startswith("yes"))
+        self.assertTrue(self.windows["google-ads"]["view_through_in_default_number"]
+                        .startswith("no"))
+        self.assertIn("Results column", self.flat)
+
+    def test_the_reference_states_every_number_the_script_enforces(self) -> None:
+        for constant, words in self.IN_WORDS.items():
+            self.assertTrue(hasattr(check_tracking_plan, constant), constant)
+            self.assertIn(words, self.flat.lower(), constant)
+
+    def test_the_worked_arithmetic_in_the_prose_is_what_the_functions_produce(self) -> None:
+        """A worked example is the first thing to drift when a constant changes, and it drifts
+        silently, so the prose's numbers are recomputed here rather than trusted."""
+        gap = check_tracking_plan.delivery_gap(1000, 640)
+        self.assertIn(f"{gap['overstatement'] * 100:.0f} percent", self.flat)
+        floor = check_tracking_plan.reconcile({"meta": 120, "google": 80, "tiktok": 40}, 190)
+        self.assertIn(f"{floor['minimum_double_counted']:g}", self.flat)
+        self.assertIn(f"{floor['minimum_share'] * 100:.1f} percent", self.flat)
+
+    def test_the_delivery_rate_is_presented_as_the_reader_own_number(self) -> None:
+        """Nobody publishes a Vietnamese cancellation rate - not the white book, which has no such
+        figure, and not VECOM. The share of orders paid in cash is published, and the two get quoted
+        as though they were one thing."""
+        self.assertIn("worked example and not a benchmark", self.flat)
+        self.assertIn("76 percent", self.flat)
+        self.assertIn("page 47", self.flat)
+
+    def test_the_superseded_decree_is_not_cited_as_current_law(self) -> None:
+        """Decree 13/2023/ND-CP stopped being the instrument on 1 January 2026. Naming it as current
+        is the same class of error as quoting an attribution default from memory."""
+        for path in [SKILL_ROOT / "references" / self.REFERENCE,
+                     SKILL_ROOT / "references" / "how-companies-market.md",
+                     SKILL_ROOT / "scripts" / "check_tracking_plan.py"]:
+            text = path.read_text(encoding="utf-8")
+            if "13/2023" in text or "Decree 13" in text:
+                self.assertIn("91/2025", text, path.name)
+        self.assertIn("replaced Decree 13/2023/ND-CP", self.flat)
+
+    def test_the_url_gate_makes_no_claim_about_an_article_number(self) -> None:
+        """The full text of the superseded decree says nothing about query strings, referrers or logs.
+        The argument stands without a statute; inventing an article to strengthen it would not."""
+        why = self.gates(self.GOOD_URL)["personal-data-in-url"]["why"]
+        self.assertNotIn("Article", why)
+        self.assertIn("needs no statute", why)
+
+    def test_the_exit_code_blocks_a_leaky_link_and_passes_a_clean_one(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "report.md"
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(check_tracking_plan.main(
+                    ["--url", self.GOOD_URL, "--output", str(out)]), 0)
+            self.assertIn("Blocking failures: 0", out.read_text(encoding="utf-8"))
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(check_tracking_plan.main(
+                    ["--url", "https://minthep.vn/x?email=a@b.vn"]), 2)
+
+    def test_the_json_report_carries_the_gates_and_the_blocking_count(self) -> None:
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            check_tracking_plan.main(["--url", self.GOOD_URL, "--json"])
+        payload = json.loads(buffer.getvalue())
+        self.assertEqual(sorted(payload), ["blocking", "sections"])
+        self.assertEqual(payload["blocking"], 0)
+        self.assertEqual(sorted(row["gate"] for row in payload["sections"][0]["gates"]),
+                         sorted(self.URL_GATES))
+
+    def test_purchases_and_delivered_are_only_meaningful_together(self) -> None:
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                check_tracking_plan.main(["--purchases", "1000"])
+
+    def test_the_tracking_gate_in_paid_media_routes_out_instead_of_listing(self) -> None:
+        """It was one checklist bullet ending in "and guardrails before claiming optimization", which
+        is the shape of a rule nobody can fail."""
+        paid = (SKILL_ROOT / "references" / "paid-media-creative.md").read_text(encoding="utf-8")
+        self.assertIn(self.REFERENCE, paid)
+        self.assertIn("check_tracking_plan.py", paid)
+        self.assertNotIn("attribution limitations, and guardrails", paid)
+
+    def test_the_unit_is_reachable_from_the_router_and_the_skill(self) -> None:
+        router = (SKILL_ROOT / "references" / "marketing-system-router.md").read_text(encoding="utf-8")
+        skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        for name in (self.REFERENCE, self.EVENTS, self.WINDOWS, "check_tracking_plan.py"):
+            self.assertIn(name, router, name)
+            self.assertIn(name, skill, name)
+
+    def test_the_reference_clears_the_skill_own_prose_gates(self) -> None:
+        stats = rewrite_human.measure(self.prose, "en")
+        rows = rewrite_human.gates(stats, "deliverable")
+        tells = rewrite_human.find_tells(self.prose, "en")
         self.assertEqual(rewrite_human.blocking_count(rows, tells), 0,
                          [row["gate"] for row in rows if not row["pass"]] + [t["id"] for t in tells])
 

@@ -196,8 +196,9 @@ Three more Viet Nam facts that change what a plan may claim:
 - **Provinces went from 63 to 34** in the 2025 administrative merger. Any province-level benchmark,
   territory plan or regional split built before 2026 is structurally stale.
 - **The legal layer moved up a level.** Ecommerce is now governed by Law 122/2025/QH15 with Decree
-  248/2026/ND-CP, not the earlier decree alone; Decree 13/2023/ND-CP on personal data protection is in
-  force from 1 July 2023 and applies extraterritorially. The live compliance pressure on Vietnamese
+  248/2026/ND-CP, not the earlier decree alone; personal data is governed by Law 91/2025/QH15, in force
+  since 1 January 2026, which replaced the Decree 13/2023/ND-CP that almost every compliance summary
+  still on the internet names as current. The live compliance pressure on Vietnamese
   household businesses in 2026 is the tax and e-invoicing wave, not advertising law. Read the instrument
   on `congbao.chinhphu.vn`, and navigate by document id — its search box is client-side and returns the
   newest-documents list whatever you type.
