@@ -1,6 +1,9 @@
 # Marketing-Minthep
 
-[🇬🇧 English](README.md) · **🇻🇳 Tiếng Việt**
+<p align="right">
+  <a href="README.md"><kbd> &nbsp; English &nbsp; </kbd></a>
+  <a href="README.vi.md"><kbd> &nbsp; <b>Tiếng Việt</b> &nbsp; </kbd></a>
+</p>
 
 Một skill marketing all-in-one cho Claude Code và GPT/Codex. Nó biến một brief chưa hoàn chỉnh — kể cả câu *"tôi không biết gì về marketing"* — thành một hệ thống có thể sản xuất và đo lường được: định vị, offer, content, campaign, ảnh sản phẩm, thiết kế menu và bố cục, chuỗi shot video, và một hợp đồng đo lường.
 
@@ -12,14 +15,15 @@ $marketing-minthep
 
 ## Mục lục
 
-- [Skill tạo ra gì](#skill-tạo-ra-gì) · [Cách nó quyết định](#cách-nó-quyết-định) · [Bắt đầu nhanh](#bắt-đầu-nhanh)
+- [Skill tạo ra gì](#skill-tạo-ra-gì) · [Gọi skill lên thì nó làm gì](#gọi-skill-lên-thì-nó-làm-gì) · [Cách nó quyết định](#cách-nó-quyết-định) · [Bắt đầu nhanh](#bắt-đầu-nhanh)
 - [Năm phần thường gây khó hiểu](#năm-phần-thường-gây-khó-hiểu) — copywriting, edit ảnh, xây campaign, màu sắc, bố cục
+- [Những câu hỏi phía sau các tool còn lại](#những-câu-hỏi-phía-sau-các-tool-còn-lại) — giá và offer, prompt, KPI, người ảo, test, khối lượng việc
 - [Output mẫu](#output-mẫu) · [Thư viện reference](#thư-viện-reference) · [Cổng chống AI-slop](#cổng-chống-ai-slop)
 - [Cấu trúc repo](#cấu-trúc-repo) · [Kiểm tra](#kiểm-tra) · [Những gì skill không làm](#những-gì-skill-không-làm)
 
 ## Skill tạo ra gì
 
-Sáu pipeline, mỗi pipeline có hợp đồng deliverable cố định:
+Chín pipeline, mỗi pipeline có hợp đồng deliverable cố định:
 
 | Pipeline | Deliverable | Output tiêu biểu |
 |---|---|---|
@@ -29,10 +33,44 @@ Sáu pipeline, mỗi pipeline có hợp đồng deliverable cố định:
 | `design-render` | 9 | Các hướng thiết kế, hệ đã chọn, menu/wireframe/key visual render thật, handoff in ấn và export |
 | `video-campaign` | 9 | Shot list mang continuity, prompt từng shot, âm thanh, edit plan, cutdown theo nền tảng |
 | `optimize-iterate` | 7 | Lineage của asset, log thử nghiệm, read-out, đề xuất test kế tiếp |
+| `rewrite-human` | 4 | Chẩn đoán một bản nháp bằng số đo, bản viết lại, và đã sửa gì vì sao |
+| `score-kpi` | 4 | Định nghĩa chỉ số, trọng số, tỉ lệ hoàn thành, và tỉ lệ đó được tính theo nhánh nào |
+| `virtual-model` | 6 | Một người mô tả bằng số, một seed dựng lại đúng người đó, các look trang phục, prompt đã biên dịch |
+
+Ba pipeline cuối ngắn là có chủ đích. Viết lại một đoạn không phải là làm campaign, và bắt người ta mở một kế hoạch mười sáu deliverable để sửa một đoạn văn là cách nhanh nhất để không ai dùng tool nữa.
 
 Mười business job được route bên trong các pipeline đó, định nghĩa ở [`references/marketing-system-router.md`](marketing-minthep/references/marketing-system-router.md): `strategy-offer`, `campaign-launch`, `content-distribution`, `commerce-merchandising`, `pr-communications`, `sales-enablement`, `creator-ugc`, `lifecycle-retention`, `creative-production`, `measurement-optimization`.
 
 Các nhóm sản phẩm đã có playbook riêng và yêu cầu proof riêng: beauty, fashion, food & beverage, điện tử, đồ gia dụng, trang sức/luxury, SaaS, dịch vụ địa phương, giáo dục, hospitality.
+
+## Gọi skill lên thì nó làm gì
+
+Không phải một đoạn chat. Một thư mục. Đây là một lần chạy thật, từ đúng câu mà một chủ shop sẽ gõ ra:
+
+```powershell
+python marketing-minthep/scripts/start_workbench.py --request "Tôi mở shop mỹ phẩm nhỏ ở Gò Vấp, không biết gì về marketing, muốn có kế hoạch và ảnh sản phẩm đẹp, ngân sách nhỏ" --root .
+```
+
+Nó chấm điểm cả chín pipeline theo câu chữ và cho xem điểm — `plan-from-zero` 3 điểm, sát nhất là `deep-research` 1 điểm — rồi ghi ra 34 file. Mười ba deliverable song ngữ Việt và Anh đặt cạnh nhau, một file intake trích nguyên văn câu bạn viết, `claims.csv` và `sources.md` cho những chỗ sau này phải dẫn nguồn, một log quyết định, và một `README.md` mục lục mà đoạn thứ hai của nó là phần đáng đọc nhất:
+
+> Read from the request: horizon **13 weeks** (assumed, not stated); budget **small** (from "ngân sách nhỏ"); product family **beauty** (from "mỹ phẩm"). Correct any of these in `01-intake` first — everything downstream is built on them.
+
+Ba suy luận, mỗi cái ghi kèm cụm từ đã đọc được, và cái không có gì đứng sau thì ghi rõ là do skill tự mặc định. File lịch đã được đặt tên `10-calendar-13w` ngay từ đầu, vì horizon nó nhận là một con số thật chứ không phải chỗ trống.
+
+Bên trong một deliverable, mỗi phần hoặc là hỏi bạn thứ chỉ bạn biết, hoặc là gọi tên đúng câu lệnh giải quyết nó:
+
+```markdown
+## CAC ceiling
+
+> WRITE: Derive from contribution margin, repeat rate, and acceptable payback period. Show the calculation.
+
+> RUN: python scripts/price_offer.py --price PRICE --variable-cost COST --repeat-purchases N
+> --acquisition-cost CAC — two ceilings, and the report names which one binds. Do not hand-calculate this.
+```
+
+Cái marker thứ hai có mặt chính vì lần chạy thử này. Bản đầu tiên bắt chủ shop tự tính trần CAC bằng tay, trong khi script tính đúng chuyện đó nằm không ai dùng ngay trong repo. Giờ có 24 phần mang theo câu lệnh trả lời cho chúng, và dòng đó nằm lại trong file đã hoàn thiện như phần dẫn nguồn cho con số phía trên nó.
+
+Không có file nào tự nhận là đã xong. Mọi file mở ra ở `status=empty`, mọi phần chưa viết là một marker `> WRITE:`, và `run_status.py --strict` đếm cả những phần đó lẫn những phần đã viết đầy mà không bảo vệ được.
 
 ## Cách nó quyết định
 
@@ -156,6 +194,74 @@ Phép đo dừng ở chỗ đo. Nó báo khoảng lệch và không bao giờ n�
 
 Bộ render đo chữ rồi dòng chữ chảy theo phép đo đó. Không có gì được đặt theo một phân số của chiều cao canvas — cách cũ đó đã tạo ra dấu tiếng Việt cắt xuyên dòng kicker và một tiêu đề bị vẽ chồng dưới ảnh hero. Copy không vừa chỗ sẽ báo lỗi thay vì bị cắt âm thầm, vì một mockup lặng lẽ xóa hai phần ba câu vẫn trông như đã hoàn thiện, và đó chính là chỗ nguy hiểm. Bộ render post thêm một ràng buộc mà menu không có: nền tảng tự vẽ nút của nó lên trên canvas, nên mỗi placement khai báo sẵn những dải nó không được dùng, và một khối chữ chạm vào CTA sẽ báo lỗi kèm số pixel bị lấn. Dossier: [`layout-wireframe-typography.md`](marketing-minthep/references/dossiers/layout-wireframe-typography.md), [`composition-and-layout-vision.md`](marketing-minthep/references/dossiers/composition-and-layout-vision.md), [`menu-design-and-engineering.md`](marketing-minthep/references/dossiers/menu-design-and-engineering.md).
 
+## Những câu hỏi phía sau các tool còn lại
+
+Năm phần ở trên là những gì người ta hỏi thành tiếng. Mấy phần dưới đây là những gì quyết định một kế hoạch có sống sót khi gặp phép tính hay không. Mỗi phần là một câu lệnh, và mỗi câu lệnh trả về một phán quyết — `passed`, `failed`, `skipped` hoặc `review` — chứ không phải một nhận xét.
+
+### "Giảm giá mức này tôi có gánh được không?"
+
+```powershell
+python marketing-minthep/scripts/price_offer.py --price 280000 --variable-cost 112000 --discount 0.20
+```
+
+> Giảm 20% giá bán làm mất 33% phần đóng góp, không phải 20%. Muốn giữ nguyên lãi gộp thì phải bán 1.50 lần số lượng.
+
+Đó là toàn bộ lý do đơn vị này tồn tại. Giảm 20% không tốn 20%; nó tốn một phần của contribution, và phần đó phụ thuộc vào biên của bạn. Cùng câu lệnh này suy ra ROAS hoà vốn bằng nghịch đảo của tỉ lệ contribution — ở đây là 1.67 — nên một chỉ tiêu ROAS ai đó giao xuống có thể kiểm trước khi nhận, và ra hai trần CAC khi có số lần mua lại, kèm câu trả lời trần nào đang chặn. Chính sách bảo hành đổi trả cũng là một khoản chi phí: đưa tỉ lệ trả hàng dự kiến vào rồi đọc lại contribution. [`references/pricing-and-offers.md`](marketing-minthep/references/pricing-and-offers.md).
+
+### "Provider này có làm đúng thứ prompt tôi viết không?"
+
+```powershell
+python marketing-minthep/scripts/check_prompt_grammar.py --prompt-file prompt.txt --provider flux
+```
+
+`data/prompt-grammar.csv` có 69 dòng trên tám trục — cửa sổ encoder, negative prompt, chữ trong ảnh, seed, giữ nhân vật nhất quán, quyền sở hữu, quyền hình ảnh — mỗi dòng kèm đúng URL của nhà cung cấp và một cột ghi rõ dòng đó *không* chứng minh được điều gì. Năm trong chín họ mô hình không hề công bố trường negative prompt, nghĩa là gửi cho họ một câu loại trừ chính là đưa thứ cần loại trừ vào trong prompt. Checker tìm ra đúng lỗi đó trong compiler của repo này ngay lần chạy đầu: một brief yêu cầu *không có da nhựa* đang gửi chữ *da nhựa* sang FLUX. Hai loại giới hạn độ dài được giữ riêng có chủ đích, vì cửa sổ encoder âm thầm cắt mất phần đuôi còn giới hạn ký tự của API thì từ chối thẳng request. Mười một câu hỏi không nhà cung cấp nào trả lời được ghi lại thành khoảng trống chứ không điền cho đủ, và [`references/prompt-grammar.md`](marketing-minthep/references/prompt-grammar.md) liệt kê chín điều mà cả cái thể loại "tips viết prompt" trên mạng đang nói sai, trong đó có ba tham số không còn tồn tại ở phiên bản mà người ta vẫn dẫn.
+
+### "Nên báo cáo con số nào, và có thật là đã đạt chưa?"
+
+```powershell
+python marketing-minthep/scripts/find_recipe.py --table kpi --query "retention"
+python marketing-minthep/scripts/score_kpi.py --input scorecard.json
+```
+
+27 chỉ số đo được trong `data/kpi-metrics.csv`, mỗi chỉ số kèm chiều nào là tốt, nó là chỉ số dẫn hay chỉ số trễ, và cách cụ thể mà nó bị lách — vì chỉ số nào cũng có cách đạt được mà thứ bên dưới không hề tốt lên, và nói thẳng cách đó ra là khác biệt giữa một scorecard và một cái chỉ tiêu. Tỉ lệ hoàn thành có bốn nhánh, tuỳ vào cao hơn có tốt hơn không, số 0 có phải là sàn không, và có được vượt chỉ tiêu không; chọn sai nhánh thì con số đổi mà độ hợp lý của nó không đổi. [`references/kpi-scorecards.md`](marketing-minthep/references/kpi-scorecards.md).
+
+### "Test này đủ lớn để nói lên điều gì chưa?"
+
+```powershell
+python marketing-minthep/scripts/check_test_readout.py --plan --baseline 0.03 --mde 0.20
+```
+
+> Muốn nhìn thấy mức tăng tương đối 20% trên nền 3.00% thì cần 13911 mỗi nhánh, tổng 27822.
+
+Biết được điều này lúc test còn rẻ thì tốt hơn là biết sau hai tuần đổ traffic. `--claim` đi chiều ngược lại, kiểm một bên thắng đã tuyên bố dựa trên khoảng tin cậy thay vì con số điểm: tăng 58% mà p = 0.29 thì không phải là kết quả, và bản đọc nói thẳng chuyện đó trong phán quyết chứ không nhét xuống chú thích.
+
+### "Ảnh sau có còn là đúng người đó không?"
+
+```powershell
+python marketing-minthep/scripts/plan_virtual_person.py
+```
+
+Tính từ không dựng lại được một khuôn mặt. `data/person-parameters.csv` mô tả một người ảo trên 35 trục đo được, mười chín trục khoá lại làm danh tính, băm thành một seed ổn định để cùng một người render ra hai lần — và bản chạy nói rõ rằng chỉ đúng một nhà cung cấp công bố mức trần giữ nhân vật nhất quán, và mức đó là bốn nhân vật. Đơn vị pose là cùng một nguyên tắc áp cho cơ thể: một dáng được dẫn theo các trục có tên, chứ không tả là *thanh thoát*. Đây là một người được dựng ra, không bao giờ là người thật; skill sẽ không dựng chân dung giống ai từ ảnh mặt của người đó, và [`references/virtual-person-system.md`](marketing-minthep/references/virtual-person-system.md) ghi lại lý do như một lý do, không phải như một điều luật.
+
+### "Bản này đọc có ra giọng người không?"
+
+```powershell
+python marketing-minthep/scripts/check_specificity.py --check draft.md
+python marketing-minthep/scripts/rewrite_human.py --check draft.md --channel web
+python marketing-minthep/scripts/check_address_register.py --check draft.md
+```
+
+Đúng thứ tự đó, và thứ tự chính là điểm chính. Sửa nhịp câu sẽ xoá mất chi tiết cụ thể, nên phải đếm số dữ kiện kiểm được trước: dưới ba dữ kiện thì bản nháp đang có vấn đề về nội dung, và từ đó mọi lần sửa nhịp chỉ làm nó đọc mượt hơn trong lúc vẫn không nói gì cả. Câu lệnh thứ ba chỉ dành cho tiếng Việt và giải quyết một chuyện mà style guide tiếng Anh không với tới — bài đang ở ngôi nào, và có giữ nguyên ngôi đó không, vì một trang mở đầu bằng *bạn* rồi kết bằng *quý khách* là đã đổi luôn cái nhìn về người mình đang nói với.
+
+### "Rồi thứ Hai ai làm hết mấy việc này?"
+
+```powershell
+python marketing-minthep/scripts/plan_operating_load.py
+python marketing-minthep/scripts/plan_composition_set.py --photos 3
+```
+
+Mười ba vai, chia ra cái nào chạy một lần và cái nào chạy mỗi tuần, quy ra giờ. Một kế hoạch kênh mà không ai có thời gian chạy thì chỉ là danh sách ước, và đây là file nói ra chuyện đó bằng một con số. Câu lệnh thứ hai trả lời đúng câu đó cho phần hình ảnh: với những tấm ảnh đã có sẵn, bao nhiêu khung mà kế hoạch này giả định là cắt được ra từ đó, và bao nhiêu khung phải chụp thêm.
+
 ## Output mẫu
 
 Ba hướng menu cho cùng một quán bún bò, do `render_mockup.py` render từ spec trong `assets/examples/bun-bo/` — không API, không công cụ thiết kế:
@@ -217,13 +323,18 @@ Kiểm tra bậc hai bắt cửa thoát: sau khi từ chối cái nhìn hiển n
 
 ```
 marketing-minthep/
-  SKILL.md                  điểm vào, dưới 150 dòng
-  references/               45 file chủ đề, mỗi file dưới 150 dòng
-    dossiers/               14 dossier craft chuyên sâu + index
-  data/                     9 bảng tra: image recipe, palette, layout dial,
-                            slop tell, copy formula, translation tell,
-                            reference axis, frame ratio, composition grid
-  scripts/                  22 công cụ + bộ test
+  SKILL.md                  điểm vào và bộ định tuyến, 173 dòng
+  references/               60 file chủ đề, mỗi file dưới 150 dòng
+    dossiers/               15 dossier craft chuyên sâu + index
+  data/                     24 bảng tra: image recipe, palette, layout dial,
+                            slop tell, copy formula, translation tell và
+                            ngôi xưng, reference axis, frame ratio,
+                            composition grid, chỉ số KPI và trọng số, cổng
+                            màu, look và chẩn đoán makeup, tham số nhân vật,
+                            prompt grammar, bố cục sản phẩm, benchmark,
+                            nguồn dữ liệu thị trường, command artifact,
+                            các vai marketer Việt Nam
+  scripts/                  38 công cụ + bộ test
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json và khung deliverable
@@ -241,7 +352,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-137 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv` và test fail nếu một ví dụ copy chứa số in được. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
+348 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv`, test fail nếu một ví dụ copy chứa số in được, test fail nếu một cờ năng lực dẫn tới dòng nguồn không tồn tại, và test fail nếu một deliverable gọi tên một script không có trong repo. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
 
 ## Những gì skill không làm
 
@@ -255,3 +366,8 @@ python marketing-minthep/scripts/plan_marketing_system.py --input marketing-mint
 ## Giới hạn vận hành
 
 Spec nền tảng thay đổi; phải kiểm tra nguồn chính thức live trước khi export hoặc upload. Kết quả ảnh phụ thuộc provider, reference hợp lệ và năng lực render thực có tại thời điểm đó. Claim về PR, pháp lý, sức khỏe, tài chính, so sánh và các ngành bị quản lý cần bằng chứng và phê duyệt của chủ sở hữu. Skill này lập kế hoạch và tạo artefact; publishing, media buying, outreach và deployment vẫn là việc của bạn.
+
+<p align="center">
+  <a href="README.md"><kbd> &nbsp; English &nbsp; </kbd></a>
+  <a href="README.vi.md"><kbd> &nbsp; <b>Tiếng Việt</b> &nbsp; </kbd></a>
+</p>

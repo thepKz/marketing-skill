@@ -1,6 +1,9 @@
 # Marketing-Minthep
 
-**🇬🇧 English** · [🇻🇳 Tiếng Việt](README.vi.md)
+<p align="right">
+  <a href="README.md"><kbd> &nbsp; <b>English</b> &nbsp; </kbd></a>
+  <a href="README.vi.md"><kbd> &nbsp; Tiếng Việt &nbsp; </kbd></a>
+</p>
 
 An all-in-one marketing skill for Claude Code and GPT/Codex. It turns an unfinished brief — including *"I don't know anything about marketing"* — into a system you can actually produce and measure: positioning, offer, copy, campaign, product imagery, menu and layout design, video sequences, and a measurement contract.
 
@@ -12,14 +15,15 @@ $marketing-minthep
 
 ## Contents
 
-- [What it produces](#what-it-produces) · [How it decides](#how-it-decides) · [Quick start](#quick-start)
+- [What it produces](#what-it-produces) · [What happens when you invoke it](#what-happens-when-you-invoke-it) · [How it decides](#how-it-decides) · [Quick start](#quick-start)
 - [The five things people find confusing](#the-five-things-people-find-confusing) — copywriting, image editing, campaign building, colour, layout
+- [The questions behind the other tools](#the-questions-behind-the-other-tools) — pricing, prompt grammar, KPIs, a repeatable person, testing, workload
 - [Sample output](#sample-output) · [Reference library](#reference-library) · [Anti-AI-slop gate](#anti-ai-slop-gate)
 - [Repository layout](#repository-layout) · [Tests](#tests) · [What it will not do](#what-it-will-not-do)
 
 ## What it produces
 
-Six pipelines, each with a fixed deliverable contract:
+Nine pipelines, each with a fixed deliverable contract:
 
 | Pipeline | Deliverables | Typical output |
 |---|---|---|
@@ -29,10 +33,44 @@ Six pipelines, each with a fixed deliverable contract:
 | `design-render` | 9 | Design directions, chosen system, real rendered menu/wireframe/key visual, print and export handoff |
 | `video-campaign` | 9 | Shot list with carried continuity, per-shot prompts, audio, edit plan, platform cutdowns |
 | `optimize-iterate` | 7 | Asset lineage, experiment log, read-out, next-test recommendation |
+| `rewrite-human` | 4 | A measured diagnosis of a draft, the rewrite, and what changed and why |
+| `score-kpi` | 4 | Metric definitions, weights, achievement rates, and the branch each rate was scored on |
+| `virtual-model` | 6 | A person specified in numbers, a seed that reproduces her, wardrobe looks, compiled prompts |
+
+The last three are short on purpose. A rewrite is not a campaign, and asking someone to open a sixteen-deliverable plan to fix one paragraph is how a tool stops being used.
 
 Ten business jobs route inside those pipelines, defined in [`references/marketing-system-router.md`](marketing-minthep/references/marketing-system-router.md): `strategy-offer`, `campaign-launch`, `content-distribution`, `commerce-merchandising`, `pr-communications`, `sales-enablement`, `creator-ugc`, `lifecycle-retention`, `creative-production`, `measurement-optimization`.
 
 Product families with their own playbook and proof requirements: beauty, fashion, food and beverage, electronics, home, jewelry and luxury, SaaS, local service, education, hospitality.
+
+## What happens when you invoke it
+
+Not a chat. A folder. Here is a real run, from a sentence a shop owner would actually type:
+
+```powershell
+python marketing-minthep/scripts/start_workbench.py --request "Tôi mở shop mỹ phẩm nhỏ ở Gò Vấp, không biết gì về marketing, muốn có kế hoạch và ảnh sản phẩm đẹp, ngân sách nhỏ" --root .
+```
+
+It scores all nine pipelines against the wording and shows its work — `plan-from-zero` at 3, `deep-research` next at 1 — then writes 34 files. Thirteen deliverables in Vietnamese and English side by side, an intake that quotes your sentence verbatim, `claims.csv` and `sources.md` for anything that will need a citation, a decision log, and a `README.md` index whose second paragraph is the part worth reading:
+
+> Read from the request: horizon **13 weeks** (assumed, not stated); budget **small** (from "ngân sách nhỏ"); product family **beauty** (from "mỹ phẩm"). Correct any of these in `01-intake` first — everything downstream is built on them.
+
+Three inferences, each labelled with the phrase behind it, and the one with nothing behind it labelled as assumed. The calendar file is already named `10-calendar-13w` because the horizon it inherited is a real number rather than a placeholder.
+
+Inside a deliverable, a section either asks you for something only you know, or names the command that settles it:
+
+```markdown
+## CAC ceiling
+
+> WRITE: Derive from contribution margin, repeat rate, and acceptable payback period. Show the calculation.
+
+> RUN: python scripts/price_offer.py --price PRICE --variable-cost COST --repeat-purchases N
+> --acquisition-cost CAC — two ceilings, and the report names which one binds. Do not hand-calculate this.
+```
+
+That second marker exists because of this exact test run. The first version of it asked the shop owner to derive a CAC ceiling by hand while the script that derives it sat unused in the same repository. Twenty-four sections now carry the command that answers them, and the line stays in the finished file as the citation for the number above it.
+
+Nothing in the folder claims to be finished. Every file opens at `status=empty`, every unfilled section is a `> WRITE:` marker, and `run_status.py --strict` counts both those and the filled-but-indefensible ones.
 
 ## How it decides
 
@@ -156,6 +194,74 @@ The measurement stops at measuring. It reports the gap and never says which grid
 
 The renderer measures text and flows it. Nothing is positioned by a fraction of the canvas height — that approach produced diacritics cutting through a kicker line and a title painted under the hero image. Copy that does not fit raises an error instead of being silently truncated, because a mockup that quietly deletes two thirds of a sentence looks finished, which is what makes it dangerous. The post renderer adds the one constraint a menu does not have: the platform draws its own buttons over the canvas, so each placement declares the bands it may not use and a block that would collide with the CTA raises with the overflow in pixels. Dossiers: [`layout-wireframe-typography.md`](marketing-minthep/references/dossiers/layout-wireframe-typography.md), [`composition-and-layout-vision.md`](marketing-minthep/references/dossiers/composition-and-layout-vision.md), [`menu-design-and-engineering.md`](marketing-minthep/references/dossiers/menu-design-and-engineering.md).
 
+## The questions behind the other tools
+
+The five above are the ones people ask out loud. These are the ones that decide whether a plan survives contact with arithmetic. Each is a command, and each returns a verdict — `passed`, `failed`, `skipped` or `review` — rather than an opinion.
+
+### "Can I afford this discount?"
+
+```powershell
+python marketing-minthep/scripts/price_offer.py --price 280000 --variable-cost 112000 --discount 0.20
+```
+
+> 20% off the price removes 33% of the contribution, not 20%. Holding the same gross profit takes 1.50x the units.
+
+That is the whole reason this unit exists. A 20% discount does not cost 20%; it costs a share of your contribution, and the share depends on your margin. The same command derives the break-even ROAS as the reciprocal of the contribution ratio — 1.67 here — so a handed-down ROAS target can be checked before it is accepted, and two CAC ceilings when repeat purchases are supplied, naming which one binds. A guarantee is a cost too: put the expected return rate in and read the contribution again. [`references/pricing-and-offers.md`](marketing-minthep/references/pricing-and-offers.md).
+
+### "Will this provider actually do what my prompt asks?"
+
+```powershell
+python marketing-minthep/scripts/check_prompt_grammar.py --prompt-file prompt.txt --provider flux
+```
+
+`data/prompt-grammar.csv` carries 69 rows across eight axes — encoder window, negative prompt, in-image text, seeds, character consistency, ownership, likeness — each with the vendor URL behind it and a column stating what the row does *not* establish. Five of the nine model families document no negative-prompt field at all, which means sending them an exclusion puts the excluded thing into the prompt. The checker found that bug in this repository's own compiler on its first run: a brief asking for *no plastic skin* was sending the words *plastic skin* to FLUX. Two length limits are kept separate on purpose, because an encoder window silently deletes the tail while an API character limit rejects the request outright. Eleven questions no vendor answers are recorded as gaps rather than filled in, and [`references/prompt-grammar.md`](marketing-minthep/references/prompt-grammar.md) lists nine things the prompt-tips genre gets wrong, including three parameters that no longer exist on the version people cite them for.
+
+### "Which numbers should I report, and did we actually hit them?"
+
+```powershell
+python marketing-minthep/scripts/find_recipe.py --table kpi --query "retention"
+python marketing-minthep/scripts/score_kpi.py --input scorecard.json
+```
+
+27 measurables in `data/kpi-metrics.csv`, each with the direction that counts as good, whether it leads or lags, and the specific way it gets gamed — because every metric has a way to be hit without the underlying thing improving, and naming it is the difference between a scorecard and a target. An achievement rate has four branches depending on whether higher is better, whether zero is the floor, and whether the target can be exceeded; picking the wrong branch changes the number without changing how plausible it looks. [`references/kpi-scorecards.md`](marketing-minthep/references/kpi-scorecards.md).
+
+### "Is this test big enough to tell me anything?"
+
+```powershell
+python marketing-minthep/scripts/check_test_readout.py --plan --baseline 0.03 --mde 0.20
+```
+
+> Detecting a 20% relative lift on 3.00% needs 13911 per arm, 27822 in total.
+
+Worth knowing while the test is still cheap rather than after two weeks of traffic. `--claim` goes the other way and checks a declared winner against the confidence interval instead of the point estimate: a 58% headline lift at p = 0.29 is not a result, and the readout says so in the verdict rather than in a footnote.
+
+### "Will this be the same person in the next photo?"
+
+```powershell
+python marketing-minthep/scripts/plan_virtual_person.py
+```
+
+Adjectives do not reproduce a face. `data/person-parameters.csv` describes a virtual person on 35 measurable axes, nineteen of them locked as identity, hashed into a stable seed so the same person renders twice — and the run says plainly that exactly one vendor publishes a character-consistency ceiling and it is four characters. The pose unit is the same discipline applied to the body: a pose is cited on named axes rather than described as *elegant*. This is a constructed person, never a real one; the skill will not build a likeness from a photograph of somebody's face, and [`references/virtual-person-system.md`](marketing-minthep/references/virtual-person-system.md) records why as a reason rather than a rule.
+
+### "Does this draft read like a person wrote it?"
+
+```powershell
+python marketing-minthep/scripts/check_specificity.py --check draft.md
+python marketing-minthep/scripts/rewrite_human.py --check draft.md --channel web
+python marketing-minthep/scripts/check_address_register.py --check draft.md
+```
+
+In that order, and the order is the point. Rhythm editing deletes specifics, so the checkable facts get counted first: under three of them the draft has a content problem, and every cadence fix from there makes it read better while still saying nothing. The third command is Vietnamese-only and settles a question English style guides cannot — which pronoun register the copy is in, and whether it stays there, because a page that opens with *bạn* and closes with *quý khách* has changed who it thinks it is talking to.
+
+### "Who is supposed to do all this on Monday?"
+
+```powershell
+python marketing-minthep/scripts/plan_operating_load.py
+python marketing-minthep/scripts/plan_composition_set.py --photos 3
+```
+
+Thirteen roles, sorted into what runs once and what runs every week, costed in hours. A channel plan nobody has time to execute is a wish list, and this is the file that says so with a number. The second command answers the same question about images: given the photographs that already exist, how many of the frames this plan assumes can be cut from them and how many need another exposure.
+
 ## Sample output
 
 Three menu directions for the same bún bò shop, rendered by `render_mockup.py` from the specs in `assets/examples/bun-bo/` — no API, no design tool:
@@ -217,13 +323,18 @@ The second-order check catches the escape hatch: having rejected the obvious cat
 
 ```
 marketing-minthep/
-  SKILL.md                  entry point, under 150 lines
-  references/               45 topic files, each under 150 lines
-    dossiers/               14 deep-craft dossiers + index
-  data/                     9 lookup tables: image recipes, palettes, layout
-                            dials, slop tells, copy formulas, translation
-                            tells, reference axes, frame ratios, grids
-  scripts/                  22 tools + test suite
+  SKILL.md                  entry point and router, 173 lines
+  references/               60 topic files, each under 150 lines
+    dossiers/               15 deep-craft dossiers + index
+  data/                     24 lookup tables: image recipes, palettes, layout
+                            dials, slop tells, copy formulas, translation and
+                            address-register tells, reference axes, frame
+                            ratios, composition grids, KPI metrics and aspect
+                            weights, colour gates, makeup looks and
+                            diagnostics, person parameters, prompt grammar,
+                            product compositions, benchmarks, market-data
+                            sources, command artifacts, VN marketer roles
+  scripts/                  38 tools + test suite
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json and deliverable skeletons
@@ -241,7 +352,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-137 tests, including ones that recompute every contrast ratio in `data/palettes.csv` and fail if a copy example contains a printable number. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
+348 tests, including ones that recompute every contrast ratio in `data/palettes.csv`, fail if a copy example contains a printable number, fail if a capability flag cites a source row that does not exist, and fail if a deliverable names a script that is not in the repository. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
 
 ## What it will not do
 
@@ -255,3 +366,8 @@ python marketing-minthep/scripts/plan_marketing_system.py --input marketing-mint
 ## Operating limits
 
 Platform specs change; verify the official source live before export or upload. Image results depend on the provider, valid references and whatever rendering capability actually exists at the time. PR, legal, health, finance, comparative and regulated claims need evidence and owner approval. This skill plans and produces artefacts; publishing, media buying, outreach and deployment remain yours.
+
+<p align="center">
+  <a href="README.md"><kbd> &nbsp; <b>English</b> &nbsp; </kbd></a>
+  <a href="README.vi.md"><kbd> &nbsp; Tiếng Việt &nbsp; </kbd></a>
+</p>

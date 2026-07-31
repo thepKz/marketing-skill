@@ -10,6 +10,7 @@ import io
 import json
 import math
 import statistics
+import sys
 import unicodedata
 import re
 import tempfile
@@ -2090,6 +2091,139 @@ class RefSheetTests(unittest.TestCase):
             self.assertLessEqual(reserve[1] + reserve[3], 1.0 + 1e-9,
                                  f"{name}: the reserve runs past the usable area")
             self.assertLess(top + bottom, ph, f"{name}: the bands cover the whole frame")
+
+
+class RepoReadmeTests(unittest.TestCase):
+    """The README is the only page most people read, so its numbers have to be measured.
+
+    Every count in it was wrong at once: 45 references against 60 on disk, 14 dossiers against 15,
+    9 lookup tables against 24, 22 tools against 38, 137 tests against 339, and a table of six
+    pipelines in a repository that has nine. Not one of those was a lie when it was written, which
+    is the whole problem - a hand-maintained count decays silently and reads as current forever.
+    These tests recount from the filesystem, so the next time it drifts the suite says so.
+    """
+
+    LANGS = {"en": REPO_ROOT / "README.md", "vi": REPO_ROOT / "README.vi.md"}
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.text = {lang: path.read_text(encoding="utf-8") for lang, path in cls.LANGS.items()}
+
+    def _count(self, lang: str, pattern: str) -> int:
+        found = re.findall(pattern, self.text[lang])
+        self.assertTrue(found, f"{lang}: {pattern} no longer appears in the README")
+        self.assertEqual(len(set(found)), 1, f"{lang}: {pattern} is stated more than one way: {found}")
+        return int(found[0])
+
+    def test_both_language_files_offer_the_switch_at_the_top_and_the_bottom(self) -> None:
+        """A reader who scrolls to the end should not have to scroll back to change language."""
+        for lang, text in self.text.items():
+            with self.subTest(lang=lang):
+                for target in ("README.md", "README.vi.md"):
+                    self.assertEqual(text.count(f'href="{target}"'), 2, f"{lang} -> {target}")
+                # The active language is the bold one, and it is bold in exactly its own file.
+                active = "Tiếng Việt" if lang == "vi" else "English"
+                self.assertIn(f"<b>{active}</b>", text)
+                self.assertNotIn(f"<b>{'English' if lang == 'vi' else 'Tiếng Việt'}</b>", text)
+
+    def test_the_switch_uses_no_remote_image(self) -> None:
+        """A badge service is a dependency and an outage away from a broken header."""
+        for lang, text in self.text.items():
+            head = text.split("\n\n", 3)[0] + text.split("\n\n", 3)[1]
+            with self.subTest(lang=lang):
+                self.assertNotIn("img.shields.io", head)
+                self.assertNotIn("<img", head)
+                self.assertIn("<kbd>", head)
+
+    def test_every_registered_pipeline_appears_in_the_pipeline_table(self) -> None:
+        """The table listed six of nine, so three whole capabilities were invisible to a customer."""
+        registry = load_registry()
+        for lang, text in self.text.items():
+            for name, pipeline in registry["pipelines"].items():
+                with self.subTest(lang=lang, pipeline=name):
+                    row = f"| `{name}` | {len(pipeline['deliverables'])} |"
+                    self.assertIn(row, text, f"{name} missing from the {lang} table, or its count moved")
+
+    def test_the_stated_pipeline_count_matches_the_registry(self) -> None:
+        total = len(load_registry()["pipelines"])
+        self.assertIn(f"{_english_number(total).capitalize()} pipelines", self.text["en"])
+        self.assertIn(f"{_vietnamese_number(total).capitalize()} pipeline", self.text["vi"])
+
+    def test_the_stated_library_counts_match_the_filesystem(self) -> None:
+        measured = {
+            "references": len(list((SKILL_ROOT / "references").glob("*.md"))),
+            "dossiers": len(list((SKILL_ROOT / "references" / "dossiers").glob("*.md"))),
+            "tables": len(list((SKILL_ROOT / "data").glob("*.csv"))),
+            # The test file is a harness, not a tool a customer can run.
+            "tools": len([p for p in (SKILL_ROOT / "scripts").glob("*.py") if p.stem != "test_tools"]),
+            "skill_lines": len((SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8").splitlines()),
+        }
+        patterns = {
+            "en": {
+                "references": r"(\d+) topic files",
+                "dossiers": r"(\d+) deep-craft dossiers",
+                "tables": r"(\d+) lookup tables",
+                "tools": r"(\d+) tools \+ test suite",
+                "skill_lines": r"entry point and router, (\d+) lines",
+            },
+            "vi": {
+                "references": r"(\d+) file chủ đề",
+                "dossiers": r"(\d+) dossier craft",
+                "tables": r"(\d+) bảng tra",
+                "tools": r"(\d+) công cụ \+ bộ test",
+                "skill_lines": r"bộ định tuyến, (\d+) dòng",
+            },
+        }
+        for lang, by_key in patterns.items():
+            for key, pattern in by_key.items():
+                with self.subTest(lang=lang, key=key):
+                    self.assertEqual(self._count(lang, pattern), measured[key])
+
+    def test_the_stated_test_count_matches_the_suite(self) -> None:
+        """Counted by loading this module, so it cannot be right today and stale next week."""
+        suite = unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__])
+        total = suite.countTestCases()
+        for lang, pattern in (("en", r"(\d+) tests, including"), ("vi", r"(\d+) test, trong đó")):
+            with self.subTest(lang=lang):
+                self.assertEqual(self._count(lang, pattern), total)
+
+    def test_every_command_in_a_readme_code_block_names_a_script_that_exists(self) -> None:
+        for lang, text in self.text.items():
+            for script in set(re.findall(r"marketing-minthep/scripts/([a-z_]+\.py)", text)):
+                with self.subTest(lang=lang, script=script):
+                    self.assertTrue((SKILL_ROOT / "scripts" / script).exists(), script)
+
+    def test_the_units_a_customer_would_look_for_are_reachable_from_the_readme(self) -> None:
+        """A tool nobody can find from the front page is a tool that does not exist.
+
+        Fifteen units were shipped and unmentioned - pricing arithmetic, prompt grammar, KPI
+        scoring, sample sizing, the virtual person, workload. This pins the ones a customer
+        arrives with a question about.
+        """
+        required = ("price_offer.py", "check_prompt_grammar.py", "score_kpi.py",
+                    "check_test_readout.py", "plan_virtual_person.py", "check_specificity.py",
+                    "check_address_register.py", "plan_operating_load.py", "plan_composition_set.py")
+        for lang, text in self.text.items():
+            for script in required:
+                with self.subTest(lang=lang, script=script):
+                    self.assertIn(script, text)
+
+    def test_the_two_files_stay_the_same_document(self) -> None:
+        """Divergence is how one language quietly becomes the stale one."""
+        heads = {lang: len(re.findall(r"^## ", text, re.MULTILINE)) for lang, text in self.text.items()}
+        self.assertEqual(heads["en"], heads["vi"])
+        blocks = {lang: text.count("```powershell") for lang, text in self.text.items()}
+        self.assertEqual(blocks["en"], blocks["vi"])
+
+
+def _english_number(value: int) -> str:
+    names = {6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten", 11: "eleven", 12: "twelve"}
+    return names.get(value, str(value))
+
+
+def _vietnamese_number(value: int) -> str:
+    names = {6: "sáu", 7: "bảy", 8: "tám", 9: "chín", 10: "mười", 11: "mười một", 12: "mười hai"}
+    return names.get(value, str(value))
 
 
 class ReferenceIntegrityTests(unittest.TestCase):
