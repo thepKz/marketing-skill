@@ -47,7 +47,15 @@ Load only when relevant:
 - Commerce: `commerce-merchandising.md`.
 - Paid media: `paid-media-creative.md`.
 - PR: `pr-communications.md`.
-- Sales: `sales-enablement.md`.
+- Sales: `sales-enablement.md`. Craft only, and it says so: no Vietnamese instrument in this corpus
+  attaches a duty to a one-pager, a deck or a proposal, so there is no table and inventing one would
+  be the failure. Two things still follow the artefact. Substantiation attaches to the assertion
+  rather than to the buyer, so a figure on a slide runs through `check_claims.py` like a figure in an
+  ad. And a case study carrying a customer's logo, quote or metric is a person's words in an
+  advertisement under Nghị định 87/2026 Điều 50.3.a at 20 to 40 million, discharged by written
+  approval from the signatory rather than a verbal yes from the champion. Whether a business buyer is
+  a người tiêu dùng at all turns on the purpose of the purchase under Điều 3.1, not on company size,
+  and this corpus does not settle it - do not assert it either way in a proposal.
 - Creator/UGC: `creator-ugc.md`.
 - What a welcome, cart, renewal or win-back flow is allowed to send, and when:
   `lifecycle-retention.md` plus `data/lifecycle-duties.csv` and `scripts/plan_lifecycle.py`. Load this
