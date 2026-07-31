@@ -1321,7 +1321,7 @@ class DataTableTests(unittest.TestCase):
         "market-data-sources.csv": (37, 12),
         "marketing-benchmarks.csv": (35, 12),
         "reference-observations.csv": (10, 24),
-        "person-parameters.csv": (31, 13),
+        "person-parameters.csv": (35, 13),
         "command-artifacts.csv": (28, 11),
         "colour-gates.csv": (9, 9),
         "vn-marketer-roles.csv": (13, 11),
@@ -1616,6 +1616,20 @@ class DataTableTests(unittest.TestCase):
             if row["term_grade"] != "house-axis":
                 self.assertGreater(len(row["source"]), 30,
                                    f"{pid}: claims a standard term without saying where to verify it")
+                # "verify this with a source" is not a source. Every one of these cells used to say
+                # something like that, and the research pass replaced them with URLs or with an
+                # admission. A URL or an author-and-year is the only thing a reader can act on.
+                self.assertTrue("http" in row["source"] or re.search(r"\b(19|20)\d\d\b", row["source"]),
+                                f"{pid}: source names no URL and no year, so nothing can be checked")
+                self.assertNotRegex(row["source"], r"(?i)\b(verify|find and cite|to be sourced|TODO)\b",
+                                    f"{pid}: source is an instruction to source it later")
+            # The reverse direction, which is the one that decays quietly: when a search comes back
+            # empty the grade has to drop to house-axis. Leaving it at standard-anatomical-term with
+            # "no source found" in the cell is how an unsourced claim keeps borrowing authority.
+            if re.search(r"(?i)\bno (primary )?source found\b", row["source"]):
+                self.assertEqual(row["term_grade"], "house-axis",
+                                 f"{pid}: source records that nothing was found, so the term cannot "
+                                 f"be graded {row['term_grade']}")
         self.assertEqual(locks, {"locked", "styling"})
         self.assertEqual(groups, {"face", "build", "pose", "camera"})
         self.assertLessEqual(grades, {"standard-anatomical-term", "art-instruction-term",

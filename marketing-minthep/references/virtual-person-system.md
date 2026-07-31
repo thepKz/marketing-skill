@@ -49,9 +49,13 @@ The codes are gone. `data/person-parameters.csv` replaced them.
 
 ## The parameter sheet
 
-Thirty-one axes in `data/person-parameters.csv`, one row each, grouped `face`, `build`, `pose`,
+Thirty-five axes in `data/person-parameters.csv`, one row each, grouped `face`, `build`, `pose`,
 `camera`. Every row carries a unit, an input domain, a neutral value, what the axis controls, how it
 fails when it is wrong, the phrasing to put in a prompt, and where the term comes from.
+
+`figure-and-pose.md` is the craft half - why these are the axes, the three-mass model behind
+`posture-signature`, the sign rule behind `hip-shoulder-counter-rotation`, and the distance-not-lens
+correction behind `subject-distance`. Read it before setting a pose axis by feel.
 
 Three conventions matter more than the contents:
 
@@ -70,13 +74,23 @@ the half-body frames.
 **An input domain is not a norm.** The `input_domain` column is the range the script accepts. It is not
 a claim about how faces or bodies are distributed in any population, and it is not a range of preferred
 values. Inventing population statistics here would be the exact failure the rest of this skill exists to
-catch. Where a term is standard anatomy or standard photographic practice the `term_grade` column says
-so and `source` says where to verify it; where the axis is this skill's own construction, `term_grade`
-is `house-axis` and says nothing more.
+catch.
+
+Exactly one row is different, and it is worth knowing which: `shoulder-to-hip` carries a published mean,
+standard deviation and observed range - men 1.18, SD 0.071, range 1.03 to 1.40; women 1.03, SD 0.066,
+range 0.90 to 1.22. That is what a sourced anthropometric claim looks like. The other thirty-four rows
+do not look like that, and their domains should be read as accepted input ranges, nothing more.
+
+The `source` column now carries either a URL or an author and year for every row that claims a standard
+term, and for the rest it carries the admission. Seven axes record a gap: `tangency-check` and
+`bigonial-to-bizygomatic` because searching for the term returned nothing citable, four because no
+published range was found, one because it is this skill's own observation. All seven are graded
+`house-axis`, and a test enforces that direction - a cell that says nothing was found cannot sit beside a
+grade claiming a standard term.
 
 ## Locked identity against campaign styling
 
-Seventeen axes are `locked` and fourteen are `styling`.
+Nineteen axes are `locked` and sixteen are `styling`.
 
 Locked is the person: face ratios, build ratios, posture signature, and one named distinguishing mark.
 Styling is the campaign: weight distribution, counter-rotation, torso rotation, head tilt, chin
@@ -118,7 +132,7 @@ Two limits worth stating before anyone relies on this.
 An axis left at its neutral default still hashes, so the person is still reproducible - but a neutral
 default is not a decision, it is a value nobody chose, and it is an axis this character shares with
 every other character built from the same table. The report counts them for that reason. A sheet with
-thirteen of seventeen locked axes at neutral is graded `review`, not `passed`.
+sixteen of nineteen locked axes at neutral is graded `review`, not `passed`.
 
 And the seed reproduces a person inside one model at one version. No provider guarantees determinism
 across versions. The sheet is what survives a version change; the seed is not.
