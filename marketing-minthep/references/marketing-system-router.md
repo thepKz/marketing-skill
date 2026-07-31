@@ -69,7 +69,12 @@ Load only when relevant:
   Nghị định 342/2025 Điều 17 before a single message is written.
 - Claims and proof: `claims-proof-ledger.md` plus `data/claim-evidence.csv` and
   `scripts/check_claims.py`.
-- Current placements/specs: `channel-spec-registry.md`.
+- Current placements/specs: `channel-spec-registry.md` plus `data/channel-specs.csv` and
+  `scripts/check_channel_spec.py --survey`, which answers the question people actually have — one
+  file already exported, which of the 24 placements will take it untouched. Twenty-four rows read off
+  the vendor pages on 2026-07-31, each with its URL and date. Where a page publishes nothing the
+  answer is `review` and never `passed`, because four Meta placements carry no technical block at all
+  and silence is not permission.
 - Product/human/virtual imagery: relevant image references.
 - Logo, wordmark, favicon, banner grid, type scale: `identity-design.md`.
 - Palette, contrast, lightness separation, chroma budget, tonal ramps: `colour-combination.md` plus

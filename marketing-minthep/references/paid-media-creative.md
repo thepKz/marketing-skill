@@ -66,4 +66,17 @@ Run both before the first ad goes live. A naming convention fixed afterwards doe
 already collected. Then connect each asset to `campaign_id`, `asset_id`, placement, concept, angle,
 hook, proof, offer, CTA, and variant parent.
 
-Use `channel-spec-registry.md` and verify live placement specs before upload.
+Then check the export before it goes anywhere near the upload flow. `channel-spec-registry.md`
+explains the three states a vendor page can be in and why an unpublished figure is not a pass;
+`data/channel-specs.csv` holds the 24 placements with the URL and date each number came off.
+
+```
+python scripts/check_channel_spec.py --survey --width 1080 --height 1920 \
+  --duration 22 --file-size 30MB --format mp4
+```
+
+That is the useful direction. You have one file and a week of posting to fill, so the answer worth
+having is which surfaces take it untouched and which crop it. Exit 2 means a documented requirement
+is broken and the upload is refused or the crop is taken out of your hands. Exit 3 means the page
+publishes nothing on that axis, which is the state that reads as permission and is not — go and read
+the placement's own panel before you spend on it.

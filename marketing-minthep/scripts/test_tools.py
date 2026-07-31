@@ -31,6 +31,7 @@ from compile_prompt import compile_provider
 # would leave one test silently asserting against the other module's table.
 import audit_seo_page
 import check_address_register
+import check_channel_spec
 import check_claims
 import check_evidence_saturation
 import check_prompt_grammar
@@ -1478,6 +1479,7 @@ class DataTableTests(unittest.TestCase):
         "vn-advertising-law.csv": (65, 13),
         "claim-evidence.csv": (41, 16),
         "lifecycle-duties.csv": (25, 17),
+        "channel-specs.csv": (24, 20),
     }
 
     # Most of these tables are keyed by their first column. The weights table is keyed by two, and
@@ -2221,7 +2223,8 @@ class RepoReadmeTests(unittest.TestCase):
         """
         required = ("price_offer.py", "check_prompt_grammar.py", "score_kpi.py",
                     "check_test_readout.py", "plan_virtual_person.py", "check_specificity.py",
-                    "check_address_register.py", "plan_operating_load.py", "plan_composition_set.py")
+                    "check_address_register.py", "plan_operating_load.py", "plan_composition_set.py",
+                    "check_channel_spec.py")
         for lang, text in self.text.items():
             for script in required:
                 with self.subTest(lang=lang, script=script):
@@ -7547,6 +7550,276 @@ class LifecycleDutyTests(unittest.TestCase):
         self.assertIn("not in this corpus", self.prose)
         note = plan_lifecycle._frequency_note(plan_lifecycle.clean_declaration())
         self.assertIn("no article in this corpus", note)
+
+
+class ChannelSpecTests(unittest.TestCase):
+    """The table replaced remembered numbers, so what gets pinned is the honesty of the cells.
+
+    The file this unit replaced said "commonly recommends 2:3" and "guidance includes 1200x627" - a
+    memory of specs wearing a citation's clothes. Twenty-four rows read off the vendor pages fix that
+    once. What these tests defend is the thing that decays: the discipline that keeps an unpublished
+    figure from turning into a pass. Four Meta placements carry no technical block at all, and the
+    tempting edit six months from now is to fill those cells with a plausible number so the tool stops
+    saying `review`. Every assertion below makes that edit fail.
+
+    The other half is the ratio finding. Meta's video pages omit the tolerance column, and the first
+    version of the checker therefore let a 9:16 file through a 4:5 placement as an open question. It is
+    not an open question - the crop happens either way, and the file is exactly a ratio this same table
+    names on eleven other rows.
+    """
+
+    ROWS = check_channel_spec.load_rows()
+    NUMERIC = ("rec_width", "rec_height", "min_width", "min_height", "ratio_tolerance_pct",
+               "duration_min_s", "duration_max_s", "primary_text_chars", "headline_chars")
+    TOKENS = {check_channel_spec.UNDOCUMENTED, check_channel_spec.UNLIMITED,
+              check_channel_spec.NOT_APPLICABLE, check_channel_spec.PER_PLACEMENT}
+
+    def test_self_check_passes(self) -> None:
+        report = check_channel_spec.self_check()
+        self.assertTrue(report.rstrip().endswith("verdict passed"), report)
+        self.assertNotIn("FAIL", report)
+
+    def test_a_cell_is_a_number_or_one_of_four_words(self) -> None:
+        """The tokens exist so that no cell is empty and no absence is a zero. A fifth word - "n/a",
+        "unknown", "varies" - would be a private meaning the checker cannot read, and it would read
+        as a value."""
+        for row in self.ROWS:
+            for column in self.NUMERIC:
+                value = row[column]
+                with self.subTest(key=row["key"], column=column):
+                    self.assertTrue(value in self.TOKENS or re.fullmatch(r"\d+(\.\d+)?", value),
+                                    f"{row['key']}.{column} is {value!r}")
+
+    def test_no_gate_returns_passed_against_an_undocumented_cell(self) -> None:
+        """The load-bearing one. Silence reads as permission and it is not: the uploader still refuses
+        something, the figure is simply not on the page. Walk all 24 rows with an asset supplied on
+        every axis, and any gate that resolves to an `undocumented` cell must come back review."""
+        pairs = (("aspect-ratio", ("ratio",)),
+                 ("file-size", ("max_file",)),
+                 ("duration", ("duration_max_s",)),
+                 ("file-format", ("file_formats",)),
+                 ("primary-text-length", ("primary_text_chars",)),
+                 ("headline-length", ("headline_chars",)))
+        for row in self.ROWS:
+            report = check_channel_spec.build(
+                row["key"], width=1080, height=1920, duration="22", file_size="8MB",
+                container="mp4", primary_text="Com tam suon nuong", headline="45.000d",
+                today=dt.date(2026, 8, 1))
+            gates = {item["gate"]: item for item in report["gates"]}
+            for name, columns in pairs:
+                if any(row[column] == check_channel_spec.UNDOCUMENTED for column in columns):
+                    with self.subTest(key=row["key"], gate=name):
+                        self.assertNotEqual(gates[name]["status"], "passed",
+                                            f"{row['key']} publishes nothing for {name} and the "
+                                            f"check cleared it anyway")
+            # The resolution gate reads two cells, so it is checked as a pair rather than per axis:
+            # a row that publishes a width floor and no height floor still leaves a question open.
+            if check_channel_spec.UNDOCUMENTED in (row["min_width"], row["min_height"]):
+                with self.subTest(key=row["key"], gate="minimum-resolution"):
+                    self.assertNotEqual(gates["minimum-resolution"]["status"], "passed", row["key"])
+
+    def test_a_stated_absence_is_not_the_same_as_silence(self) -> None:
+        """Facebook Reels video documents no maximum length, in those words. Facebook Stories video
+        publishes no technical block at all. Both cells are "no number", and collapsing them would
+        throw away the more useful of the two facts."""
+        common = dict(width=1080, height=1920, container="mp4", today=dt.date(2026, 8, 1))
+        stated = check_channel_spec.build("meta-facebook-reels-video", duration="0:20:00", **common)
+        silent = check_channel_spec.build("meta-facebook-story-video", duration="0:20:00", **common)
+        self.assertEqual(
+            {g["gate"]: g["status"] for g in stated["gates"]}["duration"], "passed")
+        self.assertEqual(
+            {g["gate"]: g["status"] for g in silent["gates"]}["duration"], "review")
+        # And the wording keeps them apart, because the exit code alone cannot.
+        self.assertIn("stated absence", next(g["detail"] for g in stated["gates"]
+                                             if g["gate"] == "duration"))
+
+    def test_a_different_ratio_fails_even_where_no_tolerance_is_published(self) -> None:
+        # Facebook Feed video documents 4:5 and no tolerance figure. A 1080x1920 export is 78 per cent
+        # off that, and it is not a borderline file - it is 9:16, a ratio this table names elsewhere.
+        row = next(r for r in self.ROWS if r["key"] == "meta-facebook-feed-video")
+        self.assertEqual(row["ratio_tolerance_pct"], check_channel_spec.UNDOCUMENTED)
+        gate = next(g for g in check_channel_spec.build(
+            "meta-facebook-feed-video", width=1080, height=1920,
+            today=dt.date(2026, 8, 1))["gates"] if g["gate"] == "aspect-ratio")
+        self.assertEqual(gate["status"], "failed")
+        self.assertIn("9:16", gate["detail"])
+        # An exact match on the same unpublished-tolerance row passes, so the gate is identifying a
+        # ratio rather than just distrusting a blank cell.
+        exact = next(g for g in check_channel_spec.build(
+            "meta-facebook-feed-video", width=1440, height=1800,
+            today=dt.date(2026, 8, 1))["gates"] if g["gate"] == "aspect-ratio")
+        self.assertEqual(exact["status"], "passed")
+
+    def test_the_nearest_ratio_only_ever_comes_from_this_table(self) -> None:
+        """Otherwise the gate would be applying a figure from one vendor's page to another's, which is
+        the failure the whole unit exists to remove."""
+        declared = {row["ratio"] for row in self.ROWS if ":" in row["ratio"]}
+        self.assertEqual(set(check_channel_spec.named_ratios()), declared)
+        self.assertEqual(check_channel_spec.nearest_named_ratio(1080 / 1920), "9:16")
+        self.assertEqual(check_channel_spec.nearest_named_ratio(1440 / 1800), "4:5")
+
+    def test_a_recommendation_is_never_graded_as_a_rejection(self) -> None:
+        """Meta publishes copy budgets under Đề xuất về văn bản and pixel floors under Yêu cầu kỹ
+        thuật. A tool that failed an ad for a long caption would be lying about who rejects what."""
+        report = check_channel_spec.build(
+            "meta-instagram-reels-video", width=1080, height=1920, duration="22",
+            primary_text="x" * 400, today=dt.date(2026, 8, 1))
+        gates = {g["gate"]: g for g in report["gates"]}
+        self.assertEqual(gates["primary-text-length"]["status"], "review")
+        self.assertEqual(gates["recommended-size"]["status"], "review")
+        self.assertNotEqual(report["verdict"]["status"], "failed")
+
+    def test_the_survey_refuses_only_on_a_broken_requirement(self) -> None:
+        """The report answers "is this asset right here" in three states; the survey answers "can this
+        file go here" in two. The distinction is not cosmetic - an ordinary 1080x1920 export is under
+        Meta's recommended 1440x2560 on every vertical surface, so a three-state survey came back with
+        eleven yellow rows and the reader would stop reading all of them."""
+        result = check_channel_spec.survey(1080, 1920, duration="22", file_size="30MB",
+                                           container="mp4", today=dt.date(2026, 8, 1))
+        by_key = {item["placement"]: item for item in result["results"]}
+        self.assertEqual(set(result["counts"]), {"clear", "refused"})
+        self.assertEqual(by_key["meta-instagram-reels-video"]["status"], "clear")
+        self.assertEqual(by_key["meta-facebook-reels-video"]["status"], "clear")
+        # 4:5 on Feed, six seconds on a bumper. Both refuse this cut for a documented reason.
+        self.assertEqual(by_key["meta-facebook-feed-video"]["status"], "refused")
+        self.assertEqual(by_key["youtube-bumper"]["status"], "refused")
+        # A recommendation shortfall survives as a counted open question rather than a refusal.
+        self.assertGreater(by_key["meta-instagram-reels-video"]["open_questions"], 0)
+        self.assertGreaterEqual(result["counts"]["clear"], 6)
+        self.assertGreaterEqual(result["counts"]["refused"], 3)
+        self.assertEqual(sum(result["counts"].values()), len(self.ROWS))
+
+    def test_the_worked_survey_result_in_the_prose_is_recomputed_here(self) -> None:
+        """The reference and both READMEs quote the output of one command. They said thirteen and
+        eleven, which was true of an earlier survey and stopped being true the moment the ratio gate
+        began identifying a different ratio instead of shrugging at a missing tolerance column. A
+        worked example nobody recomputes is the same hedge in a different coat."""
+        counts = check_channel_spec.survey(1080, 1920, duration="22", file_size="30MB",
+                                           container="mp4", today=dt.date(2026, 8, 1))["counts"]
+        words = {7: "Seven", 17: "Seventeen"}
+        prose = (SKILL_ROOT / "references" / "channel-spec-registry.md").read_text(encoding="utf-8")
+        self.assertIn(f"{words[counts['clear']]} placements take that cut", prose)
+        self.assertIn(f"{words[counts['refused']]} will not", prose)
+        for name in ("README.md", "README.vi.md"):
+            text = (REPO_ROOT / name).read_text(encoding="utf-8")
+            _, _, after = text.partition("check_channel_spec.py --survey")
+            quote = next(line for line in after.splitlines() if line.startswith("> "))
+            with self.subTest(readme=name):
+                self.assertIn(str(counts["clear"]), quote)
+                self.assertIn(str(counts["refused"]), quote)
+
+    def test_the_freshness_gate_measures_the_calendar_rather_than_trusting_it(self) -> None:
+        # Ninety days is a bet, and the bet has been settled once already by a Shopee article that
+        # 404ed within months of being cited. Past the window the row is neither wrong nor confirmed.
+        row = next(r for r in self.ROWS if r["key"] == "google-merchant-product-image")
+        read_on = dt.date.fromisoformat(row["retrieved"])
+        inside = check_channel_spec.check_freshness(
+            row, read_on + dt.timedelta(days=check_channel_spec.STALE_AFTER_DAYS))
+        outside = check_channel_spec.check_freshness(
+            row, read_on + dt.timedelta(days=check_channel_spec.STALE_AFTER_DAYS + 1))
+        self.assertEqual(inside["status"], "passed")
+        self.assertEqual(outside["status"], "review")
+        self.assertIn(row["source_url"], outside["detail"])
+        # A row dated in the future is a broken clock, not a fresh reading.
+        self.assertEqual(check_channel_spec.check_freshness(
+            row, read_on - dt.timedelta(days=1))["status"], "review")
+
+    def test_a_file_ceiling_keeps_the_page_s_own_units(self) -> None:
+        """The cells hold "30MB" and "150KB" and "4GB" because that is what the pages say. Storing a
+        byte count would put my conversion into the table as though the vendor had published it."""
+        for row in self.ROWS:
+            ceiling = row["max_file"]
+            if ceiling in self.TOKENS:
+                continue
+            with self.subTest(key=row["key"]):
+                self.assertRegex(ceiling, r"^\d+(\.\d+)?(B|KB|MB|GB)$")
+                self.assertGreater(check_channel_spec.parse_size(ceiling), 0)
+        # The base is stated, not assumed, and it is the tighter of the two readings.
+        self.assertEqual(check_channel_spec.parse_size("30MB"), 30 * 1024 ** 2)
+        self.assertTrue(check_channel_spec._raises(lambda: check_channel_spec.parse_size("30 megs")))
+        # A timeline is read the way an editor displays it, because retyping mm:ss as seconds is
+        # where the arithmetic slip gets in.
+        self.assertEqual(check_channel_spec.parse_duration("1:30"), 90)
+        self.assertEqual(check_channel_spec.parse_duration("22"), 22)
+
+    def test_every_row_carries_the_page_it_came_off_and_the_day_somebody_read_it(self) -> None:
+        for row in self.ROWS:
+            with self.subTest(key=row["key"]):
+                self.assertTrue(row["source_url"].startswith("https://"), row["key"])
+                self.assertRegex(row["retrieved"], r"^\d{4}-\d{2}-\d{2}$")
+                # The caveat column carries the exception that a number on its own would lose - the
+                # width floor that moves at thirty seconds, the 500x500 that starts in 2027.
+                self.assertGreater(len(row["caveat"].split()), 8, row["key"])
+
+    def test_a_mistyped_key_names_the_rows_it_could_have_meant(self) -> None:
+        # The common typo is a surface without its asset type, which is precisely the mistake that
+        # sends one export to both a still and a video placement.
+        with self.assertRaises(ValueError) as caught:
+            check_channel_spec.resolve("meta-instagram-feed", self.ROWS)
+        message = str(caught.exception)
+        self.assertIn("meta-instagram-feed-image", message)
+        self.assertIn("meta-instagram-feed-video", message)
+
+    def test_the_exit_codes_separate_a_rejection_from_an_open_question(self) -> None:
+        # Exit 0 is only reachable on a row that publishes every figure it is asked about, and there
+        # are not many: Facebook Feed image is the fullest block on the table. The 3 case is the point
+        # of the third code - Instagram Feed image publishes a recommended size and then no technical
+        # block, so an exactly-correct file is unsettled rather than cleared.
+        clean = ["check_channel_spec.py", "--placement", "meta-facebook-feed-image",
+                 "--width", "1440", "--height", "1800", "--file-size", "5MB", "--format", "jpg",
+                 "--primary-text", "Com tam suon nuong than hoa, giao trong 20 phut"]
+        broken = clean[:1] + ["--placement", "youtube-bumper", "--width", "1920",
+                              "--height", "1080", "--duration", "8"]
+        unsettled = clean[:1] + ["--placement", "meta-instagram-feed-image",
+                                 "--width", "1440", "--height", "1800"]
+        for argv, expected in ((clean, 0), (broken, 2), (unsettled, 3)):
+            with self.subTest(placement=argv[2]):
+                # The freshness gate is measured against pinned dates in its own test. Here it would
+                # only turn every case into a 3 once the calendar passes the window, which would be
+                # the suite reporting the date rather than the exit-code mapping.
+                with mock.patch.object(check_channel_spec, "STALE_AFTER_DAYS", 10 ** 6), \
+                        mock.patch.object(sys, "argv", argv), \
+                        contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(check_channel_spec.main(), expected)
+
+    def test_the_reference_the_table_and_the_script_stay_wired_together(self) -> None:
+        text = (SKILL_ROOT / "references" / "channel-spec-registry.md").read_text(encoding="utf-8")
+        self.assertIn("data/channel-specs.csv", text)
+        self.assertIn("check_channel_spec.py", text)
+        # The three states and the ninety days are the two claims the tool depends on, and the four
+        # unreachable domestic surfaces are the finding. Prose that dropped them would leave the
+        # tokens looking arbitrary and the gaps looking like an oversight.
+        for token in self.TOKENS:
+            self.assertIn(f"`{token}`", text)
+        self.assertIn("STALE_AFTER_DAYS = 90", text)
+        for platform in ("Shopee", "TikTok Shop", "Zalo", "Lazada"):
+            self.assertIn(platform, text)
+        # And the unit is reachable from the places somebody actually starts.
+        for path in ("SKILL.md", "references/marketing-system-router.md",
+                     "references/paid-media-creative.md", "data/command-artifacts.csv"):
+            with self.subTest(path=path):
+                self.assertIn("channel-spec", (SKILL_ROOT / path).read_text(encoding="utf-8"))
+
+    def test_the_hedged_figures_survive_only_as_the_mistake_they_were(self) -> None:
+        """Each of these was in the file before the sweep, and each marked a number nobody had looked
+        up. A hedged number is worse than none, because it gets used. They are still on the page, and
+        deliberately so - the section that names them is what stops the next writer reintroducing the
+        habit. What must not happen is one of them drifting back out of that section and into the body,
+        where it would read as guidance again."""
+        text = (SKILL_ROOT / "references" / "channel-spec-registry.md").read_text(encoding="utf-8")
+        head, _, rest = text.partition("## What the earlier version of this file got wrong")
+        self.assertTrue(rest, "the section that names the old hedges has gone")
+        diagnosis, _, body = rest.partition("\n## ")
+        for hedge in ("commonly recommends", "guidance includes", "video supports multiple ratios"):
+            with self.subTest(hedge=hedge):
+                self.assertIn(f'"{hedge}', diagnosis)
+                self.assertNotIn(hedge, head)
+                self.assertNotIn(hedge, body)
+        # Pinterest, LinkedIn and Amazon were in the old file because ad-spec listicles always list
+        # them. A com tam shop in Bình Thạnh does not advertise on LinkedIn.
+        keys = " ".join(row["key"] for row in self.ROWS)
+        for absent in ("pinterest", "linkedin", "amazon"):
+            self.assertNotIn(absent, keys)
 
 
 if __name__ == "__main__":

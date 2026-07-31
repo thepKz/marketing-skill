@@ -242,6 +242,18 @@ python marketing-minthep/scripts/check_prompt_grammar.py --prompt-file prompt.tx
 
 `data/prompt-grammar.csv` có 69 dòng trên tám trục — cửa sổ encoder, negative prompt, chữ trong ảnh, seed, giữ nhân vật nhất quán, quyền sở hữu, quyền hình ảnh — mỗi dòng kèm đúng URL của nhà cung cấp và một cột ghi rõ dòng đó *không* chứng minh được điều gì. Năm trong chín họ mô hình không hề công bố trường negative prompt, nghĩa là gửi cho họ một câu loại trừ chính là đưa thứ cần loại trừ vào trong prompt. Checker tìm ra đúng lỗi đó trong compiler của repo này ngay lần chạy đầu: một brief yêu cầu *không có da nhựa* đang gửi chữ *da nhựa* sang FLUX. Hai loại giới hạn độ dài được giữ riêng có chủ đích, vì cửa sổ encoder âm thầm cắt mất phần đuôi còn giới hạn ký tự của API thì từ chối thẳng request. Mười một câu hỏi không nhà cung cấp nào trả lời được ghi lại thành khoảng trống chứ không điền cho đủ, và [`references/prompt-grammar.md`](marketing-minthep/references/prompt-grammar.md) liệt kê chín điều mà cả cái thể loại "tips viết prompt" trên mạng đang nói sai, trong đó có ba tham số không còn tồn tại ở phiên bản mà người ta vẫn dẫn.
 
+### "Tôi có một file. Nó đăng được ở đâu?"
+
+```powershell
+python marketing-minthep/scripts/check_channel_spec.py --survey --width 1080 --height 1920 --duration 22 --file-size 30MB --format mp4
+```
+
+> 7 vị trí nhận nguyên file. 17 vị trí từ chối.
+
+Quay một buổi, xuất một bản, đăng khắp nơi — gần như mọi asset của shop nhỏ ở Việt Nam đều làm vậy, và đó chính là chỗ tiền rơi. Cùng một bản 9:16 vừa vặn cho cả hai mặt Reels lại lệch 78% so với tỉ lệ 4:5 mà video trên Facebook Feed công bố, nên nền tảng tự crop và tự chọn cắt bên nào — với khung dọc thì một đầu là đĩa thức ăn, đầu kia là giá. Mười bảy vị trí từ chối mới là nửa đáng đọc: bốn mặt YouTube muốn 16:9, hai định dạng Google Display chặn ở 150KB và 600KB, còn năm vị trí là chỗ đăng ảnh tĩnh, không nhận mp4 ở bất kỳ dung lượng nào. `data/channel-specs.csv` giữ 24 vị trí đăng trên Meta, TikTok, Google Ads, YouTube và Google Merchant, mỗi dòng đóng dấu trang lấy số và ngày người đọc nó.
+
+Lý do phải là bảng chứ không phải một đoạn văn nằm ở chỗ các trang đó không nói giống nhau. Bốn vị trí của Meta công bố kích thước đề xuất và hạn mức chữ rồi hết — không trần dung lượng, không chiều rộng tối thiểu, không nói gì về sai số — trong khi video Facebook Reels ghi thẳng bằng chữ rằng không có giới hạn độ dài. Cả hai đều là "không có số", nhưng chỉ một trong hai là một dữ kiện. Checker không bao giờ cho đạt dựa trên sự im lặng: nó trả exit 3 và chỉ ra trang phải mở đọc. Instagram Feed muốn 4:5 cho ảnh và 9:16 cho video trên cùng một mặt, nên resize không thể phục vụ cả hai. Sàn 500x500 của Google Merchant bắt đầu từ 2027-01-31, nghĩa là một feed hôm nay đạt thì lúc đó trượt mà bên mình không đổi gì. Dòng nào quá chín mươi ngày sẽ chuyển sang cần đọc lại, và cái cược đó đã trả giá một lần: bài Shopee mà bản trước của unit này dẫn nguồn giờ trả về 404. [`references/channel-spec-registry.md`](marketing-minthep/references/channel-spec-registry.md).
+
 ### "Nên báo cáo con số nào, và có thật là đã đạt chưa?"
 
 ```powershell
@@ -352,16 +364,17 @@ marketing-minthep/
   SKILL.md                  điểm vào và bộ định tuyến, 186 dòng
   references/               63 file chủ đề, mỗi file dưới 150 dòng
     dossiers/               15 dossier craft chuyên sâu + index
-  data/                     33 bảng tra: image recipe, palette, layout dial,
+  data/                     34 bảng tra: image recipe, palette, layout dial,
                             slop tell, copy formula, translation tell và
                             ngôi xưng, reference axis, frame ratio,
                             composition grid, chỉ số KPI và trọng số, cổng
                             màu, look và chẩn đoán makeup, tham số nhân vật,
                             prompt grammar, bố cục sản phẩm, benchmark,
                             nguồn dữ liệu thị trường, nguồn bằng chứng khách
-                            hàng, nghĩa vụ theo vòng đời khách hàng, command
-                            artifact, các vai marketer Việt Nam
-  scripts/                  45 công cụ + bộ test
+                            hàng, nghĩa vụ theo vòng đời khách hàng, spec
+                            từng vị trí đăng, command artifact, các vai
+                            marketer Việt Nam
+  scripts/                  46 công cụ + bộ test
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json và khung deliverable
@@ -379,7 +392,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-549 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv`, test fail nếu một ví dụ copy chứa số in được, test fail nếu một cờ năng lực dẫn tới dòng nguồn không tồn tại, và test fail nếu một deliverable gọi tên một script không có trong repo. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
+565 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv`, test fail nếu một ví dụ copy chứa số in được, test fail nếu một cờ năng lực dẫn tới dòng nguồn không tồn tại, test fail nếu một lượt kiểm spec cho asset đạt trong khi trang của nền tảng chưa từng công bố con số đó, và test fail nếu một deliverable gọi tên một script không có trong repo. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
 
 ## Những gì skill không làm
 

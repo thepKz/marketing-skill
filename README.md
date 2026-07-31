@@ -242,6 +242,18 @@ python marketing-minthep/scripts/check_prompt_grammar.py --prompt-file prompt.tx
 
 `data/prompt-grammar.csv` carries 69 rows across eight axes — encoder window, negative prompt, in-image text, seeds, character consistency, ownership, likeness — each with the vendor URL behind it and a column stating what the row does *not* establish. Five of the nine model families document no negative-prompt field at all, which means sending them an exclusion puts the excluded thing into the prompt. The checker found that bug in this repository's own compiler on its first run: a brief asking for *no plastic skin* was sending the words *plastic skin* to FLUX. Two length limits are kept separate on purpose, because an encoder window silently deletes the tail while an API character limit rejects the request outright. Eleven questions no vendor answers are recorded as gaps rather than filled in, and [`references/prompt-grammar.md`](marketing-minthep/references/prompt-grammar.md) lists nine things the prompt-tips genre gets wrong, including three parameters that no longer exist on the version people cite them for.
 
+### "I have one file. Where can it actually go?"
+
+```powershell
+python marketing-minthep/scripts/check_channel_spec.py --survey --width 1080 --height 1920 --duration 22 --file-size 30MB --format mp4
+```
+
+> 7 placements take it untouched. 17 refuse it.
+
+One shoot, exported once, posted everywhere — that is how nearly every small-business asset here gets made, and it is where the money leaks. The same 9:16 cut that is right for both Reels surfaces is 78% off the 4:5 that Facebook Feed video documents, so the platform crops it and picks the edges itself, which on a vertical frame means the plate at one end and the price at the other. The seventeen refusals are the more useful half of that answer: four YouTube surfaces want 16:9, two Google Display formats stop at 150KB and 600KB, and five are still surfaces that will not take an mp4 at any size. `data/channel-specs.csv` holds 24 placements across Meta, TikTok, Google Ads, YouTube and Google Merchant, each row stamped with the page it came off and the day somebody read it.
+
+The reason it is a table and not a paragraph is what the pages disagree about. Four Meta placements publish a recommended size and a copy budget and then no technical block at all — no file ceiling, no minimum width, nothing on tolerance — while Facebook Reels video says in words that there is no maximum length. Both are "no number", and only one of them is a fact. The checker never returns a pass against silence; it returns exit 3 and names the page. Instagram Feed wants 4:5 for the still and 9:16 for the video on the same surface, so a resize cannot serve both. Google Merchant's 500x500 floor starts on 2027-01-31, which means a feed that passes today fails then with no change on your side. Rows go to review after ninety days, and that bet has already paid once: the Shopee article an earlier version of this unit cited now returns 404. [`references/channel-spec-registry.md`](marketing-minthep/references/channel-spec-registry.md).
+
 ### "Which numbers should I report, and did we actually hit them?"
 
 ```powershell
@@ -352,7 +364,7 @@ marketing-minthep/
   SKILL.md                  entry point and router, 186 lines
   references/               63 topic files, each under 150 lines
     dossiers/               15 deep-craft dossiers + index
-  data/                     33 lookup tables: image recipes, palettes, layout
+  data/                     34 lookup tables: image recipes, palettes, layout
                             dials, slop tells, copy formulas, translation and
                             address-register tells, reference axes, frame
                             ratios, composition grids, KPI metrics and aspect
@@ -360,8 +372,9 @@ marketing-minthep/
                             diagnostics, person parameters, prompt grammar,
                             product compositions, benchmarks, market-data
                             sources, customer-evidence sources, lifecycle
-                            duties, command artifacts, VN marketer roles
-  scripts/                  45 tools + test suite
+                            duties, channel specs, command artifacts, VN
+                            marketer roles
+  scripts/                  46 tools + test suite
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json and deliverable skeletons
@@ -379,7 +392,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-549 tests, including ones that recompute every contrast ratio in `data/palettes.csv`, fail if a copy example contains a printable number, fail if a capability flag cites a source row that does not exist, and fail if a deliverable names a script that is not in the repository. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
+565 tests, including ones that recompute every contrast ratio in `data/palettes.csv`, fail if a copy example contains a printable number, fail if a capability flag cites a source row that does not exist, fail if any placement check clears an asset against a figure the vendor page never published, and fail if a deliverable names a script that is not in the repository. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
 
 ## What it will not do
 

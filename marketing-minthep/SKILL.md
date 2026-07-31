@@ -59,7 +59,7 @@ Load only what the decision needs.
 | Need | Load |
 |---|---|
 | Product or business-model guidance | `product-category-playbooks.md` |
-| Current placement or export specs | `channel-spec-registry.md` plus the live official source |
+| Current placement or export specs | `channel-spec-registry.md`, `data/channel-specs.csv`, `scripts/check_channel_spec.py` |
 | Reference images of a product or person | `reference-first-image-flow.md`, `reference-analysis.md`, `prompt-contracts.md` |
 | Studio and product photography | `realistic-studio-imagery.md`, `product-imagery.md` |
 | Composition, light, shadow, colour, resolution, sharpening | `visual-craft.md`, `composition-light-color.md`, `image-output-and-sharpening.md` |
