@@ -326,15 +326,16 @@ marketing-minthep/
   SKILL.md                  entry point and router, 173 lines
   references/               61 topic files, each under 150 lines
     dossiers/               15 deep-craft dossiers + index
-  data/                     25 lookup tables: image recipes, palettes, layout
+  data/                     26 lookup tables: image recipes, palettes, layout
                             dials, slop tells, copy formulas, translation and
                             address-register tells, reference axes, frame
                             ratios, composition grids, KPI metrics and aspect
                             weights, colour gates, makeup looks and
                             diagnostics, person parameters, prompt grammar,
                             product compositions, benchmarks, market-data
-                            sources, command artifacts, VN marketer roles
-  scripts/                  38 tools + test suite
+                            sources, customer-evidence sources, command
+                            artifacts, VN marketer roles
+  scripts/                  39 tools + test suite
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json and deliverable skeletons
@@ -352,7 +353,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-368 tests, including ones that recompute every contrast ratio in `data/palettes.csv`, fail if a copy example contains a printable number, fail if a capability flag cites a source row that does not exist, and fail if a deliverable names a script that is not in the repository. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
+385 tests, including ones that recompute every contrast ratio in `data/palettes.csv`, fail if a copy example contains a printable number, fail if a capability flag cites a source row that does not exist, and fail if a deliverable names a script that is not in the repository. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
 
 ## What it will not do
 

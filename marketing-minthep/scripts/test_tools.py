@@ -28,6 +28,7 @@ from compile_prompt import compile_provider
 # Imported as modules, not names: both define PLACEMENTS, and `from ... import PLACEMENTS` twice
 # would leave one test silently asserting against the other module's table.
 import check_address_register
+import check_evidence_saturation
 import check_prompt_grammar
 import check_test_readout
 import price_offer
@@ -1460,6 +1461,7 @@ class DataTableTests(unittest.TestCase):
         "address-registers.csv": (25, 15),
         "prompt-grammar.csv": (69, 9),
         "reference-set-calibration.csv": (11, 10),
+        "evidence-sources.csv": (20, 12),
     }
 
     # Most of these tables are keyed by their first column. The weights table is keyed by two, and
@@ -5091,6 +5093,319 @@ class CompositionSetTests(unittest.TestCase):
         for slot in self.slots:
             with self.subTest(slot["slot_id"]):
                 self.assertNotIn("shopee", slot["source"].lower())
+
+
+class CustomerEvidenceTests(unittest.TestCase):
+    """The unit exists to stop two sentences, and these tests exist to stop the unit relaxing.
+
+    "We talked to customers and they said X" and "sixty percent of customers want X" are both
+    written by honest people, and both survive review because the denominator was never recorded.
+    `check_evidence_saturation.py` refuses them arithmetically: no `denied` row for a theme means no
+    share is printed at all, and a share whose interval is wider than twenty points is returned as a
+    direction. Those two refusals are the whole value of the script, and both are easy to soften
+    later by somebody who wants a percentage for a slide - so each has a test below built on a file
+    written for the purpose rather than on the shipped example, which could be edited to agree.
+
+    The remaining tests hold the reference to the script. A prose file quoting a floor of twelve
+    beside a script that fires at ten is worse than either alone: the reader trusts the number they
+    read and the tool grades on a different one.
+    """
+
+    REFERENCE = "customer-evidence.md"
+    TABLE = "evidence-sources.csv"
+    EXAMPLE = "customer-evidence-coded.csv"
+
+    # The nine gates, spelled out rather than read from the script, because a test that derives its
+    # expectations from the code under test passes on a gate that has been deleted.
+    GATES = ("provenance-recorded", "known-source", "input-vocabulary", "disconfirmation-recorded",
+             "code-saturation", "source-headcount", "share-precision", "triangulated",
+             "stored-quote-rights")
+
+    # The reference sets its numbers in words, because a sentence reading "12 is the floor" in the
+    # middle of an argument is a different register from the rest of the file. That is a formatting
+    # choice, and it must not become a way for the prose and the script to disagree unnoticed - so
+    # each script constant is paired with the words the reference is required to use for it.
+    IN_WORDS = {"CODE_SATURATION_MIN": "twelve", "MEANING_SATURATION_MIN": "sixteen"}
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.rows = {row["source_id"]: row for row in DataTableTests.rows(cls.TABLE)}
+        cls.prose = (SKILL_ROOT / "references" / cls.REFERENCE).read_text(encoding="utf-8")
+        cls.flat = " ".join(cls.prose.split())
+        cls.example = SKILL_ROOT / "assets" / "examples" / cls.EXAMPLE
+        cls.report = check_evidence_saturation.check(cls.example)
+
+    @staticmethod
+    def coded(rows: list[dict[str, str]]) -> Path:
+        """Write a coded file for one assertion. Returns a path inside a temporary directory that
+        the caller does not have to clean up, because the file is small and the process is short."""
+        columns = list(rows[0])
+        handle = tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False,
+                                             encoding="utf-8", newline="")
+        with handle:
+            writer = csv.DictWriter(handle, fieldnames=columns, lineterminator="\n")
+            writer.writeheader()
+            writer.writerows(rows)
+        return Path(handle.name)
+
+    @staticmethod
+    def row(rid: str, sequence: int, code: str, stance: str, **extra: str) -> dict[str, str]:
+        base = {"respondent_id": rid, "sequence": str(sequence), "source_id": "switch-interviews",
+                "code": code, "stance": stance, "intensity": "emphasised",
+                "provenance": "2026-06-01 test"}
+        base.update(extra)
+        return base
+
+    def test_the_gate_names_and_statuses_are_the_shared_vocabulary(self) -> None:
+        """Fourth unit to use the four-status vocabulary. A fifth status, or a gate that quietly
+        stops being emitted, would make a `passed` verdict mean less than the last unit's."""
+        emitted = [gate["gate"] for gate in self.report["gates"]]
+        self.assertEqual(tuple(emitted), self.GATES, "a gate was added, renamed or dropped")
+        for gate in self.report["gates"]:
+            with self.subTest(gate=gate["gate"]):
+                self.assertIn(gate["status"], {"passed", "failed", "review", "skipped"})
+                self.assertTrue(gate["detail"].strip(), "a gate returned no reason")
+
+    def test_a_theme_nobody_denied_gets_a_count_and_no_share(self) -> None:
+        """The defect this unit was built for. Five people raised it out of five people who raised
+        it is a hundred percent and no information, and the arithmetic of that theme is otherwise
+        indistinguishable from a well-supported one. So the share must be absent, not small."""
+        rows = [self.row(f"r{i:02d}", i, "unanimous", "raised") for i in range(1, 6)]
+        report = check_evidence_saturation.check(self.coded(rows))
+        theme = next(t for t in report["themes"] if t["code"] == "unanimous")
+        self.assertEqual(theme["verdict"], "counted-only")
+        self.assertIsNone(theme["interval"], "a share was printed with no denominator behind it")
+        self.assertIsNone(theme["share_of_asked"])
+        gate = next(g for g in report["gates"] if g["gate"] == "disconfirmation-recorded")
+        self.assertEqual(gate["status"], "failed")
+
+    def test_recording_the_denial_is_what_turns_a_count_into_a_share(self) -> None:
+        """The other half of the test above, and the reason the fix is a column rather than a
+        warning: the same theme becomes reportable the moment somebody is recorded saying no."""
+        rows = [self.row(f"r{i:02d}", i, "asked-both-ways", "raised") for i in range(1, 6)]
+        rows.append(self.row("r06", 6, "asked-both-ways", "denied"))
+        report = check_evidence_saturation.check(self.coded(rows))
+        theme = next(t for t in report["themes"] if t["code"] == "asked-both-ways")
+        self.assertIsNotNone(theme["interval"])
+        self.assertEqual(theme["asked"], 6)
+
+    def test_a_wide_interval_is_never_returned_as_a_percentage(self) -> None:
+        """Six of eight is seventy-five percent and also anywhere from forty-one to ninety-three,
+        which is a direction. The gate has to say so rather than rounding it into a finding."""
+        rows = [self.row(f"r{i:02d}", i, "loud", "raised") for i in range(1, 7)]
+        rows += [self.row(f"r{i:02d}", i, "loud", "denied") for i in range(7, 9)]
+        report = check_evidence_saturation.check(self.coded(rows))
+        theme = next(t for t in report["themes"] if t["code"] == "loud")
+        self.assertEqual(theme["verdict"], "share-too-wide")
+        self.assertGreater(theme["interval_width"], check_evidence_saturation.MAX_INTERVAL_WIDTH)
+        gate = next(g for g in report["gates"] if g["gate"] == "share-precision")
+        self.assertEqual(gate["status"], "review")
+
+    def test_a_stored_quote_from_an_unquotable_source_fails_the_rights_gate(self) -> None:
+        """The same rule that keeps the reference set out of this repository, applied to words: the
+        platform's terms licence the platform, and a support ticket is not ours to republish. The
+        practice is a pointer, and this gate is what makes the practice enforceable."""
+        unquotable = [sid for sid, row in self.rows.items() if row["quotable_publicly"] == "no"]
+        self.assertTrue(unquotable, "no source is marked unquotable, so the gate guards nothing")
+        rows = [self.row("r01", 1, "leaked", "raised", source_id=unquotable[0],
+                         verbatim="the actual words the customer typed"),
+                self.row("r02", 2, "leaked", "denied", source_id=unquotable[0], verbatim="")]
+        report = check_evidence_saturation.check(self.coded(rows))
+        gate = next(g for g in report["gates"] if g["gate"] == "stored-quote-rights")
+        self.assertEqual(gate["status"], "failed")
+        self.assertIn(unquotable[0], gate["detail"])
+
+    def test_the_curve_follows_collection_order_and_not_the_id_column(self) -> None:
+        """`sequence` is the load-bearing column and it looks decorative. Saturation is a statement
+        about the order you heard things in, so a file written out of order has to produce the same
+        curve as the same file sorted - and sorting by respondent id has to be able to change it,
+        which is why the ids here run backwards against the sequence."""
+        forwards = [self.row("r09", 1, "first", "raised"),
+                    self.row("r05", 2, "second", "raised"),
+                    self.row("r01", 3, "third", "raised")]
+        shuffled = [forwards[1], forwards[2], forwards[0]]
+        first = check_evidence_saturation.saturation(forwards)
+        second = check_evidence_saturation.saturation(shuffled)
+        self.assertEqual(first["curve"], second["curve"], "row order changed the curve")
+        self.assertEqual([step["respondent_id"] for step in first["curve"]], ["r09", "r05", "r01"])
+
+    def test_the_floor_column_states_the_number_its_prose_states(self) -> None:
+        """`minimum_before_a_theme_counts` is for a reader and `theme_floor` is for the script, and
+        the moment they disagree one of them is lying to somebody. The sources whose floor is set by
+        the width of an interval rather than a headcount say so in the machine column instead of
+        guessing a number a parser would then treat as real."""
+        for source_id, row in self.rows.items():
+            with self.subTest(source_id=source_id):
+                floor = row["theme_floor"]
+                if floor.isdigit():
+                    self.assertIn(floor, row["minimum_before_a_theme_counts"],
+                                  "the floor is not the number the prose gives the reader")
+                else:
+                    self.assertEqual(floor, "interval-not-a-count")
+
+    def test_every_source_names_a_blindness_that_is_not_a_shrug(self) -> None:
+        """The table's whole claim is that each source is blind in a specific and predictable
+        direction. A cell reading "various limitations" would satisfy a non-empty check and teach
+        nobody which second source to go and find."""
+        for source_id, row in self.rows.items():
+            with self.subTest(source_id=source_id):
+                for column in ("what_it_cannot_see", "what_it_does_not_establish"):
+                    cell = row[column]
+                    self.assertGreater(len(cell.split()), 6, f"{column} is too short to be a fact")
+                    self.assertNotRegex(cell.lower(), r"^(various|many|several|some) ",
+                                        f"{column} is a shrug")
+
+    # The sources the reference argues about by name. It deliberately does not paragraph all twenty -
+    # that would be the table copied into prose, which this skill's own "look it up, do not recall it"
+    # rule exists to prevent. These seven are the ones whose blindness a reader has to know before
+    # choosing a source at all, so they are named by id and checked here.
+    DISCUSSED = ("public-reviews-own", "support-tickets", "search-and-site-queries",
+                 "behaviour-analytics", "own-social-comments", "chat-and-dm-transcripts",
+                 "competitor-review-mining")
+
+    def test_the_reference_names_its_sources_by_id_and_invents_none(self) -> None:
+        """Checked in the direction that can actually go wrong. The reference is not required to
+        paragraph every row, but every id it does cite has to exist - a renamed source leaves prose
+        pointing at a `--query` that returns nothing, which is worse than prose that never pointed.
+        And the seven whose blindness decides which source to use have to be named, not paraphrased,
+        because "reviews are J-shaped" is not something a reader can look up."""
+        for source_id in self.DISCUSSED:
+            with self.subTest(source_id=source_id):
+                self.assertIn(source_id, self.rows, "a discussed source left the table")
+                self.assertIn(f"`{source_id}`", self.flat, "discussed but not named as an id")
+        # Every other hyphenated code the reference sets in backticks. Three kinds exist and all
+        # three can go stale: a source id, a value the script emits, and a theme from the shipped
+        # example. The example's codes are read from the file rather than listed, because that is the
+        # pairing that rots - the walkthrough discusses a theme and somebody re-authors the example.
+        vocabulary = (set(self.rows)
+                      | {gate["gate"] for gate in self.report["gates"]}
+                      | {theme["code"] for theme in self.report["themes"]}
+                      | {flag for theme in self.report["themes"] for flag in theme["flags"]}
+                      | {theme["verdict"] for theme in self.report["themes"]}
+                      | {row["quotable_publicly"] for row in self.rows.values()}
+                      | {row["theme_floor"] for row in self.rows.values()})
+        for token in set(re.findall(r"`([a-z]+(?:-[a-z]+){2,})`", self.prose)) - vocabulary:
+            with self.subTest(token=token):
+                self.fail(f"{token} looks like an id and names nothing that exists")
+        self.assertIn("--sources", self.flat, "the reference does not say how to read the other rows")
+
+    def test_the_reference_quotes_the_scripts_numbers_and_not_its_own(self) -> None:
+        """The failure this catches is a reference that ages: somebody tunes a constant, the tests
+        still pass because they read the constant, and the prose keeps quoting last month's floor."""
+        for name, word in self.IN_WORDS.items():
+            with self.subTest(constant=name):
+                self.assertIn(word, self.flat.lower(),
+                              f"{name} is {getattr(check_evidence_saturation, name)} "
+                              f"and the reference does not say so")
+        # The result that removes a genre of slide, recomputed here rather than quoted: a share near
+        # a half needs this many people before its interval is narrow enough to be called a number.
+        twenty_points = check_evidence_saturation.respondents_needed(0.5, 0.20)
+        ten_points = check_evidence_saturation.respondents_needed(0.5, 0.10)
+        self.assertEqual(twenty_points, 93)
+        self.assertEqual(ten_points, 381)
+        self.assertIn("ninety-three", self.flat.lower(),
+                      "the headline number is not in the reference")
+        self.assertIn("three hundred and eighty-one", self.flat.lower())
+        self.assertIn("A qualitative study cannot produce a percentage", self.flat)
+
+    def test_the_wilson_interval_stays_inside_the_unit_square(self) -> None:
+        """The reason this script does not use the textbook interval. At n=5 and p=1 the normal
+        approximation returns an upper bound of exactly 1 and a width of zero, which is where
+        customer research actually lives - small n, shares against the edge."""
+        for total in range(1, 40):
+            for successes in (0, 1, total - 1, total):
+                if successes < 0:
+                    continue
+                low, high = check_evidence_saturation.wilson(successes, total)
+                with self.subTest(successes=successes, total=total):
+                    self.assertGreaterEqual(low, 0.0)
+                    self.assertLessEqual(high, 1.0)
+                    self.assertLess(low, high, "a degenerate interval claims certainty")
+
+    def test_the_shipped_example_closes_its_themes_and_licenses_no_percentage(self) -> None:
+        """The example is the argument in one file: eighteen respondents is ample for closing a
+        theme list and buys not one reportable share. If a future edit produces a quotable
+        percentage at n=18, the reference's central claim is false and this test says so."""
+        self.assertEqual(self.report["verdict"], "review")
+        self.assertEqual(self.report["saturation"]["respondents"], 18)
+        self.assertEqual(self.report["saturation"]["codes"], 11)
+        saturated = next(g for g in self.report["gates"] if g["gate"] == "code-saturation")
+        self.assertEqual(saturated["status"], "passed")
+        self.assertEqual(self.report["saturation"]["new_codes_in_last_three"], 0)
+        reportable = [t["code"] for t in self.report["themes"] if t["verdict"] == "reportable"]
+        self.assertEqual(reportable, [], "a qualitative sample produced a quotable share")
+
+    def test_the_example_walkthrough_describes_the_output_it_claims_to(self) -> None:
+        """The reference reads the example for the reader, naming two themes and what each licenses.
+        Those two sentences are the unit's worked example, and a drifted example makes them fiction."""
+        themes = {theme["code"]: theme for theme in self.report["themes"]}
+        counterfeit = themes["worried-about-counterfeit"]
+        self.assertIn("common-but-passing", counterfeit["flags"])
+        self.assertEqual(counterfeit["affirmed"], 10)
+        self.assertEqual(counterfeit["blocking"], 2)
+        invoice = themes["no-vat-invoice"]
+        self.assertIn("rare-but-blocking", invoice["flags"])
+        self.assertEqual((invoice["affirmed"], invoice["denied"]), (1, 6))
+        self.assertIn("ten of eighteen", self.flat)
+        self.assertIn("six people were asked and said it was irrelevant", self.flat)
+        # The theme that leaves this unit for another one. Both ends have to exist for the handoff
+        # to be real: the finding here, and the rule it triggers over there.
+        discount = themes["waited-for-livestream-discount"]
+        self.assertEqual((discount["affirmed"], discount["asked"]), (6, 7))
+        lifecycle = (SKILL_ROOT / "references" / "lifecycle-retention.md").read_text(
+            encoding="utf-8")
+        self.assertIn("lifecycle-retention.md", self.flat)
+        self.assertIn("Diagnose before discounting", lifecycle)
+
+    def test_the_verbatim_column_of_the_example_holds_pointers_and_not_words(self) -> None:
+        """The example has to demonstrate the practice, not just describe it. A quote stored here
+        would teach the pattern the rights gate exists to fail, and it would ship customer text in
+        a public repository - which is the same decision that keeps the photographs out."""
+        rows = list(csv.DictReader(io.StringIO(self.example.read_text(encoding="utf-8"))))
+        for row in rows:
+            with self.subTest(row["respondent_id"]):
+                self.assertRegex(row["verbatim_ref"],
+                                 r"(?i)^(rec/|zalo thread|ticket|return|shopee)",
+                                 "the verbatim column holds text instead of a locator")
+
+    def test_the_unit_states_what_it_cannot_do_before_it_hands_off(self) -> None:
+        """Every reference in this skill that grades evidence carries this section, and here it is
+        load-bearing: the gates can all pass on a study built from leading questions, and nothing in
+        the script inspects the questionnaire. A reader who does not know that trusts a clean run."""
+        self.assertIn("## What this unit cannot do", self.prose)
+        limits = self.prose.split("## What this unit cannot do")[1].split("## ")[0]
+        self.assertGreaterEqual(len([line for line in limits.splitlines()
+                                     if line.startswith("- ")]), 6)
+        for admission in ("leading question", "non-responders", "counterfactual"):
+            with self.subTest(admission=admission):
+                self.assertIn(admission, " ".join(limits.split()))
+        # The handoff the old five-line version got right, and the only thing worth keeping from it.
+        handoff = self.prose.split("## The handoff")[1]
+        for item in ("beachhead", "job to be done", "awareness stage", "evidence gap"):
+            with self.subTest(item=item):
+                self.assertIn(item, " ".join(handoff.split()))
+
+    def test_the_unit_is_reachable_from_the_router_and_the_lookup(self) -> None:
+        """A mandatory module of the `deep-research` pipeline that no overlay routes to is how this
+        file spent its first version at five lines: named in a pipeline, described nowhere."""
+        router = (SKILL_ROOT / "references" / "marketing-system-router.md").read_text(
+            encoding="utf-8")
+        self.assertIn(self.REFERENCE, router)
+        self.assertIn(self.TABLE, router)
+        self.assertIn("check_evidence_saturation.py", router)
+        table, key, searched = find_recipe.TABLES["evidence"]
+        self.assertEqual((table, key), (self.TABLE, "source_id"))
+        header = next(iter(self.rows.values()))
+        for column in searched:
+            with self.subTest(column=column):
+                self.assertIn(column, header, "the lookup searches a column that does not exist")
+
+    def test_the_self_check_passes(self) -> None:
+        """The script's own assertions, run in the suite rather than only by hand, because a
+        `--self-check` nobody runs is documentation."""
+        report = check_evidence_saturation.self_check()
+        self.assertIn("passed", report.lower())
+        self.assertNotIn("FAIL", report)
 
 
 if __name__ == "__main__":

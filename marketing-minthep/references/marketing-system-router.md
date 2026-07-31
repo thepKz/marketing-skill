@@ -82,6 +82,11 @@ Load only when relevant:
   Load this before writing or localising any Vietnamese copy. Vietnamese has no neutral second
   person, so the choice is grammar, not tone, and a translated draft re-invents it every sentence.
 - Where a number came from and what it actually measures: `market-data-collection.md`.
+- Which customer source can answer the question you actually have, how many people a theme needs before
+  it is a theme, and whether a share may be spoken out loud: `customer-evidence.md` plus
+  `data/evidence-sources.csv` and `scripts/check_evidence_saturation.py`. Load this before quoting any
+  percentage taken from interviews, reviews, tickets or chat threads, and before writing "customers
+  said" - twenty interviews close a theme list and license no percentage at all.
 - How real organisations run marketing, what the largest advertisers disclose, and which benchmark may be
   quoted at whom: `how-companies-market.md` plus `data/marketing-benchmarks.csv`. Load this before
   answering "how much should we spend" or "how do companies like us do this".

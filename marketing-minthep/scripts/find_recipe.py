@@ -67,6 +67,13 @@ TABLES = {
     # ask next, not which q_id to look up.
     "makeup_ask": ("makeup-diagnostics.csv", "q_id",
                    ("question_vi", "question_en", "look_where", "why_it_matters")),
+    # Searched by what the person wants to learn rather than by source name, because the question
+    # arrives as "how do I find out why they are not coming back" and not as "which of my twenty
+    # sources is J-shaped". what_it_cannot_see is in the search set on purpose: somebody who searches
+    # "prevalence" or "how many" should land on the sources that structurally cannot tell them.
+    "evidence": ("evidence-sources.csv", "source_id",
+                 ("what_it_is", "who_it_over_represents", "what_it_cannot_see",
+                  "strongest_claim_it_supports")),
 }
 
 # The fields of a brief that no lookup table can supply, with the reason each one has to come from
