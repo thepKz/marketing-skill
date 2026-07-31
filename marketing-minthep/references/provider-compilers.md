@@ -73,8 +73,9 @@ Best fit: visual exploration, mood, composition variation, and concept lanes.
 
 - Compress the master prompt into ordered visual phrases.
 - Put subject, scene, composition, and material before mood adjectives.
-- Keep negative constraints short and concrete.
-- Append current aspect-ratio and style controls only after checking live syntax.
+- There is no negative-prompt field. Exclusions go through parameter syntax that has changed between versions, so return them as a reject checklist for the person reviewing the render rather than as prompt text.
+- Append current aspect-ratio and style controls only after checking live syntax. `--cref` and `--cw` are V6-only, `--oref` and `--ow` V7-only, and neither works on the current default version - see `prompt-grammar.md`.
+- Rendered text needs double quotation marks; single quotes and apostrophes do not trigger text at all, and the documented range is the standard Latin alphabet, which leaves Vietnamese diacritics untested.
 - Do not rely on Midjourney for exact packaging text or identity-critical edits without verified workflows.
 
 Output form: compact single-line prompt plus a separate lock and caveat note.
@@ -88,8 +89,9 @@ Best fit: controlled photorealism, local or hosted workflows, and pipelines that
 - Avoid overlong poetic clauses.
 - Keep text requirements exact and isolated.
 - Record model/version because Flux variants differ materially.
+- FLUX.2 documents no negative-prompt support. Express an exclusion as what should occupy that part of the frame instead, and keep the rejection criteria out of the prompt.
 
-Output form: concise positive prompt, negative prompt if supported, and implementation notes.
+Output form: concise positive prompt, a reject checklist that is explicitly not part of the prompt, and implementation notes.
 
 ## Ideogram
 
@@ -127,9 +129,9 @@ Return:
 
 1. Provider and verified capability date.
 2. Compiled prompt.
-3. Negative constraints.
+3. Negative constraints, as a negative prompt only where the provider documents that field, and otherwise as a reject checklist labelled as not part of the prompt. Five of the nine families here have no such field, and sending exclusions to them as prompt text puts the thing you are excluding into the prompt.
 4. Required inputs and locks.
 5. Provider-specific caveats.
 6. Manual finishing steps.
 
-Use `scripts/compile_prompt.py` for deterministic adaptation of a JSON brief.
+Use `scripts/compile_prompt.py` for deterministic adaptation of a JSON brief, then `scripts/check_prompt_grammar.py --prompt-file … --provider …` on what it emits. `prompt-grammar.md` and `data/prompt-grammar.csv` carry the URL behind every capability claim on this page, plus the eleven questions no provider answers.

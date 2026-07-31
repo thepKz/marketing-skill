@@ -278,11 +278,60 @@ def master_prompt(record: dict) -> str:
     return "\n".join(lines)
 
 
+# Which providers document somewhere to put exclusions. Where there is none, the DO NOT
+# section of the master prompt is not a separate channel - it is sent as prompt content,
+# so the model reads the words the brief was trying to keep out of the frame. Sources:
+# data/prompt-grammar.csv rows flux2-no-negative, openai-no-negative,
+# gemini-semantic-negative and midjourney-cref-dead. Checked by
+# scripts/check_prompt_grammar.py, which is what found this branch emitting a NEGATIVE
+# PROMPT heading to a provider whose documentation says the field does not exist.
+NO_NEGATIVE_CHANNEL = (
+    "openai",
+    "gpt-image-2",
+    "nano-banana-2-lite",
+    "nano-banana-2",
+    "nano-banana-pro",
+    "midjourney",
+    "flux",
+)
+
+NEGATIVE_MARKER = "\nDO NOT\n"
+
+
+def split_negatives(master: str) -> tuple:
+    """Separate the prompt from its exclusion list.
+
+    The exclusions still matter. They are just not something to say out loud to a model
+    with no field for them, so they come back as an inspection list for the person
+    looking at the render.
+    """
+    if NEGATIVE_MARKER not in master:
+        return master, ""
+    positive, negatives = master.split(NEGATIVE_MARKER, 1)
+    return positive.rstrip(), negatives.strip()
+
+
+def reject_checklist(negatives: str) -> str:
+    if not negatives:
+        return ""
+    return ("\n\nREJECT CHECKLIST - NOT PART OF THE PROMPT\n"
+            "This provider documents no negative-prompt field, so these are inspection "
+            "criteria rather than instructions. Reject the render if any of them is present, "
+            "and where one keeps recurring, describe what should occupy that part of the frame "
+            "instead of naming what should not.\n" + negatives)
+
+
 def compile_provider(record: dict, provider: str) -> str:
     master = master_prompt(record)
+    # generic is read by a person, so it keeps its DO NOT section intact.
+    if provider in NO_NEGATIVE_CHANNEL:
+        master, negatives = split_negatives(master)
+        tail = reject_checklist(negatives)
+    else:
+        tail = ""
     if provider in ("generic", "openai", "gpt-image-2"):
         prefix = "PROVIDER: GPT IMAGE 2\nMODEL: gpt-image-2\n" if provider != "generic" else "PROVIDER: GENERIC\n"
-        return prefix + master
+        return prefix + master + tail
 
     if provider in ("nano-banana-2-lite", "nano-banana-2", "nano-banana-pro"):
         models = {
@@ -295,6 +344,7 @@ def compile_provider(record: dict, provider: str) -> str:
             + master
             + "\n\nEXECUTION: Send role-labeled image inputs with the canonical prompt. "
             "For exploration variants, start independent interactions; use previous_interaction_id only for the selected refinement branch."
+            + tail
         )
 
     flat = " ".join(line.strip() for line in master.splitlines() if line.strip())
@@ -302,15 +352,21 @@ def compile_provider(record: dict, provider: str) -> str:
         return (
             "PROVIDER: MIDJOURNEY\n"
             + flat
-            + "\n\nCAVEAT: Add current aspect-ratio and style parameters only after checking live Midjourney syntax. Do not rely on generated packaging text."
+            + "\n\nCAVEAT: Add current aspect-ratio and style parameters only after checking live "
+            "Midjourney syntax. Parameters have been removed between versions and --cref is one of "
+            "them, so a parameter from a tutorial is not evidence it still runs. Put any text to be "
+            "rendered inside double quotation marks; single quotes do not trigger text generation. "
+            "Do not rely on generated packaging text."
+            + tail
         )
     if provider == "flux":
         return (
-            "PROVIDER: FLUX\nPOSITIVE PROMPT\n"
+            "PROVIDER: FLUX\n"
             + flat
-            + "\n\nNEGATIVE PROMPT\n"
-            + value(record, "negative_constraints", "product drift, fake text, plastic skin, anatomy errors, impossible shadows")
-            + "\n\nCAVEAT: Record the exact Flux model and host because controls vary."
+            + "\n\nCAVEAT: Record the exact Flux model and host because controls vary. There is no "
+            "negative-prompt block here on purpose: FLUX.2 documents no support for one, so sending "
+            "exclusions would put the words you are excluding into the prompt itself."
+            + tail
         )
     if provider == "ideogram":
         return (

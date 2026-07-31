@@ -27,6 +27,7 @@ from compile_prompt import compile_provider
 # Imported as modules, not names: both define PLACEMENTS, and `from ... import PLACEMENTS` twice
 # would leave one test silently asserting against the other module's table.
 import check_address_register
+import check_prompt_grammar
 import check_test_readout
 import price_offer
 import check_specificity
@@ -1329,6 +1330,7 @@ class DataTableTests(unittest.TestCase):
         "vn-marketer-roles.csv": (13, 11),
         "product-compositions.csv": (18, 18),
         "address-registers.csv": (25, 15),
+        "prompt-grammar.csv": (69, 9),
     }
 
     # Most of these tables are keyed by their first column. The weights table is keyed by two, and
@@ -4011,6 +4013,166 @@ class TestReadoutTests(unittest.TestCase):
         self.assertIn("check_test_readout.py", text)
         self.assertIn("--plan", text)
         self.assertIn("--claim", text)
+
+
+class PromptGrammarTests(unittest.TestCase):
+    """Every capability flag in the checker has to be traceable to a row somebody read.
+
+    The unit exists because the internet's prompt advice is written as if one grammar covered every
+    provider, and the vendor pages disagree with it in nine specific places. The risk in encoding that
+    is drift: a flag gets edited to match a newer memory and the row it cites stops saying so. These
+    tests pin the direction rather than the wording - a flag must resolve to a row, a recorded gap must
+    not be dressed up as a value, and the skill's own compiler must pass the checker, because the first
+    thing the checker did was fail it."""
+
+    def test_self_check_passes(self) -> None:
+        report = check_prompt_grammar.self_check()
+        self.assertTrue(report.rstrip().endswith("verdict passed"), report)
+        self.assertNotIn("FAIL", report)
+
+    def test_every_family_flag_cites_a_row_that_exists(self) -> None:
+        # build() already raises on a missing id, but only for the family being checked. This walks
+        # all nine, so an unreachable family cannot carry a dangling citation indefinitely.
+        facts = check_prompt_grammar.load_facts()
+        for family in check_prompt_grammar.FAMILIES:
+            for fact_id in family.facts():
+                with self.subTest(family=family.name, fact_id=fact_id):
+                    self.assertIn(fact_id, facts,
+                                  f"{family.name} cites {fact_id}, which is not in prompt-grammar.csv")
+
+    def test_a_recorded_gap_is_never_cited_as_a_capability_value(self) -> None:
+        """A row graded no-primary-source records that nobody publishes the answer. Reading one as a
+        number or a field would turn "we could not find this" into "we checked and it is fine"."""
+        facts = check_prompt_grammar.load_facts()
+        for family in check_prompt_grammar.FAMILIES:
+            for attr, fact_attr in (("token_window", "window_fact"),
+                                    ("prompt_char_limit", "char_limit_fact"),
+                                    ("text_char_limit", "text_fact")):
+                fact_id = getattr(family, fact_attr)
+                if fact_id is None or getattr(family, attr) is None:
+                    continue
+                with self.subTest(family=family.name, fact_id=fact_id):
+                    self.assertNotEqual(
+                        facts[fact_id]["evidence_grade"], "no-primary-source",
+                        f"{family.name}.{attr} is a number sourced from a row that records "
+                        f"the absence of a source")
+
+    def test_an_unpublished_value_is_review_and_never_passed(self) -> None:
+        # The whole point of the third exit code. FLUX publishes no token window, so a short prompt
+        # is unsettled rather than cleared, and nothing in the report may claim otherwise.
+        gates = {g["gate"]: g for g in check_prompt_grammar.build("a glass bottle", "flux")["gates"]}
+        self.assertEqual(gates["prompt-window"]["status"], "review")
+        self.assertEqual(gates["prompt-character-limit"]["status"], "skipped")
+
+    def test_a_negative_block_fails_on_a_family_with_no_such_field(self) -> None:
+        """This is the regression that started the unit. FLUX documents no negative-prompt support, so
+        a NEGATIVE PROMPT heading is not an unused feature - it is the excluded thing entering the
+        prompt as content."""
+        report = check_prompt_grammar.build(
+            "A glass bottle on stone.\n\nNEGATIVE PROMPT\nplastic skin, extra fingers", "flux")
+        gate = [g for g in report["gates"] if g["gate"] == "negative-prompt-field"][0]
+        self.assertEqual(gate["status"], "failed")
+        self.assertEqual(gate["fact_id"], "flux2-no-negative")
+        self.assertEqual(report["verdict"]["status"], "failed")
+
+    def test_the_same_block_passes_where_the_field_is_documented(self) -> None:
+        # Otherwise the gate is just banning a string, and the point is that the field exists on some
+        # providers and not others.
+        report = check_prompt_grammar.build(
+            "A glass bottle on stone.\n\nNEGATIVE PROMPT\nplastic skin", "stable-diffusion-3")
+        gate = [g for g in report["gates"] if g["gate"] == "negative-prompt-field"][0]
+        self.assertEqual(gate["status"], "passed")
+
+    def test_the_compiler_output_passes_its_own_grammar_check(self) -> None:
+        """compile_prompt.py failed this when the checker was first pointed at it. Both branches are
+        checked: the family with no negative channel must come back clean, and the exclusions must
+        still reach the reader, labelled as inspection criteria rather than prompt text."""
+        record = {"mode": "product",
+                  "prompt": {"capture_mode": "studio-natural",
+                             "subject_action": "One glass bottle on wet stone",
+                             "negative_constraints": "plastic reflections, extra fingers"}}
+        for provider in ("flux", "midjourney", "openai"):
+            with self.subTest(provider=provider):
+                prompt = compile_provider(record, provider)
+                gate = [g for g in check_prompt_grammar.build(prompt, provider)["gates"]
+                        if g["gate"] == "negative-prompt-field"][0]
+                self.assertNotEqual(gate["status"], "failed", prompt)
+        flux = compile_provider(record, "flux")
+        self.assertIn("REJECT CHECKLIST - NOT PART OF THE PROMPT", flux)
+        body, checklist = flux.split("REJECT CHECKLIST", 1)
+        # The exclusions survive - they just stop being prompt content. If they vanished from both
+        # halves the compiler would be silently dropping the brief's avoid list.
+        self.assertIn("plastic reflections", checklist)
+        self.assertNotIn("plastic reflections", body)
+
+    def test_a_recurring_face_is_refused_where_no_mechanism_is_documented(self) -> None:
+        # Midjourney's character parameters are version-locked and dead on the current default, so the
+        # honest answer is that there is no page to point at - not that the model cannot do it.
+        gate = [g for g in check_prompt_grammar.build(
+            "the same woman as before", "midjourney", recurring_person=True)["gates"]
+            if g["gate"] == "character-consistency"][0]
+        self.assertIn(gate["status"], ("failed", "review"))
+        self.assertEqual(gate["fact_id"], "midjourney-cref-dead")
+
+    def test_the_only_published_consistency_ceiling_is_the_one_cited(self) -> None:
+        gate = [g for g in check_prompt_grammar.build(
+            "four women", "nano-banana-2", recurring_person=True)["gates"]
+            if g["gate"] == "character-consistency"][0]
+        self.assertEqual(gate["fact_id"], "gemini-reference-counts")
+
+    def test_a_seed_promise_is_review_where_no_seed_is_documented(self) -> None:
+        for provider in ("openai", "nano-banana-2", "midjourney"):
+            with self.subTest(provider=provider):
+                gate = [g for g in check_prompt_grammar.build(
+                    "a bottle", provider, needs_reproducible=True)["gates"]
+                    if g["gate"] == "seed-reproducibility"][0]
+                self.assertIn(gate["status"], ("failed", "review"),
+                              f"{provider} documents no seed and was allowed to pass one")
+
+    def test_the_two_length_failures_stay_separate(self) -> None:
+        """An encoder window drops the tail silently; an API character limit rejects the request.
+        Collapsing them would report a rejected request as a truncated prompt."""
+        long_prompt = "a photograph of a bottle " * 60
+        legacy = {g["gate"]: g for g in check_prompt_grammar.build(long_prompt,
+                                                                  "stable-diffusion-legacy")["gates"]}
+        self.assertEqual(legacy["prompt-window"]["status"], "failed")
+        self.assertEqual(legacy["prompt-character-limit"]["status"], "skipped")
+        openai = {g["gate"]: g for g in check_prompt_grammar.build(long_prompt, "openai")["gates"]}
+        self.assertEqual(openai["prompt-window"]["status"], "review")
+        self.assertEqual(openai["prompt-character-limit"]["status"], "passed")
+
+    def test_every_row_says_what_it_does_not_establish(self) -> None:
+        # The column that keeps a vendor sentence from being read as a general law. A row without it
+        # is a quote with the caveat removed.
+        for row in DataTableTests.rows("prompt-grammar.csv"):
+            with self.subTest(fact_id=row["fact_id"]):
+                self.assertGreater(len(row["what_it_does_not_establish"].split()), 3, row["fact_id"])
+                if row["evidence_grade"] != "no-primary-source":
+                    self.assertTrue(row["url"].startswith("http"), row["fact_id"])
+
+    def test_the_gaps_are_recorded_rather_than_filled(self) -> None:
+        rows = DataTableTests.rows("prompt-grammar.csv")
+        gaps = [r for r in rows if r["evidence_grade"] == "no-primary-source"]
+        self.assertGreaterEqual(len(gaps), 8,
+                                "the gap rows are the finding; losing them means the table started "
+                                "answering questions nobody published")
+
+    def test_the_reference_and_the_script_stay_together(self) -> None:
+        text = (SKILL_ROOT / "references" / "prompt-grammar.md").read_text(encoding="utf-8")
+        self.assertIn("check_prompt_grammar.py", text)
+        self.assertIn("prompt-grammar.csv", text)
+        # The corrections and the gaps are the two halves that make this more than a capability table.
+        self.assertIn("What has no source", text)
+        for correction in ("--cref", "Parti", "32,000"):
+            self.assertIn(correction, text)
+
+    def test_provider_compilers_no_longer_promises_a_field_that_does_not_exist(self) -> None:
+        """Two lines on that page taught the opposite of what the vendors document, and a reference
+        contradicting the checker beside it is worse than no reference."""
+        text = (SKILL_ROOT / "references" / "provider-compilers.md").read_text(encoding="utf-8")
+        self.assertNotIn("Keep negative constraints short and concrete", text)
+        self.assertNotIn("negative prompt if supported", text)
+        self.assertIn("no negative-prompt field", text)
 
 
 class PriceOfferTests(unittest.TestCase):
