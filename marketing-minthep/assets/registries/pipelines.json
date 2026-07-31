@@ -2507,12 +2507,14 @@
       "use_when": "A scorecard has to be built, weighted, cascaded or scored. Includes building KPIs for a company, a department or a person, deciding aspect weights, choosing between lagging and leading indicators, and computing achievement and rank from targets and actuals.",
       "references": [
         "kpi-scorecards.md",
+        "report-notation.md",
         "claims-proof-ledger.md",
         "anti-ai-quality.md",
         "measurement-plan.md"
       ],
       "scripts": [
         "score_kpi.py",
+        "build_variance_report.py",
         "check_tracking_plan.py",
         "find_recipe.py",
         "run_status.py"
@@ -2665,6 +2667,12 @@
               "en": "Version history",
               "vi": "Lịch sử phiên bản",
               "write": "Any target changed after the card was agreed, with the version number and a mandatory reason. Version two without a reason is not a version."
+            },
+            {
+              "en": "The table as it will be printed",
+              "vi": "Bảng số đúng như lúc in ra",
+              "write": "Paste the output of `python scripts/build_variance_report.py --input period.json`, table and caveats together in one block. A caveat that travels separately from its table does not travel. If the run exits 3, either settle what it names or say in the report that you did not.",
+              "run": "python scripts/build_variance_report.py --input period.json - scoring says whether the month was good, this says what the printed line means. The same minus sign in front of CAC and in front of revenue is opposite news, +0.6 pp and +24% are one movement stated two ways, and three resellers against a plan of two is +50% and one person."
             }
           ]
         }

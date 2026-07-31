@@ -166,6 +166,7 @@ Every row in `data/kpi-metrics.csv` carries a `trap` column. The expensive mista
 6. **Write the card as JSON** and score it: `python scripts/score_kpi.py --input card.json`. Never type an achievement figure by hand. The exit code is non-zero while the card is unscoreable, so a pipeline cannot carry an unscored card forward as though it passed.
 7. **Answer every warning,** with a fix or with a stated reason.
 8. **Read the weights back as behaviour.** If the heaviest rows can all be hit without the strategy moving, the card measures the wrong things. Per heavy KPI, name the cheapest way to hit it without doing the work.
+9. **Then print it,** which is a different job with different failure modes. A scored card is not a report: the reader who gets the report was not in the room and recomputes nothing. `report-notation.md` and `scripts/build_variance_report.py` take it from there — the sign, the percentage-point split, the small base, the empty cell. This file stops at the score.
 
 ## Worked example
 

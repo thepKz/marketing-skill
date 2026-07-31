@@ -129,6 +129,14 @@ Load only when relevant:
   On cash on delivery, load it before quoting any efficiency figure at all: a `purchase` event is an
   order request, and the gap to delivered orders is the largest correction most Vietnamese reports
   are missing.
+- How the period's figures go on a page once they exist: `report-notation.md` plus
+  `scripts/build_variance_report.py`. Load it after `kpi-scorecards.md` and not instead of it. The
+  scorecard decides whether the month was good; this decides what the line looks like printed, and
+  nobody in the meeting recomputes a figure. A fall in cost-to-revenue and a fall in revenue carry the
+  same minus sign, +0.6 pp and +24% are the same movement stated two ways, a percentage of NPS is a
+  share of a convention, three resellers against two is one person, and a blank cell in an otherwise
+  full column gets read as a zero. Each of those is one keystroke from the truth and none of them
+  looks wrong on the page.
 - What a commission arrangement actually pays, and what the person posting the link now owes by law:
   `affiliate-commerce.md` plus `data/affiliate-mechanics.csv`, `data/vn-advertising-law.csv` and
   `scripts/model_affiliate.py`. Load this before agreeing a rate from either side. The headline rate is

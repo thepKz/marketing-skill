@@ -17,7 +17,7 @@ $marketing-minthep
 
 - [What it produces](#what-it-produces) · [What happens when you invoke it](#what-happens-when-you-invoke-it) · [How it decides](#how-it-decides) · [Quick start](#quick-start)
 - [The five things people find confusing](#the-five-things-people-find-confusing) — copywriting, image editing, campaign building, colour, layout
-- [The questions behind the other tools](#the-questions-behind-the-other-tools) — pricing, affiliate deals and disclosure law, what a claim is allowed to say, prompt grammar, KPIs, a repeatable person, testing, workload
+- [The questions behind the other tools](#the-questions-behind-the-other-tools) — pricing, affiliate deals and disclosure law, what a claim is allowed to say, prompt grammar, KPIs, reporting a period, a repeatable person, testing, workload
 - [Sample output](#sample-output) · [Reference library](#reference-library) · [Anti-AI-slop gate](#anti-ai-slop-gate)
 - [Repository layout](#repository-layout) · [Tests](#tests) · [What it will not do](#what-it-will-not-do)
 
@@ -263,6 +263,28 @@ python marketing-minthep/scripts/score_kpi.py --input scorecard.json
 
 27 measurables in `data/kpi-metrics.csv`, each with the direction that counts as good, whether it leads or lags, and the specific way it gets gamed — because every metric has a way to be hit without the underlying thing improving, and naming it is the difference between a scorecard and a target. An achievement rate has four branches depending on whether higher is better, whether zero is the floor, and whether the target can be exceeded; picking the wrong branch changes the number without changing how plausible it looks. [`references/kpi-scorecards.md`](marketing-minthep/references/kpi-scorecards.md).
 
+### "The month is over. How do I put it on a page?"
+
+```powershell
+python marketing-minthep/scripts/build_variance_report.py --input period.json
+```
+
+> | Click-through rate | % | 0.9 | 1.2 | -0.3 pp / -25.0% (unfavourable) |
+> | Net Promoter Score | No | 44 | - | no figure |
+> | Signed-document milestone | Date | 2026-08-05 | 2026-08-01 | +4 days (unfavourable) |
+
+A different job from scoring the card, and it fails differently. Nobody in that meeting recomputes anything. They read the sign, the size and the label, then leave with whatever those said.
+
+CAC down 18% and revenue down 18% are not the same month. So favourability comes off the stored `direction` and prints as a word. Not a colour. A colour survives neither a photocopier nor a paste into email.
+
+Conversion 2.5% to 3.1% is +0.6 pp, and it is also +24%. Those two are a factor of forty apart and both are one keystroke from the truth. NPS 41 to 44 is +3 points rather than +7.3%, because the zero on that scale is a convention somebody chose. A date variance is days and nothing after that.
+
+Three resellers against a plan of two is +50%. It is one person. Under a base of 30 the two raw figures stand instead, and the floor is printed in the output so a reader can see the bet.
+
+A row with no plan has no plan. An absent column gets one line above the table. One hole in a column that is full everywhere else gets a note counting the rows around it, because that is the cell a reader turns into a zero.
+
+Exit 3 means the table is not ready. Never that the month was bad. [`references/report-notation.md`](marketing-minthep/references/report-notation.md) also records the part of ISO 24896 that sits behind an access control this repo will not go round, which is why it quotes no rule number anywhere.
+
 ### "Is this test big enough to tell me anything?"
 
 ```powershell
@@ -361,8 +383,8 @@ The second-order check catches the escape hatch: having rejected the obvious cat
 
 ```
 marketing-minthep/
-  SKILL.md                  entry point and router, 186 lines
-  references/               63 topic files, each under 150 lines
+  SKILL.md                  entry point and router, 189 lines
+  references/               64 topic files, each under 150 lines
     dossiers/               15 deep-craft dossiers + index
   data/                     34 lookup tables: image recipes, palettes, layout
                             dials, slop tells, copy formulas, translation and
@@ -374,7 +396,7 @@ marketing-minthep/
                             sources, customer-evidence sources, lifecycle
                             duties, channel specs, command artifacts, VN
                             marketer roles
-  scripts/                  46 tools + test suite
+  scripts/                  47 tools + test suite
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json and deliverable skeletons
@@ -392,7 +414,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-566 tests, including ones that recompute every contrast ratio in `data/palettes.csv`, fail if a copy example contains a printable number, fail if a capability flag cites a source row that does not exist, fail if any placement check clears an asset against a figure the vendor page never published, and fail if a deliverable names a script that is not in the repository. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
+592 tests, including ones that recompute every contrast ratio in `data/palettes.csv`, fail if a copy example contains a printable number, fail if a capability flag cites a source row that does not exist, fail if any placement check clears an asset against a figure the vendor page never published, and fail if a deliverable names a script that is not in the repository. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
 
 ## What it will not do
 

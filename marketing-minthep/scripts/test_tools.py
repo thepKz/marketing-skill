@@ -30,6 +30,7 @@ from compile_prompt import compile_provider
 # Imported as modules, not names: both define PLACEMENTS, and `from ... import PLACEMENTS` twice
 # would leave one test silently asserting against the other module's table.
 import audit_seo_page
+import build_variance_report
 import check_address_register
 import check_channel_spec
 import check_claims
@@ -7832,6 +7833,321 @@ class ChannelSpecTests(unittest.TestCase):
         keys = " ".join(row["key"] for row in self.ROWS)
         for absent in ("pinterest", "linkedin", "amazon"):
             self.assertNotIn(absent, keys)
+
+
+class VarianceReportTests(unittest.TestCase):
+    """A variance table is arithmetic anybody can do and notation almost nobody does twice the same.
+
+    Every case below is a way the table can be wrong while looking finished, which is the dangerous
+    kind. Nobody in the meeting recomputes a figure; they read the sign, the size and the label and
+    leave with whatever those said. So the tests are mostly about the label.
+
+    One constraint travels with this unit and has to survive edits. ISO 24896 is published, and its
+    browsable copy sits behind a viewer with printing switched off - an access control this repo does
+    not go round, the same line `channel-spec-registry.md` drew for vendor pages. So the reference
+    quotes no rule number and presents nothing as a clause, and a test holds it there. The
+    temptation later is to add "per ISO 24896 §4.2" to make the unit sound sourced.
+    """
+
+    LIBRARY = build_variance_report.catalog()
+
+    def report(self, rows: list[dict], **payload) -> dict:
+        return build_variance_report.build({"rows": rows, **payload})
+
+    def test_self_check_passes(self) -> None:
+        text = build_variance_report.self_check()
+        self.assertIn("verdict passed", text)
+        self.assertNotIn("FAIL", text)
+
+    def test_favourability_comes_off_the_stored_direction_and_never_off_the_sign(self) -> None:
+        """The pair that settles it: `gross_margin` and `cost_to_revenue` are both per cent, both
+        about money, and they run opposite ways. A report that colours negatives red has just told
+        its reader a fall in cost-to-revenue was a bad month."""
+        rows = self.report([
+            {"kpi": "gross_margin", "actual": 38, "plan": 40, "base": 900},
+            {"kpi": "cost_to_revenue", "actual": 38, "plan": 40, "base": 900},
+        ])["rows"]
+        margin, cost = rows[0]["comparisons"][0], rows[1]["comparisons"][0]
+        self.assertEqual(margin["absolute"], cost["absolute"])
+        self.assertEqual(margin["verdict"], build_variance_report.UNFAVOURABLE)
+        self.assertEqual(cost["verdict"], build_variance_report.FAVOURABLE)
+
+    def test_the_verdict_is_a_word_because_a_colour_does_not_survive_a_photocopier(self) -> None:
+        text = build_variance_report.as_markdown(
+            self.report([{"kpi": "revenue", "actual": 312, "plan": 350}]))
+        self.assertIn(build_variance_report.UNFAVOURABLE, text)
+
+    def test_no_movement_at_all_is_on_plan_rather_than_either_kind_of_news(self) -> None:
+        item = self.report([{"kpi": "revenue", "actual": 350, "plan": 350}])["rows"][0]["comparisons"][0]
+        self.assertEqual(item["verdict"], build_variance_report.ON_PLAN)
+        self.assertEqual(item["relative"], 0)
+
+    def test_a_rate_moves_in_points_and_carries_the_share_beside_it(self) -> None:
+        """2.5% to 3.1% is +0.6 pp and +24%. Print `+0.6%` and you have understated your own month
+        by a factor of forty; print `+24 pp` and you have claimed conversion tripled. Both are one
+        keystroke from the truth and neither looks wrong, so the tool prints both and labels each."""
+        item = self.report([{"kpi": "ctr", "actual": "3.1", "plan": "2.5",
+                             "base": 184000}])["rows"][0]["comparisons"][0]
+        self.assertEqual(item["absolute"], Decimal("0.6"))
+        self.assertEqual(item["absolute_unit"], "pp")
+        self.assertEqual(round(item["relative"], 1), Decimal("24.0"))
+
+    def test_the_pp_convention_is_stated_once_above_the_table_and_not_per_row(self) -> None:
+        """A note repeated on every line stops being read by the third one. This started as a
+        per-row note and printed the same paragraph four times in one seven-row report."""
+        report = self.report([
+            {"kpi": "ctr", "actual": "3.1", "plan": "2.5", "base": 184000},
+            {"kpi": "gross_margin", "actual": 38, "plan": 40, "base": 900},
+            {"kpi": "retention_rate", "actual": 61, "plan": 58, "base": 4200},
+        ])
+        stated = [line for line in report["conventions"] if "percentage points" in line]
+        self.assertEqual(len(stated), 1, report["conventions"])
+        for row in report["rows"]:
+            for item in row["comparisons"]:
+                self.assertNotIn("percentage points", " ".join(item["notes"]))
+        # And it names every rate on the table, so a reader knows which rows it governs.
+        for name in ("Click-through rate", "Gross profit margin", "Customer retention rate"):
+            self.assertIn(name, stated[0])
+
+    def test_an_index_moves_in_points_and_a_count_in_the_same_unit_does_not(self) -> None:
+        """`nps` and `resellers_acquired` are both stored as unit `No`, and only one of them has a
+        real zero. NPS 41 to 44 is +3 points, not +7.3%: the zero on that scale is a convention
+        somebody chose, and a percentage of a convention measures nothing. Resellers signed do have
+        a real zero, so a percentage there is a fact. The distinction is not derivable from the unit
+        column, which is why `INDEX_METRICS` names the exceptions in the open."""
+        rows = self.report([
+            {"kpi": "nps", "actual": 44, "plan": 41},
+            {"kpi": "resellers_acquired", "actual": 44, "plan": 41},
+        ])["rows"]
+        index, count = rows[0]["comparisons"][0], rows[1]["comparisons"][0]
+        self.assertEqual((index["kind"], index["absolute_unit"]), ("index", "pts"))
+        self.assertIsNone(index["relative"])
+        self.assertEqual(count["kind"], "quantity")
+        self.assertEqual(round(count["relative"], 1), Decimal("7.3"))
+
+    def test_a_date_variance_is_days_and_the_arithmetic_stops_there(self) -> None:
+        """A milestone landing 5 August against a plan of 1 August is +4 days and unfavourable.
+        Four per cent later than a deadline is not a quantity."""
+        item = self.report([{"kpi": "milestone_date", "actual": "2026-08-05",
+                             "plan": "2026-08-01"}])["rows"][0]["comparisons"][0]
+        self.assertEqual((item["absolute"], item["absolute_unit"]), (Decimal(4), "days"))
+        self.assertIsNone(item["relative"])
+        self.assertEqual(item["verdict"], build_variance_report.UNFAVOURABLE)
+
+    def test_a_date_that_is_not_a_date_stops_the_report_instead_of_becoming_a_number(self) -> None:
+        self.assertTrue(build_variance_report._raises(
+            lambda: self.report([{"kpi": "milestone_date", "actual": "5 Aug", "plan": "2026-08-01"}])))
+
+    def test_a_percentage_of_a_small_base_is_replaced_by_the_two_raw_figures(self) -> None:
+        """Three resellers against a plan of two is +50%, and it is one person. Print the percentage
+        and a board reads a strategy. The floor is 30, it is a presentation choice rather than a
+        significance test, and the figure used is printed so a reader can see the bet."""
+        report = self.report([{"kpi": "resellers_acquired", "actual": 3, "plan": 2}])
+        item = report["rows"][0]["comparisons"][0]
+        self.assertEqual(item["absolute"], Decimal(1))
+        self.assertIsNone(item["relative"])
+        self.assertEqual(report["counts"]["suppressed"], 1)
+        floor = " ".join(report["conventions"])
+        self.assertIn("30", floor)
+        self.assertIn("not a significance test", floor)
+        self.assertIn("check_test_readout.py", floor)
+        self.assertIn("30", build_variance_report.as_markdown(report))
+
+    def test_the_floor_is_a_number_the_caller_can_move_and_see(self) -> None:
+        report = build_variance_report.build(
+            {"rows": [{"kpi": "resellers_acquired", "actual": 44, "plan": 41}]},
+            small_base=Decimal("100"))
+        self.assertIsNone(report["rows"][0]["comparisons"][0]["relative"])
+        self.assertIn("100", build_variance_report.as_markdown(report))
+
+    def test_a_rate_is_never_measured_against_a_floor_it_was_not_standing_on(self) -> None:
+        """The bug this replaced: a plan CTR of 1.2 was read as a base of 1.2 and failed the floor
+        of 30, so every rate in the report lost its percentage. A plan CTR of 1.2 is not a base of
+        1.2 - the base is the impressions underneath it, and no CSV in this repo knows that number.
+        So the percentage is printed and the missing denominator is named instead."""
+        report = self.report([{"kpi": "ctr", "actual": "0.9", "plan": "1.2"}])
+        item = report["rows"][0]["comparisons"][0]
+        self.assertIsNotNone(item["relative"])
+        self.assertFalse(item["base_known"])
+        self.assertIn("no denominator", " ".join(report["notes"]))
+        self.assertEqual(build_variance_report.exit_code(report), 3)
+        # Supply the denominator and the question closes.
+        based = self.report([{"kpi": "ctr", "actual": "0.9", "plan": "1.2", "base": 184000}])
+        self.assertTrue(based["rows"][0]["comparisons"][0]["base_known"])
+        self.assertEqual(based["notes"], [])
+
+    def test_a_comparison_figure_of_zero_yields_no_percentage_and_says_which(self) -> None:
+        item = self.report([{"kpi": "resellers_acquired", "actual": 4,
+                             "plan": 0}])["rows"][0]["comparisons"][0]
+        self.assertIsNone(item["relative"])
+        self.assertIn("Not 0%", " ".join(item["notes"]))
+
+    def test_a_column_missing_everywhere_is_scope_and_a_hole_in_a_full_one_is_a_question(self) -> None:
+        """These are different problems and the second is the one that gets misread. Nobody
+        misreads a report with no prior period on it; everybody reads the single empty cell in an
+        otherwise full column as a zero, or as a miss, whichever is worse for them. So an absent
+        column gets one line at the top and costs nothing, and a hole gets a note that counts the
+        rows around it."""
+        absent = self.report([
+            {"kpi": "revenue", "actual": 312, "plan": 350},
+            {"kpi": "nps", "actual": 44, "plan": 41},
+        ])
+        self.assertEqual(len(absent["scope"]), 1)
+        self.assertIn("without a prior column", absent["scope"][0])
+        self.assertEqual(absent["counts"]["open_questions"], 0)
+        self.assertEqual(build_variance_report.exit_code(absent), 0)
+
+        holed = self.report([
+            {"kpi": "revenue", "actual": 312, "plan": 350, "prior": 288},
+            {"kpi": "nps", "actual": 44, "prior": 41},
+        ])
+        self.assertEqual(holed["scope"], [])
+        gap = " ".join(holed["rows"][1]["comparisons"][0]["notes"])
+        self.assertIn("1 of 2 rows carry a plan figure", gap)
+        self.assertEqual(build_variance_report.exit_code(holed), 3)
+
+    def test_two_periods_of_different_lengths_are_stated_before_the_percentages(self) -> None:
+        """July has 31 days and June has 30, so every month-on-month percentage in that pair
+        carries 3% of calendar before anybody sells anything."""
+        report = self.report([{"kpi": "revenue", "actual": 312, "prior": 288}],
+                             period={"label": "July 2026", "days": 31},
+                             prior={"label": "June 2026", "days": 30})
+        note = " ".join(report["notes"])
+        self.assertIn("31 and 30 days", note)
+        self.assertIn("3%", note)
+        self.assertEqual(report["period"], "July 2026")
+        self.assertEqual(report["prior_label"], "June 2026")
+        # Same lengths, no note - the caveat is for the pair that actually differs.
+        even = self.report([{"kpi": "revenue", "actual": 312, "prior": 288}],
+                           period={"label": "June", "days": 30}, prior={"label": "April", "days": 30})
+        self.assertEqual(even["notes"], [])
+
+    def test_exit_three_is_about_the_table_and_not_about_the_month(self) -> None:
+        """The distinction the exit code exists for. An unfavourable month is a finished report:
+        exit 0, wire it wherever you like. Exit 3 means a figure on the page cannot carry a
+        sentence yet - a percentage withheld, a rate with no denominator, a hole in a column."""
+        bad_news = self.report([{"kpi": "revenue", "actual": 100, "plan": 350}])
+        self.assertEqual(bad_news["rows"][0]["comparisons"][0]["verdict"],
+                         build_variance_report.UNFAVOURABLE)
+        self.assertEqual(build_variance_report.exit_code(bad_news), 0)
+        self.assertEqual(build_variance_report.exit_code(
+            self.report([{"kpi": "ctr", "actual": "0.9", "plan": "1.2"}])), 3)
+
+    def test_a_report_that_cannot_be_built_says_so_instead_of_printing_something(self) -> None:
+        """Each of these arrives as a plausible payload and would otherwise print a number. A row
+        with no actual is not a variance of zero, it is a gap; an unknown id has no direction, so
+        its sign cannot be read at all."""
+        for description, rows in (
+            ("no rows", []),
+            ("no actual", [{"kpi": "revenue", "plan": 350}]),
+            ("no kpi id", [{"actual": 312, "plan": 350}]),
+            ("unknown id", [{"kpi": "revenu", "actual": 312, "plan": 350}]),
+            ("actual is not a figure", [{"kpi": "revenue", "actual": "about 312k", "plan": 350}]),
+        ):
+            with self.subTest(case=description):
+                self.assertTrue(build_variance_report._raises(lambda rows=rows: self.report(rows)))
+
+    def test_an_unknown_id_is_told_which_ids_look_like_it(self) -> None:
+        """A typo in one id should not send somebody back to read a 27-row CSV."""
+        try:
+            self.report([{"kpi": "gross_margins", "actual": 38, "plan": 40}])
+        except build_variance_report.Unreportable as exc:
+            self.assertIn("gross_margin", str(exc))
+        else:
+            self.fail("an unknown id built a report")
+
+    def test_figures_are_parsed_through_their_string_form_and_never_through_float(self) -> None:
+        """These get printed rather than compared, and `Decimal(0.1)` is not 0.1. A report that
+        prints 38.19999999999999 has lost the reader's trust over a rounding artefact."""
+        self.assertEqual(build_variance_report._dec(2.675, "actual"), Decimal("2.675"))
+        item = self.report([{"kpi": "gross_margin", "actual": 38.2, "plan": 38.1,
+                             "base": 900}])["rows"][0]["comparisons"][0]
+        self.assertEqual(item["absolute"], Decimal("0.1"))
+        self.assertNotIn("999", build_variance_report.as_markdown(
+            self.report([{"kpi": "gross_margin", "actual": 38.2, "plan": 38.1, "base": 900}])))
+
+    def test_the_caveats_ship_in_the_same_document_as_the_table(self) -> None:
+        """A caveat that travels separately from its table does not travel. So the Markdown carries
+        the scope lines above the table, the conventions and the open questions below it, and the
+        counts on the last line."""
+        text = build_variance_report.as_markdown(self.report([
+            {"kpi": "revenue", "actual": 312, "plan": 350, "prior": 288},
+            {"kpi": "ctr", "actual": "0.9", "plan": "1.2"},
+            {"kpi": "resellers_acquired", "actual": 3, "plan": 2},
+        ], period={"label": "July 2026"}, prior={"label": "June 2026"}))
+        self.assertIn("| Metric | Unit | Actual | Plan | vs plan | June 2026 | vs prior |", text)
+        self.assertIn("### How to read the columns", text)
+        self.assertIn("### Before this table is quoted", text)
+        self.assertIn("no figure", text)          # ctr and resellers have no prior
+        self.assertIn("open questions", text.splitlines()[-1])
+
+    def test_a_finished_table_says_nothing_is_outstanding_rather_than_leaving_a_blank(self) -> None:
+        report = self.report([{"kpi": "revenue", "actual": 312, "plan": 350, "prior": 288}])
+        self.assertEqual(build_variance_report.exit_code(report), 0)
+        self.assertIn("Nothing outstanding", build_variance_report.as_markdown(report))
+
+    def test_the_json_form_carries_no_decimal_objects(self) -> None:
+        payload = build_variance_report._jsonable(
+            self.report([{"kpi": "gross_margin", "actual": 38, "plan": 40, "base": 900}]))
+        json.dumps(payload)  # raises TypeError on a stray Decimal
+        self.assertEqual(payload["rows"][0]["comparisons"][0]["absolute"], "-2")
+
+    def test_the_cli_returns_the_documented_codes(self) -> None:
+        codes = {}
+        for case, argv in (
+            ("self-check", ["--self-check"]),
+            ("clean", ["--metric", "revenue", "--actual", "312", "--plan", "350"]),
+            ("open question", ["--metric", "resellers_acquired", "--actual", "3", "--plan", "2"]),
+            ("unbuildable", ["--metric", "revenue", "--actual", "lots", "--plan", "350"]),
+            ("missing file", ["--input", "no-such-period.json"]),
+        ):
+            with mock.patch.object(sys, "argv", ["build_variance_report.py", *argv]), \
+                    contextlib.redirect_stdout(io.StringIO()), \
+                    contextlib.redirect_stderr(io.StringIO()):
+                codes[case] = build_variance_report.main()
+        self.assertEqual(codes, {"self-check": 0, "clean": 0, "open question": 3,
+                                 "unbuildable": 2, "missing file": 2})
+
+    def test_the_reference_claims_no_clause_of_a_standard_it_could_not_read(self) -> None:
+        """The evidence limit, and the one a later edit is most likely to erase. IBCS is published
+        free under Creative Commons, but the browsable copy sits in a viewer with printing and
+        downloading switched off and its path obfuscated. That is an access control, and this repo
+        does not go round one. What the unit may cite is what the two pages state in the open: the
+        publication date, the committee, the people, the scope sentence, and the reorganisation into
+        Notation and Composition parts. What it may not do is dress its own arithmetic in a rule
+        number."""
+        text = (SKILL_ROOT / "references" / "report-notation.md").read_text(encoding="utf-8")
+        self.assertIn("no rule number is quoted anywhere in this unit", text)
+        for invented in (r"§", r"ISO 24896[:\s]*\d+\.\d+", r"[Cc]lause \d", r"[Rr]ule \d+\.\d"):
+            with self.subTest(pattern=invented):
+                self.assertIsNone(re.search(invented, text), f"the unit now cites {invented}")
+        # The citable facts, each with the page and the date it was read on.
+        for fact in ("2026-06-11", "ISO/TC 37", "https://www.ibcs.com/iso-24896/",
+                     "https://www.ibcs.com/ibcs-version-2-0/", "2026-07-31"):
+            self.assertIn(fact, text)
+        # And the finding that makes remembered IBCS knowledge stale, which is the reason to read
+        # the pages at all: the conceptual/perceptual/semantic structure is gone.
+        self.assertIn("Notation part and a Composition part", text)
+
+    def test_the_unit_does_not_restate_what_the_scorecard_owns(self) -> None:
+        """Two files touching the same CSV is how a repo grows two answers to one question.
+        Achievement branches, caps and weighting are `kpi-scorecards.md`; this unit takes notation
+        and the honesty of a table, and routes the rest out by name."""
+        text = (SKILL_ROOT / "references" / "report-notation.md").read_text(encoding="utf-8")
+        for pointer in ("kpi-scorecards.md", "scripts/score_kpi.py", "scripts/check_test_readout.py",
+                        "measurement-plan.md"):
+            with self.subTest(pointer=pointer):
+                self.assertIn(pointer, text)
+        for owned in ("weight", "cascade", "aspect"):
+            self.assertNotIn(f"## {owned}", text.lower())
+
+    def test_the_unit_is_reachable_from_where_somebody_starts(self) -> None:
+        for path in ("SKILL.md", "references/marketing-system-router.md",
+                     "data/command-artifacts.csv", "references/kpi-scorecards.md"):
+            with self.subTest(path=path):
+                text = (SKILL_ROOT / path).read_text(encoding="utf-8")
+                self.assertTrue("report-notation" in text or "build_variance_report" in text,
+                                f"{path} names neither the reference nor the script")
 
 
 if __name__ == "__main__":

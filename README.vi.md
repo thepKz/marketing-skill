@@ -17,7 +17,7 @@ $marketing-minthep
 
 - [Skill tạo ra gì](#skill-tạo-ra-gì) · [Gọi skill lên thì nó làm gì](#gọi-skill-lên-thì-nó-làm-gì) · [Cách nó quyết định](#cách-nó-quyết-định) · [Bắt đầu nhanh](#bắt-đầu-nhanh)
 - [Năm phần thường gây khó hiểu](#năm-phần-thường-gây-khó-hiểu) — copywriting, edit ảnh, xây campaign, màu sắc, bố cục
-- [Những câu hỏi phía sau các tool còn lại](#những-câu-hỏi-phía-sau-các-tool-còn-lại) — giá và offer, hoa hồng affiliate và luật công bố, câu nào được phép nói, prompt, KPI, người ảo, test, khối lượng việc
+- [Những câu hỏi phía sau các tool còn lại](#những-câu-hỏi-phía-sau-các-tool-còn-lại) — giá và offer, hoa hồng affiliate và luật công bố, câu nào được phép nói, prompt, KPI, báo cáo hết kỳ, người ảo, test, khối lượng việc
 - [Output mẫu](#output-mẫu) · [Thư viện reference](#thư-viện-reference) · [Cổng chống AI-slop](#cổng-chống-ai-slop)
 - [Cấu trúc repo](#cấu-trúc-repo) · [Kiểm tra](#kiểm-tra) · [Những gì skill không làm](#những-gì-skill-không-làm)
 
@@ -263,6 +263,28 @@ python marketing-minthep/scripts/score_kpi.py --input scorecard.json
 
 27 chỉ số đo được trong `data/kpi-metrics.csv`, mỗi chỉ số kèm chiều nào là tốt, nó là chỉ số dẫn hay chỉ số trễ, và cách cụ thể mà nó bị lách — vì chỉ số nào cũng có cách đạt được mà thứ bên dưới không hề tốt lên, và nói thẳng cách đó ra là khác biệt giữa một scorecard và một cái chỉ tiêu. Tỉ lệ hoàn thành có bốn nhánh, tuỳ vào cao hơn có tốt hơn không, số 0 có phải là sàn không, và có được vượt chỉ tiêu không; chọn sai nhánh thì con số đổi mà độ hợp lý của nó không đổi. [`references/kpi-scorecards.md`](marketing-minthep/references/kpi-scorecards.md).
 
+### "Hết tháng rồi, giờ đưa số lên trang báo cáo thế nào?"
+
+```powershell
+python marketing-minthep/scripts/build_variance_report.py --input period.json
+```
+
+> | Click-through rate | % | 0.9 | 1.2 | -0.3 pp / -25.0% (unfavourable) |
+> | Net Promoter Score | No | 44 | - | no figure |
+> | Signed-document milestone | Date | 2026-08-05 | 2026-08-01 | +4 days (unfavourable) |
+
+Việc này khác việc chấm điểm thẻ KPI, và nó sai theo kiểu khác. Người ngồi trong buổi báo cáo không tính lại gì cả. Họ đọc dấu, đọc độ lớn, đọc cái nhãn, rồi mang đúng ba thứ đó ra khỏi phòng.
+
+CAC giảm 18% và doanh thu giảm 18% không phải cùng một tháng. Nên tốt hay xấu lấy từ cột `direction` đã lưu sẵn, và in ra bằng chữ. Không phải bằng màu. Màu đỏ không sống nổi qua máy photo, cũng không sống nổi lúc dán vào email.
+
+Chuyển đổi từ 2.5% lên 3.1% là +0.6 pp, và cũng là +24%. Hai con số đó lệch nhau bốn mươi lần, mà cả hai đều chỉ cách sự thật một cái gõ tay. NPS từ 41 lên 44 là +3 điểm chứ không phải +7.3%, vì số 0 trên thang đó là quy ước do người ta chọn. Mốc thời hạn thì tính bằng ngày, hết.
+
+Ba đại lý so với kế hoạch hai đại lý là +50%. Thật ra là một người. Dưới nền 30 thì hai con số thô đứng thay phần trăm, và cái nền đó được in ra để người đọc thấy mình đang tin vào đâu.
+
+Một dòng không có kế hoạch thì là không có kế hoạch. Thiếu cả cột thì ghi một dòng ngay trên bảng. Trống một ô trong cột mà mọi dòng khác đều có thì kèm ghi chú đếm luôn số dòng chung quanh, vì đúng cái ô đó là ô người đọc biến thành số 0.
+
+Exit 3 nghĩa là bảng chưa xong. Không bao giờ nghĩa là tháng đó tệ. [`references/report-notation.md`](marketing-minthep/references/report-notation.md) ghi luôn phần ISO 24896 nằm sau một lớp chặn truy cập mà repo này không đi vòng, nên trong đó không trích số điều nào cả.
+
 ### "Test này đủ lớn để nói lên điều gì chưa?"
 
 ```powershell
@@ -361,8 +383,8 @@ Kiểm tra bậc hai bắt cửa thoát: sau khi từ chối cái nhìn hiển n
 
 ```
 marketing-minthep/
-  SKILL.md                  điểm vào và bộ định tuyến, 186 dòng
-  references/               63 file chủ đề, mỗi file dưới 150 dòng
+  SKILL.md                  điểm vào và bộ định tuyến, 189 dòng
+  references/               64 file chủ đề, mỗi file dưới 150 dòng
     dossiers/               15 dossier craft chuyên sâu + index
   data/                     34 bảng tra: image recipe, palette, layout dial,
                             slop tell, copy formula, translation tell và
@@ -374,7 +396,7 @@ marketing-minthep/
                             hàng, nghĩa vụ theo vòng đời khách hàng, spec
                             từng vị trí đăng, command artifact, các vai
                             marketer Việt Nam
-  scripts/                  46 công cụ + bộ test
+  scripts/                  47 công cụ + bộ test
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json và khung deliverable
@@ -392,7 +414,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-566 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv`, test fail nếu một ví dụ copy chứa số in được, test fail nếu một cờ năng lực dẫn tới dòng nguồn không tồn tại, test fail nếu một lượt kiểm spec cho asset đạt trong khi trang của nền tảng chưa từng công bố con số đó, và test fail nếu một deliverable gọi tên một script không có trong repo. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
+592 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv`, test fail nếu một ví dụ copy chứa số in được, test fail nếu một cờ năng lực dẫn tới dòng nguồn không tồn tại, test fail nếu một lượt kiểm spec cho asset đạt trong khi trang của nền tảng chưa từng công bố con số đó, và test fail nếu một deliverable gọi tên một script không có trong repo. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
 
 ## Những gì skill không làm
 
