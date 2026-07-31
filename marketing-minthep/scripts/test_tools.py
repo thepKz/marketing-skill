@@ -2499,6 +2499,122 @@ class ReferenceIntegrityTests(unittest.TestCase):
                     )
                     break
 
+    # Vietnamese glue words: they join clauses and cannot be part of a name, a dish, a statute
+    # title or a line of ad copy. `và` and `của` are excluded deliberately - both appear inside
+    # ministry names and quoted headlines, so they cannot tell prose from data.
+    VIETNAMESE_GLUE = (
+        "nhưng", "tuy nhiên", "vì vậy", "do đó", "hãy ", "đừng ", "không nên",
+        "nghĩa là", "chúng ta ", "bạn nên", "bạn cần", "có thể ", "sẽ được", "thì sẽ",
+    )
+
+    # The letters Vietnamese has and English does not, so counting them measures how much quoted
+    # Vietnamese survives. Both tests below use this one class: an earlier pair used two different
+    # subsets and reported two different sizes for the same file.
+    VIETNAMESE_LETTERS = re.compile(
+        r"[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]"
+    )
+
+    @staticmethod
+    def _unquoted(line: str) -> str:
+        """The line with every quoted form removed, leaving only what the author asserts."""
+        for pattern in (r"`[^`]*`", r"\*\*[^*]*\*\*", r"\*[^*]*\*", r'"[^"]*"', r"“[^”]*”"):
+            line = re.sub(pattern, " ", line)
+        return line.lower()
+
+    def test_the_skill_explains_itself_in_english_and_quotes_vietnamese_as_evidence(self) -> None:
+        """Two languages in one file is fine; two languages doing the same job is not.
+
+        This skill is written for a Vietnamese marketer, and roughly a hundred and twenty of its
+        sentences contain Vietnamese. Every one of them is a thing being *shown*: `Điều 50.5.c`,
+        `Thực phẩm này không phải là thuốc...`, `bún bò Huế`, `quý khách`, a headline a shop would
+        actually post. None of them is the skill *talking*. That split is the whole point. An agent
+        loading `claims-proof-ledger.md` needs the mandated disclaimer character for character,
+        because a paraphrase of a mandated sentence is a compliance failure - and it needs the
+        surrounding explanation in the one language the model reasons most reliably in.
+
+        The failure this guards against is drift in either direction, so it tests both.
+
+        Explanation sliding into Vietnamese is the loud one: a maintainer adds `nhưng lưu ý rằng`
+        to a paragraph, the next adds a whole one, and eventually half the file is bilingual prose
+        that has to be edited twice and goes stale in one language first. The discriminator is not
+        a word list, because `Bộ Văn hóa, Thể thao và Du lịch` is six Vietnamese words in a row and
+        entirely correct. It is punctuation: data is quoted, backticked, emphasised, indented as a
+        blockquote or sat in a table cell. Prose is bare. Glue words appearing bare is prose.
+
+        The quiet direction matters more, and a test that only banned Vietnamese would reward it:
+        somebody tidies the accents away, `quý khách` becomes "the formal second person", and the
+        skill degrades into a description of Vietnamese marketing rather than an instrument for
+        doing it. A paraphrased legal disclaimer is worse than no disclaimer, since it looks
+        compliant. So the corpus of quoted Vietnamese carries a floor as well as a ceiling.
+
+        `assets/examples/rewrite-human/` is excluded, and not as an exemption. Those files are the
+        before-and-after pair `rewrite_human.py --lang vi` is measured on; the tests above assert
+        the draft still fails its gate and the rewrite still passes. Vietnamese there is not prose
+        about the work, it is the work. Translating them would delete the fixture.
+        """
+        prose = []
+        quoted_vietnamese = 0
+        for document in sorted(SKILL_ROOT.rglob("*.md")):
+            if "examples" in document.parts:
+                continue
+            for number, line in enumerate(
+                document.read_text(encoding="utf-8", errors="replace").splitlines(), start=1
+            ):
+                stripped = line.strip()
+                quoted_vietnamese += len(self.VIETNAMESE_LETTERS.findall(line.lower()))
+                # A blockquote or a table row is quoting by construction: both are how this repo
+                # displays sample copy, and neither can be mistaken for the author's own sentence.
+                if stripped.startswith(">") or stripped.startswith("|"):
+                    continue
+                bare = self._unquoted(line)
+                for glue in self.VIETNAMESE_GLUE:
+                    if glue in bare:
+                        prose.append(f"{document.relative_to(SKILL_ROOT)}:{number}: {stripped[:90]}")
+                        break
+        self.assertEqual(
+            prose, [],
+            "Vietnamese is explaining rather than being shown here. Quote it - backticks for a "
+            f"term, a blockquote or table cell for copy - or say it in English: {prose}",
+        )
+        # Measured at 2,623 when this was written, across 89 files. The floor sits well under that:
+        # it is here to catch a sweep that strips the accents out, not to freeze a count that moves
+        # every time a reference is edited.
+        self.assertGreater(
+            quoted_vietnamese, 1800,
+            f"only {quoted_vietnamese} Vietnamese characters left in the skill. If a translation "
+            "pass replaced quoted Vietnamese with English descriptions of it, revert that: a "
+            "paraphrased legal disclaimer is not the disclaimer",
+        )
+
+    def test_the_vietnamese_cadence_fixtures_stay_vietnamese(self) -> None:
+        """The one directory the test above skips needs a reason to stay skipped.
+
+        `rewrite_human.py --lang vi` measures syllable counts, landing beats and an em-dash rule
+        that only exists in Vietnamese. Its fixtures are the two files it runs on. Someone reading
+        the language boundary as "English everywhere" would translate them, the gate would still
+        report pass and fail on the translated pair, and the numbers would then be measuring
+        English cadence under a Vietnamese flag. Nothing else in the suite would notice."""
+        directory = SKILL_ROOT / "assets" / "examples" / "rewrite-human"
+        for name in ("01-draft-vi.md", "02-rewrite-vi.md"):
+            text = (directory / name).read_text(encoding="utf-8")
+            # 94 and 82 respectively when this was written, against 97 and 102 words: these files
+            # are almost entirely Vietnamese, which is what makes them a fixture and not an example.
+            accented = len(self.VIETNAMESE_LETTERS.findall(text.lower()))
+            self.assertGreater(
+                accented, 50,
+                f"{name} has {accented} Vietnamese characters left. It is the fixture the "
+                "Vietnamese cadence gate is measured on, so it has to be Vietnamese",
+            )
+        # The index has to keep saying why the third file is English and the first two are not,
+        # because that sentence is the only thing standing between a tidy-minded editor and a
+        # translated fixture. "Not translated" is the claim the whole directory demonstrates.
+        index = (directory / "README.md").read_text(encoding="utf-8")
+        self.assertIn("not translated from the Vietnamese", index,
+                      "the example index no longer explains that the English file is built from "
+                      "the same facts rather than translated, which is what the pair demonstrates")
+        for name in ("01-draft-vi.md", "02-rewrite-vi.md", "03-transcreation-en.md"):
+            self.assertIn(name, index, f"the example index no longer lists {name}")
+
 
 class _TextNodes(HTMLParser):
     """The text nodes docs/app.js would hand to its translator, in the same order.
