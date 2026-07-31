@@ -45,3 +45,32 @@ Prioritize curriculum/artifact, teaching method, expertise evidence, sample less
 ## Art, handmade, collectibles, and cultural products
 
 Prioritize authorship, material, scale, process, edition/provenance, installation/use context, packaging, and story. Use clean documentation, macro, process, studio portrait, installation, editorial interpretation, collection/edition guide, press kit, and collector-facing sales material. Distinguish documentary images from conceptual campaign art.
+
+## Wellness and fitness
+
+Prioritize routine adherence, coaching method, equipment reality, recovery, body diversity, and outcomes only where they were actually measured. Use real effort and real rest, the room the work happens in, coach interaction, progression across weeks rather than a single after, and equipment being used rather than posed with. Reject beige serenity, the unsupported before/after pair, impossible bodies, and pseudo-medical phrasing. This category and personal care are where an unsupported transformation claim stops being a marketing decision and becomes a claims problem, so anything implying a health outcome goes through `claims-proof-ledger.md` before it ships, not after.
+
+## Where the work happens
+
+Every section above answers what to shoot and none of them answers where, which is the gap that sends a brief back with a correct asset list and a studio nobody believes. Location is not decoration. It is most of what makes an asset read as evidence rather than as advertising.
+
+Shoot where the product is actually used, at the hour it is actually used. For personal care that is a bathroom with a window and a backstage touch-up, not a pastel pedestal. For food it is hands mid-process and a table that has been eaten off. For SaaS it is the actual interface in sequence, and for local services it is the site, in whatever weather the crew is working in. Wellness wants the gym when it is busy.
+
+Two categories break the rule for a reason worth knowing. Jewelry and luxury goods are bought partly on presentation, so a controlled still life is truthful there in a way it is not elsewhere. Art documentation has to be neutral by function: a documentary image of a work is not a campaign image of it, and conflating the two misrepresents what the buyer receives.
+
+## Playbook selection test
+
+Before committing to any of the above, state four things:
+
+1. The category reflex being rejected.
+2. The product-specific mechanism replacing it.
+3. The proof of that mechanism visible in the asset.
+4. The channel behaviour the idea supports.
+
+If the second and third cannot be written concretely, the playbook is being used as a recipe, which is the failure this file is most often responsible for. A category playbook is a list of what the category already looks like. Read as a shopping list it reproduces the saturated look by construction. Read as a rejection list it earns its place.
+
+## What this file is not
+
+The category is not the audience. Two serum brands selling to different buyers need different work from the same paragraph above, and nothing here settles that — `customer-evidence.md` does.
+
+Retail and marketplace mechanics are also not a product category, however often they are written as one. Listing quality, variant range, thumbnail behaviour and channel crops belong to `commerce-merchandising.md` and apply across every category here. A beauty brand selling on TikTok Shop has a commerce problem wearing a beauty problem's clothes, and reaching for the beauty paragraph first is how that gets missed.

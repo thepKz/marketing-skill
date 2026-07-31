@@ -88,6 +88,21 @@ DEFAULT_CHANNEL = "deliverable"
 # a generated list whatever the surface, because a writer choosing an icon per line would vary it.
 DECORATION_RUN_MAX = 2
 
+# Measured, not chosen. Across this skill's own reference files - the only corpus to hand where every
+# document was written by a person and reviewed - the share of lists holding exactly three items was
+# 0.43 or lower in every file but one. The exception scored 0.80, and reading it confirmed the number
+# rather than excusing it: eight of ten sections carried the identical
+# `Core proofs / Useful scenes / Reject` triple, and the file turned out to duplicate
+# `product-category-playbooks.md`, which covered the same nine categories and three more. It was
+# folded into that file rather than reshaped, so the 0.80 is now only in this comment and in git.
+# The line sits in the middle of a gap from 0.43 to 0.80 rather than at the edge of a narrow one,
+# which is the only kind of threshold worth shipping.
+TRICOLON_SHARE_MAX = 0.60
+# Below four lists the share is noise rather than a signal: a file with two lists, both of three,
+# scores 1.00 and has done nothing wrong. Under this floor the gate is absent from the report
+# entirely rather than reported as passing, because "passed" would be a claim it cannot support.
+LIST_BLOCKS_MIN = 4
+
 SENTENCE_END = re.compile(r"(?<=[.!?…])[\s]+|\n{2,}")
 # Markdown furniture is not prose and would wreck every length measurement if counted as sentences.
 STRIP_LINES = re.compile(r"^\s*(#{1,6}\s|\||[-*+]\s|\d+\.\s|>|```)")
@@ -95,6 +110,8 @@ STRIP_LINES = re.compile(r"^\s*(#{1,6}\s|\||[-*+]\s|\d+\.\s|>|```)")
 # heading hashes, table pipes, in any order and repeated. What follows is the first thing a reader
 # sees on that line, and a pictograph there is being used as structure.
 LINE_LEAD = re.compile(r"^(?:\s|[-*+>]\s*|\d+[.)]\s*|#{1,6}\s*|\|\s*)*")
+# A list item and its indent. Both bullet and ordered forms, because "1. 2. 3." is the same shape.
+LIST_ITEM = re.compile(r"^(\s*)(?:[-*+]|\d+[.)])\s+(\S.*)$")
 
 
 def read_tells(language: str) -> list[dict[str, str]]:
@@ -202,6 +219,63 @@ def decorations(text: str) -> dict:
             "samples": sorted(set(structural + inline))[:8]}
 
 
+def list_blocks(text: str) -> list[list[str]]:
+    """Contiguous runs of list items at one indent level, from the raw text.
+
+    Raw for the same reason decoration is read raw: `prose_only()` blanks every list line, so the
+    shape of a list is invisible to every other measurement in this file. That is not a small gap.
+    A document built entirely of bullets reaches the `insufficient` branch with no cadence to
+    measure, and a document built mostly of bullets - which is most briefs, playbooks and
+    checklists - has its worst structural habit stripped out before anything looks at it.
+
+    A block ends at a heading, a paragraph of prose, or a change of indent. Nesting starts a new
+    block on purpose: three sub-points under each of three points is a different shape from one
+    list of nine, and averaging them together would hide both. Blank lines inside a run do not end
+    it, because a loose list in Markdown is still one list.
+
+    Single-item "lists" are dropped. One bullet has no geometry, and counting it as a list of one
+    would drag every share in this function toward whatever the writer used for a lone aside.
+    """
+    found: list[list[str]] = []
+    open_runs: dict[int, list[str]] = {}
+
+    def close(deeper_than: int = -1) -> None:
+        for level in sorted((lvl for lvl in open_runs if lvl > deeper_than), reverse=True):
+            found.append(open_runs.pop(level))
+
+    for line in text.splitlines():
+        match = LIST_ITEM.match(line)
+        if match:
+            indent = len(match.group(1))
+            # Returning to a shallower indent ends every nested list under it, and leaves the
+            # shallower run open. That is what lets `- Alpha / (three sub-points) / - Beta / - Gamma`
+            # read as two lists of three rather than one list of four with three items lost.
+            close(indent)
+            open_runs.setdefault(indent, []).append(match.group(2).strip())
+            continue
+        if not line.strip() and open_runs:
+            continue
+        close()
+    close()
+    return [block for block in found if len(block) > 1]
+
+
+def list_geometry(text: str) -> dict:
+    """How many lists, how long each, and how many landed on three.
+
+    Only the count is reported. Uniformity *within* a list was measured and deliberately left out -
+    see the note in `references/rewrite-human.md`, because the negative result is the part worth
+    keeping: even item lengths and a shared opening word are what a glossary, a rejection-code
+    table and a deliberate anaphora all look like, and gating on them fires on good writing.
+    """
+    blocks = list_blocks(text)
+    sizes = [len(block) for block in blocks]
+    threes = sum(1 for size in sizes if size == 3)
+    return {"blocks": len(blocks), "sizes": sizes, "threes": threes,
+            "three_share": round(threes / len(sizes), 2) if sizes else 0.0,
+            "longest": max(sizes, default=0)}
+
+
 def measure(text: str, language: str) -> dict:
     body = prose_only(text)
     sents = sentences(body)
@@ -211,7 +285,8 @@ def measure(text: str, language: str) -> dict:
         # line is both the commonest form of this defect and a draft with no measurable cadence at
         # all. Returning early without the decoration counts would leave that draft unchecked.
         return {"language": language, "sentences": len(sents), "insufficient": True,
-                "total_units": units(body, language), "decoration": decoration}
+                "total_units": units(body, language), "decoration": decoration,
+                "lists": list_geometry(text)}
 
     beat = TARGETS[language]["beat"]
     lengths = [units(sentence, language) for sentence in sents]
@@ -259,6 +334,7 @@ def measure(text: str, language: str) -> dict:
         "longest_paragraph_sentences": max((len(block) for block in paragraphs(body)), default=0),
         "single_sentence_paragraphs": sum(1 for block in paragraphs(body) if len(block) == 1),
         "decoration": decoration,
+        "lists": list_geometry(text),
     }
 
 
@@ -294,9 +370,40 @@ def decoration_gates(stats: dict, channel: str) -> list[dict]:
             for name, passed, severity, observed, want, why in checks]
 
 
+def structure_gates(stats: dict) -> list[dict]:
+    """Shape above the sentence. Runs whether or not there is measurable cadence, because a document
+    made of bullets has no cadence and is the likeliest place for this defect to live.
+
+    One gate, and the restraint is the design. `data/slop-tells.csv` has carried
+    `tricolon-everywhere` since the table was written, with `look_where` reading "count list lengths
+    across the whole document" - an instruction to measure, shipped as advice. Meanwhile
+    `data/translation-tells.csv` carries `tricolon-default`, whose `tell_en` is the same sentence
+    word for word, but whose regex is `scope: prose` and matches three comma-separated phrases
+    inside one sentence. Those are different defects. The regex fires on "physics, claim, or rights
+    failure" in `anti-ai-quality.md`, which is a correct English triple, and cannot fire on eight
+    identical three-item lists, because list lines are stripped before it looks. This gate is the
+    half that was named but never built.
+    """
+    found = stats.get("lists") or list_geometry("")
+    if found["blocks"] < LIST_BLOCKS_MIN:
+        return []
+    return [{
+        "gate": "tricolon-everywhere",
+        "pass": found["three_share"] <= TRICOLON_SHARE_MAX,
+        "severity": "high",
+        "observed": f"{found['threes']} of {found['blocks']} lists hold exactly three items "
+                    f"({found['three_share']}); sizes {found['sizes']}",
+        "target": f"<= {TRICOLON_SHARE_MAX} of lists, over {LIST_BLOCKS_MIN}+ lists",
+        "why": "Three is the most rhetorically satisfying count, which is exactly how it stops being "
+               "a count and becomes a template. One list of three is three things. Most of the lists "
+               "in a document being three is a form somebody filled in, and it survives every other "
+               "gate here because list lines are stripped before the prose is measured.",
+    }]
+
+
 def gates(stats: dict, channel: str = DEFAULT_CHANNEL) -> list[dict]:
     if stats.get("insufficient"):
-        return decoration_gates(stats, channel)
+        return structure_gates(stats) + decoration_gates(stats, channel)
     target = TARGETS[stats["language"]]
     unit = target["unit"]
     checks = [
@@ -343,7 +450,7 @@ def gates(stats: dict, channel: str = DEFAULT_CHANNEL) -> list[dict]:
     rows = [{"gate": name, "pass": bool(passed), "severity": severity,
              "observed": observed, "target": want, "why": why}
             for name, passed, severity, observed, want, why in checks]
-    return rows + decoration_gates(stats, channel)
+    return rows + structure_gates(stats) + decoration_gates(stats, channel)
 
 
 def find_tells(text: str, language: str) -> list[dict]:
@@ -385,11 +492,13 @@ def report(stats: dict, gate_rows: list[dict], tells: list[dict], channel: str =
     if stats.get("insufficient"):
         # Cadence is unmeasurable here, the icon gates are not. Saying "nothing measurable" over a
         # tick-bulleted list would be the one wrong answer on the commonest bad draft there is.
-        lines += ["Fewer than two sentences of prose, so no cadence to measure. Decoration still counts.",
-                  "", "## Decoration gates", ""]
+        lines += ["Fewer than two sentences of prose, so no cadence to measure. List shape and "
+                  "decoration still count.",
+                  "", "## Structure and decoration gates", ""]
         return "\n".join(lines + _gate_table(gate_rows) + [""])
 
-    lines += [f"{stats['sentences']} sentences, {stats['total_units']} {stats['unit']}.", "", "## Cadence and decoration gates", ""]
+    lines += [f"{stats['sentences']} sentences, {stats['total_units']} {stats['unit']}.", "",
+              "## Cadence, structure and decoration gates", ""]
     lines += _gate_table(gate_rows)
 
     lines += ["", "## Translation and slop tells", ""]
@@ -430,7 +539,13 @@ def print_targets() -> str:
              f"| Consecutive near-equal lengths | <= {FLAT_RUN_MAX} |",
              f"| Consecutive same opening word | <= {SAME_OPENER_MAX} |",
              f"| Em dashes | <= {EM_DASH_PER_150} per 150 (0 in Vietnamese) |",
-             f"| Paragraph length | <= {PARA_SENTENCES_MAX} sentences |", "",
+             f"| Paragraph length | <= {PARA_SENTENCES_MAX} sentences |",
+             f"| Lists holding exactly three items | <= {TRICOLON_SHARE_MAX} of lists, "
+             f"once a document has {LIST_BLOCKS_MIN} |", "",
+             "The list figure is measured rather than chosen: across this skill's own reference files",
+             "the share was 0.43 or lower everywhere except one file at 0.80, which turned out to be a",
+             "template on inspection. Uniformity inside a single list is deliberately not measured -",
+             "a glossary and a rejection-code table both look uniform, and both are correct.", "",
              "# Decoration budget", "",
              "House figures. The defect is not that a pictograph exists, it is that it arrived in a slot",
              "nobody chose - the same icon opening every bullet. Social and chat differ in kind, not in",
@@ -561,6 +676,42 @@ def self_check() -> str:
     assert measure(beats, "vi")["short_sentences"] >= 1, measure(beats, "vi")
     # And the English beat stays tight: a six-word sentence is not a beat in English.
     assert measure("The roast date is stamped on the base. No date, no sale.", "en")["short_sentences"] == 1
+
+    # --- list shape ------------------------------------------------------------------------------
+    # Blocks are counted from the raw text. Measured off prose_only() this returns zero on every
+    # document, because prose_only() blanks list lines - which is how the tell went unmeasured for
+    # as long as it did.
+    template = ("## One\n\nLead line here.\n\n- Alpha item\n- Beta item\n- Gamma item\n\n"
+                "## Two\n\nSecond lead line.\n\n- Delta item\n- Epsilon item\n- Zeta item\n\n"
+                "## Three\n\nThird lead line.\n\n- Eta item\n- Theta item\n- Iota item\n\n"
+                "## Four\n\nFourth lead line.\n\n- Kappa item\n- Lambda item\n- Mu item\n")
+    shape = list_geometry(template)
+    assert shape["blocks"] == 4 and shape["threes"] == 4, shape
+    assert shape["three_share"] == 1.0, shape
+    assert not {row["gate"]: row for row in gates(measure(template, "en"))}["tricolon-everywhere"]["pass"]
+
+    # Under the floor the gate is absent, not passing. Two lists of three is 1.00 and innocent.
+    two = "Lead line here.\n\n- Alpha\n- Beta\n- Gamma\n\nAnother lead.\n\n- Delta\n- Epsilon\n- Zeta\n"
+    assert list_geometry(two)["three_share"] == 1.0
+    assert "tricolon-everywhere" not in {row["gate"] for row in gates(measure(two, "en"))}
+
+    # Varying the counts is the fix, and it has to be enough to pass. Same four lists, real lengths.
+    varied = template.replace("- Beta item\n", "- Beta item\n- Beta the second\n") \
+                     .replace("- Zeta item\n", "- Zeta item\n- Zeta again\n- Zeta once more\n") \
+                     .replace("- Iota item\n", "")
+    assert {row["gate"]: row for row in gates(measure(varied, "en"))}["tricolon-everywhere"]["pass"], \
+        list_geometry(varied)
+
+    # Nesting is its own block: three sub-points under each of three points is not a list of nine.
+    nested = "- Alpha\n  - one\n  - two\n  - three\n- Beta\n- Gamma\n"
+    assert sorted(len(block) for block in list_blocks(nested)) == [3, 3], list_blocks(nested)
+
+    # A blank line inside a loose list does not close it, and a lone bullet is not a list.
+    assert list_geometry("- Alpha\n\n- Beta\n\n- Gamma\n")["sizes"] == [3]
+    assert list_blocks("Prose here.\n\n- Only one\n\nMore prose.\n") == []
+
+    # Ordered lists are the same shape as bulleted ones.
+    assert list_geometry("1. Alpha\n2. Beta\n3. Gamma\n")["threes"] == 1
 
     # --- decoration ------------------------------------------------------------------------------
     # The draft this gate exists for: a checklist where every line opens on a pictograph. It has no

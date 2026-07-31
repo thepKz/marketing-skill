@@ -18,13 +18,15 @@ Translate the decision, not the sentence.
 
 A sentence is the output of a decision somebody made about what the reader needs to know next. Word-by-word translation copies the output and throws the decision away, which is why the result is grammatical and dead. So go back one step: what fact does this sentence carry, what does the reader do with it, and how would somebody who has only ever spoken the target language deliver that fact?
 
-Do this and the sentence boundaries move. Five English sentences become three Vietnamese ones. One Vietnamese sentence becomes two English ones with a fragment between them. If the sentence count survived the translation intact, you translated words.
+Do this and the sentence boundaries move. Five English sentences become three Vietnamese ones. One Vietnamese sentence becomes two English ones with a fragment between them. If the sentence count survived intact, you translated words.
 
 ## Which language is the original
 
 Default: **Vietnamese is written first, English is transcreated from it.** Two reasons. Most of this skill's work is aimed at Vietnamese buyers, and a Vietnamese draft translated out of English carries the calques in the table below no matter how carefully it is edited. Write Vietnamese to Vietnamese rhythm, then rebuild the English from the same facts.
 
-Override when the brand's own voice was established in English, or the deliverable's primary audience reads English. Say which direction you chose in the run. Never present the transcreated version as a translation of the original — it is a second original built from the same truth map, and it will not be sentence-for-sentence parallel. Claims, numbers, prices, and offers must match exactly. Rhythm, sentence count, and metaphors will not.
+Override when the brand's own voice was established in English, or the deliverable's primary audience reads English. Say which direction you chose in the run. Never present the transcreated version as a translation of the original. It is a second original built from the same truth map, and it will not be sentence-for-sentence parallel.
+
+Claims, numbers, prices, and offers must match exactly. Rhythm, sentence count, and metaphors will not.
 
 ## Procedure
 
@@ -45,7 +47,9 @@ the numbers in its README are the ones the script actually prints.
 
 A rocket opening every bullet is the single most recognisable sign that nobody edited the output. But the defect is not the pictograph. It is that the pictograph arrived in a slot nobody chose.
 
-That distinction is the whole rule. An emoji a writer put inside a sentence is a decision, and it can be the right one. An emoji opening every line of a list is a template. So the script counts **structural** use — a pictograph in a heading, or the first thing on a line after the bullet or number — separately from **inline** use, and holds them to different budgets. A run of three lines opening on the *same* icon fails on every channel, including the ones where emoji are native, because a writer choosing an icon per line would have varied them.
+That distinction is the whole rule. An emoji a writer put inside a sentence is a decision, and it can be the right one. An emoji opening every line of a list is a template.
+
+So the script counts **structural** use — a pictograph in a heading, or the first thing on a line after the bullet or number — separately from **inline** use, and holds them to different budgets. A run of three lines opening on the *same* icon fails on every channel, including the ones where emoji are native, because a writer choosing an icon per line would have varied them.
 
 Channels differ in kind, not in degree. On this skill's own deliverables, and on web, email, PR, decks and marketplace listings, the structural budget is zero: the reader is not expecting a pictograph, so there is no native use to protect. On social and chat, structure is unbounded and only density is held. A Vietnamese seller bulleting a Facebook post with a tick is doing what the surface does, and a gate that calls that a machine tell is simply wrong about the channel.
 
@@ -55,11 +59,49 @@ Meaning-bearing signs are never counted: `© ® ™ ° № ℃ ℉`. Every one o
 
 Two limits worth stating rather than discovering. The detector is Unicode general category `So` minus that allow-list, which is the honest thing the standard library can do; it is *not* UTS #51 `Extended_Pictographic`, which Python's `unicodedata` does not expose, so keycap sequences slip through. And arrows and bullets are deliberately out of scope — `→` and `•` are ordinary typography with centuries behind them, and a gate that fires on correctly typeset copy stops being read.
 
+## Structure above the sentence
+
+Everything above this line measures sentences. That leaves a hole you can drive a brief through, because `prose_only()` blanks every list line before any cadence measurement runs. It has to: a bullet is not a sentence, and counting it as one wrecks the length statistics.
+
+The cost is that list shape is invisible to every gate that reads prose, and a brief, a playbook or a checklist is mostly lists. Feed the script a document built entirely of bullets and it reports that there is not enough prose to measure. True, and useless.
+
+So one structural measurement reads the raw text instead: **the share of lists holding exactly three items.** Above 0.60 it fails, at `high`. Under four lists the gate is not reported at all.
+
+Not reported as passing, either. A file with two lists, both of three, scores 1.00 and has done nothing wrong, and a gate that claims "pass" on no evidence teaches you to trust it where you should not.
+
+Three is the most rhetorically satisfying count in either language, which is exactly how it stops being a count and becomes a template. One list of three is three things somebody had. Nine lists of three is a form somebody filled in.
+
+The 0.60 was measured rather than chosen. It came from this skill's own reference files, the only corpus to hand where every document was written by a person and then argued with, and there the share sat at 0.43 or below in every file but one.
+
+The exception scored 0.80, and reading it confirmed the number instead of excusing it. Eight of its ten sections carried the identical `Core proofs / Useful scenes / Reject` triple, and the file turned out to duplicate `product-category-playbooks.md`, which covered the same categories and three more. So it was folded in and deleted rather than reshaped to pass. The threshold now sits mid-gap between 0.43 and 0.80 instead of at the edge of a narrow one, which is the only kind worth shipping.
+
+One more thing to know before you read the tell tables. `data/translation-tells.csv` and `data/slop-tells.csv` carry the same sentence, *everything arrives in threes*, as two separate rows. They are two different defects.
+
+`tricolon-default` is `scope: prose`, and its regex matches three comma-separated phrases inside one sentence. That is a cadence habit and often correct: it fires on "physics, claim, or rights failure" in `anti-ai-quality.md`, which is a writer counting three real things. `tricolon-everywhere` counts list lengths across the whole document, which is a structural habit and rarely correct. The regex cannot reach it, because the list lines are gone before it looks, so the second row named a measurement for a long time before anything performed it.
+
+### Measured, then deliberately not shipped
+
+Written down because the next person here will have the same two ideas, and they cost a morning each.
+
+**Uniformity inside a single list.** Three or more items, length CV at or below 0.25, every item opening on a bold label. It tripped twenty-five blocks across twenty reference files, and every one of them was correct writing: the nine rejection codes in `anti-ai-quality.md`, the verdict vocabularies, the channel budget tables.
+
+A glossary is uniform because it is a specification, and so is a rejection-code list. Gate that and your first twenty-five findings are wrong. Nobody runs that gate twice.
+
+**A shared opening word across a list** tripped `human-imagery.md`, where six consecutive lines begin `No ` on purpose. Deliberate anaphora and generated filler are the same shape from outside. No regex separates them, so the ear keeps that one.
+
+**Paragraph-length CV**, as a companion to sentence CV, went for a duller reason. On three realistic generated samples it added nothing at all: each already failed four sentence-level cadence gates. A signal that only ever fires next to signals you already have is noise in the report.
+
+### The limit worth knowing
+
+Flatten the template into paragraphs and this gate goes blind.
+
+`product-category-playbooks.md` is the honest example, in this repository, right now: twelve sections, most of them running the same `Prioritize, then use, then reject` move as prose. Same three-part form as the file that was deleted for it, no list to count, so the gate passes it. Nothing here replaces reading two sections in a row and noticing they are the same section.
+
 ## What the script does not check
 
 It measures cadence and matches known tells. It cannot tell you whether the copy is true, whether the claim is provable, whether the offer is legal in this market, or whether the reader cares. Those stay with `claims-proof-ledger.md`, `rights-and-claims.md`, and the message architecture. A draft can pass every gate here and still be unpublishable.
 
-It also cannot tell you the copy is *good*. Passing means it does not read machine-written. The tension ladder in `data/copy-formulas.csv` is what makes it work.
+It also cannot tell you the copy is any *good*. All a pass means is that the copy does not read machine-written, which is a floor and not a standard. The tension ladder in `data/copy-formulas.csv` is what raises it.
 
 ## Repair patterns
 
@@ -70,6 +112,7 @@ It also cannot tell you the copy is *good*. Passing means it does not read machi
 | No landing beats | Every claim currently arrives mid-sentence. Pick the one claim that matters and give it its own line. A beat is four words or fewer in English, six syllables or fewer in Vietnamese — the same length, counted the way each language is written. |
 | Flat run of 3+ | Three near-equal sentences in a row. Merge two of them, or split one. Do not adjust all three. |
 | Same opener repeated | Usually `Chúng tôi` or `We` opening every sentence. Move the reader to the subject: what they get, what they do. |
+| Most lists hold exactly three items | Not a list problem. Each three-item list is the visible end of a three-move template — usually claim, evidence, exclusion — applied to every section in turn. Pick the two sections that carry the most weight and rewrite those to whatever length the content is: one has five things, one has two, one is a sentence and no list at all. If every section genuinely has three, you are describing the template rather than the product. |
 | Which-chain in English | `X, which is Y, which means Z` becomes three sentences. Order them so each earns the next. |
 | Nominalisation stack in Vietnamese | `việc tối ưu hoá` back to the verb, with the agent in front of it. |
 | Trust-adjective stack | Each adjective replaced by one verifiable thing, or deleted. Four adjectives rarely become four facts; usually two facts and a shorter paragraph. |

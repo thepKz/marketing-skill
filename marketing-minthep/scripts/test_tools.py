@@ -2782,6 +2782,102 @@ class RewriteHumanTests(unittest.TestCase):
                 text = (folder / name).read_text(encoding="utf-8")
                 self.assertEqual(rewrite_human.pictographs(text), [])
 
+    # --- list shape ------------------------------------------------------------------------------
+
+    # Four sections, four lists, every list three items long. This is what a generated brief,
+    # playbook or landing page looks like, and until `list_blocks()` existed the script read it as
+    # a document with no measurable prose and returned nothing but decoration counts.
+    THREES = ("## Một\n\nMở đầu ở đây.\n\n- Alpha\n- Beta\n- Gamma\n\n"
+              "## Hai\n\nMở đầu thứ hai.\n\n- Delta\n- Epsilon\n- Zeta\n\n"
+              "## Ba\n\nMở đầu thứ ba.\n\n- Eta\n- Theta\n- Iota\n\n"
+              "## Bốn\n\nMở đầu thứ tư.\n\n- Kappa\n- Lambda\n- Mu\n")
+
+    def test_a_document_of_threes_fails_even_with_no_cadence_to_measure(self) -> None:
+        """The reason this gate reads raw text instead of `prose_only()`. Every list line is blanked
+        before cadence is measured, so a document that is mostly lists has its worst structural
+        habit stripped out before anything looks at it - and lands in the `insufficient` branch,
+        where until now only decoration was checked."""
+        stats = rewrite_human.measure(self.THREES, "vi")
+        self.assertEqual(stats["lists"], {"blocks": 4, "sizes": [3, 3, 3, 3], "threes": 4,
+                                         "three_share": 1.0, "longest": 3})
+        gates = {row["gate"]: row for row in rewrite_human.gates(stats, "deliverable")}
+        self.assertFalse(gates["tricolon-everywhere"]["pass"])
+        self.assertEqual(gates["tricolon-everywhere"]["severity"], "high")
+
+    def test_the_gate_is_absent_rather_than_passing_below_the_floor(self) -> None:
+        """Two lists of three scores 1.00 and has done nothing wrong. Reporting that as `pass`
+        would be a claim the measurement cannot support, and a gate that passes on no evidence
+        teaches the reader to trust it where they should not."""
+        two = "Mở đầu.\n\n- Alpha\n- Beta\n- Gamma\n\nMở đầu nữa.\n\n- Delta\n- Epsilon\n- Zeta\n"
+        self.assertEqual(rewrite_human.list_geometry(two)["three_share"], 1.0)
+        named = {row["gate"] for row in rewrite_human.gates(rewrite_human.measure(two, "vi"))}
+        self.assertNotIn("tricolon-everywhere", named)
+        self.assertLess(rewrite_human.list_geometry(two)["blocks"], rewrite_human.LIST_BLOCKS_MIN)
+
+    def test_varying_the_list_lengths_clears_the_gate(self) -> None:
+        # The repair is content, not cosmetics: sections genuinely differ in how many things they
+        # hold. Four lists of 3/4/5/2 is the shape that produces.
+        varied = (self.THREES.replace("- Beta\n", "- Beta\n- Beta hai\n")
+                             .replace("- Zeta\n", "- Zeta\n- Zeta hai\n- Zeta ba\n")
+                             .replace("- Iota\n", ""))
+        stats = rewrite_human.measure(varied, "vi")
+        gates = {row["gate"]: row for row in rewrite_human.gates(stats)}
+        self.assertTrue(gates["tricolon-everywhere"]["pass"], stats["lists"])
+
+    def test_nesting_is_two_lists_rather_than_one(self) -> None:
+        """Three sub-points under each of three points is a different shape from one list of nine,
+        and averaging them together would hide both. An earlier draft kept a single open run and
+        silently discarded every deeper item, which turned this document into one list of three."""
+        nested = "- Alpha\n  - một\n  - hai\n  - ba\n- Beta\n- Gamma\n"
+        self.assertEqual(sorted(len(block) for block in rewrite_human.list_blocks(nested)), [3, 3])
+
+    def test_an_ordered_list_is_the_same_shape_as_a_bulleted_one(self) -> None:
+        # `1. 2. 3.` is a tricolon with different punctuation. Both forms and both closers.
+        for text in ("1. Alpha\n2. Beta\n3. Gamma\n", "1) Alpha\n2) Beta\n3) Gamma\n"):
+            with self.subTest(text):
+                self.assertEqual(rewrite_human.list_geometry(text)["threes"], 1)
+
+    def test_a_lone_bullet_is_not_a_list_and_a_loose_list_is_one(self) -> None:
+        """One bullet has no geometry, and counting it as a list of one would drag every share
+        toward whatever a writer used for a single aside. Blank lines inside a run do not end it,
+        because a loose list in Markdown is still one list."""
+        self.assertEqual(rewrite_human.list_blocks("Văn xuôi.\n\n- Chỉ một\n\nVăn xuôi nữa.\n"), [])
+        self.assertEqual(rewrite_human.list_geometry("- Alpha\n\n- Beta\n\n- Gamma\n")["sizes"], [3])
+
+    def test_no_reference_file_trips_the_list_shape_gate(self) -> None:
+        """The corpus this threshold was measured against, standing as the regression test. One
+        file scored 0.80 when the gate was written; it held eight identical `Core proofs / Useful
+        scenes / Reject` triples and duplicated `product-category-playbooks.md`, so it was folded
+        in and deleted rather than reshaped to pass. A new file that fails this is either a
+        template or a duplicate, and both wanted rewriting before they wanted a passing number."""
+        for path in sorted((SKILL_ROOT / "references").glob("*.md")):
+            text = path.read_text(encoding="utf-8")
+            rows = {row["gate"]: row for row in
+                    rewrite_human.gates(rewrite_human.measure(text, rewrite_human.detect_language(text)))}
+            if "tricolon-everywhere" in rows:
+                with self.subTest(path.name):
+                    self.assertTrue(rows["tricolon-everywhere"]["pass"],
+                                    rows["tricolon-everywhere"]["observed"])
+
+    def test_the_two_tricolon_tells_describe_different_defects(self) -> None:
+        """Both tables carry `everything arrives in threes`, word for word, and they are not the
+        same finding. `tricolon-default` is `scope: prose` and matches three comma-separated
+        phrases inside one sentence - which is often correct English, and fires on "physics, claim,
+        or rights failure" in `anti-ai-quality.md`. `tricolon-everywhere` counts list lengths
+        across a document. If the two ever collapse into one row, the structural half disappears
+        and the regex will be left claiming to cover something it cannot see."""
+        prose = [row for row in DataTableTests.rows("translation-tells.csv")
+                 if row["id"] == "tricolon-default"]
+        structural = [row for row in DataTableTests.rows("slop-tells.csv")
+                      if row["id"] == "tricolon-everywhere"]
+        self.assertEqual((len(prose), len(structural)), (1, 1))
+        self.assertEqual(prose[0]["scope"], "prose")
+
+        # The prose regex fires on a correct in-sentence triple and cannot reach a list of three.
+        sentence = "Reject it for a physics, claim, or rights failure."
+        self.assertTrue(re.search(prose[0]["detect_regex"], sentence), prose[0]["detect_regex"])
+        self.assertEqual(rewrite_human.find_tells(self.THREES, "vi"), [])
+
 
 class AddressRegisterTests(unittest.TestCase):
     """Vietnamese has no neutral second person, so who the copy addresses is grammar rather than

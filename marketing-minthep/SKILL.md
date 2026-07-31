@@ -58,7 +58,7 @@ Load only what the decision needs.
 
 | Need | Load |
 |---|---|
-| Product or business-model guidance | `product-category-playbooks.md`, `industry-playbooks.md` |
+| Product or business-model guidance | `product-category-playbooks.md` |
 | Current placement or export specs | `channel-spec-registry.md` plus the live official source |
 | Reference images of a product or person | `reference-first-image-flow.md`, `reference-analysis.md`, `prompt-contracts.md` |
 | Studio and product photography | `realistic-studio-imagery.md`, `product-imagery.md` |
