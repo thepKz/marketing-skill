@@ -33,7 +33,7 @@ For requests that must become files on disk, use `scripts/start_workbench.py`. I
 | `design-render` | Menu, poster, layout, wireframe, one-pager, or other designed artifact | Options, recommendation, information architecture, wireframe, copy, render/spec, QA |
 | `video-campaign` | Video concept, storyboard, short ad, demo, or AI-video prompt pack | Script, beats, shots, continuity, audio/captions, cutdowns, delivery QA |
 | `optimize-iterate` | Existing work has evidence or performance to diagnose | Metric tree, hypotheses, one-variable tests, guardrails, decision log |
-| `rewrite-human` | A draft reads machine-written or machine-translated, or approved copy must move between Vietnamese and English | Fact inventory, `rewrite-human.md`, `scripts/rewrite_human.py` gates, `data/translation-tells.csv` repairs, re-measurement |
+| `rewrite-human` | A draft reads machine-written or machine-translated, or approved copy must move between Vietnamese and English | Fact inventory, `rewrite-human.md`, `scripts/rewrite_human.py` gates, `data/translation-tells.csv` repairs, `scripts/check_address_register.py` on Vietnamese, re-measurement |
 
 When the user is a non-marketer, do not return a menu of disconnected marketing disciplines. Recommend the smallest coherent pipeline, explain why in plain language, and create the connected artifact pack. Copywriting is mandatory inside `plan-from-zero`; it is not an optional follow-up.
 
@@ -68,6 +68,10 @@ Load only when relevant:
   `product-composition-set.md` plus `data/product-compositions.csv` and
   `scripts/plan_composition_set.py`. Load this before answering "can AI make the rest of my photos",
   and before promising a full listing set from one file.
+- Who a Vietnamese draft is talking to, and whether it holds that decision to the last line:
+  `address-register.md` plus `data/address-registers.csv` and `scripts/check_address_register.py`.
+  Load this before writing or localising any Vietnamese copy. Vietnamese has no neutral second
+  person, so the choice is grammar, not tone, and a translated draft re-invents it every sentence.
 - Where a number came from and what it actually measures: `market-data-collection.md`.
 - How real organisations run marketing, what the largest advertisers disclose, and which benchmark may be
   quoted at whom: `how-companies-market.md` plus `data/marketing-benchmarks.csv`. Load this before

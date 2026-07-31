@@ -26,6 +26,7 @@ from build_asset_manifest import build_manifest
 from compile_prompt import compile_provider
 # Imported as modules, not names: both define PLACEMENTS, and `from ... import PLACEMENTS` twice
 # would leave one test silently asserting against the other module's table.
+import check_address_register
 import find_recipe
 import generate_image
 import list_capabilities
@@ -1264,7 +1265,7 @@ class DataTableTests(unittest.TestCase):
         "layout-dials.csv": (17, 11),
         "slop-tells.csv": (33, 9),
         "copy-formulas.csv": (22, 9),
-        "translation-tells.csv": (30, 10),
+        "translation-tells.csv": (35, 10),
         "reference-axes.csv": (11, 9),
         "frame-ratios.csv": (13, 12),
         "composition-grids.csv": (7, 10),
@@ -1280,6 +1281,7 @@ class DataTableTests(unittest.TestCase):
         "colour-gates.csv": (9, 9),
         "vn-marketer-roles.csv": (13, 11),
         "product-compositions.csv": (18, 18),
+        "address-registers.csv": (25, 15),
     }
 
     # Most of these tables are keyed by their first column. The weights table is keyed by two, and
@@ -2201,6 +2203,185 @@ class RewriteHumanTests(unittest.TestCase):
         self.assertGreater(blocking("01-draft-vi.md", "vi"), 0, "the bad draft stopped failing")
         self.assertEqual(blocking("02-rewrite-vi.md", "vi"), 0, "the shipped rewrite stopped passing")
         self.assertEqual(blocking("03-transcreation-en.md", "en"), 0, "the shipped English stopped passing")
+
+    # --- decoration ------------------------------------------------------------------------------
+
+    BULLETED = ("## ✨ Ưu điểm\n"
+                "- \U0001f680 Giao trong ngày\n"
+                "- \U0001f680 Rang tại xưởng\n"
+                "- \U0001f680 Đổi trả 7 ngày\n")
+
+    def test_an_icon_bulleted_list_is_measured_even_though_it_has_no_cadence(self) -> None:
+        """The draft this gate exists for has fewer than two sentences, which is the branch that
+        used to return no gates at all. A checklist with a rocket on every line would have come
+        back reported as clean, on the most common bad output there is."""
+        stats = rewrite_human.measure(self.BULLETED, "vi")
+        self.assertTrue(stats["insufficient"])
+        named = {row["gate"] for row in rewrite_human.gates(stats, "deliverable")}
+        self.assertEqual(named, {"decoration-as-structure", "decoration-density", "decoration-run"})
+
+    def test_the_default_channel_allows_no_structural_decoration(self) -> None:
+        # No argument means `deliverable`, which is what this skill's own artefacts are. The two
+        # live callers in this file pass one argument, so the default is what they get.
+        gates = {row["gate"]: row for row in
+                 rewrite_human.gates(rewrite_human.measure(self.BULLETED, "vi"))}
+        self.assertFalse(gates["decoration-as-structure"]["pass"])
+        self.assertEqual(gates["decoration-as-structure"]["severity"], "high")
+
+    def test_social_is_different_in_kind_not_in_degree(self) -> None:
+        """A Vietnamese seller bulleting a Facebook post with a tick is doing what the surface does.
+        A gate that calls that a machine tell is wrong about the channel, and gets switched off."""
+        stats = rewrite_human.measure(self.BULLETED, "vi")
+        social = {row["gate"]: row for row in rewrite_human.gates(stats, "social")}
+        self.assertTrue(social["decoration-as-structure"]["pass"])
+        # The run rule still holds, because three identical openers is a generated list anywhere.
+        self.assertFalse(social["decoration-run"]["pass"])
+
+    def test_varying_the_icon_per_line_is_a_decision_and_passes_the_run_gate(self) -> None:
+        varied = self.BULLETED.replace("- \U0001f680 Rang", "- \U0001f6a9 Rang")
+        found = rewrite_human.measure(varied, "vi")["decoration"]
+        self.assertEqual(found["longest_icon_opener_run"], 1)
+
+    def test_meaning_bearing_signs_are_never_counted(self) -> None:
+        """Every one of these sits in the same Unicode category as the rocket. Flagging the
+        registered mark in brand copy is the fastest way to lose the whole gate."""
+        for sign in rewrite_human.DECORATION_KEEP:
+            with self.subTest(sign):
+                self.assertEqual(unicodedata.category(sign), "So")
+                self.assertEqual(rewrite_human.pictographs(f"Minh Thép{sign} rang tại xưởng."), [])
+
+    def test_an_emoji_inside_a_sentence_stays_inline(self) -> None:
+        # The whole rule: the defect is the slot, not the glyph. One a writer put mid-sentence is a
+        # decision; one opening every line is a template.
+        mid = ("Chủ quán nhắn lúc bốn giờ sáng \U0001f605 vì nồi nước dùng chưa tới. "
+               "Chúng tôi giao lại trong hai tiếng.")
+        found = rewrite_human.measure(mid, "vi")["decoration"]
+        self.assertEqual((found["structural"], found["inline"]), (0, 1))
+
+    def test_a_heading_emoji_is_structural_wherever_it_sits_in_the_line(self) -> None:
+        tail = rewrite_human.measure(
+            "## Giao hàng \U0001f69a\n\nGiao trong ngày ở Gò Vấp. Ngoài bán kính tám cây thì hai ngày.",
+            "vi")
+        self.assertEqual(tail["decoration"]["structural"], 1)
+
+    def test_arrows_and_bullets_are_out_of_scope_on_purpose(self) -> None:
+        """`→` is Sm and `•` is Po - ordinary typography with centuries behind it. A gate that
+        fires on correctly typeset copy stops being read, so this exclusion is the design."""
+        self.assertEqual(rewrite_human.pictographs("Đặt hàng → giao trong ngày • đổi trả 7 ngày"), [])
+
+    def test_the_worked_example_carries_no_decoration(self) -> None:
+        # The shipped example is what a reader copies. If it grew an icon list, the unit would be
+        # teaching the defect it exists to catch.
+        folder = SKILL_ROOT / "assets" / "examples" / "rewrite-human"
+        for name in ("02-rewrite-vi.md", "03-transcreation-en.md"):
+            with self.subTest(name):
+                text = (folder / name).read_text(encoding="utf-8")
+                self.assertEqual(rewrite_human.pictographs(text), [])
+
+
+class AddressRegisterTests(unittest.TestCase):
+    """Vietnamese has no neutral second person, so who the copy addresses is grammar rather than
+    tone, and a translated draft re-decides it at every sentence. Every assertion below is either a
+    documented rule of the language or a false positive this checker would otherwise produce -
+    which matters more here than in most gates, because half the forms in the table are also
+    ordinary words and one wrong `failed` teaches the copywriter to stop running it."""
+
+    ROWS = staticmethod(lambda: DataTableTests.rows("address-registers.csv"))
+
+    def gates(self, text: str, channel: str | None = None) -> dict[str, dict]:
+        report = check_address_register.check(text, self.ROWS(), channel)
+        return {gate["gate"]: gate for gate in report["gates"]}
+
+    def test_self_check_passes(self) -> None:
+        self.assertEqual(check_address_register.self_check(self.ROWS()).strip(), "self-check passed")
+
+    def test_every_detector_compiles_and_matches_only_its_own_probe(self) -> None:
+        """The check the table's own generator cannot do. Nesting - `chúng tôi` inside `tôi`,
+        `người ta` inside `ta`, `các bạn` inside `bạn` - is settled by the masking order in the
+        script, not by any single regex, so it can only be verified by running the detector."""
+        rows = self.ROWS()
+        for row in rows:
+            if row["probe"] == "-":
+                continue
+            with self.subTest(row["form"]):
+                found = {hit["form"] for hit in check_address_register.detect(row["probe"], rows)}
+                self.assertIn(row["form"], found,
+                              f"{row['form']}'s own probe resolved to {sorted(found)}")
+                # A probe is a natural sentence, and pairing is mandatory in Vietnamese, so
+                # `cháu`'s probe has to contain `ông`. What must not appear is a form the row has
+                # no relation to: that is nesting resolved the wrong way - `chúng tôi` reported as
+                # `tôi`, `người ta` as `ta` - and it is what the masking order exists to prevent.
+                allowed = ({row["form"]}
+                           | set(check_address_register.cells(row["pairs_with"]))
+                           | set(check_address_register.cells(row["composes_with"])))
+                self.assertLessEqual(found, allowed,
+                                     f"{row['form']}'s probe also matched {sorted(found - allowed)}")
+
+    def test_the_pairing_relation_crosses_person_and_composition_is_symmetric(self) -> None:
+        # Both relations are what the gates reason over. A one-sided `composes_with` would fail a
+        # clean draft depending only on which form the writer happened to use first.
+        forms = {row["form"]: row for row in self.ROWS()}
+        for row in forms.values():
+            for name in check_address_register.cells(row["composes_with"]):
+                with self.subTest(pair=(row["form"], name)):
+                    self.assertIn(row["form"],
+                                  check_address_register.cells(forms[name]["composes_with"]))
+            if row["pairs_with"] == "any":
+                continue
+            for name in check_address_register.cells(row["pairs_with"]):
+                with self.subTest(pair=(row["form"], name)):
+                    self.assertNotEqual(row["person"], forms[name]["person"])
+
+    def test_every_row_declares_a_grade_this_skill_recognises(self) -> None:
+        # The point of grading each row is that a reader can tell a rule of the language from a
+        # house preference. An ungraded row reads as authority it has not earned.
+        grades = {"standard-requirement", "standard-requirement-with-house-threshold",
+                  "house-rule", "craft-heuristic"}
+        for row in self.ROWS():
+            with self.subTest(row["form"]):
+                self.assertIn(row["evidence_grade"], grades)
+                self.assertTrue(row["source"].strip())
+
+    def test_mixing_two_tiers_in_one_piece_fails(self) -> None:
+        """The defect in one line: every sentence polite, every sentence grammatical, and nobody
+        decided. No sentence-level reader catches it."""
+        mixed = ("Kính thưa quý vị, chúng tôi xin giới thiệu sản phẩm mới. Bạn sẽ thấy khác biệt "
+                 "ngay lần đầu dùng. Bọn mình giao trong ngày ở Gò Vấp.")
+        gates = self.gates(mixed)
+        self.assertEqual(gates["one-address-form"]["status"], "failed")
+
+    def test_the_inclusive_plural_trap_is_caught(self) -> None:
+        """English `we` collapses a distinction Vietnamese keeps, so "we deliver in one day" comes
+        back as `chúng ta giao trong ngày` - with the customer doing the delivering."""
+        wrong = ("Chúng ta giao trong ngày ở Gò Vấp. Chúng tôi rang tại xưởng mỗi sáng. "
+                 "Bạn nhận hàng trước sáu giờ chiều.")
+        self.assertEqual(self.gates(wrong)["inclusive-exclusive"]["status"], "failed")
+
+    def test_a_clean_one_register_draft_passes_every_gate(self) -> None:
+        clean = ("Chúng tôi rang cà phê tại xưởng ở Gò Vấp và giao trong ngày. Anh chị đặt trước "
+                 "sáu giờ chiều thì hôm sau có hàng. Ngày rang in dưới đáy túi. Không thấy ngày "
+                 "rang thì đừng mua.")
+        for name, gate in self.gates(clean, "web").items():
+            with self.subTest(name):
+                self.assertIn(gate["status"], ("passed", "skipped"), gate["why"])
+
+    def test_an_ambiguous_form_reviews_rather_than_fails(self) -> None:
+        """`kẻ mày` is an eyebrow pencil. A checker that hard-fails a cosmetics brand's own product
+        copy is a checker nobody runs twice, so the answer is `review` and it names the string."""
+        brow = ("Bút kẻ mày này giữ nét cả ngày, tôi dùng ba tháng rồi. Anh chị mua ở cửa hàng "
+                "nào cũng được. Màu nâu tro phù hợp da sáng.")
+        self.assertEqual(self.gates(brow)["no-archaic-or-impolite"]["status"], "review")
+        # And the form that can only be the noun is not reported at all.
+        self.assertEqual(check_address_register.detect("Lông mày dày tự nhiên.", self.ROWS()), [])
+
+    def test_the_unit_is_registered_where_a_run_would_find_it(self) -> None:
+        # A checker nothing points at is a script, not a capability.
+        router = (SKILL_ROOT / "references" / "marketing-system-router.md").read_text(encoding="utf-8")
+        self.assertIn("address-register.md", router)
+        self.assertTrue((SKILL_ROOT / "references" / "address-register.md").exists())
+        localise = next(row for row in DataTableTests.rows("command-artifacts.csv")
+                        if row["command"] == "localise")
+        self.assertIn("check_address_register.py", localise["machinery"])
 
 
 class KpiScoringTests(unittest.TestCase):

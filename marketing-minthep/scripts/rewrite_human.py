@@ -58,9 +58,43 @@ PARA_SENTENCES_MAX = 4
 # Below this, the piece is short-form copy and a short mean is the point, not a defect.
 SHORT_FORM_UNITS = 120
 
+# Pictographs that carry meaning rather than decoration, and so are never counted. Every one of
+# these is Unicode general category `So`, the same category the rocket and the tick sit in, which is
+# why an allow-list is unavoidable: a gate that flags the registered-trademark sign in brand copy is
+# a gate that gets switched off in week one.
+DECORATION_KEEP = set("©®™°№℃℉")
+# House figures, and there is no standard to defer to here. What is defensible is the *shape* of the
+# rule rather than the numbers: the defect is not that a pictograph is present, it is that it arrived
+# in a slot nobody chose. An emoji a writer put inside a sentence is a decision. An emoji opening
+# every bullet is a template, and on a deliverable it is the single most recognisable sign that
+# nobody edited the output.
+DECORATION_BUDGET = {
+    # Surfaces where a reader does not expect a pictograph at all, this skill's own artifacts among
+    # them. Zero, because on these surfaces there is no native use to protect.
+    "deliverable": {"structural": 0, "per_150": 0.0},
+    "web": {"structural": 0, "per_150": 0.0},
+    "email": {"structural": 0, "per_150": 0.0},
+    "pr": {"structural": 0, "per_150": 0.0},
+    "sales-deck": {"structural": 0, "per_150": 0.0},
+    "marketplace": {"structural": 0, "per_150": 0.0},
+    # Social and chat are different in kind, not in degree. A Vietnamese seller bulleting a Facebook
+    # post with a tick is doing what the surface does, and a gate that calls that a machine tell is
+    # simply wrong about the channel. So structure is unbounded here and only density is held.
+    "social": {"structural": None, "per_150": 3.0},
+    "chat": {"structural": None, "per_150": 3.0},
+}
+DEFAULT_CHANNEL = "deliverable"
+# The one decoration rule that holds on every channel. Three lines opening on the same pictograph is
+# a generated list whatever the surface, because a writer choosing an icon per line would vary it.
+DECORATION_RUN_MAX = 2
+
 SENTENCE_END = re.compile(r"(?<=[.!?…])[\s]+|\n{2,}")
 # Markdown furniture is not prose and would wreck every length measurement if counted as sentences.
 STRIP_LINES = re.compile(r"^\s*(#{1,6}\s|\||[-*+]\s|\d+\.\s|>|```)")
+# Everything a line can carry before its first real character: quote markers, bullets, numbers,
+# heading hashes, table pipes, in any order and repeated. What follows is the first thing a reader
+# sees on that line, and a pictograph there is being used as structure.
+LINE_LEAD = re.compile(r"^(?:\s|[-*+>]\s*|\d+[.)]\s*|#{1,6}\s*|\|\s*)*")
 
 
 def read_tells(language: str) -> list[dict[str, str]]:
@@ -108,11 +142,76 @@ def paragraphs(text: str) -> list[list[str]]:
     return [sentences(block) for block in re.split(r"\n{2,}", text) if block.strip()]
 
 
+def pictographs(string: str) -> list[str]:
+    """Decorative pictographs in a string, by Unicode general category.
+
+    `So` is the honest stdlib net. It catches every emoji that is a single code point, the regional
+    indicators, and the geometric shapes that get used as bullets - the rocket, the tick, the bulb,
+    the black square. It is *not* UTS #51 `Extended_Pictographic`, which is the property an emoji
+    library would use, and Python's `unicodedata` does not expose that property at all. Two
+    consequences worth stating rather than discovering: keycap sequences like the digit-plus-U+20E3
+    form slip through, because the combining enclosing keycap is category `Me` and the digit is
+    `Nd`; and skin-tone modifiers are `Sk`, so they are not counted separately from the base glyph
+    they modify, which is correct here but for the wrong reason.
+
+    Arrows and bullets are deliberately out of scope. `→` is `Sm` and `•` is `Po`, and both are
+    ordinary typography with centuries behind them. Counting them would flag correctly typeset copy,
+    and this file's whole discipline is that a gate which fires on good work stops being read.
+    """
+    return [char for char in string
+            if unicodedata.category(char) == "So" and char not in DECORATION_KEEP]
+
+
+def decorations(text: str) -> dict:
+    """Count pictographs, and separate the ones standing in for structure from the ones inside prose.
+
+    Read against the raw text on purpose. `prose_only()` strips headings, bullets and table rows,
+    which is exactly where decoration lives - measuring decoration on the prose body would report
+    zero on the worst possible draft.
+    """
+    structural: list[str] = []
+    inline: list[str] = []
+    openers: list[str] = []
+    for line in text.splitlines():
+        icons = pictographs(line)
+        if not icons:
+            openers.append("")
+            continue
+        rest = line[LINE_LEAD.match(line).end():]
+        lead = pictographs(rest[:1])
+        heading = bool(re.match(r"^\s*#{1,6}\s", line))
+        # A pictograph in a heading is structure wherever it sits in the line: the heading *is* the
+        # structure. Elsewhere only the first character of the line counts, so an emoji a writer put
+        # in the middle of a sentence stays inline.
+        if heading:
+            structural.extend(icons)
+        elif lead:
+            structural.extend(lead)
+            inline.extend(icons[1:])
+        else:
+            inline.extend(icons)
+        openers.append(lead[0] if lead else (icons[0] if heading else ""))
+
+    run = worst_run = 0
+    for previous, current in zip([""] + openers, openers):
+        run = run + 1 if current and current == previous else (1 if current else 0)
+        worst_run = max(worst_run, run)
+    return {"structural": len(structural), "inline": len(inline),
+            "total": len(structural) + len(inline),
+            "longest_icon_opener_run": worst_run,
+            "samples": sorted(set(structural + inline))[:8]}
+
+
 def measure(text: str, language: str) -> dict:
     body = prose_only(text)
     sents = sentences(body)
+    decoration = decorations(text)
     if len(sents) < 2:
-        return {"language": language, "sentences": len(sents), "insufficient": True}
+        # Cadence needs two sentences. Decoration does not, and a bullet list with a tick on every
+        # line is both the commonest form of this defect and a draft with no measurable cadence at
+        # all. Returning early without the decoration counts would leave that draft unchecked.
+        return {"language": language, "sentences": len(sents), "insufficient": True,
+                "total_units": units(body, language), "decoration": decoration}
 
     beat = TARGETS[language]["beat"]
     lengths = [units(sentence, language) for sentence in sents]
@@ -159,12 +258,45 @@ def measure(text: str, language: str) -> dict:
         "em_dash_per_150": round(body.count("—") / per150, 2),
         "longest_paragraph_sentences": max((len(block) for block in paragraphs(body)), default=0),
         "single_sentence_paragraphs": sum(1 for block in paragraphs(body) if len(block) == 1),
+        "decoration": decoration,
     }
 
 
-def gates(stats: dict) -> list[dict]:
+def decoration_gates(stats: dict, channel: str) -> list[dict]:
+    """The icon gates, which run whether or not there is measurable cadence."""
+    found = stats.get("decoration") or decorations("")
+    budget = DECORATION_BUDGET[channel]
+    per150 = (stats.get("total_units", 0) / 150) or 1
+    density = round(found["total"] / per150, 2)
+    shown = " ".join(found["samples"]) or "none"
+    checks = [
+        ("decoration-as-structure",
+         budget["structural"] is None or found["structural"] <= budget["structural"], "high",
+         f"{found['structural']} in a heading or opening a line ({shown})",
+         "unbounded on this channel" if budget["structural"] is None
+         else f"<= {budget['structural']}",
+         "A pictograph opening a bullet or sitting in a heading is doing a typographic job, and "
+         f"nobody chose it. On {channel} the reader is not expecting one, so it reads as an "
+         "unedited default rather than as emphasis."),
+        ("decoration-density", density <= budget["per_150"], "medium",
+         f"{density} per 150 ({found['total']} total: {found['structural']} structural, "
+         f"{found['inline']} inline)", f"<= {budget['per_150']} per 150",
+         "An emoji a writer put inside a sentence is a decision. Past this rate they are furniture, "
+         "and the reader stops reading them as anything."),
+        ("decoration-run", found["longest_icon_opener_run"] <= DECORATION_RUN_MAX, "high",
+         f"run of {found['longest_icon_opener_run']} lines", f"<= {DECORATION_RUN_MAX}",
+         "The same pictograph opening three lines in a row is a generated list on every channel, "
+         "including the ones where emoji are native. A writer picking an icon per line would have "
+         "picked different ones."),
+    ]
+    return [{"gate": name, "pass": bool(passed), "severity": severity,
+             "observed": observed, "target": want, "why": why}
+            for name, passed, severity, observed, want, why in checks]
+
+
+def gates(stats: dict, channel: str = DEFAULT_CHANNEL) -> list[dict]:
     if stats.get("insufficient"):
-        return []
+        return decoration_gates(stats, channel)
     target = TARGETS[stats["language"]]
     unit = target["unit"]
     checks = [
@@ -208,9 +340,10 @@ def gates(stats: dict) -> list[dict]:
         checks.append(("em-dash-vietnamese", stats["em_dashes"] == 0, "medium",
                        f"{stats['em_dashes']} em dashes", "0",
                        "Vietnamese punctuates this with a comma, a colon or a full stop. The em dash arrives with the English draft."))
-    return [{"gate": name, "pass": bool(passed), "severity": severity,
+    rows = [{"gate": name, "pass": bool(passed), "severity": severity,
              "observed": observed, "target": want, "why": why}
             for name, passed, severity, observed, want, why in checks]
+    return rows + decoration_gates(stats, channel)
 
 
 def find_tells(text: str, language: str) -> list[dict]:
@@ -239,16 +372,25 @@ def find_tells(text: str, language: str) -> list[dict]:
     return sorted(found, key=lambda row: (order.get(row.get("severity", "low"), 9), -row["count"]))
 
 
-def report(stats: dict, gate_rows: list[dict], tells: list[dict]) -> str:
-    lines = [f"# rewrite-human check — language {stats['language']}", ""]
-    if stats.get("insufficient"):
-        return "\n".join(lines + ["Fewer than two sentences of prose. Nothing measurable.", ""])
-
-    lines += [f"{stats['sentences']} sentences, {stats['total_units']} {stats['unit']}.", "", "## Cadence gates", ""]
-    lines += ["| Gate | Result | Observed | Target | Why |", "|---|---|---|---|---|"]
+def _gate_table(gate_rows: list[dict]) -> list[str]:
+    lines = ["| Gate | Result | Observed | Target | Why |", "|---|---|---|---|---|"]
     for row in gate_rows:
         mark = "pass" if row["pass"] else f"FAIL ({row['severity']})"
         lines.append(f"| {row['gate']} | {mark} | {row['observed']} | {row['target']} | {row['why']} |")
+    return lines
+
+
+def report(stats: dict, gate_rows: list[dict], tells: list[dict], channel: str = DEFAULT_CHANNEL) -> str:
+    lines = [f"# rewrite-human check — language {stats['language']}, channel {channel}", ""]
+    if stats.get("insufficient"):
+        # Cadence is unmeasurable here, the icon gates are not. Saying "nothing measurable" over a
+        # tick-bulleted list would be the one wrong answer on the commonest bad draft there is.
+        lines += ["Fewer than two sentences of prose, so no cadence to measure. Decoration still counts.",
+                  "", "## Decoration gates", ""]
+        return "\n".join(lines + _gate_table(gate_rows) + [""])
+
+    lines += [f"{stats['sentences']} sentences, {stats['total_units']} {stats['unit']}.", "", "## Cadence and decoration gates", ""]
+    lines += _gate_table(gate_rows)
 
     lines += ["", "## Translation and slop tells", ""]
     if not tells:
@@ -288,7 +430,17 @@ def print_targets() -> str:
              f"| Consecutive near-equal lengths | <= {FLAT_RUN_MAX} |",
              f"| Consecutive same opening word | <= {SAME_OPENER_MAX} |",
              f"| Em dashes | <= {EM_DASH_PER_150} per 150 (0 in Vietnamese) |",
-             f"| Paragraph length | <= {PARA_SENTENCES_MAX} sentences |", ""]
+             f"| Paragraph length | <= {PARA_SENTENCES_MAX} sentences |", "",
+             "# Decoration budget", "",
+             "House figures. The defect is not that a pictograph exists, it is that it arrived in a slot",
+             "nobody chose - the same icon opening every bullet. Social and chat differ in kind, not in",
+             "degree: an emoji there is what the surface does. Meaning-bearing signs "
+             f"({''.join(sorted(DECORATION_KEEP))}) are never counted.", "",
+             "| Channel | Structural (heading or line-opening) | Density |", "|---|---|---|"]
+    for name, budget in sorted(DECORATION_BUDGET.items()):
+        cap = "unbounded" if budget["structural"] is None else f"<= {budget['structural']}"
+        lines.append(f"| {name} | {cap} | <= {budget['per_150']} per 150 |")
+    lines += ["", f"Same icon opening consecutive lines: <= {DECORATION_RUN_MAX}, on every channel.", ""]
     return "\n".join(lines)
 
 
@@ -410,6 +562,58 @@ def self_check() -> str:
     # And the English beat stays tight: a six-word sentence is not a beat in English.
     assert measure("The roast date is stamped on the base. No date, no sale.", "en")["short_sentences"] == 1
 
+    # --- decoration ------------------------------------------------------------------------------
+    # The draft this gate exists for: a checklist where every line opens on a pictograph. It has no
+    # measurable cadence at all, which is why `insufficient` had to stop short-circuiting the gates.
+    bulleted = ("## ✨ Ưu điểm\n"
+                "- \U0001f680 Giao trong ngày\n"
+                "- \U0001f680 Rang tại xưởng\n"
+                "- \U0001f680 Đổi trả 7 ngày\n")
+    stats = measure(bulleted, "vi")
+    assert stats.get("insufficient"), stats
+    deck = {row["gate"]: row for row in gates(stats, "deliverable")}
+    assert set(deck) == {"decoration-as-structure", "decoration-density", "decoration-run"}, deck
+    assert not deck["decoration-as-structure"]["pass"], deck["decoration-as-structure"]
+    # Four pictographs: one in the heading, three opening bullets. All structural, none inline.
+    assert stats["decoration"] == {"structural": 4, "inline": 0, "total": 4,
+                                   "longest_icon_opener_run": 3,
+                                   "samples": ["✨", "\U0001f680"]}, stats["decoration"]
+    # Same draft on social: the surface does this, so structure is unbounded and the gate passes.
+    social = {row["gate"]: row for row in gates(stats, "social")}
+    assert social["decoration-as-structure"]["pass"], social["decoration-as-structure"]
+    # The run rule holds anyway, because three identical openers is a generated list on any surface.
+    assert not social["decoration-run"]["pass"], social["decoration-run"]
+    assert not deck["decoration-run"]["pass"], deck["decoration-run"]
+
+    # A writer varying the icon per line is making decisions, so the run gate must not fire on it.
+    varied = bulleted.replace("- \U0001f680 Rang", "- \U0001f6a9 Rang")
+    assert measure(varied, "vi")["decoration"]["longest_icon_opener_run"] == 1, measure(varied, "vi")
+
+    # Meaning-bearing signs are never decoration. Flagging the registered mark in brand copy is the
+    # fastest way to get the whole gate switched off.
+    marks = ("Cà phê Minh Thép® rang tại xưởng ở Gò Vấp, giao trong ngày. Nhiệt độ rang 210℃, "
+             "ghi dưới đáy túi. Không thấy thì đừng mua.")
+    assert measure(marks, "vi")["decoration"]["total"] == 0, measure(marks, "vi")["decoration"]
+    assert all(row["pass"] for row in gates(measure(marks, "vi"), "deliverable")
+               if row["gate"].startswith("decoration"))
+
+    # An emoji inside a sentence is a decision and stays inline; one in a heading is structure
+    # wherever it sits in the line.
+    mid = ("Chủ quán nhắn lúc bốn giờ sáng \U0001f605 vì nồi nước dùng chưa tới. Chúng tôi giao lại "
+           "trong hai tiếng.")
+    counted = measure(mid, "vi")["decoration"]
+    assert (counted["structural"], counted["inline"]) == (0, 1), counted
+    tail = measure("## Giao hàng \U0001f69a\n\nGiao trong ngày ở Gò Vấp. Ngoài bán kính tám cây thì hai ngày.", "vi")
+    assert tail["decoration"]["structural"] == 1, tail["decoration"]
+
+    # And prose with no pictographs at all reports nothing, on the strictest channel.
+    assert measure(beats, "vi")["decoration"]["total"] == 0
+    assert all(row["pass"] for row in gates(measure(beats, "vi"), "deliverable")
+               if row["gate"].startswith("decoration"))
+    # The cadence gates still run alongside them, rather than being displaced.
+    named = {row["gate"] for row in gates(measure(bursty, "en"), "deliverable")}
+    assert "burstiness-cv" in named and "decoration-density" in named, named
+
     return "self-check passed\n"
 
 
@@ -419,6 +623,9 @@ def main() -> int:
     parser.add_argument("--check", help="file to measure")
     parser.add_argument("--text", help="measure this string instead of a file")
     parser.add_argument("--lang", choices=("vi", "en", "auto"), default="auto")
+    parser.add_argument("--channel", choices=sorted(DECORATION_BUDGET), default=DEFAULT_CHANNEL,
+                        help="where this copy is going; it sets the decoration budget only "
+                             f"(default {DEFAULT_CHANNEL}, which allows none)")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--output", help="write the report here instead of stdout")
     parser.add_argument("--targets", action="store_true", help="print the targets and exit")
@@ -437,14 +644,14 @@ def main() -> int:
     text = args.text if args.text else Path(args.check).read_text(encoding="utf-8")
     language = detect_language(text) if args.lang == "auto" else args.lang
     stats = measure(text, language)
-    gate_rows = gates(stats)
+    gate_rows = gates(stats, args.channel)
     tells = find_tells(text, language)
 
     if args.json:
-        emit_json({"stats": stats, "gates": gate_rows, "tells": tells,
+        emit_json({"stats": stats, "channel": args.channel, "gates": gate_rows, "tells": tells,
                    "blocking": blocking_count(gate_rows, tells)}, args.output)
     else:
-        emit(report(stats, gate_rows, tells), args.output)
+        emit(report(stats, gate_rows, tells, args.channel), args.output)
     return 1 if blocking_count(gate_rows, tells) else 0
 
 
