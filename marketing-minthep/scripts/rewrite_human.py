@@ -112,6 +112,9 @@ STRIP_LINES = re.compile(r"^\s*(#{1,6}\s|\||[-*+]\s|\d+\.\s|>|```)")
 LINE_LEAD = re.compile(r"^(?:\s|[-*+>]\s*|\d+[.)]\s*|#{1,6}\s*|\|\s*)*")
 # A list item and its indent. Both bullet and ordered forms, because "1. 2. 3." is the same shape.
 LIST_ITEM = re.compile(r"^(\s*)(?:[-*+]|\d+[.)])\s+(\S.*)$")
+# Stands in for a removed fenced block where a blank line would be read as continuation. It has to be
+# non-blank and not match LIST_ITEM; the text itself is never measured, only its shape.
+FENCE_STOP = "fenced block removed"
 
 
 def read_tells(language: str) -> list[dict[str, str]]:
@@ -122,18 +125,36 @@ def read_tells(language: str) -> list[dict[str, str]]:
     return [row for row in rows if row["language"] in (language, "any")]
 
 
-def prose_only(text: str) -> str:
-    """Drop headings, tables, list markers and fences. What remains is what a reader reads as prose."""
+def outside_fences(text: str, fill: str = "") -> str:
+    """Everything except fenced code blocks, with fenced lines replaced by `fill` rather than deleted
+    so that run-length measurements still see the gap where the block was.
+
+    `fill` is blank for prose and decoration, where an absent line is what a fence should look like.
+    Pass `FENCE_STOP` when a blank line would *join* two things the fence separates: a loose Markdown
+    list survives a blank line, so blanking a code block between two lists would report one list of
+    six where the document has two of three.
+
+    Decoration and list shape are read from the raw file on purpose, because a heading or a bullet is
+    exactly where decoration lives. A fenced block is the one place where neither reading holds: a
+    box-drawing character or a `- ` line inside a fence is verbatim content somebody typed on
+    purpose. Counting a hand-drawn ASCII decision tree as six pictographs used as structure is how a
+    gate earns the right to be ignored, and a gate that is ignored is not a gate.
+    """
     kept: list[str] = []
     fenced = False
     for line in text.splitlines():
         if line.strip().startswith("```"):
             fenced = not fenced
+            kept.append(fill)
             continue
-        if fenced:
-            continue
-        kept.append("" if STRIP_LINES.match(line) else line)
+        kept.append(fill if fenced else line)
     return "\n".join(kept)
+
+
+def prose_only(text: str) -> str:
+    """Drop headings, tables, list markers and fences. What remains is what a reader reads as prose."""
+    return "\n".join("" if STRIP_LINES.match(line) else line
+                     for line in outside_fences(text).splitlines())
 
 
 def detect_language(text: str) -> str:
@@ -184,12 +205,13 @@ def decorations(text: str) -> dict:
 
     Read against the raw text on purpose. `prose_only()` strips headings, bullets and table rows,
     which is exactly where decoration lives - measuring decoration on the prose body would report
-    zero on the worst possible draft.
+    zero on the worst possible draft. Fenced blocks are the one exception, because a box-drawing
+    character inside a fence is a diagram somebody drew, not a bullet somebody defaulted to.
     """
     structural: list[str] = []
     inline: list[str] = []
     openers: list[str] = []
-    for line in text.splitlines():
+    for line in outside_fences(text).splitlines():
         icons = pictographs(line)
         if not icons:
             openers.append("")
@@ -235,6 +257,8 @@ def list_blocks(text: str) -> list[list[str]]:
 
     Single-item "lists" are dropped. One bullet has no geometry, and counting it as a list of one
     would drag every share in this function toward whatever the writer used for a lone aside.
+
+    Fenced blocks are out. A `- ` line inside a fence is a sample of somebody's YAML.
     """
     found: list[list[str]] = []
     open_runs: dict[int, list[str]] = {}
@@ -243,7 +267,7 @@ def list_blocks(text: str) -> list[list[str]]:
         for level in sorted((lvl for lvl in open_runs if lvl > deeper_than), reverse=True):
             found.append(open_runs.pop(level))
 
-    for line in text.splitlines():
+    for line in outside_fences(text, fill=FENCE_STOP).splitlines():
         match = LIST_ITEM.match(line)
         if match:
             indent = len(match.group(1))

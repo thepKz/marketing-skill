@@ -2796,6 +2796,56 @@ class RewriteHumanTests(unittest.TestCase):
                 text = (folder / name).read_text(encoding="utf-8")
                 self.assertEqual(rewrite_human.pictographs(text), [])
 
+    # --- fenced blocks ---------------------------------------------------------------------------
+
+    TREE = ("Chọn nhánh nào thì hỏi câu này trước.\n\n"
+            "```\n"
+            "Does the API expose a negative-prompt field?\n"
+            "├─ Yes → dùng cho danh từ cụ thể.\n"
+            "│        Tối đa sáu từ.\n"
+            "└─ No  → viết lại phần mô tả.\n"
+            "```\n\n"
+            "Nhánh nào cũng phải viết ra trước khi gọi API. Không thì lần sau không dựng lại được.\n")
+
+    def test_a_diagram_inside_a_fence_is_not_counted_as_decoration(self) -> None:
+        """Every box-drawing character sits in the same Unicode category as the rocket, so a
+        hand-drawn decision tree used to report six pictographs opening a line - which is the
+        strictest reading of the gate applied to the one place it cannot mean anything. This was a
+        live false positive on `dossiers/image-prompt-engineering.md`."""
+        for char in "─│└├":
+            with self.subTest(char):
+                self.assertEqual(unicodedata.category(char), "So")
+        found = rewrite_human.measure(self.TREE, "vi")["decoration"]
+        self.assertEqual((found["structural"], found["inline"]), (0, 0))
+        gates = {row["gate"]: row for row in
+                 rewrite_human.gates(rewrite_human.measure(self.TREE, "vi"), "deliverable")}
+        self.assertTrue(gates["decoration-as-structure"]["pass"])
+
+    def test_the_same_characters_outside_a_fence_still_trip_the_gate(self) -> None:
+        """The other direction, which is the one that matters. Excluding fences must not become a
+        way to stop measuring: a writer who opens body lines with box-drawing characters is using
+        typography as structure whatever the glyph, and the gate has to keep saying so."""
+        unfenced = self.TREE.replace("```\n", "")
+        found = rewrite_human.measure(unfenced, "vi")["decoration"]
+        self.assertGreater(found["structural"], 0)
+        gates = {row["gate"]: row for row in
+                 rewrite_human.gates(rewrite_human.measure(unfenced, "vi"), "deliverable")}
+        self.assertFalse(gates["decoration-as-structure"]["pass"])
+
+    def test_a_fence_separates_two_lists_instead_of_blanking_into_one(self) -> None:
+        """A loose Markdown list survives a blank line, so replacing a fenced block with blank lines
+        would silently join the lists either side of it. Three plus three would read as one list of
+        six: the tricolon gate would stop seeing two tricolons, and the length gate would see a list
+        nobody wrote. Hence `FENCE_STOP` rather than an empty line."""
+        split = ("- Alpha\n- Beta\n- Gamma\n\n```\nnegative: text, watermark\n```\n\n"
+                 "- Delta\n- Epsilon\n- Zeta\n")
+        self.assertEqual([len(block) for block in rewrite_human.list_blocks(split)], [3, 3])
+
+    def test_a_bulleted_sample_inside_a_fence_is_not_a_list(self) -> None:
+        # A YAML or Markdown sample is content being shown, not shape being chosen.
+        sample = "Cấu hình mẫu:\n\n```\n- alpha\n- beta\n- gamma\n```\n"
+        self.assertEqual(rewrite_human.list_blocks(sample), [])
+
     # --- list shape ------------------------------------------------------------------------------
 
     # Four sections, four lists, every list three items long. This is what a generated brief,

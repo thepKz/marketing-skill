@@ -278,7 +278,7 @@ b(φ) = h / tan φ
 | 60° | 8.7 | 171 mm (95 %) | 0.866 |
 | 90° | 0 | 180 mm (100 %) | 1.000 → circle |
 
-Check one row by hand: tan 30° = 0.5774; 15 / 0.5774 = 25.98 mm. ✓
+Check one row by hand: tan 30° = 0.5774; 15 / 0.5774 = 25.98 mm, which is the tabled value.
 
 **Consequences.**
 - Below φ ≈ 22° you lose more than a quarter of the broth surface. Any garnish you laid on the near
@@ -314,7 +314,7 @@ surface normal. Since the broth surface is horizontal, **θ = 90° − φ**.
 | 5° | 85° | 0.633828 | 64.1 % | Mirror; the broth's colour is gone |
 
 Check the 25° row: cos 65° = 0.42262; (1 − 0.42262) = 0.57738; 0.57738² = 0.33337; ⁴ = 0.111136;
-× 0.57738 = 0.064168; R = 0.0204 + 0.97963 × 0.064168 = 0.0204 + 0.06286 = 0.0833. ✓
+× 0.57738 = 0.064168; R = 0.0204 + 0.97963 × 0.064168 = 0.0204 + 0.06286 = 0.0833, which is the tabled value.
 
 **This is the real reason low angles "look dramatic" and also why they fail.** Between φ = 45° and
 φ = 25° the broth's mirror term nearly quadruples (2.25 % → 8.32 %). Between 45° and 15° it rises
@@ -391,7 +391,7 @@ change direction at the surface. Snell: sin θ = n · sin θ′.
 | 60° | 0.86603 | 0.64969 | 40.53° | **19.47°** |
 | 75° | 0.96593 | 0.72463 | 46.44° | **28.56°** |
 
-Check the 45° row: 0.70711 / 1.333 = 0.53046; arcsin 0.53046 = 32.03°; 45 − 32.03 = 12.97°. ✓
+Check the 45° row: 0.70711 / 1.333 = 0.53046; arcsin 0.53046 = 32.03°; 45 − 32.03 = 12.97°, which is the tabled value.
 
 **Use this as a forensic test.** A chopstick or spoon handle entering broth at 45° *must* show a
 ~13° kink at the surface, and the submerged portion must appear both displaced and slightly
@@ -495,7 +495,7 @@ two features separated in depth by Δ have a projected size ratio (s + Δ)/s. Fo
 
 Derivation of the distance column: the bowl (180 mm) must span 80 % of 24 mm = 19.2 mm on the sensor,
 so magnification M = 19.2/180 = 0.1067, and for a thin lens s ≈ f · (1 + 1/M) = f · 10.37. For
-f = 100 mm that is 1.037 m. ✓ Then the ratio column is (s + 156 mm)/s.
+f = 100 mm that is 1.037 m, as tabled. Then the ratio column is (s + 156 mm)/s.
 
 **A 43 % near-far size difference is what "wide-angle food looks wrong" actually is.** The near rim
 balloons, the far rim shrinks, and the rim stops looking like a circle in perspective and starts
@@ -520,7 +520,7 @@ s ≫ f:
 | 100 mm | 1.4 m | 45 mm | 64 mm | 91 mm | 125 mm |
 | 85 mm | 1.0 m | 32 mm | 45 mm | 64 mm | 88 mm |
 
-Check one cell: 2 × 5.6 × 0.029 × (1000/100)² = 2 × 5.6 × 0.029 × 100 = 32.5 mm. ✓
+Check one cell: 2 × 5.6 × 0.029 × (1000/100)² = 2 × 5.6 × 0.029 × 100 = 32.5 mm, which is the tabled value.
 
 **Decision rule.**
 - **Hero, single bowl, everything sharp:** you need ≥ 156 mm of DoF. At 100 mm / 1.0 m that means

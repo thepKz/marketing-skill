@@ -260,13 +260,13 @@ for, because fractional column widths propagate rounding error into every nested
 
 - **1440 / 12 / 24 → c = 98.000 exactly.** This is why 1440 with a 24 gutter is the most common
   desktop design width in practice — it is one of the few combinations that divides cleanly.
-  Verify: `98×12 = 1176`, `24×11 = 264`, `1176+264 = 1440` ✓
-- **1200 / 12 / 24 → c = 78.000 exactly.** Verify: `78×12 = 936`, `24×11 = 264`, sum `1200` ✓
+  Verify: `98×12 = 1176`, `24×11 = 264`, `1176+264 = 1440`, which checks
+- **1200 / 12 / 24 → c = 78.000 exactly.** Verify: `78×12 = 936`, `24×11 = 264`, sum `1200`, which checks
 - **1280 / 12 / anything common → never integer.** `1280/12 = 106.67`. If you must use 1280, either
   drop to 10 columns (`(1280−9×24)/10 = 106.4`, still not integer) or accept subpixel columns, or
   use a 1264 content width inside 1280 (`(1264−264)/12 = 83.33`, still no). **Cleanest fix: 1272
   content width with 24 gutter → `(1272−264)/12 = 84.000` exactly.** `[derived]` Verify:
-  `84×12 = 1008`, `1008+264 = 1272` ✓
+  `84×12 = 1008`, `1008+264 = 1272`, which checks
 - **A 12-column grid is meaningless at 360–390px.** `c = 8.0px` at 360 is narrower than a single
   character. On mobile, use **4 columns** or no columns at all — just a single measure with padding.
   `(360 − 3×16)/4 = 78.000` exactly with a 16 gutter. `[derived]`
@@ -297,8 +297,8 @@ Distinct quantities; conflating them is a frequent spec bug.
 
 ```
 viewport   margin   content W   grid
-   360       16        328      4 col, 16 gut  -> c = (328−48)/4 = 70.000   [derived] ✓
-   768       32        704      8 col, 24 gut  -> c = (704−168)/8 = 67.000  [derived] ✓
+   360       16        328      4 col, 16 gut  -> c = (328−48)/4 = 70.000   [derived, checked]
+   768       32        704      8 col, 24 gut  -> c = (704−168)/8 = 67.000  [derived, checked]
   1024       40        944     12 col, 24 gut  -> c = (944−264)/12 = 56.667  no
   1440       80       1280     12 col, 24 gut  -> c = (1280−264)/12 = 84.667  no
 ```

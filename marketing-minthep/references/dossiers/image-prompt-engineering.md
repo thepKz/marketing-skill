@@ -876,11 +876,11 @@ high-quality render is the low-quality render with more pixels `[craft]`.
 
 | # | Seed | Changed slot | Exact change | Effect observed | Keep? |
 |---|---|---|---|---|---|
-| 1 | 1042 | — | base prompt | subject correct, flat light | ✅ base |
-| 2 | 1042 | 5 light | added "one softbox camera left" | shape appeared, right side too dark | ✅ |
-| 3 | 1042 | 5 light | added "white bounce card right" | shadow opened, still directional | ✅ |
-| 4 | 1042 | 5 lens | 50mm → 85mm | background compressed, less context | ❌ revert (brief needs the stall visible) |
-| 5 | 1042 | 6 comp | "30% clear space upper left" | headline space appeared, bowl smaller | ✅ |
+| 1 | 1042 | — | base prompt | subject correct, flat light | kept as base |
+| 2 | 1042 | 5 light | added "one softbox camera left" | shape appeared, right side too dark | kept |
+| 3 | 1042 | 5 light | added "white bounce card right" | shadow opened, still directional | kept |
+| 4 | 1042 | 5 lens | 50mm → 85mm | background compressed, less context | reverted, the brief needs the stall visible |
+| 5 | 1042 | 6 comp | "30% clear space upper left" | headline space appeared, bowl smaller | kept |
 
 Seeds shown are `[illustrative]`. The point is the *shape*: one row per change, and an explicit
 keep/revert with a reason. Teams that keep this log build a house prompt library in weeks. Teams that
