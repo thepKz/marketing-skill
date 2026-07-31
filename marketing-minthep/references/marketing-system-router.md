@@ -54,8 +54,20 @@ Load only when relevant:
 - Current placements/specs: `channel-spec-registry.md`.
 - Product/human/virtual imagery: relevant image references.
 - Logo, wordmark, favicon, banner grid, type scale: `identity-design.md`.
+- Palette, contrast, lightness separation, chroma budget, tonal ramps: `colour-combination.md` plus
+  `data/palettes.csv` and `data/colour-gates.csv`. Load this before naming a colour, and before
+  answering any question that quotes a colour-psychology statistic.
+- One person holding every marketing role, what the week can actually carry, and which roles are
+  silently being dropped: `vietnam-operating-reality.md` plus `data/vn-marketer-roles.csv` and
+  `scripts/plan_operating_load.py`. Load this before recommending a plan to a small team, and before
+  answering "how do I do marketing for my shop".
 - Reading a live reference into pose, light, palette and makeup observations without storing the image:
   `reference-reading.md` plus `data/reference-observations.csv`.
+- How many frames one existing product photograph can actually produce, which need a second exposure,
+  which are legal as a marketplace main image, and what to declare in IPTC metadata:
+  `product-composition-set.md` plus `data/product-compositions.csv` and
+  `scripts/plan_composition_set.py`. Load this before answering "can AI make the rest of my photos",
+  and before promising a full listing set from one file.
 - Where a number came from and what it actually measures: `market-data-collection.md`.
 - How real organisations run marketing, what the largest advertisers disclose, and which benchmark may be
   quoted at whom: `how-companies-market.md` plus `data/marketing-benchmarks.csv`. Load this before

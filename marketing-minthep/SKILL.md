@@ -44,6 +44,14 @@ Pick exactly one primary pipeline. `assets/registries/pipelines.json` is the sou
 
 `scripts/start_workbench.py` selects the pipeline and creates linked supporting runs when one request spans several. Run it rather than choosing by intuition; override it only when you can say why. Run `scripts/list_capabilities.py [--query TERM]` any time the current list of pipelines, references, data tables, and scripts is needed; it reads the repository instead of a written summary that can drift.
 
+### The command surface
+
+A pipeline is a route. Underneath it sit 28 named commands in `data/command-artifacts.csv`, grouped as `discover` (brainstorm, research, investigate, survey), `decide` (segment, position, offer, plan, budget), `create` (brief, write, humanise, localise, schedule), `direct` (compose, colour, identify, stage, shoot, generate, expand), `activate` (produce, adapt, approve, launch) and `evaluate` (measure, diagnose, improve).
+
+Each command declares what it cannot run without, what it produces, what it refuses, and what it does not do. That last column is load-bearing: a request almost never arrives at the start of the work, so the useful answer is which commands are already satisfied and which are missing. Do not narrate that chain — resolve it. `scripts/plan_command_chain.py --goal COMMAND --have ARTEFACT...` returns the commands in an order where every input exists before it runs, and `--explain COMMAND` prints one command's contract. Read `references/command-surface.md` before adding, renaming, or reordering a command; the graph is what several other scripts join against.
+
+Two things the graph cannot see, and both change the answer. It does not know that the person running the chain is also answering the inbox — that is `vietnam-operating-reality.md` plus `scripts/plan_operating_load.py`, which counts the week rather than describing it. And it does not know whether the source material can carry the frames the chain assumes — that is `product-composition-set.md` plus `scripts/plan_composition_set.py`, which answers "can AI make the rest of my photos" with a count instead of a promise: seven of eighteen slots from one photograph, eight needing a second exposure.
+
 ### Conditional overlays
 
 Load only what the decision needs.
@@ -64,10 +72,14 @@ Load only what the decision needs.
 | Claims that will be published | `claims-proof-ledger.md`, `rights-and-claims.md` |
 | Copy that reads machine-written, or translated word for word | `rewrite-human.md`, `copywriting.md` |
 | Targets, weights, achievement rates, a scorecard to cascade or score | `kpi-scorecards.md`, `claims-proof-ledger.md` |
+| Naming a colour, pairing two, or answering a colour-psychology claim | `colour-combination.md` plus `data/colour-gates.csv` |
+| One person holding every marketing role, or a plan for a shop with no team | `vietnam-operating-reality.md` |
+| How many frames one existing photograph can produce, and what is legal as a marketplace main image | `product-composition-set.md` |
+| Where a number came from, and how real companies actually market | `market-data-collection.md`, `how-companies-market.md` |
 
 ## Look it up, do not recall it
 
-`data/` holds seventeen tables, all queryable through `scripts/find_recipe.py`. Query them instead of writing craft values from memory, because a remembered lighting setup is a guess and a table row is a decision somebody already made and wrote down why. The eight a run reaches for directly are below; `frame-ratios.csv`, `composition-grids.csv` and `reference-axes.csv` are documented with the reference sheets they draw, and `makeup-looks.csv` (47 looks across thirteen families) and `makeup-diagnostics.csv` (15 questions) with the identification script below and in `makeup-art-direction.md`. Four more carry evidence rather than craft: `market-data-sources.csv` (37 sources with the HTTP status each returned and what it cannot see), `marketing-benchmarks.csv` (31 claims, each with its sample, how the source was actually reached, and what it does not establish), `mark-scale-ladder.csv` (the per-slot detail budget behind `identity-design.md`), and `reference-observations.csv` (post-level pose, light and makeup observations cited by URL, no image stored). Never quote a benchmark without the `what_it_does_not_establish` cell beside it.
+`data/` holds twenty-one tables, all queryable through `scripts/find_recipe.py`. Query them instead of writing craft values from memory, because a remembered lighting setup is a guess and a table row is a decision somebody already made and wrote down why. The eight a run reaches for directly are below; `frame-ratios.csv`, `composition-grids.csv` and `reference-axes.csv` are documented with the reference sheets they draw, and `makeup-looks.csv` (47 looks across thirteen families) and `makeup-diagnostics.csv` (15 questions) with the identification script below and in `makeup-art-direction.md`. Four carry evidence rather than craft: `market-data-sources.csv` (37 sources with the HTTP status each returned and what it cannot see), `marketing-benchmarks.csv` (35 claims, each with its sample, how the source was actually reached, and what it does not establish), `mark-scale-ladder.csv` (the per-slot detail budget behind `identity-design.md`), and `reference-observations.csv` (post-level pose, light and makeup observations cited by URL, no image stored). Four are structural, each read by the script named beside it: `command-artifacts.csv`, `vn-marketer-roles.csv`, `colour-gates.csv` and `product-compositions.csv`. Never quote a benchmark without the `what_it_does_not_establish` cell beside it.
 
 | Table | Rows | What it settles |
 |---|---|---|

@@ -18,6 +18,11 @@ runs/
 .tmp_viet/
 undefined/
 
+# My own orchestration harness and the batches it dispatches. It accelerates authoring the
+# skill; it is not part of the skill, which stays pure marketing craft with no router
+# dependency of any kind.
+_work/
+
 # API keys. The image endpoint takes a bearer token; it must never reach a commit.
 .env
 .env.*

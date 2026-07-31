@@ -22,6 +22,7 @@
         "copywriting.md",
         "channel-deliverables.md",
         "learning-loop.md",
+        "vietnam-operating-reality.md",
         "product-category-playbooks.md",
         "industry-playbooks.md",
         "menu-engineering.md",
@@ -32,6 +33,7 @@
         "new_run.py",
         "research_plan.py",
         "plan_marketing_system.py",
+        "plan_operating_load.py",
         "run_status.py"
       ],
       "deliverables": [
@@ -1447,6 +1449,7 @@
         "menu-engineering.md",
         "menu-design.md",
         "visual-craft.md",
+        "colour-combination.md",
         "copywriting.md",
         "creative-tool-interfaces.md",
         "production-pipeline.md",
@@ -1456,6 +1459,7 @@
         "start_workbench.py",
         "new_run.py",
         "plan_design_options.py",
+        "plan_palette.py",
         "render_mockup.py",
         "run_status.py"
       ],

@@ -9,6 +9,7 @@ import csv
 import io
 import json
 import math
+import statistics
 import unicodedata
 import re
 import tempfile
@@ -28,7 +29,11 @@ from compile_prompt import compile_provider
 import find_recipe
 import generate_image
 import list_capabilities
+import plan_command_chain
+import plan_composition_set
 import plan_identity
+import plan_operating_load
+import plan_palette
 import render_refsheet
 import rewrite_human
 import score_kpi
@@ -1269,8 +1274,12 @@ class DataTableTests(unittest.TestCase):
         "makeup-diagnostics.csv": (15, 15),
         "mark-scale-ladder.csv": (7, 10),
         "market-data-sources.csv": (37, 12),
-        "marketing-benchmarks.csv": (31, 12),
+        "marketing-benchmarks.csv": (35, 12),
         "reference-observations.csv": (7, 24),
+        "command-artifacts.csv": (28, 11),
+        "colour-gates.csv": (9, 9),
+        "vn-marketer-roles.csv": (13, 11),
+        "product-compositions.csv": (18, 18),
     }
 
     # Most of these tables are keyed by their first column. The weights table is keyed by two, and
@@ -1285,12 +1294,27 @@ class DataTableTests(unittest.TestCase):
         text = (SKILL_ROOT / "data" / name).read_text(encoding="utf-8")
         return list(csv.DictReader(io.StringIO(text)))
 
+    # Two columns of command-artifacts.csv are allowed to be empty, because emptiness is the
+    # answer rather than a gap. Most commands have no optional second input, and only one
+    # produces an artefact that stands in for another. Filling those cells with "none" would
+    # make the planner test for a magic word instead of for an empty string.
+    # Two columns of command-artifacts.csv are allowed to be empty for the reason above. The
+    # `commands` column of the roles table is allowed to be empty for a stronger reason: two of the
+    # thirteen roles - answering the inbox, and covering sales - genuinely map to no command, because
+    # they produce no artefact. That emptiness is the central finding of the unit, so writing "none"
+    # into the cell to satisfy a completeness test would delete the finding to please the test.
+    MAY_BE_EMPTY = {"command-artifacts.csv": {"also_uses", "also_satisfies"},
+                    "vn-marketer-roles.csv": {"commands"}}
+
     def test_every_cell_is_filled(self) -> None:
         # An empty cell in a lookup table is not a blank, it is a silent omission: the composer
         # writes the key with an empty value and the prompt asks the image model for "lighting: ".
         for name in self.TABLES:
+            optional = self.MAY_BE_EMPTY.get(name, set())
             for row in self.rows(name):
                 for field, value in row.items():
+                    if field in optional:
+                        continue
                     self.assertTrue(
                         value and value.strip(),
                         f"{name}: row {list(row.values())[0]!r} has an empty {field}",
@@ -1452,7 +1476,8 @@ class DataTableTests(unittest.TestCase):
         grades = {"regulatory-filing", "survey-self-report", "meta-analysis", "modelled-estimate",
                   "vendor-list-price", "company-self-description", "platform-self-report",
                   "author-heuristic", "peer-reviewed-abstract", "unverified-claim"}
-        statuses = {"fetched", "abstract-only", "wayback-only", "paywalled", "blocked"}
+        statuses = {"fetched", "abstract-only", "wayback-only", "paywalled", "blocked",
+                    "no-source-found"}
         for row in self.rows("marketing-benchmarks.csv"):
             with self.subTest(row["benchmark_id"]):
                 self.assertIn(row["evidence_grade"], grades)
@@ -1481,7 +1506,28 @@ class DataTableTests(unittest.TestCase):
         for row in unverified:
             with self.subTest(row["benchmark_id"]):
                 self.assertNotRegex(row["figure"], r"\d", f'{row["benchmark_id"]} states a figure')
-                self.assertIn(row["fetch_status"], {"paywalled", "blocked"})
+                self.assertIn(row["fetch_status"],
+                              {"paywalled", "blocked", "no-source-found"})
+
+    def test_a_search_that_found_nothing_is_not_filed_as_a_paywall(self) -> None:
+        """`paywalled` means a document exists and costs money. `no-source-found` means the search
+        ran and there is no document. Collapsing the second into the first is how the 80-percent
+        colour-recognition claim borrows the credibility of a real paid report, so a row claiming to
+        have searched has to hand over the query it ran, and must not name a source it cannot have."""
+        searched = [row for row in self.rows("marketing-benchmarks.csv")
+                    if row["fetch_status"] == "no-source-found"]
+        self.assertTrue(searched, "the verified negative was deleted rather than recorded")
+        for row in searched:
+            with self.subTest(row["benchmark_id"]):
+                self.assertEqual(row["evidence_grade"], "unverified-claim")
+                self.assertIn("?", row["url"],
+                              f'{row["benchmark_id"]}.url is not a re-runnable search')
+                self.assertIn("query", row["url"],
+                              f'{row["benchmark_id"]}.url does not carry the query terms')
+                self.assertRegex(row["source_name"], r"^no ",
+                                 f'{row["benchmark_id"]} names a source the search did not find')
+                self.assertRegex(row["what_it_does_not_establish"], r"search",
+                                 f'{row["benchmark_id"]} does not say what was searched')
 
     def test_every_observation_cites_one_post_and_grades_itself(self) -> None:
         # source-map.md's own rule is that a profile is a discovery index and a claim needs a post.
@@ -1877,12 +1923,27 @@ class ReferenceIntegrityTests(unittest.TestCase):
         ]
         self.assertEqual(orphans, [], f"references nothing routes to: {orphans}")
 
+    # Raised from 150 to 200 deliberately, and the reason is recorded rather than left to whoever
+    # next hits the ceiling. 150 was chosen when the skill had nine pipelines and seventeen tables.
+    # It now has 28 commands, 21 tables and 55 references, and the cost of the old budget stopped
+    # being brevity: with no room for a command surface, SKILL.md listed pipelines and left the
+    # commands reachable only through a reference nothing pointed at. An entry point that omits the
+    # entry is not cheaper, it is broken. The peers on this machine sit either side of 200 -
+    # impeccable 168, marketing-council 161, brand-guidelines 183, taste-skill 192, design-system
+    # 240, skill-creator 298, marketing-psychology 455 - so 200 is not an outlier, and it is a
+    # ceiling rather than a target. Detail still belongs in references/, which load on demand.
+    LINE_BUDGET = 200
+
     def test_skill_md_stays_within_the_progressive_disclosure_budget(self) -> None:
         """SKILL.md is loaded on every activation, so its length is a tax on every request.
         Detail belongs in references/, which load only when a decision needs them."""
         skill = SKILL_ROOT / "SKILL.md"
         lines = skill.read_text(encoding="utf-8").splitlines()
-        self.assertLess(len(lines), 150, f"SKILL.md is {len(lines)} lines")
+        self.assertLess(len(lines), self.LINE_BUDGET, f"SKILL.md is {len(lines)} lines")
+        # A budget nobody is near is not a budget, it is a comment. If the file has drifted far below
+        # the ceiling, the ceiling was raised for nothing and should come back down.
+        self.assertGreater(len(lines), 150,
+                           "SKILL.md no longer needs a 200-line budget. Lower it back to 150")
     def test_the_description_is_wide_enough_to_be_found(self) -> None:
         """The description is not prose the user reads; it is the only text a runtime matches a
         request against before loading anything. Holding it to one tidy sentence was a mistake:
@@ -2551,6 +2612,1076 @@ class ListCapabilitiesTests(unittest.TestCase):
             with self.subTest(reference["file"]):
                 self.assertTrue("virtual" in reference["file"].lower()
                                or "virtual" in reference["title"].lower())
+
+
+class CommandSurfaceTests(unittest.TestCase):
+    """The command surface is the only unit whose value is entirely in its graph. A reference can
+    be slightly wrong and still be useful; a dependency graph with one bad edge plans work in an
+    order that cannot run, and does it confidently. So these tests check the graph, not the prose."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.surface = plan_command_chain.Surface.load()
+        cls.rows = cls.surface.rows
+
+    def test_every_declared_input_is_produced_by_something_or_supplied_by_the_user(self) -> None:
+        produced = {row["produces"] for row in self.rows}
+        for row in self.rows:
+            for alias in plan_command_chain.split_list(row["also_satisfies"]):
+                produced.add(alias)
+        for row in self.rows:
+            for column in ("takes", "also_uses"):
+                for artifact in plan_command_chain.split_list(row[column]):
+                    with self.subTest(command=row["command"], column=column, artifact=artifact):
+                        self.assertTrue(
+                            artifact in produced
+                            or artifact in plan_command_chain.ROOT_ARTIFACTS,
+                            f"{row['command']}.{column} needs {artifact!r}, which nothing "
+                            "produces and which is not a root the user supplies",
+                        )
+
+    def test_only_the_brief_and_the_photograph_come_from_outside(self) -> None:
+        """Adding a third root would mean the skill had quietly started accepting an artefact it
+        neither produces nor asks for, which is where invented strategy enters a plan."""
+        self.assertEqual(plan_command_chain.ROOT_ARTIFACTS,
+                         ("cold-brief", "source-photograph"))
+
+    def test_each_artefact_has_exactly_one_producing_command(self) -> None:
+        """Two commands producing the same artefact would make the chain ambiguous, and the
+        planner would silently pick whichever it walked into first."""
+        seen: dict[str, str] = {}
+        for row in self.rows:
+            with self.subTest(artifact=row["produces"]):
+                self.assertNotIn(row["produces"], seen,
+                                 f"{row['produces']} is produced by both {row['command']} "
+                                 f"and {seen.get(row['produces'])}")
+            seen[row["produces"]] = row["command"]
+
+    def test_no_command_can_depend_on_its_own_output(self) -> None:
+        for row in self.rows:
+            inputs = set(plan_command_chain.split_list(row["takes"]))
+            with self.subTest(command=row["command"]):
+                self.assertNotIn(row["produces"], inputs)
+
+    def test_every_goal_is_reachable_from_a_cold_brief_and_a_photograph(self) -> None:
+        """A command nothing can reach is a command that will never run. This walks all 28 with
+        only the two roots supplied, which is also the honest worst case for a new user."""
+        have = set(plan_command_chain.ROOT_ARTIFACTS)
+        for row in self.rows:
+            with self.subTest(command=row["command"]):
+                plan = self.surface.plan(row["command"], set(have))
+                self.assertEqual(plan["you_must_supply"], [],
+                                 f"{row['command']} is unreachable even with both roots")
+                self.assertEqual(plan["steps"][-1]["command"], row["command"])
+
+    def test_a_planned_chain_can_actually_run_in_the_order_it_is_printed(self) -> None:
+        """The ordering pass re-sorts the depth-first result to read discover-before-decide. That
+        rewrite is where a valid plan would most easily become an invalid one, so every plan the
+        planner produces is fed back through the independent verifier."""
+        have = set(plan_command_chain.ROOT_ARTIFACTS)
+        for row in self.rows:
+            with self.subTest(command=row["command"]):
+                plan = self.surface.plan(row["command"], set(have))
+                report = self.surface.verify(plan["commands"])
+                self.assertTrue(report["runnable"], f"{row['command']}: {report['faults']}")
+
+    def test_the_ordering_never_puts_a_later_category_before_an_earlier_one(self) -> None:
+        order = plan_command_chain.CATEGORY_ORDER
+        plan = self.surface.plan("improve", set(plan_command_chain.ROOT_ARTIFACTS))
+        indices = [order.index(step["category"]) for step in plan["steps"]]
+        self.assertEqual(indices, sorted(indices),
+                         "the longest chain in the skill reads out of phase: "
+                         f"{[s['command'] for s in plan['steps']]}")
+
+    def test_naming_an_artefact_you_already_have_shortens_the_chain(self) -> None:
+        """The collapse trade is the skill's answer to "just make me some photos". If the
+        arithmetic behind it stops holding, the offer becomes a false promise."""
+        long_plan = self.surface.plan("expand", {"source-photograph"})
+        short_plan = self.surface.plan("expand", {"source-photograph", "positioning-platform"})
+        self.assertEqual(len(long_plan["steps"]), 8)
+        self.assertEqual(len(short_plan["steps"]), 3)
+        self.assertEqual(short_plan["commands"], ["brief", "compose", "expand"])
+        saving = {item["if_you_already_have"]: item["chain_drops_to"]
+                  for item in long_plan["collapse_if_you_have"]}
+        self.assertEqual(saving["positioning-platform"], 3)
+        self.assertEqual(saving["creative-brief"], 2)
+
+    def test_a_chain_with_a_missing_input_is_reported_as_unrunnable(self) -> None:
+        report = self.surface.verify(["produce", "adapt", "approve"])
+        self.assertFalse(report["runnable"])
+        missing = {fault["missing"] for fault in report["faults"]}
+        self.assertIn("creative-brief", missing)
+        self.assertIn("campaign-plan", missing)
+
+    def test_production_cannot_be_reached_without_the_strategy_spine(self) -> None:
+        """"Production before strategy" is a refusal the unit states in prose. Prose does not
+        enforce it; the graph does. Launching has to pull in positioning, offer and plan."""
+        plan = self.surface.plan("launch", set(plan_command_chain.ROOT_ARTIFACTS))
+        for command in ("position", "offer", "plan", "approve"):
+            with self.subTest(command=command):
+                self.assertIn(command, plan["commands"])
+
+    def test_every_command_declares_machinery_that_exists_on_disk(self) -> None:
+        """A command whose references and scripts do not exist is a promise, not a capability.
+        This is the test that stops the surface growing verbs the skill cannot perform."""
+        for row in self.rows:
+            for item in plan_command_chain.split_list(row["machinery"]):
+                target = item.split(" ")[0]
+                if target.endswith(".md") and "/" not in target:
+                    target = f"references/{target}"
+                with self.subTest(command=row["command"], path=target):
+                    self.assertTrue((SKILL_ROOT / target).exists(),
+                                    f"{row['command']} points at {target}, which is not there")
+
+    def test_every_command_says_what_it_refuses_and_what_it_does_not_do(self) -> None:
+        """These two columns are why the plan can be trusted at a glance: a step that lists no
+        refusal reads as a step with no judgement in it."""
+        for row in self.rows:
+            with self.subTest(command=row["command"]):
+                self.assertGreater(len(row["refuses"]), 30)
+                self.assertGreater(len(row["what_it_does_not_do"]), 30)
+                self.assertIn(row["category"], plan_command_chain.CATEGORY_ORDER)
+
+    def test_the_reference_and_the_table_agree_on_the_command_list(self) -> None:
+        """The reference groups the commands into a category table by hand. Divergence there is
+        how a unit starts documenting a surface it no longer has."""
+        text = (SKILL_ROOT / "references" / "command-surface.md").read_text(encoding="utf-8")
+        for row in self.rows:
+            with self.subTest(command=row["command"]):
+                self.assertIn(row["command"], text)
+
+    def test_the_chain_lengths_quoted_in_the_reference_are_the_computed_ones(self) -> None:
+        """The reference prints 8, 9, 16 and 19 as worst cases. Those are outputs of the graph,
+        so an edge added anywhere upstream changes them, and a stale number in a reference is
+        indistinguishable from an invented one."""
+        text = (SKILL_ROOT / "references" / "command-surface.md").read_text(encoding="utf-8")
+        for goal, expected in (("expand", 8), ("generate", 9), ("launch", 16), ("improve", 19)):
+            with self.subTest(goal=goal):
+                plan = self.surface.plan(goal, {"source-photograph"})
+                self.assertEqual(len(plan["steps"]), expected)
+                self.assertIn(f"| {expected} |", text)
+
+
+class ColourGateTests(unittest.TestCase):
+    """The colour unit's arithmetic, and the discipline that keeps its verdicts worth reading.
+
+    Five of the nine gates in `data/colour-gates.csv` are house rules: the shape of the rule is
+    defensible and the number is ours. That is survivable only while two things stay true — the
+    table says which gates those are, and the gates that do fail mean something. Every test below
+    defends one of the two.
+
+    Four of them exist because the first version of the checker failed them. It compared a colour
+    to itself and called zero separation a defect; it called an off-white the same hue family as
+    lime on the strength of a rounding error; it ruled on a use it cannot see; and it failed a pair
+    by 0.0004 against a threshold it had invented. Ten of the twenty shipped palettes came back
+    broken, and none of the ten was.
+    """
+
+    # Every fifth value, which is 140,608 conversions and about a second. Sampling every third
+    # value moves no p90 below by more than 0.1 degrees except in the C 0.00 bucket, where the
+    # sample is small either way, so the finer sweep buys nothing but runtime.
+    HUE_SWEEP_STEP = 5
+    NEAR_NEUTRAL_LIMIT = 0.055
+
+    # Held here rather than in plan_palette because they are the measurement's inputs, not the
+    # module's data. Ten hues spread around the wheel plus a neutral, which is the seed that broke
+    # the linear-lightness ramp worst.
+    RAMP_SEEDS = ("#2A4BD7", "#0F8A5F", "#E8B004", "#00A3AD", "#C1121F",
+                  "#6E1420", "#3AB795", "#8A6B1F", "#FF5A5F", "#161616")
+
+    # Which constant each row of the table is quoting. A row that stops quoting its constant has
+    # started documenting a threshold the code no longer holds.
+    QUOTES = {
+        "body-text-contrast": ("WCAG_BODY",),
+        "large-text-contrast": ("WCAG_LARGE",),
+        "non-text-contrast": ("WCAG_NON_TEXT",),
+        "colour-is-not-the-only-cue": ("CVD_COLLAPSE_DISTANCE",),
+        "same-hue-lightness-separation": ("SAME_HUE_DEGREES", "HUE_NEEDS_CHROMA",
+                                         "LIGHTNESS_SEPARATION", "LIGHTNESS_SEPARATION_FAIL"),
+        "no-vibrating-edge": ("VIBRATION_MAX_DELTA_L", "VIBRATION_MIN_CHROMA",
+                              "VIBRATION_MIN_HUE_GAP"),
+        "chroma-budget-by-count": ("LOUD_CHROMA", "CHROMA_BUDGET_LOUD_MAX"),
+        "chroma-budget-by-surface-share": ("LOUD_CHROMA", "CHROMA_SHARE_MAX"),
+        "ramp-step-evenness": ("RAMP_EVENNESS_TOLERANCE",),
+    }
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.swing = cls.sweep_hue_stability(cls.HUE_SWEEP_STEP, cls.NEAR_NEUTRAL_LIMIT)
+
+    @staticmethod
+    def sweep_hue_stability(step: int, limit: float) -> dict[float, dict[str, float]]:
+        """How far a near-neutral's OKLCH hue angle moves under the smallest possible colour change.
+
+        Walks the sRGB cube at `step`, keeps everything under `limit` chroma, and for each one adds
+        1 to each channel in turn — the smallest change 8-bit colour can express — and measures the
+        hue angle it moves. Buckets by chroma rounded to 0.01. This is the derivation of
+        `HUE_NEEDS_CHROMA`, re-run rather than read off the comment that records it.
+        """
+        buckets: dict[float, list[float]] = {}
+        values = range(0, 256, step)
+        for red in values:
+            for green in values:
+                for blue in values:
+                    measured = plan_palette.to_oklch("#%02X%02X%02X" % (red, green, blue))
+                    if measured["C"] > limit:
+                        continue
+                    bucket = round(measured["C"], 2)
+                    for shift in ((1, 0, 0), (0, 1, 0), (0, 0, 1)):
+                        moved = tuple(min(255, channel + delta)
+                                      for channel, delta in zip((red, green, blue), shift))
+                        if moved == (red, green, blue):
+                            continue
+                        neighbour = plan_palette.to_oklch("#%02X%02X%02X" % moved)
+                        buckets.setdefault(bucket, []).append(
+                            plan_palette.hue_gap(measured["h"], neighbour["h"])
+                        )
+        return {
+            bucket: {
+                "n": len(swings),
+                "median": statistics.median(swings),
+                "p90": sorted(swings)[int(0.9 * (len(swings) - 1))],
+            }
+            for bucket, swings in buckets.items()
+        }
+
+    @staticmethod
+    def gate(payload: dict, name: str) -> dict:
+        return next(g for g in payload["acceptance_gates"] if g["gate"] == name)
+
+    def test_the_case_against_hsv_is_the_one_the_arithmetic_makes(self) -> None:
+        """The module docstring justifies the whole choice of space on one worked pair: HSV gives
+        pure yellow and pure blue the same value, and they are half the OKLCH lightness scale apart.
+        That argument is the reason a designer is being asked to abandon a familiar wheel, so the
+        four numbers in it are measured here rather than remembered."""
+        yellow, blue = plan_palette.to_oklch("#FFFF00"), plan_palette.to_oklch("#0000FF")
+        measured = {
+            "0.968": round(yellow["L"], 3),
+            "0.452": round(blue["L"], 3),
+            "1.07": plan_palette.contrast_ratio("#FFFF00", "#FFFFFF"),
+            "8.59": plan_palette.contrast_ratio("#0000FF", "#FFFFFF"),
+        }
+        source = (SKILL_ROOT / "scripts" / "plan_palette.py").read_text(encoding="utf-8")
+        for quoted, value in measured.items():
+            self.assertEqual(float(quoted), value, f"the docstring says {quoted}")
+            self.assertIn(quoted, source, f"{quoted} is no longer in the docstring")
+        # Half the scale apart, and the brighter of the two cannot be seen on white at all.
+        self.assertGreater(yellow["L"] - blue["L"], 0.5)
+        self.assertLess(measured["1.07"], plan_palette.WCAG_LARGE)
+
+    def test_a_neutrals_hue_angle_is_not_a_property_of_the_colour(self) -> None:
+        """The premise of the chroma floor. #F2F2F0 has a hue angle of 106 degrees, and that number
+        is what is left of a rounding error rather than a description of the colour."""
+        at_zero = self.swing[0.0]
+        self.assertGreater(
+            at_zero["median"], plan_palette.SAME_HUE_DEGREES,
+            "if a neutral's hue angle were stable, the same-hue window would be a meaningful "
+            "question to ask about it, and the chroma floor would be an excuse rather than a fix",
+        )
+        # The off-white that started this: below the floor, and therefore not asked the question.
+        off_white = plan_palette.to_oklch(plan_palette.load_palette_row("charcoal-lime")["ink"])
+        self.assertLess(off_white["C"], plan_palette.HUE_NEEDS_CHROMA)
+
+    def test_the_chroma_floor_is_where_quantisation_stops_deciding_the_answer(self) -> None:
+        """The derivation, not the number. Two colours can each wobble by the p90 amount in
+        opposite directions, so 2 x p90 has to stay well inside the 30-degree window — under a
+        quarter of it. The floor is the lowest bucket where that holds, and the test checks the
+        bucket below it does not, because otherwise any larger number would pass this too."""
+        window = plan_palette.SAME_HUE_DEGREES
+        floor = round(plan_palette.HUE_NEEDS_CHROMA, 2)
+        self.assertIn(floor, self.swing, "the floor is not on the 0.01 bucket grid measured here")
+        at_floor = 2 * self.swing[floor]["p90"]
+        below = 2 * self.swing[round(floor - 0.01, 2)]["p90"]
+        self.assertLess(
+            at_floor, window / 4,
+            f"at chroma {floor} two colours can differ by {at_floor:.1f} degrees on quantisation "
+            f"alone, which is too much of a {window}-degree window",
+        )
+        self.assertGreater(
+            below, window / 4,
+            f"chroma {floor - 0.01:.2f} also holds quantisation inside a quarter of the window, so "
+            f"{floor} is higher than the measurement requires and excludes colours needlessly",
+        )
+        # Monotone, or the buckets are measuring something other than what they claim.
+        ordered = [self.swing[b]["p90"] for b in sorted(self.swing) if b > 0]
+        self.assertEqual(ordered, sorted(ordered, reverse=True))
+
+    def test_the_derivation_table_in_the_source_is_the_one_the_sweep_produces(self) -> None:
+        """plan_palette.py prints the median and p90 by chroma in a comment. A comment nothing
+        checks is where a measured threshold quietly becomes a remembered one."""
+        source = (SKILL_ROOT / "scripts" / "plan_palette.py").read_text(encoding="utf-8")
+        quoted = {}
+        for line in source.splitlines():
+            words = line.split()
+            for key in ("med", "p90"):
+                if words[:2] == ["#", key]:
+                    quoted[key] = [float(word) for word in words[2:] if word != "degrees"]
+        self.assertEqual(sorted(quoted), ["med", "p90"], "the derivation table is gone from the source")
+        buckets = [round(0.01 * i, 2) for i in range(6)]
+        for key, statistic in (("med", "median"), ("p90", "p90")):
+            self.assertEqual(len(quoted[key]), len(buckets), f"the {key} row has the wrong width")
+            for bucket, claimed in zip(buckets, quoted[key]):
+                with self.subTest(row=key, chroma=bucket):
+                    self.assertAlmostEqual(
+                        self.swing[bucket][statistic], claimed, places=1,
+                        msg=f"the comment says {key} {claimed} at chroma {bucket}; the sweep "
+                            f"measures {self.swing[bucket][statistic]:.2f}",
+                    )
+
+    def test_the_table_names_exactly_the_gates_the_code_has(self) -> None:
+        tabled = {row["gate"] for row in DataTableTests.rows("colour-gates.csv")}
+        emitted = {g["gate"] for g in
+                   plan_palette.check_palette(plan_palette.load_palette_row("paper-cobalt"))
+                   ["acceptance_gates"]}
+        # The ramp gate is real but lives on `--ramp` rather than on a palette, so it is the one
+        # row with no counterpart in check_palette's output.
+        self.assertEqual(tabled, emitted | {"ramp-step-evenness"})
+
+    def test_the_evidence_grade_is_the_same_in_the_table_and_in_the_code(self) -> None:
+        """A house rule presented as a standard is the failure this whole column exists to stop.
+        Both places have to say the same word or the reader is being told two different things
+        about how much the number is worth."""
+        graded = {row["gate"]: row["evidence_grade"]
+                  for row in DataTableTests.rows("colour-gates.csv")}
+        allowed = {"standard-requirement", "standard-requirement-with-house-threshold", "house-rule"}
+        self.assertTrue(set(graded.values()) <= allowed, f"unknown grade in {set(graded.values())}")
+        payload = plan_palette.check_palette(plan_palette.load_palette_row("paper-cobalt"))
+        for gate in payload["acceptance_gates"]:
+            with self.subTest(gate=gate["gate"]):
+                self.assertEqual(gate["evidence_grade"], graded[gate["gate"]])
+
+    def test_every_threshold_in_the_table_is_the_live_constant(self) -> None:
+        """The generator imports these rather than retyping them, so this catches a hand-edit to
+        the CSV and a constant changed without the table following."""
+        rows = {row["gate"]: row for row in DataTableTests.rows("colour-gates.csv")}
+        self.assertEqual(set(rows), set(self.QUOTES))
+        for gate, constants in self.QUOTES.items():
+            text = " ".join(rows[gate].values())
+            for constant in constants:
+                value = getattr(plan_palette, constant)
+                # Percent is how the table spells the two fractions a reader thinks of as percents.
+                spellings = {str(value), f"{value:g}"}
+                if isinstance(value, float) and value < 1:
+                    spellings.add(f"{int(round(value * 100))} percent")
+                with self.subTest(gate=gate, constant=constant):
+                    self.assertTrue(
+                        any(spelling in text for spelling in spellings),
+                        f"{gate} quotes none of {sorted(spellings)} for {constant}",
+                    )
+
+    def test_one_colour_in_two_roles_is_named_and_not_failed(self) -> None:
+        """Zero lightness difference and zero hue gap is what a colour scores against itself, and
+        every separation gate fires on it. Two shipped palettes do this deliberately. Reporting
+        them as broken is how a checker teaches its reader to stop reading it."""
+        for palette_id in ("black-white", "kraft-black"):
+            with self.subTest(palette=palette_id):
+                payload = plan_palette.check_palette(plan_palette.load_palette_row(palette_id))
+                self.assertEqual(payload["same_colour_in_two_roles"], ["ink / accent"])
+                self.assertEqual(payload["failing_gates"], [])
+                doubled = next(p for p in payload["pairs"] if p["same_colour_in_two_roles"])
+                self.assertTrue(doubled["passes"])
+                self.assertEqual(doubled["findings"], [])
+                # Silence would be wrong too: a palette whose accent equals its ink has no accent.
+                self.assertTrue(doubled["notes"])
+
+    def test_a_near_neutral_is_never_called_the_same_hue_as_a_saturated_colour(self) -> None:
+        """charcoal-lime's off-white ink sits 18 degrees from its lime accent by hue angle and
+        0.03 from it in lightness, which is inside both windows. Without the chroma floor the
+        checker announced that an off-white and a lime are one colour printed unevenly."""
+        colours = plan_palette.load_palette_row("charcoal-lime")
+        pair = plan_palette.check_pair("ink", colours["ink"], "accent", colours["accent"])
+        self.assertLessEqual(pair["hue_gap_degrees"], plan_palette.SAME_HUE_DEGREES)
+        self.assertLess(pair["delta_lightness"], plan_palette.LIGHTNESS_SEPARATION)
+        self.assertEqual(
+            [f for f in pair["findings"] if "read as one colour" in f], [],
+            "the same-hue finding fired on a colour with no hue",
+        )
+        payload = plan_palette.check_palette(colours)
+        self.assertEqual(self.gate(payload, "same-hue-lightness-separation")["status"], "passed")
+
+    def test_the_separation_band_is_reviewed_and_only_the_floor_fails(self) -> None:
+        """0.12 is ours and 0.10 is an independent derivation of the same rule, so the span between
+        them is the range over which nobody knows. A pair landing inside it is returned, not judged;
+        a pair below both is judged. plum-butter is the case that forced this: it missed 0.12 by
+        0.0004."""
+        near, _ = plan_palette.from_oklch(0.50, 0.10, 250.0)
+        inside, _ = plan_palette.from_oklch(0.61, 0.10, 250.0)
+        under, _ = plan_palette.from_oklch(0.55, 0.10, 250.0)
+        for other, expected in ((inside, "review"), (under, "failed")):
+            with self.subTest(expected=expected):
+                payload = plan_palette.check_palette({"one": near, "two": other})
+                gate = self.gate(payload, "same-hue-lightness-separation")
+                self.assertEqual(gate["status"], expected)
+                self.assertIn("decide" if expected == "review" else "one colour",
+                              gate["why_this_status"])
+        shipped = plan_palette.check_palette(plan_palette.load_palette_row("plum-butter"))
+        self.assertEqual(self.gate(shipped, "same-hue-lightness-separation")["status"], "review")
+        self.assertEqual(shipped["failing_gates"], [])
+
+    def test_a_colour_vision_collapse_is_reviewed_until_the_caller_declares_the_use(self) -> None:
+        """SC 1.4.1 is broken by a use where colour alone carries meaning, and the layout is
+        invisible from here. So the collapse is reported with its arithmetic, and declaring the
+        pair turns the same finding into a failure."""
+        colours = plan_palette.load_palette_row("charcoal-lime")
+        undeclared = plan_palette.check_palette(colours)
+        self.assertEqual(self.gate(undeclared, "colour-is-not-the-only-cue")["status"], "review")
+        self.assertEqual(undeclared["failing_gates"], [])
+        declared = plan_palette.check_palette(colours, None, [("accent", "ink")])
+        gate = self.gate(declared, "colour-is-not-the-only-cue")
+        self.assertEqual(gate["status"], "failed", "declaring the use changed nothing")
+        self.assertIn("colour alone cannot carry it", gate["why_this_status"])
+        # Order-insensitive, because "accent+ink" and "ink+accent" are the same declaration.
+        self.assertEqual(declared["pairs_carrying_meaning"], ["accent / ink", "ink / accent"])
+
+    def test_an_unmeasured_layout_is_skipped_and_never_passed(self) -> None:
+        """The count budget cannot tell a 20px accent from a full-bleed panel at the same chroma.
+        Surface share closes that hole, and only when somebody measured the layout: a share nobody
+        measured is an invented input."""
+        colours = plan_palette.load_palette_row("charcoal-lime")
+        without = plan_palette.check_palette(colours)
+        gate = self.gate(without, "chroma-budget-by-surface-share")
+        self.assertEqual(gate["status"], "skipped")
+        self.assertIn("chroma-budget-by-surface-share", without["skipped_gates"])
+        self.assertEqual(without["failing_gates"], [])
+        over = plan_palette.check_palette(
+            colours, {"bg": 0.3, "ink": 0.1, "accent": 0.5, "support": 0.1})
+        self.assertEqual(
+            self.gate(over, "chroma-budget-by-surface-share")["status"], "failed",
+            "an accent covering half the layout is the accent becoming the background",
+        )
+        # The count budget is untouched by either: one loud colour is still one loud colour.
+        self.assertEqual(without["chroma_budget"]["count"]["status"], "passed")
+        self.assertEqual(over["chroma_budget"]["count"]["status"], "passed")
+        with self.assertRaises(ValueError):
+            plan_palette.check_chroma_budget(colours, {"nonexistent": 0.5})
+
+    def test_the_exit_code_separates_a_breach_from_a_decision_from_a_gap(self) -> None:
+        """2 is a failed gate, 3 is sound-but-needs-a-human, and a skipped gate is neither. If a
+        skipped gate exited non-zero, callers would invent shares to get a clean run, which is the
+        one outcome this script exists to prevent."""
+        cases = (
+            (["--palette-id", "paper-cobalt"], 0),
+            (["--palette-id", "charcoal-lime"], 3),
+            (["--palette-id", "charcoal-lime", "--carries-meaning", "ink+accent"], 2),
+            (["--palette-id", "charcoal-lime", "--share", "bg=0.3", "ink=0.1",
+              "accent=0.5", "support=0.1"], 2),
+            (["--seed", "#E8B004", "--ramp", "12"], 2),
+        )
+        for arguments, expected in cases:
+            with self.subTest(arguments=arguments):
+                with tempfile.TemporaryDirectory() as folder:
+                    out = Path(folder) / "payload.json"
+                    argv = ["plan_palette.py", *arguments, "--output", str(out)]
+                    with mock.patch.object(plan_palette.sys, "argv", argv):
+                        buffer = io.StringIO()
+                        with contextlib.redirect_stdout(buffer):
+                            code = plan_palette.main()
+                    self.assertEqual(code, expected)
+                    json.loads(out.read_text(encoding="utf-8"))
+        # The two flags describe a palette, so they are refused where there is no palette to
+        # describe rather than silently ignored.
+        argv = ["plan_palette.py", "--seed", "#2A4BD7", "--scheme", "triadic", "--share", "bg=0.5"]
+        with mock.patch.object(plan_palette.sys, "argv", argv):
+            buffer = io.StringIO()
+            with contextlib.redirect_stderr(buffer):
+                self.assertEqual(plan_palette.main(), 1)
+        self.assertIn("only apply to", buffer.getvalue())
+        for bad in ("bg", "bg=half", "bg=1.4"):
+            argv = ["plan_palette.py", "--palette-id", "paper-cobalt", "--share", bad]
+            with mock.patch.object(plan_palette.sys, "argv", argv):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    self.assertEqual(plan_palette.main(), 1, f"{bad!r} was accepted as a share")
+
+    def test_relaxing_the_chords_beats_spacing_the_lightness_on_every_seed(self) -> None:
+        """Equal arc length along the path is not equal chord distance between neighbours, and the
+        chord is what the eye compares. The path curves hardest at the dark end where chroma
+        collapses, which is exactly where the equal-arc ramps measured short."""
+        def spaced_by_lightness(seed: str, steps: int) -> list[dict]:
+            base = plan_palette.to_oklch(seed)
+            out = []
+            for index in range(steps):
+                lightness, chroma = plan_palette._ramp_path(
+                    base["C"], base["h"], index / (steps - 1))
+                hex_value, _ = plan_palette.from_oklch(lightness, chroma, base["h"])
+                out.append({"hex": hex_value})
+            return out
+
+        worst_spaced = worst_relaxed = 0.0
+        for seed in self.RAMP_SEEDS:
+            spaced = plan_palette.check_ramp_evenness(spaced_by_lightness(seed, 9))
+            relaxed = plan_palette.check_ramp_evenness(plan_palette.build_ramp(seed, 9))
+            with self.subTest(seed=seed):
+                self.assertLess(
+                    relaxed["worst_deviation"], spaced["worst_deviation"],
+                    f"{seed}: relaxing the chords made this seed worse, not better",
+                )
+                self.assertEqual(relaxed["status"], "passed")
+            worst_spaced = max(worst_spaced, spaced["worst_deviation"])
+            worst_relaxed = max(worst_relaxed, relaxed["worst_deviation"])
+        # The two numbers build_ramp's docstring quotes. Rounded to one decimal in percent, which
+        # is how they are written there.
+        self.assertEqual(round(worst_spaced * 100, 1), 35.1)
+        self.assertEqual(round(worst_relaxed * 100, 1), 5.5)
+        source = (SKILL_ROOT / "scripts" / "plan_palette.py").read_text(encoding="utf-8")
+        self.assertIn("from up to 35.1 percent", source)
+        self.assertIn("to 5.5 percent", source)
+
+    def test_a_ramp_the_path_cannot_hold_fails_rather_than_looking_even(self) -> None:
+        """Twelve steps is more than some hues have room for once chroma collapses at the ends.
+        The gate says so, which is more use than a ramp that is even in its coordinates and has two
+        indistinguishable swatches at the dark end."""
+        failures = {seed: plan_palette.check_ramp_evenness(plan_palette.build_ramp(seed, 12))
+                    for seed in self.RAMP_SEEDS}
+        failed = {seed: result for seed, result in failures.items() if result["status"] == "failed"}
+        self.assertTrue(failed, "twelve steps now passes on every seed; the tolerance has moved")
+        worst = max(result["worst_deviation"] for result in failures.values())
+        self.assertEqual(round(worst * 100, 1), 17.9)
+        self.assertIn("the worst case is 17.9 percent",
+                      (SKILL_ROOT / "scripts" / "plan_palette.py").read_text(encoding="utf-8"))
+
+    def test_every_shipped_palette_clears_every_gate(self) -> None:
+        """The table is the skill's own recommendation, so a failing row is a recommendation to
+        break a rule the same file states. Reviews are allowed and counted: they are decisions the
+        arithmetic should not make, and six of the twenty carry one."""
+        reviewed = []
+        for row in DataTableTests.rows("palettes.csv"):
+            payload = plan_palette.check_palette(plan_palette.load_palette_row(row["id"]))
+            with self.subTest(palette=row["id"]):
+                self.assertEqual(
+                    payload["failing_gates"], [],
+                    f'{row["id"]}: {payload["verdict"]}',
+                )
+            if payload["gates_for_review"]:
+                reviewed.append(row["id"])
+        self.assertEqual(len(reviewed), 6, f"reviews moved: {reviewed}")
+
+    def test_the_reference_teaches_the_gates_the_code_actually_runs(self) -> None:
+        """A reference is read far more often than a CSV, so prose that has drifted from the code is
+        the version people will act on. It has drifted twice already in this file's history. So every
+        gate the checker emits has to be named in the reference, every verdict has to be explained,
+        and the three evidence grades have to be distinguishable without opening the table."""
+        prose = (SKILL_ROOT / "references" / "colour-combination.md").read_text(encoding="utf-8")
+        for gate in sorted(self.QUOTES):
+            self.assertIn(gate, prose, f"{gate} runs but the reference never names it")
+        for verdict in ("passed", "failed", "skipped", "review"):
+            self.assertIn(verdict, prose, f"the reference does not explain the {verdict} verdict")
+        for grade in {row["evidence_grade"] for row in DataTableTests.rows("colour-gates.csv")}:
+            self.assertIn(grade, prose, f"the reference does not distinguish {grade}")
+
+    def test_the_reference_refuses_both_statistics_by_name(self) -> None:
+        """`data/command-artifacts.csv` says the colour command refuses the 85-percent and 80-percent
+        colour statistics. A refusal held in a table nobody reads is not a refusal, and the second
+        one only survives as a refusal if the reference says the search came back empty rather than
+        that the source is hard to get."""
+        prose = (SKILL_ROOT / "references" / "colour-combination.md").read_text(encoding="utf-8")
+        self.assertIn("85 percent", prose)
+        self.assertIn("80 percent", prose)
+        self.assertIn("62 to 90 percent", prose, "the honest band is missing")
+        self.assertIn("no-source-found", prose, "the verified negative is not named as one")
+        ids = {row["benchmark_id"] for row in DataTableTests.rows("marketing-benchmarks.csv")}
+        for wanted in ("colour-62-90-assessment", "colour-recognition-80-percent",
+                       "colour-brand-personality", "colour-product-congruity"):
+            self.assertIn(wanted, ids, f"{wanted} left the benchmark table")
+            self.assertIn(wanted, prose, f"{wanted} is in the table but not cited in the reference")
+
+
+class OperatingLoadTests(unittest.TestCase):
+    """The Vietnam unit makes one structural claim and then does arithmetic on top of it.
+
+    The claim - that one marketing hire holds thirteen roles - cannot be tested here, and the
+    reference says so plainly: it is falsifiable in one conversation and no survey is cited for it.
+    What can be tested is everything built on top, and the reason to bother is that the arithmetic
+    is the part that will be quoted. Somebody will repeat "seventeen command-runs a week" in a
+    hiring conversation, so it has to be re-derived rather than remembered.
+
+    Three of these tests exist because the first version of the script failed them. It counted the
+    once-only strategy role twice and reported thirteen setup commands for a seven-command job; it
+    printed the upstream chain in alphabetical order while formatting it with arrows, as though it
+    were runnable; and asked for the two roles that produce no artefact, it reported a clean pass
+    with a verdict claiming the strategy already existed. The last one is the unit's own thesis
+    failing in its own output.
+    """
+
+    REFERENCE = "vietnam-operating-reality.md"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.load = plan_operating_load.OperatingLoad(
+            plan_operating_load.load_roles(), plan_command_chain.Surface.load())
+        cls.roles = cls.load.roles
+        cls.prose = (SKILL_ROOT / "references" / cls.REFERENCE).read_text(encoding="utf-8")
+        # Every phrase check below runs against this. Whether a sentence happens to wrap at column
+        # 100 is not a fact about the reference, and a test that breaks on reflowing a paragraph
+        # teaches people to stop editing the paragraph.
+        cls.flat = " ".join(cls.prose.split())
+
+    def report(self, *argv: str) -> tuple[dict, int]:
+        """Run the CLI the way a caller does, so the exit code is tested rather than assumed."""
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            code = plan_operating_load.main([*argv, "--format", "json"])
+        return json.loads(buffer.getvalue()), code
+
+    def test_every_role_names_only_commands_that_exist(self) -> None:
+        """The table's whole value is that it joins to the command surface. A role invoking a
+        command that was later renamed would make the load arithmetic quietly wrong rather than
+        loudly broken."""
+        for row in self.roles:
+            for command in plan_command_chain.split_list(row["commands"]):
+                with self.subTest(role=row["role_id"], command=command):
+                    self.assertIn(command, self.load.surface.by_command)
+
+    def test_each_role_output_is_produced_by_one_of_its_own_commands(self) -> None:
+        """`artifact_per_cycle` is what the upstream calculation subtracts against, so an invented
+        artefact name makes the setup figure meaningless. Three were invented on the first pass -
+        placement-set, print-master and launch-package - and all three looked entirely plausible."""
+        for row in self.roles:
+            commands = plan_command_chain.split_list(row["commands"])
+            if not commands:
+                continue
+            produced = {self.load.surface.by_command[c]["produces"] for c in commands}
+            with self.subTest(role=row["role_id"]):
+                self.assertIn(row["artifact_per_cycle"], produced)
+
+    def test_the_roles_and_the_surface_describe_the_same_work(self) -> None:
+        """A command no role performs is a command nobody will ever run, and a role the surface
+        cannot express is work the skill will plan around without noticing. The reference quotes
+        this coverage as 28 of 28, so it is measured here rather than asserted there."""
+        covered = {c for row in self.roles for c in plan_command_chain.split_list(row["commands"])}
+        self.assertEqual(covered, set(self.load.surface.by_command),
+                         "the roles table and the command surface have drifted apart")
+        self.assertIn("28 of 28", self.flat)
+
+    def test_the_two_roles_with_no_command_are_the_two_that_produce_nothing(self) -> None:
+        """This is the finding, so it is the thing most likely to be tidied away by somebody
+        filling in a blank cell to make a table look complete."""
+        empty = [row["role_id"] for row in self.roles if not row["commands"]]
+        self.assertEqual(sorted(empty), ["community", "sales"])
+        for row in self.roles:
+            starts_with_none = row["artifact_per_cycle"].startswith("none")
+            with self.subTest(role=row["role_id"]):
+                self.assertEqual(starts_with_none, not row["commands"],
+                                 "a role either produces an artefact or explains why it does not")
+        for role_id in empty:
+            self.assertIn(role_id, self.flat, f"{role_id} is not discussed in the reference")
+
+    def test_no_hour_or_salary_figure_is_smuggled_into_the_unit(self) -> None:
+        """The refusal to convert work items into hours is the load-bearing honesty of this unit.
+        It is also the easiest thing to undo later, because an hour figure is what people ask for
+        and a plausible one is trivial to write. So the shape of that number is banned outright in
+        the table, the script and the reference."""
+        table = (SKILL_ROOT / "data" / "vn-marketer-roles.csv").read_text(encoding="utf-8")
+        code = (SKILL_ROOT / "scripts" / "plan_operating_load.py").read_text(encoding="utf-8")
+        # Matches "3 hours", "1.5 hrs", "8 hours a week", "20 man-days", "15m VND".
+        smell = re.compile(r"\d+(\.\d+)?\s*(hours?|hrs?|man-days?|VND|USD|million)\b", re.I)
+        for name, text in (("table", table), ("script", code), ("reference", self.flat)):
+            with self.subTest(name):
+                found = smell.search(text)
+                self.assertIsNone(
+                    found,
+                    f"{name} states {found.group(0)!r} as a quantity" if found else "")
+        for phrase in ("not an hour", "command-run is one distinct piece of work"):
+            self.assertIn(phrase, self.flat, "the reference no longer states the refusal")
+
+    def test_the_setup_figures_the_reference_quotes_are_the_ones_it_computes(self) -> None:
+        """The asymmetry between asserting the platform and asserting the brief is the reference's
+        central practical claim, and it is the kind of number that rots silently when a command is
+        added upstream."""
+        base, _ = self.report("--roles", "content", "design", "marketplace", "video", "report")
+        platform, _ = self.report("--roles", "content", "design", "marketplace", "video", "report",
+                                  "--have", "positioning-platform")
+        brief, _ = self.report("--roles", "content", "design", "marketplace", "video", "report",
+                               "--have", "creative-brief")
+        self.assertEqual((base["setup_count"], base["weekly_command_runs"]), (10, 17.0))
+        self.assertEqual(platform["setup_count"], 5)
+        self.assertEqual(brief["setup_count"], 9)
+        for quoted in ("from 10 commands to 5", "from 10 to 9",
+                       "17 per week with 10 commands of setup"):
+            self.assertIn(quoted, self.flat, f"the reference no longer says {quoted!r}")
+        # The five commands the platform removes are `position` and everything upstream of it.
+        removed = set(base["setup_runs_once"]) - set(platform["setup_runs_once"])
+        self.assertEqual(len(removed), 5)
+        self.assertIn("position", removed)
+
+    def test_the_all_roles_figure_the_reference_quotes_reproduces(self) -> None:
+        report, code = self.report("--cadence", "photo=0.25", "koc=0.25", "print=0.25",
+                                   "event=0.25", "ads=1")
+        self.assertEqual(report["weekly_command_runs"], 22.75)
+        self.assertEqual(report["setup_count"], 7)
+        self.assertIn("22.75 command-runs per week and 7 commands", self.flat)
+        # Every cadence supplied and no capacity stated: the fit is skipped, never passed.
+        self.assertEqual(report["capacity_check"]["status"], "skipped")
+        self.assertEqual(code, 3)
+
+    def test_the_once_only_role_is_not_listed_as_weekly_work_at_zero(self) -> None:
+        """Reporting the strategy role at "0 runs/week" beside the roles that recur is the same
+        category error the unit exists to correct, and it double-counted the setup total as well."""
+        report, _ = self.report("--roles", "strategy", "content")
+        self.assertEqual([row["role"] for row in report["setup_roles"]], ["strategy"])
+        self.assertEqual([row["role"] for row in report["weekly"]], ["content"])
+        # Seven commands for the strategy role plus `brief`, which nothing selected here performs.
+        # The double-counting bug reported thirteen, by adding the strategy chain to itself.
+        self.assertEqual(report["setup_runs_once"], ["brief"])
+        self.assertEqual(report["setup_count"], 8)
+        self.assertEqual(report["strategy"], "planned")
+
+    def test_the_upstream_list_is_printed_in_an_order_that_could_actually_run(self) -> None:
+        """It is formatted with arrows, so it reads as a sequence. Sorting it alphabetically and
+        formatting it as a chain tells the reader to run `brainstorm -> investigate -> offer`, which
+        is not a thing that can happen."""
+        report, _ = self.report("--roles", "content", "design", "marketplace", "video", "report")
+        chain = report["setup_runs_once"]
+        self.assertNotEqual(chain, sorted(chain), "the upstream chain is in alphabetical order")
+        available = set(plan_command_chain.ROOT_ARTIFACTS)
+        for position, command in enumerate(chain):
+            row = self.load.surface.by_command[command]
+            for artifact in plan_command_chain.split_list(row["takes"]):
+                producer = self.load.surface.producer.get(artifact)
+                if producer in chain:
+                    with self.subTest(command=command, artifact=artifact):
+                        self.assertIn(artifact, available,
+                                      f"{command} at position {position} needs {artifact} from "
+                                      f"{producer}, which has not run yet")
+            available.add(row["produces"])
+
+    def test_selecting_only_the_uncountable_roles_does_not_come_back_clean(self) -> None:
+        """Ask for the inbox and sales support alone and the honest answer is that nothing here is
+        countable. The first version answered "passed, headroom 5, the strategy already exists",
+        which is the unit's own thesis failing inside the unit's own output."""
+        report, code = self.report("--roles", "community", "sales", "--capacity", "5")
+        self.assertEqual(report["weekly"], [])
+        self.assertEqual(report["capacity_check"]["status"], "skipped")
+        self.assertEqual(code, 3)
+        self.assertNotIn("already exists", report["verdict"])
+        self.assertIn("no artefact", report["verdict"])
+
+    def test_a_load_over_the_stated_capacity_fails_and_an_unstated_one_is_skipped(self) -> None:
+        """Two failure modes, and only one of them is a failure. Exceeding a capacity the user
+        stated is a finding. Having no capacity to compare against is not a pass."""
+        over, code = self.report("--roles", "content", "design", "marketplace",
+                                 "--have", "offer-architecture", "--capacity", "8")
+        self.assertEqual(over["capacity_check"]["status"], "failed")
+        self.assertEqual(over["capacity_check"]["headroom"], -4.0)
+        self.assertEqual(code, 2)
+        unstated, code = self.report("--roles", "content", "--have", "creative-brief")
+        self.assertEqual(unstated["capacity_check"]["status"], "skipped")
+        self.assertEqual(code, 3)
+        self.assertIn("supply", unstated["capacity_check"])
+
+    def test_a_clean_run_is_reachable_and_says_what_made_it_clean(self) -> None:
+        """A checker that cannot return zero teaches people to ignore its exit code."""
+        report, code = self.report("--roles", "content", "design", "report",
+                                   "--have", "offer-architecture", "creative-brief",
+                                   "campaign-record", "--capacity", "20")
+        self.assertEqual(code, 0)
+        self.assertEqual(report["capacity_check"]["status"], "passed")
+        self.assertEqual(report["strategy"], "held")
+
+    def test_a_cadence_nobody_stated_is_reported_as_unstated_rather_than_zero(self) -> None:
+        """Five of the thirteen roles cannot be defaulted: four recur per campaign, and ads is
+        continuous, which is not a count. Defaulting any of them to zero would understate the load
+        of exactly the roles a busy person is most likely to forget."""
+        report, code = self.report()
+        missing = {row["role"] for row in report["cadence_not_supplied"]}
+        self.assertEqual(missing, {"photo", "koc", "print", "event", "ads"})
+        self.assertEqual(code, 3)
+        for row in report["cadence_not_supplied"]:
+            with self.subTest(row["role"]):
+                self.assertTrue(row["supply"].startswith("--cadence "))
+        for row in report["weekly"]:
+            if row["role"] in missing:
+                self.assertIsNone(row["weekly_runs"], "an unstated cadence became a number")
+        self.assertIn("unstated, not as zero", self.flat)
+
+    def test_bad_input_is_refused_rather_than_guessed(self) -> None:
+        for argv in (["--roles", "seo"], ["--cadence", "photo"], ["--cadence", "photo=x"],
+                     ["--cadence", "photo=-1"], ["--roles", "content", "--cadence", "photo=1"],
+                     ["--have", "brand-vibes"]):
+            with self.subTest(argv=argv):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    self.assertEqual(plan_operating_load.main(argv), 1)
+
+    def test_the_reference_teaches_the_four_verdicts_and_the_exit_codes(self) -> None:
+        """The reference is read far more often than the script's docstring, and a verdict the
+        reader cannot interpret is a verdict they will ignore."""
+        for verdict in ("passed", "failed", "skipped", "review"):
+            self.assertIn(f"`{verdict}`", self.flat,
+                          f"the reference does not explain the {verdict} verdict")
+        lowered = self.flat.lower()
+        for fragment in ("0 clean", "1 usage", "2 the stated load exceeds the stated capacity",
+                         "3 computable but unsettled"):
+            self.assertIn(fragment, lowered, f"the reference no longer documents exit {fragment!r}")
+        # `review` is the one a reader will dismiss as a soft pass, so the reference has to say why
+        # it exists at all, in the same terms the colour unit uses.
+        self.assertIn("A checker that returns a verdict on everything gets ignored on everything",
+                      self.flat)
+
+    def test_the_reference_is_reachable_and_says_it_cites_no_survey(self) -> None:
+        """`command-surface.md` forward-cites this file by name, so it has to exist and it has to
+        be reachable from the router. And because the central claim is structural rather than
+        sourced, the reference has to say that in its own words rather than leave a reader to
+        assume a survey behind it."""
+        router = (SKILL_ROOT / "references" / "marketing-system-router.md").read_text(
+            encoding="utf-8")
+        self.assertIn(self.REFERENCE, router, "the unit is not reachable from the router")
+        surface = (SKILL_ROOT / "references" / "command-surface.md").read_text(encoding="utf-8")
+        self.assertIn(self.REFERENCE, surface)
+        self.assertIn("Nothing in this unit is a survey finding", self.flat)
+        for row in DataTableTests.rows("marketing-benchmarks.csv"):
+            with self.subTest(row["benchmark_id"]):
+                self.assertNotIn("vn-marketer-roles", row["url"],
+                                 "a structural model is being cited as a fetched source")
+
+
+class CompositionSetTests(unittest.TestCase):
+    """The composition unit contradicts the thing every tool in its category promises.
+
+    "One photo becomes your whole listing" is the claim. This unit answers with a count, and the
+    count is under half. So the count is what has to be tested: if the table quietly drifts toward
+    optimism - a `new-geometry` row marked obtainable, a fill percentage nudged outside the band
+    Google documents - the unit stops disagreeing with the marketing and nobody notices, because a
+    more encouraging answer is the one a reader wants.
+
+    Three of these tests exist because the script failed them. It passed a material macro at 0.415x,
+    having treated the whole product's height as available to a frame that shows fifteen percent of
+    it; it returned a clean pass on a scene rebuild whose condition is an edge and a light direction,
+    neither of which a resample factor measures; and it collapsed both review causes into one
+    sentence telling the user to inspect the output, when half of them need to inspect the source.
+    """
+
+    REFERENCE = "product-composition-set.md"
+    TABLE = "product-compositions.csv"
+
+    # The band Google Merchant Center documents for a main product image: no less than 75 and no
+    # more than 90 percent of the frame. Hard-coded here rather than read from the table, because a
+    # test that reads its threshold from the file it is checking checks nothing.
+    MAIN_IMAGE_BAND = (75, 90)
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.unit = plan_composition_set.CompositionSet.load()
+        cls.slots = cls.unit.slots
+        cls.prose = (SKILL_ROOT / "references" / cls.REFERENCE).read_text(encoding="utf-8")
+        # Blockquote markers are stripped before flattening. A sentence quoted verbatim from another
+        # unit is set as a blockquote here, and wrapping it at column 100 puts a `>` in the middle
+        # of it, so a naive flatten fails on the formatting rather than on the wording.
+        cls.flat = " ".join(line.lstrip("> ") if line.startswith(">") else line
+                            for line in cls.prose.splitlines()).replace("  ", " ").strip()
+        cls.flat = " ".join(cls.flat.split())
+
+    def report(self, *argv: str) -> tuple[dict, int]:
+        """Run the CLI as a caller does, so the exit code is tested rather than assumed."""
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            code = plan_composition_set.main([*argv, "--format", "json"])
+        return json.loads(buffer.getvalue()), code
+
+    def test_every_slot_delivers_at_a_ratio_that_exists(self) -> None:
+        """The table's delivery sizes are not written in it, they are joined from
+        `data/frame-ratios.csv`. An invented ratio id would make the whole pixel arithmetic run
+        against a size no platform publishes."""
+        for slot in self.slots:
+            with self.subTest(slot["slot_id"]):
+                self.assertIn(slot["ratio"], self.unit.ratios)
+
+    def test_a_preserving_derivation_is_never_called_impossible(self) -> None:
+        """Cropping, relighting and extending the frame do not need information the source lacks,
+        so no such row may be marked unobtainable. This and the next test are the same invariant
+        from both sides, and together they are what stops the count from drifting."""
+        for slot in self.slots:
+            if slot["derivation"] in plan_composition_set.PRESERVING:
+                with self.subTest(slot["slot_id"]):
+                    self.assertNotEqual(slot["obtainable_from_one_photo"], "no")
+
+    def test_inventing_geometry_or_a_subject_is_never_called_possible(self) -> None:
+        """A view or a person the file does not contain cannot be derived from it. If one of these
+        rows ever reads `yes` or `conditional`, the unit is asserting exactly the thing it exists to
+        refuse, and it would read as a feature."""
+        for slot in self.slots:
+            if slot["derivation"] not in plan_composition_set.PRESERVING:
+                with self.subTest(slot["slot_id"]):
+                    self.assertEqual(slot["obtainable_from_one_photo"], "no")
+                    self.assertNotEqual(slot["needs_present"], "-",
+                                        "unobtainable without naming what is missing")
+
+    def test_generative_editing_is_declared_in_the_metadata_column(self) -> None:
+        """Google Merchant Center requires generated or substantially edited images to carry an IPTC
+        DigitalSourceType. A row that writes new pixels and declares a plain capture is not a
+        style lapse, it is an undeclared edit in a commercial feed."""
+        generative = {"outpaint", "background-swap", "scene-rebuild"}
+        for slot in self.slots:
+            composite = slot["iptc_digital_source_type"].startswith(("composite", "trained"))
+            with self.subTest(slot["slot_id"]):
+                self.assertEqual(slot["derivation"] in generative, composite)
+
+    def test_a_row_is_conditional_exactly_when_it_carries_a_condition(self) -> None:
+        """`obtainable_from_one_photo` and `condition_is` are the same statement twice. Letting them
+        disagree is how a conditional row starts reporting a clean pass."""
+        for slot in self.slots:
+            conditional = slot["obtainable_from_one_photo"] == "conditional"
+            with self.subTest(slot["slot_id"]):
+                self.assertEqual(conditional, slot["condition_is"] != "-")
+
+    def test_a_crop_into_the_product_needs_more_source_pixels_not_fewer(self) -> None:
+        """This is the arithmetic that was wrong first, so it is asserted directly rather than
+        left to the invariant above. A macro showing fifteen percent of a 2600 px product draws on
+        390 px, and a hero showing all of it draws on 2600. If the macro's factor ever comes out
+        below the hero's, the fraction has been dropped again."""
+        macro = self.unit.by_slot["detail-macro"]
+        hero = self.unit.by_slot["main-hero-white"]
+        self.assertEqual(int(macro["shows_pct_of_product"]), 15)
+        self.assertEqual(int(hero["shows_pct_of_product"]), 100)
+        source, product = (3024, 4032), 2600
+        self.assertGreater(self.unit.factor(macro, source, product)["factor"],
+                           self.unit.factor(hero, source, product)["factor"])
+        # And it does not merely lose to the hero, it fails outright on a phone photograph.
+        self.assertGreater(self.unit.factor(macro, source, product)["factor"],
+                           plan_composition_set.UPSCALE_CEILING)
+
+    def test_both_resample_constraints_are_always_reported(self) -> None:
+        """Reporting only the worst factor hides which one to fix, and the two fixes are different
+        actions: shoot at higher resolution, or step closer."""
+        measured = self.unit.factor(self.unit.by_slot["main-hero-white"], (3024, 4032), 2600)
+        self.assertEqual([part["constraint"] for part in measured["parts"]],
+                         ["frame", "product-fill"])
+        self.assertEqual(measured["factor"], max(part["factor"] for part in measured["parts"]))
+
+    def test_a_slot_the_pixels_cannot_settle_returns_review_not_passed(self) -> None:
+        """A scene rebuild on a large source has ample pixels, and the pixels were never the
+        condition. Returning `passed` there is the script answering a question it did not ask - the
+        same error the Vietnam unit made when it passed two roles it had not counted."""
+        judged = self.unit.judge(self.unit.by_slot["in-use-context"], set(), (4000, 6000), 3400,
+                                 None)
+        self.assertEqual(judged["status"], "review")
+        self.assertLess(judged["resample"]["factor"], plan_composition_set.UPSCALE_CEILING)
+        self.assertIn("unsettled", judged, "review without naming what is unsettled")
+
+    def test_a_missing_exposure_fails_however_large_the_source(self) -> None:
+        """The presence gate has to beat the pixel gate. A 100-megapixel photograph of the front of
+        a box contains none of the back of it, and the failure has to say so rather than talk about
+        resolution."""
+        judged = self.unit.judge(self.unit.by_slot["back-panel"], set(), (12000, 12000), 11000,
+                                 None)
+        self.assertEqual(judged["status"], "failed")
+        self.assertEqual(judged["unlocked_by"], "back-exposure")
+        self.assertNotIn("resample", judged, "a presence failure is arguing about pixels")
+
+    def test_naming_the_exposure_unlocks_the_slot(self) -> None:
+        """`--have` is the input the user actually answers, so the gate has to open on it. If it
+        did not, the reshoot advice would be unfalsifiable: shoot more and nothing changes."""
+        slot = self.unit.by_slot["back-panel"]
+        judged = self.unit.judge(slot, {"back-exposure"}, (3024, 4032), 2600, None)
+        self.assertEqual(judged["status"], "passed")
+
+    def test_no_source_dimensions_is_skipped_and_not_a_pass(self) -> None:
+        """The four statuses have to keep meaning what they say. An unjudged slot is `skipped`, and
+        the reason has to state that this is not the same as the slot being fine."""
+        judged = self.unit.judge(self.unit.by_slot["main-hero-white"], set(), None, None, None)
+        self.assertEqual(judged["status"], "skipped")
+        self.assertIn("not", judged["why"])
+
+    def test_the_headline_count_in_the_prose_is_re_derived(self) -> None:
+        """Seven of eighteen is the sentence that will be quoted out of this unit, so it is counted
+        from the table rather than trusted. If somebody adds two croppable slots and the prose still
+        says seven, the quoted figure is the stale one."""
+        words = {7: "seven", 3: "three", 8: "eight", 18: "eighteen"}
+        counts = {value: sum(1 for s in self.slots if s["obtainable_from_one_photo"] == value)
+                  for value in ("yes", "conditional", "no")}
+        self.assertEqual(counts, {"yes": 7, "conditional": 3, "no": 8})
+        self.assertIn(
+            f"Of the {words[len(self.slots)]} slots in `data/{self.TABLE}`, "
+            f"{words[counts['yes']]} come out of a single front-on exposure with no conditions "
+            f"attached, {words[counts['conditional']]} come out of it only if the source allows "
+            f"something specific, and {words[counts['no']]} cannot come out of it at all.",
+            self.flat, "the prose does not state the counts the table holds")
+
+    def test_the_marketplace_main_image_count_is_re_derived(self) -> None:
+        """A composition being good and a composition being submittable are different questions,
+        and the second one has a number. Five of eighteen."""
+        allowed = [s["slot_id"] for s in self.slots if s["marketplace_main_image"] == "allowed"]
+        self.assertEqual(len(allowed), 5)
+        self.assertIn("five of the eighteen are valid as a marketplace main image", self.flat)
+
+    def test_whole_product_main_images_sit_inside_the_documented_fill_band(self) -> None:
+        """The fill percentages on those rows are Google's documented band, not house taste. The
+        one row outside it is `on-model`, which frames a person rather than the product, and it is
+        excluded by name so the exception cannot silently widen to cover a drifting row."""
+        low, high = self.MAIN_IMAGE_BAND
+        for slot in self.slots:
+            if slot["marketplace_main_image"] != "allowed" or slot["slot_id"] == "on-model":
+                continue
+            with self.subTest(slot["slot_id"]):
+                self.assertGreaterEqual(int(slot["product_fill_pct"]), low)
+                self.assertLessEqual(int(slot["product_fill_pct"]), high)
+
+    def test_every_metadata_code_is_a_real_iptc_qcode(self) -> None:
+        """The vocabulary was fetched, and Google's own guidance names three codes in a casing the
+        vocabulary does not use - and omits the one that applies to editing a real photograph. So
+        the codes are checked against the vocabulary, and the emitted URI has to resolve into it."""
+        emitted = self.unit.metadata([self.unit.judge(slot, {slot["needs_present"]}, (6000, 6000),
+                                                      5000, None) for slot in self.slots])
+        self.assertTrue(emitted)
+        for entry in emitted:
+            with self.subTest(entry["qcode"]):
+                self.assertRegex(entry["qcode"], r"^[a-z][A-Za-z]+$")
+                self.assertTrue(entry["uri"].endswith("/" + entry["qcode"]))
+                self.assertIn("cv.iptc.org/newscodes/digitalsourcetype", entry["uri"])
+        self.assertIn("compositeWithTrainedAlgorithmicMedia",
+                      {entry["qcode"] for entry in emitted})
+
+    def test_the_reshoot_advice_is_a_count_of_named_slots(self) -> None:
+        """Told that more images convert better, a shop owner does nothing. Told that one exposure
+        turns a named failing slot into a producible one, they can decide. So the output has to
+        carry the slot names, not a total."""
+        report, _ = self.report("--set", "marketplace", "--source", "3024x4032",
+                                "--product-px", "2600")
+        self.assertTrue(report["reshoot_value"])
+        for entry in report["reshoot_value"]:
+            with self.subTest(entry["one_more_exposure"]):
+                self.assertTrue(entry["unlocks"])
+                self.assertEqual(entry["count"], len(entry["unlocks"]))
+                self.assertIn(entry["one_more_exposure"], {s["needs_present"] for s in self.slots})
+
+    def test_the_two_review_causes_are_reported_separately(self) -> None:
+        """An accepted upscale is settled by looking at the delivered frame; an unsettled condition
+        is settled by looking at the source. One sentence covering both sends half the users to the
+        wrong file."""
+        report, code = self.report("--slots", "in-use-context", "--source", "4000x6000",
+                                   "--product-px", "3400")
+        self.assertEqual(code, 3)
+        self.assertEqual(report["verdict"]["status"], "review")
+        self.assertIn("does not measure", report["verdict"]["why"])
+
+    def test_the_exit_codes_match_the_four_statuses(self) -> None:
+        """The exit code is the only part of this a shell script reads, so a wrong one turns a
+        blocking failure into a green build."""
+        _, failing = self.report("--set", "marketplace", "--source", "3024x4032",
+                                 "--product-px", "2600")
+        self.assertEqual(failing, 2)
+        _, clean = self.report("--slots", "main-hero-white", "--source", "3024x4032",
+                               "--product-px", "2600")
+        self.assertEqual(clean, 0)
+        _, unjudged = self.report("--slots", "main-hero-white")
+        self.assertEqual(unjudged, 3)
+
+    def test_the_reference_is_reachable_and_shares_the_review_rationale(self) -> None:
+        """This is the third unit to use the four-status vocabulary, and the sentence explaining why
+        `review` exists is quoted verbatim in each, because a status that means something different
+        per unit means nothing across them."""
+        router = (SKILL_ROOT / "references" / "marketing-system-router.md").read_text(
+            encoding="utf-8")
+        self.assertIn(self.REFERENCE, router, "the unit is not reachable from the router")
+        self.assertIn("`review` exists so that the gates that do fail mean something. A checker "
+                      "that returns a verdict on everything gets ignored on everything.", self.flat)
+
+    def test_the_unsourced_platform_spec_is_declared_rather_than_guessed(self) -> None:
+        """Shopee's own image specification could not be retrieved, and the third-party writing
+        that fills the gap contradicts itself. Picking the most common figure would have produced a
+        plausible number with no provenance, which is the failure mode this skill grades for."""
+        self.assertIn("no-source-found", self.flat)
+        for slot in self.slots:
+            with self.subTest(slot["slot_id"]):
+                self.assertNotIn("shopee", slot["source"].lower())
 
 
 if __name__ == "__main__":
