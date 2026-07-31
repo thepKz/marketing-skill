@@ -27,6 +27,7 @@ from compile_prompt import compile_provider
 # Imported as modules, not names: both define PLACEMENTS, and `from ... import PLACEMENTS` twice
 # would leave one test silently asserting against the other module's table.
 import check_address_register
+import check_test_readout
 import check_specificity
 import find_recipe
 import generate_image
@@ -3902,6 +3903,113 @@ class OperatingLoadTests(unittest.TestCase):
             with self.subTest(row["benchmark_id"]):
                 self.assertNotIn("vn-marketer-roles", row["url"],
                                  "a structural model is being cited as a fetched source")
+
+
+class TestReadoutTests(unittest.TestCase):
+    """The statistics have to be checked against something outside this file.
+
+    A hand-rolled significance check is the easiest thing in a marketing toolkit to get quietly wrong,
+    because a wrong answer still looks like an answer and nobody re-derives it. The first draft of
+    check_test_readout.py's own self-check asserted a sample size "a little over 6000" from memory and
+    the correct answer was 8155 - the exact recalled-number failure this skill gates other people for.
+    So the tests here go after properties and independent routes, never remembered outputs.
+    """
+
+    def test_self_check_passes(self) -> None:
+        report = check_test_readout.self_check()
+        self.assertTrue(report.rstrip().endswith("verdict passed"), report)
+        self.assertNotIn("FAIL", report)
+
+    def test_sample_size_delivers_the_power_it_was_asked_for(self) -> None:
+        # The independent route: invert for n, then run the power function forward on that n. A
+        # dropped variance term or a one-tailed critical value fails this even though both produce a
+        # plausible-looking number.
+        for baseline, mde, power in ((0.01, 0.25, 0.80), (0.05, 0.20, 0.80), (0.30, 0.05, 0.90)):
+            with self.subTest(baseline=baseline, mde=mde):
+                n = check_test_readout.required_per_arm(baseline, mde, 0.05, power)
+                treated = baseline * (1 + mde)
+                se = math.sqrt(baseline * (1 - baseline) / n + treated * (1 - treated) / n)
+                achieved = check_test_readout.normal_cdf(
+                    (treated - baseline) / se - check_test_readout.normal_quantile(0.975))
+                self.assertAlmostEqual(achieved, power, delta=0.005)
+
+    def test_a_big_relative_lift_on_thin_traffic_is_refused(self) -> None:
+        # 8/400 against 13/410 is a 58 percent relative lift, which is the number that would get
+        # reported, and p is about 0.29. If this ever passes, the gate has stopped working.
+        report = check_test_readout.read(
+            [("A", 400, 8), ("B", 410, 13)], mde=0.20, alpha=0.05, power=0.80,
+            daily_clicks=None, claim="B")
+        self.assertEqual(report["verdict"]["status"], "failed")
+        self.assertGreater(report["statistics"]["relative_lift"], 0.5)
+        self.assertTrue(report["statistics"]["interval_crosses_zero"])
+        claim_gate = [g for g in report["gates"] if g["gate"] == "claimed-winner"][0]
+        self.assertEqual(claim_gate["status"], "failed")
+
+    def test_a_claim_is_checked_against_the_interval_not_the_point_estimate(self) -> None:
+        # Same leader, enough traffic to separate the arms. The point estimate has not changed
+        # direction between this case and the one above; only the interval has.
+        report = check_test_readout.read(
+            [("A", 20000, 600), ("B", 20000, 900)], mde=0.20, alpha=0.05, power=0.80,
+            daily_clicks=None, claim="B")
+        self.assertEqual(report["verdict"]["status"], "passed")
+        self.assertFalse(report["statistics"]["interval_crosses_zero"])
+        # And claiming the arm that lost fails even though the test itself is readable.
+        wrong = check_test_readout.read(
+            [("A", 20000, 600), ("B", 20000, 900)], mde=0.20, alpha=0.05, power=0.80,
+            daily_clicks=None, claim="A")
+        self.assertEqual(wrong["verdict"]["status"], "failed")
+
+    def test_unequal_delivery_is_graded_as_a_confound(self) -> None:
+        report = check_test_readout.read(
+            [("A", 20000, 600), ("B", 8000, 360)], mde=0.20, alpha=0.05, power=0.80,
+            daily_clicks=None, claim=None)
+        gate = [g for g in report["gates"] if g["gate"] == "delivery-balance"][0]
+        self.assertEqual(gate["status"], "failed")
+        self.assertEqual(report["verdict"]["status"], "review")
+        self.assertTrue(any("confounded" in note for note in report["notes"]))
+
+    def test_significant_below_the_planned_size_is_not_a_win(self) -> None:
+        # The dangerous combination, and the reason peeking is a problem: the p-value is fine and the
+        # sample is not. Grading this `passed` is how a false positive becomes a brand rule.
+        report = check_test_readout.read(
+            [("A", 600, 12), ("B", 600, 40)], mde=0.20, alpha=0.05, power=0.80,
+            daily_clicks=None, claim=None)
+        self.assertTrue(report["significant"])
+        self.assertEqual(report["verdict"]["status"], "review")
+        self.assertTrue(any("false positive" in note for note in report["notes"]))
+
+    def test_no_difference_at_adequate_size_is_reported_as_a_decision(self) -> None:
+        report = check_test_readout.read(
+            [("A", 40000, 2000), ("B", 40000, 2010)], mde=0.20, alpha=0.05, power=0.80,
+            daily_clicks=None, claim=None)
+        self.assertEqual(report["verdict"]["status"], "passed")
+        self.assertFalse(report["significant"])
+        self.assertIn("stop paying", report["verdict"]["summary"])
+
+    def test_impossible_and_empty_inputs_are_refused(self) -> None:
+        with self.assertRaises(ValueError):
+            check_test_readout.parse_variant("A:clicks=100,conversions=200")
+        with self.assertRaises(ValueError):
+            check_test_readout.parse_variant("A:clicks=0,conversions=0")
+        with self.assertRaises(ValueError):
+            check_test_readout.parse_variant("A:conversions=5")
+        with self.assertRaises(ValueError):
+            check_test_readout.read([("A", 100, 5), ("B", 100, 9)], 0.2, 0.05, 0.8, None, "C")
+        # A zero baseline cannot be sized against, and saying so beats returning a computed-looking
+        # number for a rate that does not exist.
+        self.assertIsNone(check_test_readout.required_per_arm(0.0, 0.2, 0.05, 0.8))
+        report = check_test_readout.read([("A", 500, 0), ("B", 500, 3)], 0.2, 0.05, 0.8, None, None)
+        self.assertIsNone(report["required_per_arm"])
+        self.assertTrue(any("no baseline rate" in note for note in report["notes"]))
+
+    def test_the_rule_it_enforces_points_at_it(self) -> None:
+        # learning-loop.md carried "never declare a winner from tiny delivery" for a long time with
+        # no way to compute tiny. If the prose and the script ever separate again, the rule goes back
+        # to being unenforceable.
+        text = (SKILL_ROOT / "references" / "learning-loop.md").read_text(encoding="utf-8")
+        self.assertIn("check_test_readout.py", text)
+        self.assertIn("--plan", text)
+        self.assertIn("--claim", text)
 
 
 class CompositionSetTests(unittest.TestCase):
