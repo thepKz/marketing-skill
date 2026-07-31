@@ -349,18 +349,19 @@ Kiểm tra bậc hai bắt cửa thoát: sau khi từ chối cái nhìn hiển n
 
 ```
 marketing-minthep/
-  SKILL.md                  điểm vào và bộ định tuyến, 183 dòng
+  SKILL.md                  điểm vào và bộ định tuyến, 186 dòng
   references/               63 file chủ đề, mỗi file dưới 150 dòng
     dossiers/               15 dossier craft chuyên sâu + index
-  data/                     32 bảng tra: image recipe, palette, layout dial,
+  data/                     33 bảng tra: image recipe, palette, layout dial,
                             slop tell, copy formula, translation tell và
                             ngôi xưng, reference axis, frame ratio,
                             composition grid, chỉ số KPI và trọng số, cổng
                             màu, look và chẩn đoán makeup, tham số nhân vật,
                             prompt grammar, bố cục sản phẩm, benchmark,
                             nguồn dữ liệu thị trường, nguồn bằng chứng khách
-                            hàng, command artifact, các vai marketer Việt Nam
-  scripts/                  44 công cụ + bộ test
+                            hàng, nghĩa vụ theo vòng đời khách hàng, command
+                            artifact, các vai marketer Việt Nam
+  scripts/                  45 công cụ + bộ test
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json và khung deliverable
@@ -378,7 +379,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-509 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv`, test fail nếu một ví dụ copy chứa số in được, test fail nếu một cờ năng lực dẫn tới dòng nguồn không tồn tại, và test fail nếu một deliverable gọi tên một script không có trong repo. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
+531 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv`, test fail nếu một ví dụ copy chứa số in được, test fail nếu một cờ năng lực dẫn tới dòng nguồn không tồn tại, và test fail nếu một deliverable gọi tên một script không có trong repo. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
 
 ## Những gì skill không làm
 

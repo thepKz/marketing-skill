@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import csv
+import datetime as dt
 import io
 import json
 import math
@@ -43,6 +44,7 @@ import model_affiliate
 import plan_command_chain
 import plan_composition_set
 import plan_identity
+import plan_lifecycle
 import plan_operating_load
 import plan_palette
 import render_refsheet
@@ -1473,6 +1475,7 @@ class DataTableTests(unittest.TestCase):
         "affiliate-mechanics.csv": (38, 11),
         "vn-advertising-law.csv": (45, 13),
         "claim-evidence.csv": (41, 16),
+        "lifecycle-duties.csv": (25, 17),
     }
 
     # Most of these tables are keyed by their first column. The weights table is keyed by two, and
@@ -7000,6 +7003,272 @@ class ClaimEvidenceTests(unittest.TestCase):
                 self.assertEqual(check_claims.main(
                     ["--audit", str(draft), "--sector", "cosmetics", "--answers", str(sheet)]), 2)
             self.assertIn("nothing-in-the-prohibited-list", printed.getvalue())
+
+
+class LifecycleDutyTests(unittest.TestCase):
+    """A declaration sheet is easier to fake than a draft, so these tests attack the sheet.
+
+    `check_claims.py` scans copy, and a scanner's failure mode is over-reporting. A flow is a schedule,
+    a consent state, a retention policy and a contract term, none of which appear in the copy, so
+    `plan_lifecycle.py` asks instead of scanning - and an asked question has the opposite failure mode.
+    The cheapest way to pass is to leave the row blank. So the load-bearing assertion here is that a
+    blank sheet fails every gate it reaches and passes none of them, and that a value the script cannot
+    parse fails rather than being skipped.
+
+    The rest pins the arithmetic, because a working-day count and a retention subtraction are the two
+    findings a human cannot check by eye. Both are recomputed against dates chosen so a one-day slip
+    changes the verdict.
+    """
+
+    TABLE = SKILL_ROOT / "data" / "lifecycle-duties.csv"
+    REFERENCE = SKILL_ROOT / "references" / "lifecycle-retention.md"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.duties = plan_lifecycle.read_duties()
+        cls.prose = cls.REFERENCE.read_text(encoding="utf-8")
+
+    def test_self_check_passes(self) -> None:
+        report = plan_lifecycle.self_check()
+        self.assertIn("All assertions passed.", report)
+        self.assertNotIn("FAIL", report)
+
+    def test_every_duty_has_a_check_and_every_check_has_a_duty(self) -> None:
+        # Both directions. A duty without a check is a row that reads as covered and grades nothing;
+        # a check without a duty is a gate nobody can trace to an article.
+        self.assertEqual(sorted(plan_lifecycle.CHECKS),
+                         sorted(row["id"] for row in self.duties))
+
+    def test_every_decides_from_token_names_a_field_the_sheet_asks_for(self) -> None:
+        for row in self.duties:
+            for token in row["decides_from"].split(";"):
+                token = token.strip()
+                if token == "-":
+                    continue
+                self.assertIn(token, plan_lifecycle.FIELD_NAMES,
+                              f'{row["id"]} decides from {token!r}, which the sheet never asks')
+
+    def test_no_row_has_neither_a_fine_band_nor_a_consumer_remedy(self) -> None:
+        # The point of the remedy column: nineteen rows carry a fine of zero, and zero is not a
+        # discount. A row with no fine and no remedy would be a duty with no consequence, which is a
+        # sign the row was invented rather than read.
+        for row in self.duties:
+            self.assertTrue(int(row["fine_high"]) > 0 or row["consumer_remedy"] != "-",
+                            f'{row["id"]} carries no fine and no remedy')
+
+    def test_severity_is_derived_from_the_table_not_typed_into_it(self) -> None:
+        self.assertNotIn("severity", plan_lifecycle.COLUMNS)
+        by_id = {row["id"]: row for row in self.duties}
+        # A fine band blocks.
+        self.assertEqual(plan_lifecycle.severity_of(by_id["overlay-closes-in-one-tap"]), "critical")
+        # A nghiêm cấm act under Điều 10 blocks on the prohibition alone, with no fine in this corpus.
+        harassment = by_id["no-contact-against-the-consumers-wishes"]
+        self.assertEqual(int(harassment["fine_high"]), 0)
+        self.assertEqual(plan_lifecycle.severity_of(harassment), "critical")
+        # A duty whose breach hands the consumer a remedy is graded below both.
+        self.assertEqual(plan_lifecycle.severity_of(by_id["a-refund-lands-inside-thirty-days"]),
+                         "high")
+
+    def test_the_working_day_count_is_exclusive_at_both_ends(self) -> None:
+        count = plan_lifecycle.working_days_between(dt.date(2026, 8, 19), dt.date(2026, 9, 1))
+        self.assertEqual(count, 8)
+        # Điều 42 wants 07 ngày làm việc before the date, so the last lawful send is the day before
+        # the seventh working day back. One day later misses, which is the whole finding.
+        latest = plan_lifecycle.last_lawful_notice_date(dt.date(2026, 9, 1))
+        self.assertEqual(latest, dt.date(2026, 8, 20))
+        self.assertGreaterEqual(
+            plan_lifecycle.working_days_between(latest, dt.date(2026, 9, 1)),
+            plan_lifecycle.WORKING_DAYS_NOTICE)
+        self.assertLess(
+            plan_lifecycle.working_days_between(latest + dt.timedelta(days=1), dt.date(2026, 9, 1)),
+            plan_lifecycle.WORKING_DAYS_NOTICE)
+        # A notice after its own deadline is zero working days, not a negative number.
+        self.assertEqual(
+            plan_lifecycle.working_days_between(dt.date(2026, 9, 5), dt.date(2026, 9, 1)), 0)
+
+    def test_the_holiday_warning_ships_with_every_working_day_finding(self) -> None:
+        # The count is weekdays only. Tết moves against the solar calendar and the holiday list is set
+        # annually, so a silent assumption here would approve a notice that arrives late.
+        declared = plan_lifecycle.clean_declaration()
+        declared["renewal_notice_date"] = "2026-08-28"
+        rows = plan_lifecycle.gates(self.duties, declared)
+        finding = next(row["finding"] for row in rows
+                       if row["gate"] == "renewal-notice-at-least-seven-working-days-out")
+        self.assertIn("2026-08-20", finding)
+        self.assertIn("Tết", finding)
+        self.assertNotIn("working 1 days", finding)
+
+    def test_the_retention_subtraction_fires_on_the_declared_period(self) -> None:
+        # The number that makes a win-back unlawful is a number the advertiser chose itself.
+        declared = plan_lifecycle.clean_declaration()
+        declared["max_delay_months"] = "18"
+        rows = plan_lifecycle.gates(self.duties, declared)
+        row = next(row for row in rows
+                   if row["gate"] == "no-message-after-the-declared-retention-period")
+        self.assertFalse(row["pass"])
+        self.assertIn("6 months", str(row["finding"]))
+        # Publishing no period at all fails too, rather than leaving nothing to measure against.
+        declared["retention_months_declared"] = "0"
+        rows = plan_lifecycle.gates(self.duties, declared)
+        self.assertIn("no-message-after-the-declared-retention-period", plan_lifecycle.failed(rows))
+
+    def test_the_overlay_wait_splits_on_static_versus_motion(self) -> None:
+        declared = plan_lifecycle.clean_declaration()
+        declared["overlay"], declared["wait_seconds"] = "motion", "5"
+        self.assertTrue(plan_lifecycle._overlay_wait(declared)[0])
+        declared["wait_seconds"] = "6"
+        self.assertFalse(plan_lifecycle._overlay_wait(declared)[0])
+        declared["overlay"], declared["wait_seconds"] = "static", "5"
+        self.assertFalse(plan_lifecycle._overlay_wait(declared)[0])
+        # No overlay is not a passing overlay; the gate reports itself as not applicable.
+        declared["overlay"] = "none"
+        rows = plan_lifecycle.gates(self.duties, declared)
+        row = next(row for row in rows if row["gate"] == "overlay-wait-is-capped")
+        self.assertFalse(row["applies"])
+        self.assertNotIn("overlay-wait-is-capped", plan_lifecycle.failed(rows))
+
+    def test_a_blank_sheet_fails_every_gate_it_reaches(self) -> None:
+        blank = {name: "" for name in plan_lifecycle.FIELD_NAMES}
+        rows = plan_lifecycle.gates(self.duties, blank)
+        self.assertEqual(len(rows), len(self.duties))
+        self.assertEqual([row["gate"] for row in rows if row["pass"]], [])
+        self.assertEqual(len(plan_lifecycle.failed(rows)), len(self.duties))
+        self.assertEqual(plan_lifecycle.unanswered(blank), list(plan_lifecycle.FIELD_NAMES))
+
+    def test_an_unreadable_value_fails_rather_than_being_skipped(self) -> None:
+        declared = plan_lifecycle.clean_declaration()
+        declared["service_months"] = "six"
+        rows = plan_lifecycle.gates(self.duties, declared)
+        row = next(row for row in rows if row["gate"] == "continuous-service-starts-at-three-months")
+        self.assertTrue(row["applies"])
+        self.assertFalse(row["pass"])
+        self.assertIn("undeclared or unreadable", str(row["finding"]))
+        # And a continuous service that leaves the date it hangs on as "-" fails the gate that would
+        # have measured it, instead of quietly having nothing to measure.
+        declared = plan_lifecycle.clean_declaration()
+        declared["renewal_date"] = "-"
+        self.assertIn("renewal-notice-at-least-seven-working-days-out",
+                      plan_lifecycle.failed(plan_lifecycle.gates(self.duties, declared)))
+
+    def test_the_worked_clean_flow_passes_every_applicable_gate(self) -> None:
+        # Without this the suite could not tell a strict tool from a broken one.
+        rows = plan_lifecycle.gates(self.duties, plan_lifecycle.clean_declaration())
+        self.assertEqual(plan_lifecycle.failed(rows), [])
+        self.assertEqual(plan_lifecycle.blocking(rows), [])
+        self.assertEqual(plan_lifecycle.exposure(rows), (0, 0))
+
+    def test_bundled_consent_is_the_default_failure(self) -> None:
+        declared = plan_lifecycle.clean_declaration()
+        declared["marketing_consent"] = "bundled"
+        rows = plan_lifecycle.gates(self.duties, declared)
+        row = next(row for row in rows if row["gate"] == "marketing-consent-is-its-own-choice")
+        self.assertFalse(row["pass"])
+        self.assertEqual(row["article"], "Điều 18.4.b")
+        self.assertIn("marketing-consent-is-its-own-choice", plan_lifecycle.blocking(rows))
+
+    def test_the_refund_liability_dwarfs_the_fine_band(self) -> None:
+        declared = plan_lifecycle.clean_declaration()
+        declared["claims_verified"] = "no"
+        rows = plan_lifecycle.gates(self.duties, declared)
+        liability = plan_lifecycle.refund_liability(rows, 4200, 690000)
+        self.assertEqual(liability, 4200 * 690000)
+        self.assertGreater(liability, plan_lifecycle.exposure(rows)[1])
+        # Nineteen rows carry no fine, so the band alone would read as a cheap problem.
+        self.assertGreater(liability, max(int(row["fine_high"]) for row in self.duties))
+        # And no orders means no arithmetic, rather than a made-up figure.
+        self.assertEqual(plan_lifecycle.refund_liability(rows, 0, 690000), 0)
+
+    def test_the_template_round_trips_through_the_reader(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            sheet = Path(directory) / "flow.csv"
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(plan_lifecycle.main(["--template", str(sheet)]), 0)
+            declared = plan_lifecycle.read_declaration(sheet)
+            self.assertEqual(set(declared), set(plan_lifecycle.FIELD_NAMES))
+            # Refuses to overwrite an answered sheet.
+            with contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(plan_lifecycle.main(["--template", str(sheet)]), 1)
+            with contextlib.redirect_stdout(io.StringIO()) as printed:
+                self.assertEqual(plan_lifecycle.main(["--audit", str(sheet)]), 2)
+            self.assertIn("0 of 25 applicable gates pass", printed.getvalue())
+
+    def test_an_unknown_field_on_the_sheet_is_an_error_not_a_shrug(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            sheet = Path(directory) / "flow.csv"
+            sheet.write_text("field,value\nconsent_vibe,strong\n", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                plan_lifecycle.read_declaration(sheet)
+            with contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(plan_lifecycle.main(["--audit", str(sheet)]), 1)
+
+    def test_a_clean_flow_exits_zero_and_a_broken_one_exits_two(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            sheet = Path(directory) / "flow.csv"
+            clean = plan_lifecycle.clean_declaration()
+            sheet.write_text("field,value\n" + "".join(
+                f"{name},{clean[name]}\n" for name in plan_lifecycle.FIELD_NAMES),
+                encoding="utf-8")
+            with contextlib.redirect_stdout(io.StringIO()) as printed:
+                self.assertEqual(plan_lifecycle.main(["--audit", str(sheet)]), 0)
+            self.assertIn("None.", printed.getvalue())
+            broken = dict(clean, marketing_consent="bundled")
+            sheet.write_text("field,value\n" + "".join(
+                f"{name},{broken[name]}\n" for name in plan_lifecycle.FIELD_NAMES),
+                encoding="utf-8")
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(plan_lifecycle.main(["--audit", str(sheet)]), 2)
+
+    def test_every_stage_is_reachable_from_the_duties_view(self) -> None:
+        for stage in plan_lifecycle.STAGES:
+            with contextlib.redirect_stdout(io.StringIO()) as printed:
+                self.assertEqual(plan_lifecycle.main(["--duties", "--stage", stage]), 0)
+            self.assertIn(f"## {stage}", printed.getvalue())
+        # A stage this table does not have is a usage error that names the stages it does have,
+        # rather than an empty section that reads as "no duties apply here".
+        with contextlib.redirect_stderr(io.StringIO()) as complained:
+            self.assertEqual(plan_lifecycle.main(["--duties", "--stage", "onboarding"]), 1)
+        self.assertIn("winback", complained.getvalue())
+
+    def test_every_row_is_cited_to_the_gazette_at_a_date(self) -> None:
+        for row in self.duties:
+            self.assertRegex(row["gazette"], r"Công báo số \d")
+            self.assertTrue(row["source_url"].startswith("https://congbao.chinhphu.vn/"),
+                            f'{row["id"]}: {row["source_url"]}')
+            self.assertRegex(row["verified_at"], r"^\d{4}-\d{2}-\d{2}$")
+
+    def test_a_fine_band_names_the_article_that_imposes_it(self) -> None:
+        # The duty and the penalty live in different instruments, and quoting a band against the duty
+        # article is the mistake this column exists to prevent.
+        for row in self.duties:
+            if int(row["fine_high"]):
+                self.assertNotEqual(row["sanction_article"], "-", row["id"])
+                self.assertLessEqual(int(row["fine_low"]), int(row["fine_high"]), row["id"])
+            else:
+                self.assertEqual(row["sanction_article"], "-", row["id"])
+                self.assertEqual(int(row["fine_low"]), 0, row["id"])
+
+    def test_the_reference_quotes_the_numbers_the_script_produces(self) -> None:
+        # Prose drifts from arithmetic. Every figure the reference states is recomputed here.
+        declared = plan_lifecycle.clean_declaration()
+        declared["claims_verified"] = "no"
+        rows = plan_lifecycle.gates(self.duties, declared)
+        self.assertIn(plan_lifecycle.money(plan_lifecycle.refund_liability(rows, 4200, 690000)),
+                      self.prose)
+        # The prose spells its counts out, so the words are derived from the table rather than typed
+        # beside it. This caught the reference claiming nineteen zero-fine rows when there are twenty.
+        words = {9: "nine", 19: "nineteen", 20: "twenty", 25: "twenty-five", 36: "thirty-six"}
+        zero_fine = sum(1 for row in self.duties if not int(row["fine_high"]))
+        self.assertIn(f"{words[zero_fine]} of the {words[len(self.duties)]}", self.prose)
+        self.assertIn(f"{words[len(plan_lifecycle.FIELD_NAMES)]} questions", self.prose)
+        self.assertIn(f"{words[len(plan_lifecycle.STAGES)]} stages", self.prose)
+
+    def test_the_reference_admits_what_the_corpus_does_not_cover(self) -> None:
+        # Nghị định 91/2020 does set per-day message caps and a time window, and it is not in this
+        # cache. Saying "no article sets a number" would have been a false negative.
+        self.assertIn("not in this corpus", self.prose)
+        note = plan_lifecycle._frequency_note(plan_lifecycle.clean_declaration())
+        self.assertIn("no article in this corpus", note)
+
 
 if __name__ == "__main__":
     unittest.main()

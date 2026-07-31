@@ -49,7 +49,16 @@ Load only when relevant:
 - PR: `pr-communications.md`.
 - Sales: `sales-enablement.md`.
 - Creator/UGC: `creator-ugc.md`.
-- Lifecycle: `lifecycle-retention.md`.
+- What a welcome, cart, renewal or win-back flow is allowed to send, and when:
+  `lifecycle-retention.md` plus `data/lifecycle-duties.csv` and `scripts/plan_lifecycle.py`. Load this
+  before designing any flow, and before writing the capture popup that feeds it. A flow is the one
+  marketing artefact made entirely of stored personal data and scheduled repeat contact, so it is the
+  most regulated thing in this skill, and the imported playbook carries none of it. Marketing consent
+  is its own control under Điều 18.4.b, not the checkbox at checkout. Your own published retention
+  period is the legal deadline under Điều 20.3, so a win-back at month eighteen against a
+  twelve-month policy is unlawful processing. A service of three months or more owes two notices
+  seven working days out under Điều 42. And the popup itself is priced at 30 to 40 million by
+  Nghị định 342/2025 Điều 17 before a single message is written.
 - Claims and proof: `claims-proof-ledger.md` plus `data/claim-evidence.csv` and
   `scripts/check_claims.py`.
 - Current placements/specs: `channel-spec-registry.md`.
