@@ -28,4 +28,19 @@ Before/after, testimonial, health, beauty, finance, and performance content requ
 
 Review product truth, disclosure visibility, identity/consent, music/third-party rights, platform policy, native quality, crop/safe zone, and CTA. Preserve creator ID, asset ID, parent concept, usage rights, claim IDs, approval state, spend, and performance.
 
-Use FTC endorsement guidance for US-facing work and verify local disclosure rules for every market.
+## Disclosure, for Vietnam specifically
+
+Use FTC endorsement guidance for US-facing work. Vietnam is stricter. The duties are statutory and
+they name the creator, not only the brand.
+
+Luật 75/2025/QH15 Điều 15a.3.b requires disclosure immediately before and during the advertising, which
+a caption alone does not satisfy on a video. During is the word. Điều 23.2.đ requires a marker separating advertising from the creator's other posts, and Điều 15a.3.a
+bars introducing a product the creator has not used or does not clearly understand.
+
+Penalties reach 100,000,000 VND for an individual under Nghị định 87/2026/NĐ-CP Điều 51, and double for
+an organisation. No wording is prescribed. So mandate a marker in the brief, and never tell a client
+that a particular Vietnamese phrase is legally required. Every figure is sourced by gazette URL in
+`data/vn-advertising-law.csv`.
+
+Read `affiliate-commerce.md` before agreeing commission terms, from either side. Whether the
+arrangement pays is a different question from whether the person fits, and it has its own instrument.

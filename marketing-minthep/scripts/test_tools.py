@@ -38,6 +38,7 @@ import check_specificity
 import find_recipe
 import generate_image
 import list_capabilities
+import model_affiliate
 import plan_command_chain
 import plan_composition_set
 import plan_identity
@@ -1468,6 +1469,8 @@ class DataTableTests(unittest.TestCase):
         "seo-intents.csv": (10, 12),
         "tracking-events.csv": (15, 12),
         "attribution-windows.csv": (9, 12),
+        "affiliate-mechanics.csv": (38, 11),
+        "vn-advertising-law.csv": (45, 13),
     }
 
     # Most of these tables are keyed by their first column. The weights table is keyed by two, and
@@ -6382,6 +6385,276 @@ class SizeMarketTests(unittest.TestCase):
         self.assertIn("size_market.py", collection)
         self.assertNotIn("--threshold", collection)
 
+class AffiliateModelTests(unittest.TestCase):
+    """The two things worth guarding are the notch and the drift between the code and the table.
+
+    `creator-ugc.md` chose the person and never priced the arrangement, so an affiliate deal was agreed
+    on its headline rate in a skill that models everything else. The arithmetic here is ordinary. What
+    is not ordinary is that five of its constants are platform figures that moved during 2025 while the
+    superseded versions stayed live on their own URLs, so a constant edited in the script and left alone
+    in `data/affiliate-mechanics.csv` would produce a model that disagrees with its own sources and
+    passes every other test. That is what `test_the_constants_match_the_published_table` exists for.
+    """
+
+    CLEAN = ("parameter,low,high,unit,source_url,verified_at,what_it_measures\n"
+             "gmv,100000000,100000000,VND,https://example.org/reports,2026-07-01,Attributed value\n"
+             "commission_rate,0.08,0.12,share,https://help.shopee.vn/portal/10/article/190646,"
+             "2026-07-01,Base plus Xtra\n"
+             "return_rate,0.10,0.20,share,https://example.org/recon,2026-07-01,Own reconciliation\n"
+             "attribution_window_days,7,7,days,https://help.shopee.vn/portal/10/article/122941,"
+             "2026-07-01,Creator window\n"
+             "days_to_cash,20,40,days,https://help.shopee.vn/portal/10/article/189769,2026-07-01,"
+             "Cadence\n"
+             "service_fee,0.0098,0.0098,share,https://help.shopee.vn/portal/10/article/174381,"
+             "2026-07-01,Service fee\n"
+             "withholding_rate,0.10,0.10,share,https://help.shopee.vn/portal/10/article/163104,"
+             "2026-07-01,PIT at source\n"
+             "withholding_floor,250000,250000,VND,https://help.shopee.vn/portal/10/article/196407,"
+             "2026-07-01,Threshold\n"
+             "payments_in_period,8,8,count,https://help.shopee.vn/portal/10/article/189769,2026-07-01,"
+             "Payments\n"
+             "content_cost,2000000,4000000,VND,https://example.org/rate,2026-07-01,Own hours\n")
+    SELLER = ("parameter,low,high,unit,source_url,verified_at,what_it_measures\n"
+              "gmv,100000000,100000000,VND,https://example.org/reports,2026-07-01,Attributed value\n"
+              "commission_rate,0.08,0.12,share,https://help.shopee.vn/portal/10/article/190646,"
+              "2026-07-01,What the seller funds\n"
+              "return_rate,0.10,0.20,share,https://example.org/recon,2026-07-01,Own reconciliation\n"
+              "attribution_window_days,30,30,days,https://help.shopee.vn/portal/10/article/171010,"
+              "2026-07-01,Seller window\n"
+              "days_to_cash,20,40,days,https://help.shopee.vn/portal/10/article/171010,2026-07-01,"
+              "Cadence\n"
+              "contribution_margin,0.30,0.40,share,https://example.org/costing,2026-07-01,Own costing\n")
+    AS_OF = "2026-07-31"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.deal = cls.parse(cls.CLEAN)
+        cls.result = model_affiliate.compute("creator", cls.deal)
+        cls.rows = model_affiliate.gates("creator", cls.result, cls.AS_OF)
+
+    @staticmethod
+    def parse(text: str) -> dict:
+        return model_affiliate.parse_deal(list(csv.DictReader(io.StringIO(text))))
+
+    def creator(self, text: str) -> list[dict]:
+        deal = self.parse(text)
+        return model_affiliate.gates("creator", model_affiliate.compute("creator", deal), self.AS_OF)
+
+    def test_self_check_passes(self) -> None:
+        report = model_affiliate.self_check()
+        self.assertIn("passed", report)
+        self.assertNotIn("FAIL", report)
+
+    def test_the_constants_match_the_published_table(self) -> None:
+        """The script and `data/affiliate-mechanics.csv` are two copies of the same figures, and the
+        only reason to keep both is that the table carries the URL while the code carries the
+        arithmetic. So they have to be pinned to each other. Editing one alone is the realistic
+        mistake: it produces a model that contradicts its own cited source and breaks nothing."""
+        with io.open(SKILL_ROOT / "data" / "affiliate-mechanics.csv", encoding="utf-8-sig") as handle:
+            rows = {row["id"]: row for row in csv.DictReader(handle)}
+        pairs = {
+            "service-fee-current": model_affiliate.SERVICE_FEE_CURRENT,
+            "service-fee-superseded": model_affiliate.SERVICE_FEE_SUPERSEDED,
+            "pit-rate": model_affiliate.WITHHOLDING_RATE,
+            "pit-withholding-current": model_affiliate.WITHHOLDING_FLOOR_CURRENT,
+            "pit-withholding-superseded": model_affiliate.WITHHOLDING_FLOOR_SUPERSEDED,
+            "seller-min-payout": model_affiliate.MINIMUM_PAYOUT,
+            "seller-violation-threshold": model_affiliate.VIOLATION_LOCK_SHARE,
+        }
+        for row_id, constant in pairs.items():
+            self.assertIn(row_id, rows, f"{row_id} left the table, the constant is still in the code")
+            self.assertAlmostEqual(float(rows[row_id]["value"]), float(constant), places=9,
+                                   msg=f"{row_id}: the table and the script disagree")
+            self.assertTrue(rows[row_id]["source_url"].startswith("https://"), row_id)
+        # And the superseded pair really is superseded, in the direction the prose claims.
+        self.assertLess(model_affiliate.SERVICE_FEE_CURRENT, model_affiliate.SERVICE_FEE_SUPERSEDED)
+        self.assertLess(model_affiliate.WITHHOLDING_FLOOR_CURRENT,
+                        model_affiliate.WITHHOLDING_FLOOR_SUPERSEDED)
+        self.assertEqual(rows["service-fee-current"]["supersedes"], "service-fee-superseded")
+        self.assertEqual(rows["pit-withholding-current"]["supersedes"], "pit-withholding-superseded")
+
+    def test_the_notch_is_a_real_band_and_the_arithmetic_closes(self) -> None:
+        """Withholding applies to the whole payment once it reaches the floor, not to the excess, so
+        there is a band above the floor where a larger payment nets less than a smaller one. Checked
+        by running the model rather than by restating the formula: a payment one dong below the floor
+        is kept whole, and the payment at the top of the band nets exactly the floor."""
+        band = model_affiliate.notch()
+        self.assertGreater(band["top"], band["floor"])
+        self.assertAlmostEqual(band["top"] * (1 - band["rate"]), band["floor"], places=6)
+        self.assertLess(band["worst_net"], band["best_below"])
+
+        def net_at(payment: float) -> float:
+            values = {"gmv": payment, "return_rate": 0.0, "commission_rate": 1.0,
+                      "service_fee": 0.0, "withholding_rate": model_affiliate.WITHHOLDING_RATE,
+                      "withholding_floor": model_affiliate.WITHHOLDING_FLOOR_CURRENT,
+                      "payments_in_period": 1.0, "content_cost": 0.0}
+            return model_affiliate.evaluate("creator", values)["net"]
+
+        self.assertGreater(net_at(band["best_below"]), net_at(band["floor"]))
+        self.assertAlmostEqual(net_at(band["top"]), band["floor"], places=6)
+
+    def test_a_clean_creator_deal_clears_every_gate(self) -> None:
+        self.assertEqual(model_affiliate.blocking(self.rows), 0,
+                         [row["gate"] for row in self.rows if not row["pass"]])
+        self.assertEqual(len(self.rows), 12)
+        for row in self.rows:
+            self.assertIn(row["severity"], ("critical", "high", "medium", "low"), row["gate"])
+            self.assertGreater(len(row["why"].split()), 20, row["gate"])
+
+    def test_a_clean_seller_deal_clears_every_gate_on_its_own_inputs(self) -> None:
+        """Two sides, two different subtractions, and the creator-only gates must not fire on a seller
+        deal that legitimately has no service fee or withholding in it."""
+        deal = self.parse(self.SELLER)
+        result = model_affiliate.compute("seller", deal)
+        rows = model_affiliate.gates("seller", result, self.AS_OF)
+        self.assertTrue(result["computable"])
+        self.assertEqual(model_affiliate.blocking(rows), 0,
+                         [row["gate"] for row in rows if not row["pass"]])
+        names = {row["gate"] for row in rows}
+        self.assertIn("contribution-survives-commission", names)
+        self.assertNotIn("net-beats-the-cost-of-making-the-content", names)
+
+    def test_the_headline_rate_is_not_what_arrives(self) -> None:
+        """The whole reason the unit exists. The rate is charged on ordered value and paid on settled
+        value, with four deductions between, so the take rate has to land materially below the
+        headline commission on every reading."""
+        centre = self.result["base"]
+        self.assertLess(self.result["take_rate_centre"], self.deal["commission_rate"]["low"])
+        self.assertLess(centre["settled"], self.deal["gmv"]["low"])
+        self.assertLess(centre["after_fee"], centre["commission"])
+        self.assertLess(centre["net"], centre["after_fee"])
+
+    def test_a_missing_return_rate_is_refused_rather_than_defaulted(self) -> None:
+        """Nothing here may assume zero returns. The programme terms void commission on cancelled,
+        refused and returned orders, so a model without the rate is wrong by the rate."""
+        lines = [line for line in self.CLEAN.splitlines(keepends=True)
+                 if not line.lstrip('"').startswith("return_rate,")]
+        rows = self.creator("".join(lines))
+        failed = {row["gate"] for row in rows if not row["pass"]}
+        self.assertIn("return-rate-is-stated", failed)
+        self.assertIn("model-is-complete", failed)
+        for gate in ("return-rate-is-stated", "model-is-complete"):
+            row = next(r for r in rows if r["gate"] == gate)
+            self.assertEqual(row["severity"], "critical")
+
+    def test_an_incomplete_deal_still_gets_graded_and_prints_no_total(self) -> None:
+        """The failure mode this replaces is a traceback, and the one it must not become is a total
+        computed as though the absent input were zero."""
+        lines = [line for line in self.CLEAN.splitlines(keepends=True)
+                 if not line.lstrip('"').startswith("content_cost,")]
+        deal = self.parse("".join(lines))
+        result = model_affiliate.compute("creator", deal)
+        self.assertFalse(result["computable"])
+        self.assertEqual(result["missing"], ["content_cost"])
+        self.assertNotIn("centre", result)
+        rows = model_affiliate.gates("creator", result, self.AS_OF)
+        self.assertEqual(len(rows), 12)
+        cost = next(r for r in rows if r["gate"] == "net-beats-the-cost-of-making-the-content")
+        self.assertFalse(cost["pass"])
+        self.assertIn("free labour", cost["why"])
+
+    def test_a_superseded_service_fee_or_floor_is_caught(self) -> None:
+        """Both stale figures are still live on their own Shopee URLs with no superseded label, so the
+        realistic way into a model is a search, not carelessness."""
+        stale_fee = self.CLEAN.replace("service_fee,0.0098,0.0098", "service_fee,0.01,0.01")
+        failed = {row["gate"] for row in self.creator(stale_fee) if not row["pass"]}
+        self.assertIn("service-fee-is-the-current-one", failed)
+        stale_floor = self.CLEAN.replace("withholding_floor,250000,250000",
+                                         "withholding_floor,2000000,2000000")
+        rows = self.creator(stale_floor)
+        failed = {row["gate"] for row in rows if not row["pass"]}
+        self.assertIn("withholding-floor-is-the-current-one", failed)
+
+    def test_an_undocumented_attribution_window_does_not_pass_as_declared(self) -> None:
+        """Seven and thirty are the two windows anybody published. A fourteen is a compromise somebody
+        made up, and a range is an assumption hidden rather than made."""
+        for value in ("14,14", "7,30"):
+            rows = self.creator(self.CLEAN.replace("attribution_window_days,7,7",
+                                                   f"attribution_window_days,{value}"))
+            failed = {row["gate"] for row in rows if not row["pass"]}
+            self.assertIn("attribution-window-is-declared", failed, value)
+        self.assertEqual(sorted(model_affiliate.DOCUMENTED_WINDOWS), [7, 30])
+
+    def test_an_unsourced_input_blocks_before_any_number_is_believed(self) -> None:
+        rows = self.creator(self.CLEAN.replace("https://example.org/recon", ""))
+        failed = [row for row in rows if not row["pass"]]
+        self.assertIn("every-input-sourced", {row["gate"] for row in failed})
+        row = next(r for r in failed if r["gate"] == "every-input-sourced")
+        self.assertEqual(row["severity"], "critical")
+        self.assertIn("return_rate", row["observed"])
+
+    def test_a_year_old_source_is_stale_and_says_how_old(self) -> None:
+        rows = self.creator(self.CLEAN.replace("recon,2026-07-01", "recon,2024-01-01"))
+        row = next(r for r in rows if r["gate"] == "sources-are-not-stale")
+        self.assertFalse(row["pass"])
+        self.assertIn("return_rate", row["observed"])
+        self.assertIn("days ago", row["observed"])
+
+    def test_a_single_point_commission_asserts_a_precision_nobody_publishes(self) -> None:
+        """Shopee's own page says both commission types are set by algorithm and may change, so a
+        point estimate is a claim the platform contradicts."""
+        rows = self.creator(self.CLEAN.replace("commission_rate,0.08,0.12",
+                                               "commission_rate,0.1,0.1"))
+        row = next(r for r in rows if r["gate"] == "the-uncertain-inputs-are-ranges")
+        self.assertFalse(row["pass"])
+        self.assertIn("commission_rate", row["observed"])
+
+    def test_the_spread_shares_partition_the_total_and_name_the_driver(self) -> None:
+        shares = model_affiliate.shares_of_spread("creator", self.result)
+        self.assertAlmostEqual(sum(row["share"] for row in shares), 1.0, places=6)
+        self.assertEqual([row["share"] for row in shares],
+                         sorted((row["share"] for row in shares), reverse=True))
+        # gmv is entered as a point here, so it can own none of the spread.
+        self.assertEqual(next(r["share"] for r in shares if r["parameter"] == "gmv"), 0.0)
+
+    def test_a_floor_inside_the_range_names_what_would_settle_it(self) -> None:
+        inside = model_affiliate.resolve_against(
+            "creator", self.result, (self.result["low"] + self.result["high"]) / 2)
+        self.assertTrue(inside["straddles"])
+        self.assertEqual(inside["verdict"], "unresolved")
+        below = model_affiliate.resolve_against("creator", self.result, self.result["low"] - 1)
+        self.assertFalse(below["straddles"])
+        self.assertEqual(below["verdict"], "above on every reading")
+        self.assertEqual(below["settled_by"], [])
+
+    def test_the_reference_carries_the_deduction_chain_the_script_computes(self) -> None:
+        """The table in `affiliate-commerce.md` is a worked example, which makes it a claim about this
+        code. If the arithmetic moves, the prose is wrong and nobody reading it would know."""
+        text = (SKILL_ROOT / "references" / "affiliate-commerce.md").read_text(encoding="utf-8")
+        for step in ("Ordered", "Settled", "Commission", "Service fee", "Withholding", "Content cost"):
+            self.assertIn(step, text)
+        for figure in ("100,000,000", "85,000,000", "8,500,000", "8,416,700", "7,575,030",
+                       "5,575,030"):
+            self.assertIn(figure, text)
+        # Recompute the chain the table states, at the rates the script holds.
+        settled = 100_000_000 * (1 - 0.15)
+        commission = settled * 0.10
+        after_fee = commission * (1 - model_affiliate.SERVICE_FEE_CURRENT)
+        withheld = after_fee * model_affiliate.WITHHOLDING_RATE
+        self.assertEqual(round(settled), 85_000_000)
+        self.assertEqual(round(commission), 8_500_000)
+        self.assertEqual(round(after_fee, -2), 8_416_700)
+        self.assertEqual(round(after_fee - withheld, -1), 7_575_030)
+
+    def test_the_law_table_separates_a_finding_from_a_rule(self) -> None:
+        """Six rows carry no number because the finding is that no instrument establishes one. Those
+        must never read as rules, and the three that are open questions must never read as answers -
+        that is the difference between advising a client and inventing a duty for them."""
+        with io.open(SKILL_ROOT / "data" / "vn-advertising-law.csv", encoding="utf-8-sig") as handle:
+            rows = list(csv.DictReader(handle))
+        findings = [row for row in rows if row["unit"] == "finding"]
+        self.assertGreaterEqual(len(findings), 6)
+        self.assertIn("no-follower-threshold", {row["id"] for row in rows})
+        for row in rows:
+            self.assertTrue(row["source_url"].startswith("https://congbao.chinhphu.vn"), row["id"])
+            self.assertTrue(row["what_it_does_not_establish"].strip(), row["id"])
+            self.assertGreater(len(row["what_it_actually_says"].split()), 15, row["id"])
+        # No instrument prescribes disclosure wording, and the skill must not claim one does.
+        creator = (SKILL_ROOT / "references" / "creator-ugc.md").read_text(encoding="utf-8")
+        self.assertIn("No wording is prescribed", creator)
+        for name in ("affiliate-commerce.md", "creator-ugc.md"):
+            text = (SKILL_ROOT / "references" / name).read_text(encoding="utf-8")
+            self.assertNotIn("must include the phrase", text)
 
 if __name__ == "__main__":
     unittest.main()

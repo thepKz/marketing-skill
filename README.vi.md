@@ -17,7 +17,7 @@ $marketing-minthep
 
 - [Skill tạo ra gì](#skill-tạo-ra-gì) · [Gọi skill lên thì nó làm gì](#gọi-skill-lên-thì-nó-làm-gì) · [Cách nó quyết định](#cách-nó-quyết-định) · [Bắt đầu nhanh](#bắt-đầu-nhanh)
 - [Năm phần thường gây khó hiểu](#năm-phần-thường-gây-khó-hiểu) — copywriting, edit ảnh, xây campaign, màu sắc, bố cục
-- [Những câu hỏi phía sau các tool còn lại](#những-câu-hỏi-phía-sau-các-tool-còn-lại) — giá và offer, prompt, KPI, người ảo, test, khối lượng việc
+- [Những câu hỏi phía sau các tool còn lại](#những-câu-hỏi-phía-sau-các-tool-còn-lại) — giá và offer, hoa hồng affiliate và luật công bố, prompt, KPI, người ảo, test, khối lượng việc
 - [Output mẫu](#output-mẫu) · [Thư viện reference](#thư-viện-reference) · [Cổng chống AI-slop](#cổng-chống-ai-slop)
 - [Cấu trúc repo](#cấu-trúc-repo) · [Kiểm tra](#kiểm-tra) · [Những gì skill không làm](#những-gì-skill-không-làm)
 
@@ -208,6 +208,19 @@ python marketing-minthep/scripts/price_offer.py --price 280000 --variable-cost 1
 
 Đó là toàn bộ lý do đơn vị này tồn tại. Giảm 20% không tốn 20%; nó tốn một phần của contribution, và phần đó phụ thuộc vào biên của bạn. Cùng câu lệnh này suy ra ROAS hoà vốn bằng nghịch đảo của tỉ lệ contribution — ở đây là 1.67 — nên một chỉ tiêu ROAS ai đó giao xuống có thể kiểm trước khi nhận, và ra hai trần CAC khi có số lần mua lại, kèm câu trả lời trần nào đang chặn. Chính sách bảo hành đổi trả cũng là một khoản chi phí: đưa tỉ lệ trả hàng dự kiến vào rồi đọc lại contribution. [`references/pricing-and-offers.md`](marketing-minthep/references/pricing-and-offers.md).
 
+### "Hoa hồng 10% thật ra trả về bao nhiêu?"
+
+```powershell
+python marketing-minthep/scripts/model_affiliate.py --check deal.csv --side creator
+python marketing-minthep/scripts/model_affiliate.py --notch
+```
+
+> Mức 10% về tay còn 5,58% giá trị được ghi nhận.
+
+Tỉ lệ tính trên giá trị đặt hàng nhưng trả trên giá trị đã chốt, và giữa hai con số đó có bốn lần trừ: hàng hoàn, phí dịch vụ sàn 0,98%, thuế thu nhập cá nhân 10% giữ tại nguồn, và chi phí làm ra mấy bài đăng. Script dựng cả hai phía, vì bên nhãn hàng và bên người đăng là hai phép trừ khác nhau trên cùng một hợp đồng, nên nó không chạy nếu chưa được cho biết đang tính cho ai. `--notch` in ra cái hệ quả không ai công bố: thuế giữ trên toàn bộ khoản chi trả một khi khoản đó chạm 250.000 đồng, chứ không phải giữ trên phần vượt, nên mọi khoản từ 250.000 đến 277.778 về tay ít hơn khoản 249.999. Mười hai cổng kiểm, và ba cổng nghiêm trọng nhất hỏi số này lấy ở đâu ra chứ không hỏi hợp đồng có lời hay không: tỉ lệ hoàn hàng không có nguồn thì chặn trước khi ai kịp tin vào tổng, còn mức phí trích từ trang Shopee đã thay bằng trang khác từ tháng 7/2025 thì bị gọi đúng tên.
+
+Cũng chính đơn vị này giữ phần nghĩa vụ pháp lý của người đăng link. `data/vn-advertising-law.csv` có 45 dòng thuộc tám văn bản, mỗi dòng dẫn về đúng file công báo: luật Việt Nam gọi thẳng người có ảnh hưởng chứ không chỉ nhãn hàng, không đặt ngưỡng follower, buộc thông báo ngay trước *và trong khi* quảng cáo, và không quy định câu chữ cụ thể. Nên brief phải yêu cầu có dấu hiệu nhận biết, đồng thời tuyệt đối không nói với khách rằng một cụm từ nào đó là bắt buộc theo luật. Sáu dòng không có con số, vì phát hiện chính là không văn bản nào đặt ra con số đó, và ba trong số đó là câu hỏi còn mở, được ghi là còn mở. [`references/affiliate-commerce.md`](marketing-minthep/references/affiliate-commerce.md).
+
 ### "Provider này có làm đúng thứ prompt tôi viết không?"
 
 ```powershell
@@ -323,10 +336,10 @@ Kiểm tra bậc hai bắt cửa thoát: sau khi từ chối cái nhìn hiển n
 
 ```
 marketing-minthep/
-  SKILL.md                  điểm vào và bộ định tuyến, 178 dòng
-  references/               62 file chủ đề, mỗi file dưới 150 dòng
+  SKILL.md                  điểm vào và bộ định tuyến, 181 dòng
+  references/               63 file chủ đề, mỗi file dưới 150 dòng
     dossiers/               15 dossier craft chuyên sâu + index
-  data/                     29 bảng tra: image recipe, palette, layout dial,
+  data/                     31 bảng tra: image recipe, palette, layout dial,
                             slop tell, copy formula, translation tell và
                             ngôi xưng, reference axis, frame ratio,
                             composition grid, chỉ số KPI và trọng số, cổng
@@ -334,7 +347,7 @@ marketing-minthep/
                             prompt grammar, bố cục sản phẩm, benchmark,
                             nguồn dữ liệu thị trường, nguồn bằng chứng khách
                             hàng, command artifact, các vai marketer Việt Nam
-  scripts/                  42 công cụ + bộ test
+  scripts/                  43 công cụ + bộ test
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json và khung deliverable
@@ -352,7 +365,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-476 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv`, test fail nếu một ví dụ copy chứa số in được, test fail nếu một cờ năng lực dẫn tới dòng nguồn không tồn tại, và test fail nếu một deliverable gọi tên một script không có trong repo. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
+493 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv`, test fail nếu một ví dụ copy chứa số in được, test fail nếu một cờ năng lực dẫn tới dòng nguồn không tồn tại, và test fail nếu một deliverable gọi tên một script không có trong repo. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
 
 ## Những gì skill không làm
 

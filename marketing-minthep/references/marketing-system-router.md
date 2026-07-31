@@ -106,6 +106,13 @@ Load only when relevant:
   On cash on delivery, load it before quoting any efficiency figure at all: a `purchase` event is an
   order request, and the gap to delivered orders is the largest correction most Vietnamese reports
   are missing.
+- What a commission arrangement actually pays, and what the person posting the link now owes by law:
+  `affiliate-commerce.md` plus `data/affiliate-mechanics.csv`, `data/vn-advertising-law.csv` and
+  `scripts/model_affiliate.py`. Load this before agreeing a rate from either side. The headline rate is
+  charged on ordered value and paid on settled value, and four deductions sit between them, so a 10%
+  deal reached 5.58% of attributed value on the worked example. Load it also before briefing a creator
+  at all: Vietnamese law names the creator, sets no follower threshold, and prescribes no wording, and
+  the same decree that fines partial disclosure also ends the arrangement outright for borrowed content.
 - Which customer source can answer the question you actually have, how many people a theme needs before
   it is a theme, and whether a share may be spoken out loud: `customer-evidence.md` plus
   `data/evidence-sources.csv` and `scripts/check_evidence_saturation.py`. Load this before quoting any

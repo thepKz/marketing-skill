@@ -17,7 +17,7 @@ $marketing-minthep
 
 - [What it produces](#what-it-produces) · [What happens when you invoke it](#what-happens-when-you-invoke-it) · [How it decides](#how-it-decides) · [Quick start](#quick-start)
 - [The five things people find confusing](#the-five-things-people-find-confusing) — copywriting, image editing, campaign building, colour, layout
-- [The questions behind the other tools](#the-questions-behind-the-other-tools) — pricing, prompt grammar, KPIs, a repeatable person, testing, workload
+- [The questions behind the other tools](#the-questions-behind-the-other-tools) — pricing, affiliate deals and disclosure law, prompt grammar, KPIs, a repeatable person, testing, workload
 - [Sample output](#sample-output) · [Reference library](#reference-library) · [Anti-AI-slop gate](#anti-ai-slop-gate)
 - [Repository layout](#repository-layout) · [Tests](#tests) · [What it will not do](#what-it-will-not-do)
 
@@ -208,6 +208,19 @@ python marketing-minthep/scripts/price_offer.py --price 280000 --variable-cost 1
 
 That is the whole reason this unit exists. A 20% discount does not cost 20%; it costs a share of your contribution, and the share depends on your margin. The same command derives the break-even ROAS as the reciprocal of the contribution ratio — 1.67 here — so a handed-down ROAS target can be checked before it is accepted, and two CAC ceilings when repeat purchases are supplied, naming which one binds. A guarantee is a cost too: put the expected return rate in and read the contribution again. [`references/pricing-and-offers.md`](marketing-minthep/references/pricing-and-offers.md).
 
+### "What does a 10% commission deal actually pay?"
+
+```powershell
+python marketing-minthep/scripts/model_affiliate.py --check deal.csv --side creator
+python marketing-minthep/scripts/model_affiliate.py --notch
+```
+
+> A 10% rate arrives as 5.58% of the value it was attributed.
+
+The rate is charged on ordered value and paid on settled value, and four subtractions sit in between: returns, the 0.98% platform service fee, 10% personal income tax withheld at source, and what the posts cost to make. Both sides are modelled, because they are two different subtractions on one deal and the script refuses to run without being told which. `--notch` prints the consequence nobody publishes: withholding applies to the whole payment once it reaches 250,000 VND rather than to the excess, so every payment between 250,000 and 277,778 takes home less than 249,999 does. Twelve gates, and the three critical ones ask where the numbers came from rather than whether the deal is good — an unsourced return rate blocks before any total is believed, and a fee quoted from a page Shopee superseded in July 2025 is caught by name.
+
+The same unit carries what the person posting the link now owes by law. `data/vn-advertising-law.csv` holds 45 rows across eight instruments, each cited to its gazette PDF: Vietnamese law names the creator personally, sets no follower threshold, requires disclosure immediately before *and during* the advertising, and prescribes no wording — so a brief must mandate a marker without claiming a particular phrase is legally required. Six rows carry no number because the finding is that no instrument establishes one, and three of those are open questions recorded as open. [`references/affiliate-commerce.md`](marketing-minthep/references/affiliate-commerce.md).
+
 ### "Will this provider actually do what my prompt asks?"
 
 ```powershell
@@ -323,10 +336,10 @@ The second-order check catches the escape hatch: having rejected the obvious cat
 
 ```
 marketing-minthep/
-  SKILL.md                  entry point and router, 178 lines
-  references/               62 topic files, each under 150 lines
+  SKILL.md                  entry point and router, 181 lines
+  references/               63 topic files, each under 150 lines
     dossiers/               15 deep-craft dossiers + index
-  data/                     29 lookup tables: image recipes, palettes, layout
+  data/                     31 lookup tables: image recipes, palettes, layout
                             dials, slop tells, copy formulas, translation and
                             address-register tells, reference axes, frame
                             ratios, composition grids, KPI metrics and aspect
@@ -335,7 +348,7 @@ marketing-minthep/
                             product compositions, benchmarks, market-data
                             sources, customer-evidence sources, command
                             artifacts, VN marketer roles
-  scripts/                  42 tools + test suite
+  scripts/                  43 tools + test suite
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json and deliverable skeletons
@@ -353,7 +366,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-476 tests, including ones that recompute every contrast ratio in `data/palettes.csv`, fail if a copy example contains a printable number, fail if a capability flag cites a source row that does not exist, and fail if a deliverable names a script that is not in the repository. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
+493 tests, including ones that recompute every contrast ratio in `data/palettes.csv`, fail if a copy example contains a printable number, fail if a capability flag cites a source row that does not exist, and fail if a deliverable names a script that is not in the repository. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
 
 ## What it will not do
 
