@@ -462,7 +462,7 @@ Two things this immediately gives you: the **mass band is compressed** (25–40k
 
 ### 6.5 Positioning map built from measured attributes
 
-Do not draw the "premium ↔ traditional" 2×2 that every deck contains. Construct it:
+Do not draw the `premium ↔ traditional` 2×2 that every deck contains. Construct it:
 
 1. From §6.3, take the kept axes (4–6).
 2. Score every competitor on every axis from census data. Use real units where possible (VND, minutes, seats) and 0–3 ordinals only where necessary (comfort = air-con 1 + chairs-not-stools 1 + clean toilet 1).

@@ -138,7 +138,7 @@ factor: lime wedge, cilantro, spring onion, raw onion, banana blossom, mint, bas
 Vietnamese coriander, saw-tooth herb, mung bean sprouts `[verified]` (source:
 https://en.wikipedia.org/wiki/B%C3%BAn_b%C3%B2_Hu%E1%BA%BF, retrieved 2026-07-29).
 
-**Operational rule.** The single highest-leverage garnish decision in a bún bò frame is a **cut
+**Operational rule.** One garnish decision in a bún bò frame does more than the rest together: a **cut
 lime with a visible wet cut face catching a specular highlight**, positioned so its highlight is
 the second-brightest specular in the frame after the broth sheen. It delivers Factor 2 (fresh,
 sour, moist) and a high-SD micro-region (§1.1) in one object. A whole uncut lime delivers neither.

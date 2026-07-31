@@ -288,7 +288,7 @@ Definition used here: **subject occupancy** = bounding-box area of all hero elem
 | 15-35% | 65-85% | Luxury, calm, reverence, ritual | Fine jewellery, fragrance, watches, spirits | Fails on small screens; do not use below 4:5 at feed size |
 | < 15% | > 85% | Art / conceptual | Brand film stills, gallery | Unreadable as commerce |
 
-Cross-check against the two hard platform numbers below: they force occupancy far above the "premium" band, which is why marketplace listings and brand campaigns must be **different assets**, not crops of each other.
+Cross-check against the two hard platform numbers below: they force occupancy far above the `premium` band, which is why marketplace listings and brand campaigns must be **different assets**, not crops of each other.
 
 ### 6.2 Platform-mandated occupancy (the constraint that overrides taste)
 

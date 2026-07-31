@@ -112,6 +112,11 @@ STRIP_LINES = re.compile(r"^\s*(#{1,6}\s|\||[-*+]\s|\d+\.\s|>|```)")
 LINE_LEAD = re.compile(r"^(?:\s|[-*+>]\s*|\d+[.)]\s*|#{1,6}\s*|\|\s*)*")
 # A list item and its indent. Both bullet and ordered forms, because "1. 2. 3." is the same shape.
 LIST_ITEM = re.compile(r"^(\s*)(?:[-*+]|\d+[.)])\s+(\S.*)$")
+# An inline code span. Non-greedy, and a span may cross a hard line break but not a blank line: every
+# reference in this skill is wrapped at about a hundred columns, so `Giao hàng nhanh\nchóng, tận tâm`
+# is one span in two lines and a single-line pattern would miss it and read the tail as prose. Stopping
+# at a blank line is what keeps an unpaired backtick from swallowing the rest of the section.
+CODE_SPAN = re.compile(r"`{1,2}(?:[^`\n]|\n(?!\s*\n))+?`{1,2}")
 # Stands in for a removed fenced block where a blank line would be read as continuation. It has to be
 # non-blank and not match LIST_ITEM; the text itself is never measured, only its shape.
 FENCE_STOP = "fenced block removed"
@@ -155,6 +160,24 @@ def prose_only(text: str) -> str:
     """Drop headings, tables, list markers and fences. What remains is what a reader reads as prose."""
     return "\n".join("" if STRIP_LINES.match(line) else line
                      for line in outside_fences(text).splitlines())
+
+
+def unquoted(text: str) -> str:
+    """Prose with inline code spans removed, for matching word tells only.
+
+    A backticked word is being *named*, not used. `copywriting.md` says to delete `seamless`, and
+    the tell for `seamless` matched it - so the file that bans the word failed for banning it, and
+    the same trap caught every replacement table and every glossary in the skill. This is the
+    difference between a document making a claim and a document quoting one.
+
+    Not applied to cadence, on purpose. A code span is still a thing a reader's eye lands on and
+    still occupies a slot in a sentence, so removing it before measuring sentence length would
+    report a rhythm nobody reads. Only the word tells care whether a word is being asserted.
+
+    A single space, not nothing: `the ``premium`` band` has to stay two words, or removing the span
+    would fuse its neighbours into a token that was never written.
+    """
+    return CODE_SPAN.sub(" ", text)
 
 
 def detect_language(text: str) -> str:
@@ -478,7 +501,7 @@ def gates(stats: dict, channel: str = DEFAULT_CHANNEL) -> list[dict]:
 
 
 def find_tells(text: str, language: str) -> list[dict]:
-    body = prose_only(text)
+    body = unquoted(prose_only(text))
     found: list[dict] = []
     for row in read_tells(language):
         try:
@@ -487,7 +510,9 @@ def find_tells(text: str, language: str) -> list[dict]:
             found.append({"id": row["id"], "count": 0, "error": f"bad regex: {error}"})
             continue
         # Heading tells have to read the raw file: prose_only() strips the headings they look for.
-        subject = text if row.get("scope") == "raw" else body
+        # Still unquoted, because a word named in a heading is no more asserted than one in a
+        # sentence - a section called `## Deleting "seamless"` is not using the word.
+        subject = unquoted(text) if row.get("scope") == "raw" else body
         # group(0), not findall(): a pattern with groups returns the groups, and a report that
         # says the tell was "này" instead of "điều này có nghĩa là" is not a report.
         matches = [match.group(0) for match in pattern.finditer(subject)]

@@ -58,7 +58,7 @@ Output form: canonical prompt, ordered image inputs, response format, and one na
 
 ## Nano Banana Pro
 
-Best fit: premium art direction, brand consistency, localization, complex layouts, accurate text, and 2K/4K production.
+Best fit: brand consistency across a set, localization, complex layouts, accurate text, and 2K/4K production.
 
 - Model: `gemini-3-pro-image`.
 - Prefer it when precision matters more than speed or cost.

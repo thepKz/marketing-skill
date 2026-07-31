@@ -69,7 +69,7 @@ Hold the subject exposure constant. Hold the subject-to-background gap at 2.0 m.
 | 10.0 m | 12.0 m | 1.20 | −0.5 stop | background merges with subject |
 
 **The 3-stop swing between the top and bottom row costs nothing and uses no extra light.** This is the
-single highest-leverage number in studio work: *if the background is too bright, move the key closer and
+one number that buys three stops for free in studio work: *if the background is too bright, move the key closer and
 lower its power; if the background is too dark, move the key back and raise its power.*
 
 Practitioner phrasing of the same fact: "Light Close for sharper shadows, bigger catchlights and darker

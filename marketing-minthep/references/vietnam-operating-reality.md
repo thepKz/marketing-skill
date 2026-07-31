@@ -48,8 +48,8 @@ and what breaks if it is dropped. The last two columns are where the argument li
 
 ## The two roles the command graph cannot see
 
-Two of the thirteen rows have an empty `commands` cell: community, which is the page, the comments,
-the inbox and the Zalo group, and sales, which is chasing orders and covering the phone.
+Two of the thirteen rows have an empty `commands` cell. Community is the page, the comments, the
+inbox and the Zalo group. Sales is chasing orders and covering the phone.
 
 They are empty because neither role produces an artefact. The command surface is a graph over
 artefacts, so work that produces nothing is invisible to it. And these are the two roles that consume

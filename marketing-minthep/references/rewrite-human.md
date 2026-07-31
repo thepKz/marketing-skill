@@ -4,7 +4,7 @@ Take a draft that reads machine-written or machine-translated, and make it read 
 
 Two distinct failures arrive looking the same.
 
-**Machine cadence.** Every sentence is a similar length, every paragraph a similar shape, every list three items long, connected by furthermore and moreover. Each sentence passes on its own. The paragraph reads flat because uniformity is the signal, and uniformity is invisible when you reread sentence by sentence. This is why `scripts/rewrite_human.py` exists: you cannot see a standard deviation by looking.
+**Machine cadence.** Every sentence is a similar length, every paragraph a similar shape, every list three items long, connected by `furthermore` and `moreover`. Each sentence passes on its own. The paragraph reads flat because uniformity is the signal, and uniformity is invisible when you reread sentence by sentence. This is why `scripts/rewrite_human.py` exists: you cannot see a standard deviation by looking.
 
 **Word-by-word translation.** A Vietnamese draft rendered clause by clause from an English one, or the reverse. It stays grammatical and reads foreign. `Điều này có nghĩa là` is a relative clause English needs and Vietnamese does not. `uy tín, chuyên nghiệp, tận tâm` is standard Vietnamese business copy that becomes `prestigious, professional, dedicated` — grammatical English that says nothing and signals nothing except that someone ran a dictionary over it.
 
@@ -57,11 +57,11 @@ Channels differ in kind, not in degree. On this skill's own deliverables, and on
 
 Meaning-bearing signs are never counted: `© ® ™ ° № ℃ ℉`. Every one of them sits in the same Unicode category as the rocket, so the allow-list is unavoidable — and a gate that flags the registered-trademark sign in brand copy is a gate that gets switched off in week one.
 
-Two limits worth stating rather than discovering. The detector is Unicode general category `So` minus that allow-list, which is the honest thing the standard library can do; it is *not* UTS #51 `Extended_Pictographic`, which Python's `unicodedata` does not expose, so keycap sequences slip through. And arrows and bullets are deliberately out of scope — `→` and `•` are ordinary typography with centuries behind them, and a gate that fires on correctly typeset copy stops being read.
+Two limits worth stating rather than discovering. The detector is Unicode general category `So` minus that allow-list, which is the honest thing the standard library can do. It is *not* UTS #51 `Extended_Pictographic`, a property Python's `unicodedata` does not expose at all, so keycap sequences slip through. And arrows and bullets are deliberately out of scope — `→` and `•` are ordinary typography with centuries behind them, and a gate that fires on correctly typeset copy stops being read.
 
 ## Structure above the sentence
 
-Everything above this line measures sentences. That leaves a hole you can drive a brief through, because `prose_only()` blanks every list line before any cadence measurement runs. It has to: a bullet is not a sentence, and counting it as one wrecks the length statistics.
+Everything above this line measures sentences. That leaves a hole the size of a brief, because `prose_only()` blanks every list line before any cadence measurement runs. It has to: a bullet is not a sentence, and counting it as one wrecks the length statistics.
 
 The cost is that list shape is invisible to every gate that reads prose, and a brief, a playbook or a checklist is mostly lists. Feed the script a document built entirely of bullets and it reports that there is not enough prose to measure. True, and useless.
 
@@ -97,9 +97,26 @@ Flatten the template into paragraphs and this gate goes blind.
 
 `product-category-playbooks.md` is the honest example, in this repository, right now: twelve sections, most of them running the same `Prioritize, then use, then reject` move as prose. Same three-part form as the file that was deleted for it, no list to count, so the gate passes it. Nothing here replaces reading two sections in a row and noticing they are the same section.
 
+## Naming a word is not using it
+
+Word tells are matched with inline code spans removed, and fenced blocks are out of the decoration
+and list gates entirely. Put a word in backticks and the gate stops seeing it, which is the only way
+a file can tell a writer to delete `seamless` without failing for the word `seamless`. Every
+replacement table, glossary and worked bad example in this skill depends on it.
+
+The convention that follows: when you are quoting a word rather than claiming it, backtick it. A word
+in double quotes still counts as asserted, because quotation marks in marketing copy are usually
+emphasis and sometimes sarcasm, and neither is a citation. Before this, the gate was failing files for
+the words they were telling the reader to remove. That is backwards.
+
+Two things this deliberately does not soften. A fenced block still counts toward nothing, so hiding a
+paragraph in a fence hides it from every gate - that is a hole, and the only defence is that it is
+obvious in review. And the cadence gates ignore all of this: a code span occupies its slot in a
+sentence and the reader's eye lands on it, so length and rhythm are measured with it in place.
+
 ## What the script does not check
 
-It measures cadence and matches known tells. It cannot tell you whether the copy is true, whether the claim is provable, whether the offer is legal in this market, or whether the reader cares. Those stay with `claims-proof-ledger.md`, `rights-and-claims.md`, and the message architecture. A draft can pass every gate here and still be unpublishable.
+It measures cadence and matches known tells. It cannot tell you whether the copy is true, whether the claim is provable, whether the offer is legal in Vietnam, or whether the reader cares. Those stay with `claims-proof-ledger.md`, `rights-and-claims.md`, and the message architecture. A draft can pass every gate here and still be unpublishable.
 
 It also cannot tell you the copy is any *good*. All a pass means is that the copy does not read machine-written, which is a floor and not a standard. The tension ladder in `data/copy-formulas.csv` is what raises it.
 

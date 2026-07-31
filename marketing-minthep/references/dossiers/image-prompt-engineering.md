@@ -101,14 +101,14 @@ lighting) and sometimes catastrophic (blank *framing* on a portrait request is t
 7. CONSTRAINTS        exclusions and invariants  →  "no visible logos, no on-image text, no hands"
 ```
 
-Slot 1 is the highest-leverage and most-skipped. The cookbook is explicit that stating intended use
+Slot 1 changes the most and gets skipped the most. The cookbook is explicit that stating intended use
 "sets the mode" `[verified]`. Mechanically, "product photograph for e-commerce" pulls the whole
 sample toward a cluster of images with clean backgrounds, even lighting and centred subjects;
 without it your bowl of bún bò may arrive as a moody restaurant-review photo. What breaks if you
 skip it: you will spend three iterations fixing background clutter that one word would have
 prevented.
 
-Slot 7 is second-highest leverage and also skipped. The cookbook says to **"State exclusions and
+Slot 7 comes second on both counts. The cookbook says to **"State exclusions and
 invariants explicitly"** such as **"'no watermark,' 'no extra text,' 'no logos/trademarks'"**
 `[verified]`. See Part 4 for why this works on instruction-following models even when there is no
 negative-prompt field.

@@ -2796,6 +2796,45 @@ class RewriteHumanTests(unittest.TestCase):
                 text = (folder / name).read_text(encoding="utf-8")
                 self.assertEqual(rewrite_human.pictographs(text), [])
 
+    # --- naming a word versus using it -----------------------------------------------------------
+
+    @staticmethod
+    def _ids(text: str, language: str = "en") -> set:
+        return {row["id"] for row in rewrite_human.find_tells(text, language)}
+
+    def test_a_word_in_backticks_is_named_and_a_bare_one_is_used(self) -> None:
+        """Both halves in one test, because either alone is the wrong instrument. `copywriting.md`
+        tells a writer to delete `seamless`, and the tell for `seamless` matched it - so the file
+        that bans the word failed the gate for banning it, and every replacement table in the skill
+        failed the same way."""
+        named = "Delete `seamless` and `premium` from the draft before it goes out to anybody."
+        used = "Delete seamless and premium from the draft before it goes out to anybody."
+        self.assertNotIn("adjective-for-evidence", self._ids(named))
+        self.assertIn("adjective-for-evidence", self._ids(used))
+
+    def test_a_code_span_may_cross_a_hard_line_break(self) -> None:
+        """Every reference here is wrapped at about a hundred columns, so a quoted phrase routinely
+        straddles a newline. A single-line pattern reads the tail of the span as prose, which is how
+        `specificity.md` failed on the Vietnamese phrase it exists to argue against."""
+        wrapped = ("Câu `Giao trong 2 giờ ở Gò Vấp` có phần giữa gồ ghề; câu `Giao hàng nhanh\n"
+                   "chóng, tận tâm` thì trôi chảy. Chạy cổng nhịp một mình thì nó thưởng câu thứ hai.")
+        self.assertNotIn("uy-tin-chuyen-nghiep", self._ids(wrapped, "vi"))
+
+    def test_an_unpaired_backtick_stops_at_a_blank_line(self) -> None:
+        """Otherwise one typo silences every tell to the end of the file, which is the failure mode
+        worth engineering against: a gate that can be switched off by accident is not a gate."""
+        stray = "The opening ` was never closed here.\n\nOur premium seamless robust offering.\n"
+        self.assertIn("adjective-for-evidence", self._ids(stray))
+
+    def test_cadence_still_counts_a_code_span_as_words(self) -> None:
+        """`unquoted()` is for word tells only. A reader's eye lands on a code span and it occupies
+        its slot in the sentence, so measuring rhythm without it would report a cadence nobody
+        reads."""
+        spanned = "The flag `--check --json` takes two arguments here. It writes one line."
+        plain = "The flag check json takes two arguments here. It writes one line."
+        self.assertEqual(rewrite_human.measure(spanned, "en")["total_units"],
+                         rewrite_human.measure(plain, "en")["total_units"])
+
     # --- fenced blocks ---------------------------------------------------------------------------
 
     TREE = ("Chọn nhánh nào thì hỏi câu này trước.\n\n"

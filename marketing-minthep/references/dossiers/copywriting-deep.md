@@ -399,7 +399,7 @@ Weak transitions summarise. Strong transitions **create an unanswered question**
 | Time cue | Put a clock on it | "By Tuesday you'll know if it worked." |
 | Single-word bridge | Own paragraph | "Except." / "Then." / "Almost." |
 
-Delete on sight: "Furthermore", "Additionally", "Moreover", "In conclusion", "That said", "It's worth noting", "Ultimately", "At the end of the day".
+Delete on sight: `Furthermore`, `Additionally`, `Moreover`, `In conclusion`, `That said`, `It's worth noting`, `Ultimately`, `At the end of the day`.
 
 ### 6.4 Concrete-over-abstract substitution table
 

@@ -69,8 +69,8 @@ Two deserve singling out for a Vietnamese operation. `chat-and-dm-transcripts` -
 is where the whole pre-purchase conversation actually happens, which makes it the best raw material
 for copy that exists: the buyer's own words for the problem, before anybody taught them yours. And it
 says nothing about prevalence, because people who scrolled past do not send messages. Then
-`competitor-review-mining`, the highest-leverage cheap source in the list: an unmet need in the
-category, described by somebody who already paid money for the alternative. It cannot see what the
+`competitor-review-mining`, the one cheap source that returns something none of the others can: an
+unmet need in the category, described by somebody who already paid money for the alternative. It cannot see what the
 competitor quietly does well, because a met expectation goes unmentioned.
 
 The other fourteen stay in the table rather than in this file, because a source you look up is a source

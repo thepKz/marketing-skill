@@ -104,7 +104,7 @@ is how small F&B brands waste their entire budget.
 
 ### 1.3 Facebook: groups are the real channel
 
-`[structural]` The high-leverage Facebook surface for a small Vietnamese F&B business is **not** the Page — it
+`[structural]` The Facebook surface that decides orders for a small Vietnamese F&B business is **not** the Page — it
 is the community group. Vietnamese Facebook is organised into a dense mesh of hyperlocal and interest groups:
 residential-compound groups, district food groups ("review đồ ăn <district>"), office-building lunch groups,
 university groups, hobby and parenting groups. These are where discovery and social proof happen and where
@@ -129,7 +129,7 @@ genuinely present and well-reviewed in 5–15 relevant local groups before you s
 post.** What breaks if you ignore this: you buy reach to people with no reason to trust you, in a market where
 37% explicitly trust their community over celebrities.
 
-`[UNVERIFIED - would need a platform-published or reputable-research figure on Vietnamese Facebook Group
+`[UNVERIFIED - would need a platform-published or peer-reviewed figure on Vietnamese Facebook Group
 membership/engagement volume]` I have no citable number for how many Vietnamese Facebook users are active in
 local commerce/food groups. Treat the group mechanism as a well-attested qualitative pattern plus the
 community-trust survey numbers above, not as a sized channel.

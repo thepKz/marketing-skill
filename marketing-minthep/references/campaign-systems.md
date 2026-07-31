@@ -54,7 +54,7 @@ Make lanes different at the idea level, not only by palette.
 - Keep offer, hierarchy, and CTA conventional enough to remain usable.
 - State the risk and the channel where the departure is safest to test.
 
-Reject lanes that can be described only as "premium," "modern," "minimal," "futuristic," or "luxury."
+Reject lanes that can be described only as `premium`, `modern`, `minimal`, `futuristic` or `luxury`.
 
 ## Creative matrix
 
