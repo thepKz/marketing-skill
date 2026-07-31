@@ -32,6 +32,7 @@
         "start_workbench.py",
         "new_run.py",
         "research_plan.py",
+        "size_market.py",
         "plan_marketing_system.py",
         "plan_operating_load.py",
         "price_offer.py",
@@ -791,6 +792,7 @@
         "start_workbench.py",
         "new_run.py",
         "research_plan.py",
+        "size_market.py",
         "run_status.py"
       ],
       "deliverables": [

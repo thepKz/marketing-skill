@@ -46,6 +46,7 @@ import plan_palette
 import render_refsheet
 import rewrite_human
 import score_kpi
+import size_market
 import run_status
 from new_run import build_run, load_registry, route_pipeline, write_run
 from plan_image_generation import route_image_request
@@ -6134,6 +6135,252 @@ class MeasurementTests(unittest.TestCase):
         tells = rewrite_human.find_tells(self.prose, "en")
         self.assertEqual(rewrite_human.blocking_count(rows, tells), 0,
                          [row["gate"] for row in rows if not row["pass"]] + [t["id"] for t in tells])
+
+
+class SizeMarketTests(unittest.TestCase):
+    """The refusals are the unit, and the geometric centre is the part nobody would notice breaking.
+
+    `market-assessment.md` had promised a bottom-up chain for as long as it existed and the skill had no
+    arithmetic behind it, so the chain got multiplied in somebody's head and arrived as one confident
+    number. Two things here are worth more than the total. A term with no source cannot be totalled at
+    all, and the middle of a product is its geometric mean - if that ever quietly becomes an average,
+    every base case in every deck built on this gets more optimistic and nothing fails.
+    """
+
+    CLEAN = ("term,role,low,high,unit,family,n,source_url,retrieved,what_it_measures\n"
+             "urban households,people,8000000,8000000,households,official,,https://nso.gov.vn/x,"
+             "2026-07-01,Census household count\n"
+             "share buying monthly,incidence,0.18,0.32,share,panel,600,https://example.org/p,"
+             "2026-06-01,Claimed monthly purchase\n"
+             "purchases per year,frequency,4,7,count,trace,,https://example.org/t,2026-05-01,Receipts\n"
+             "price paid,price,45000,70000,currency,trace,,https://shopee.vn/x,2026-07-10,Ladder\n"
+             "reachable share,reach,0.1,0.25,share,trace,,https://example.org/d,2026-07-10,Footprint\n")
+    AS_OF = "2026-07-31"
+    REFERENCES = ("market-assessment.md", "research-protocol.md")
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.terms = size_market.parse_chain(list(csv.DictReader(io.StringIO(cls.CLEAN))))
+        cls.result = size_market.compute(cls.terms)
+        cls.rows = size_market.gates(cls.result, cls.AS_OF)
+
+    def chain(self, text: str) -> dict:
+        return size_market.compute(size_market.parse_chain(list(csv.DictReader(io.StringIO(text)))))
+
+    def test_self_check_passes(self) -> None:
+        report = size_market.self_check()
+        self.assertIn("passed", report)
+        self.assertNotIn("FAIL", report)
+
+    def test_the_centre_is_the_geometric_mean_and_sits_below_the_average(self) -> None:
+        """Two terms, both a factor of ten wide, so the answer is checkable without the script: the
+        products are 1 and 100 and the middle is 10, not 50.5. The gap is the whole point - an average
+        would put the base case five times above the middle of its own distribution."""
+        two = self.chain(
+            "term,role,low,high,unit,family,n,source_url,retrieved,what_it_measures\n"
+            "a,incidence,0.1,1,share,panel,,https://example.org/a,2026-07-01,x\n"
+            "b,frequency,10,100,count,trace,,https://example.org/b,2026-07-01,y\n")
+        self.assertEqual(two["addressable_low"], 1.0)
+        self.assertEqual(two["addressable_high"], 100.0)
+        self.assertAlmostEqual(two["centre"], 10.0, places=9)
+        self.assertLess(two["centre"], (1.0 + 100.0) / 2)
+
+    def test_the_shares_of_spread_partition_the_total(self) -> None:
+        """Printed as percentages beside every row, so they have to sum to a hundred. They are log
+        ratios because the chain multiplies, and the point term contributes nothing."""
+        shares = [term["uncertainty_share"] for term in self.result["terms"]]
+        self.assertAlmostEqual(sum(shares), 1.0, places=9)
+        self.assertEqual(self.result["terms"][0]["uncertainty_share"], 0.0)
+        self.assertEqual(self.result["dominant_term"],
+                         max(self.result["terms"], key=lambda t: t["uncertainty_share"])["term"])
+
+    def test_a_threshold_outside_the_range_ends_the_research(self) -> None:
+        low = size_market.resolve_against(self.result, self.result["addressable_low"] / 2)
+        high = size_market.resolve_against(self.result, self.result["addressable_high"] * 2)
+        self.assertFalse(low["straddles"])
+        self.assertEqual(low["verdict"], "above on every reading")
+        self.assertEqual(high["verdict"], "below on every reading")
+        # Nothing to research, so nothing is offered. A term list here would be work that cannot
+        # change an outcome, dressed as a next step.
+        self.assertEqual(low["settled_by"], [])
+
+    def test_a_threshold_inside_the_range_names_the_terms_that_would_settle_it(self) -> None:
+        near = self.result["addressable_low"] * 1.05
+        resolution = size_market.resolve_against(self.result, near)
+        self.assertTrue(resolution["straddles"])
+        self.assertEqual(resolution["verdict"], "unresolved")
+        named = [item["term"] for item in resolution["settled_by"]]
+        self.assertTrue(named)
+        # Widest uncertainty first, because that is the order the research hours should be spent in.
+        shares = [item["uncertainty_share"] for item in resolution["settled_by"]]
+        self.assertEqual(shares, sorted(shares, reverse=True))
+        # The point term can never settle anything: collapsing a term that is already a point to its
+        # centre changes nothing at all.
+        self.assertNotIn("urban households", named)
+
+    def test_a_threshold_on_the_centre_has_no_research_answer(self) -> None:
+        """The case the prose has to explain or a reader files it as a bug. Collapsing any single term
+        to its own centre leaves the total's centre exactly where it was, so a decision balanced on the
+        centre of your own estimate cannot be settled by narrowing one term - or by narrowing all of
+        them one at a time. Answering it needs a different decision, not more desk work."""
+        resolution = size_market.resolve_against(self.result, self.result["centre"])
+        self.assertTrue(resolution["straddles"])
+        self.assertEqual(resolution["settled_by"], [])
+        text = (SKILL_ROOT / "references" / "market-assessment.md").read_text(encoding="utf-8")
+        self.assertIn("leaves the", text)
+        self.assertIn("centre", text)
+
+    def test_the_clean_chain_clears_every_gate(self) -> None:
+        self.assertEqual(size_market.blocking(self.rows), 0,
+                         [row["gate"] for row in self.rows if not row["pass"]])
+        self.assertEqual(len(self.rows), 9)
+        for row in self.rows:
+            self.assertIn(row["severity"], ("critical", "high", "medium", "low"), row["gate"])
+            # Every gate has to say why in its own words, or it is a rule nobody can argue with.
+            self.assertGreater(len(row["why"].split()), 20, row["gate"])
+
+    def test_an_unsourced_term_is_refused_before_the_total_exists(self) -> None:
+        chain = self.chain(self.CLEAN.replace("https://example.org/t", ""))
+        rows = size_market.gates(chain, self.AS_OF)
+        failed = [row for row in rows if not row["pass"]]
+        self.assertEqual([row["gate"] for row in failed], ["every-term-sourced"])
+        self.assertEqual(failed[0]["severity"], "critical")
+        self.assertIn("purchases per year", failed[0]["observed"])
+
+    def test_a_missing_frequency_term_is_not_a_shorter_chain(self) -> None:
+        """Dropping a multiplicative term sets it to one, which is an assertion that every buyer buys
+        exactly once a year. Nobody would write that down, and the arithmetic still runs."""
+        lines = [line for line in self.CLEAN.splitlines(keepends=True)
+                 if "purchases per year" not in line]
+        rows = size_market.gates(self.chain("".join(lines)), self.AS_OF)
+        failed = {row["gate"] for row in rows if not row["pass"]}
+        self.assertIn("chain-is-complete", failed)
+        self.assertEqual(size_market.blocking(rows), 1)
+
+    def test_a_list_price_and_a_typed_range_both_fail_their_own_gate(self) -> None:
+        listed = self.CLEAN.replace("price paid,price,45000,70000,currency,trace",
+                                    "list price,price,60000,60000,currency,official")
+        rows = size_market.gates(self.chain(listed), self.AS_OF)
+        failed = {row["gate"] for row in rows if not row["pass"]}
+        self.assertIn("price-is-observed", failed)
+        # A point on anything but the counted term claims exactness. Only a census may do that.
+        self.assertIn("range-not-point", failed)
+
+    def test_the_sampling_table_in_the_prose_is_what_the_functions_produce(self) -> None:
+        """A worked table drifts silently when a constant moves, so it is recomputed rather than read.
+        The right column is wider by exactly sqrt(2), which is where the reference's "about 1.4" comes
+        from - two proportions from one survey both carry error."""
+        text = (SKILL_ROOT / "references" / "market-assessment.md").read_text(encoding="utf-8")
+        for n in (300, 500, 1000, 2000):
+            half = size_market.sampling_half_width(n)
+            gap = size_market.minimum_detectable_gap(n)
+            self.assertAlmostEqual(gap / half, math.sqrt(2), places=9)
+            self.assertIn(f"| {n} | {half * 100:.1f} points | {gap * 100:.1f} points |", text)
+
+    def test_a_band_narrower_than_its_own_sampling_error_fails(self) -> None:
+        """The defect that looks like diligence: 41 percent read off an n=300 report, entered as 40 to
+        42, and the tightness reads as care while being a fifth of the uncertainty already inside it."""
+        typed = self.CLEAN.replace("share buying monthly,incidence,0.18,0.32,share,panel,600",
+                                   "share buying monthly,incidence,0.40,0.42,share,panel,300")
+        rows = size_market.gates(self.chain(typed), self.AS_OF)
+        failed = {row["gate"] for row in rows if not row["pass"]}
+        self.assertIn("survey-range-beats-its-own-margin", failed)
+        self.assertGreater(size_market.sampling_half_width(300), (0.42 - 0.40) / 2)
+
+    def test_staleness_is_measured_against_a_stated_date_not_today(self) -> None:
+        """Measured against today, a saved chain would ripen into a failure on its own and, worse, a
+        re-run with `--as-of` set back would quietly launder it. The date has to be an argument."""
+        fresh = size_market.gates(self.result, "2026-07-31")
+        later = size_market.gates(self.result, "2028-01-01")
+        self.assertTrue(next(r for r in fresh if r["gate"] == "sources-are-not-stale")["pass"])
+        self.assertFalse(next(r for r in later if r["gate"] == "sources-are-not-stale")["pass"])
+
+    def test_the_exit_code_separates_unsupported_from_unsettled(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            chain = Path(tmp) / "chain.csv"
+            chain.write_text(self.CLEAN, encoding="utf-8")
+            out = Path(tmp) / "report.md"
+            with contextlib.redirect_stdout(io.StringIO()):
+                clean = size_market.main(["--check", str(chain), "--as-of", self.AS_OF,
+                                          "--output", str(out)])
+                # A threshold the range straddles is computable and unsettled: exit 3, not 0, so a
+                # wrapper cannot read an open decision as a cleared one.
+                straddled = size_market.main(
+                    ["--check", str(chain), "--as-of", self.AS_OF, "--output", str(out),
+                     "--threshold", str(self.result["centre"])])
+                unsourced = Path(tmp) / "bad.csv"
+                unsourced.write_text(self.CLEAN.replace("https://shopee.vn/x", ""), encoding="utf-8")
+                broken = size_market.main(["--check", str(unsourced), "--as-of", self.AS_OF,
+                                          "--output", str(out)])
+        self.assertEqual((clean, straddled, broken), (0, 3, 2))
+
+    def test_the_starter_template_cannot_be_graded_by_accident(self) -> None:
+        """It ships with empty lows and highs on purpose. An empty term read as zero would make a
+        chain that multiplies to nothing and passes for a finished sizing of a dead market."""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "chain.csv"
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(size_market.main(["--template", str(path)]), 0)
+                with contextlib.redirect_stderr(io.StringIO()) as err:
+                    self.assertEqual(size_market.main(["--check", str(path)]), 1)
+                    # And it refuses to overwrite a chain somebody has already filled in.
+                    self.assertEqual(size_market.main(["--template", str(path)]), 1)
+        self.assertIn("must both be numbers", err.getvalue())
+
+    def test_the_json_report_carries_the_totals_the_gates_and_the_resolution(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            chain = Path(tmp) / "chain.csv"
+            chain.write_text(self.CLEAN, encoding="utf-8")
+            buffer = io.StringIO()
+            with contextlib.redirect_stdout(buffer):
+                size_market.main(["--check", str(chain), "--as-of", self.AS_OF, "--json",
+                                  "--threshold", "1000000000000"])
+        payload = json.loads(buffer.getvalue())
+        self.assertEqual(sorted(payload),
+                         ["as_of", "blocking", "gates", "resolution", "terms", "totals"])
+        self.assertEqual(payload["blocking"], 0)
+        self.assertAlmostEqual(payload["totals"]["centre"], self.result["centre"], places=6)
+        self.assertIn("verdict", payload["resolution"])
+
+    def test_the_unit_is_reachable_from_the_router_and_the_skill(self) -> None:
+        router = (SKILL_ROOT / "references" / "marketing-system-router.md").read_text(encoding="utf-8")
+        skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        for name in (*self.REFERENCES, "size_market.py"):
+            self.assertIn(name, router, name)
+            self.assertIn(name, skill, name)
+
+    def test_the_two_research_pipelines_carry_the_script_and_both_references(self) -> None:
+        registry = json.loads((SKILL_ROOT / "assets" / "registries" / "pipelines.json")
+                              .read_text(encoding="utf-8"))
+        for pipeline in ("deep-research", "plan-from-zero"):
+            entry = registry["pipelines"][pipeline]
+            self.assertIn("size_market.py", entry["scripts"], pipeline)
+            for name in self.REFERENCES:
+                self.assertIn(name, entry["references"], (pipeline, name))
+
+    def test_the_three_references_clear_the_skill_own_prose_gates(self) -> None:
+        """Two were rewritten for this unit and the third was only edited, and it turned out to have
+        been failing four gates before it was touched. Measuring all three is how that stays fixed."""
+        for name in (*self.REFERENCES, "market-data-collection.md"):
+            with self.subTest(reference=name):
+                text = (SKILL_ROOT / "references" / name).read_text(encoding="utf-8")
+                stats = rewrite_human.measure(text, "en")
+                rows = rewrite_human.gates(stats, "deliverable")
+                tells = rewrite_human.find_tells(text, "en")
+                self.assertEqual(rewrite_human.blocking_count(rows, tells), 0,
+                                 [row["gate"] for row in rows if not row["pass"]]
+                                 + [tell["id"] for tell in tells])
+
+    def test_the_stop_rule_lives_in_exactly_one_reference(self) -> None:
+        """It is the one piece of procedure `research-protocol.md` uniquely owns. Duplicated into the
+        assessment unit, the two copies drift and a reader follows whichever they opened first."""
+        protocol = (SKILL_ROOT / "references" / "research-protocol.md").read_text(encoding="utf-8")
+        self.assertIn("--threshold", protocol)
+        self.assertIn("stop rule", protocol.lower())
+        collection = (SKILL_ROOT / "references" / "market-data-collection.md").read_text(
+            encoding="utf-8")
+        self.assertIn("size_market.py", collection)
+        self.assertNotIn("--threshold", collection)
 
 
 if __name__ == "__main__":

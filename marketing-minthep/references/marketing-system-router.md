@@ -35,7 +35,7 @@ For requests that must become files on disk, use `scripts/start_workbench.py`. I
 | `optimize-iterate` | Existing work has evidence or performance to diagnose | Metric tree, hypotheses, one-variable tests, guardrails, decision log |
 | `rewrite-human` | A draft reads machine-written or machine-translated, or approved copy must move between Vietnamese and English | `specificity.md` and `scripts/check_specificity.py` first, then `rewrite-human.md` and `scripts/rewrite_human.py` gates, `data/translation-tells.csv` repairs, `scripts/check_address_register.py` on Vietnamese, re-measurement |
 
-When the user is a non-marketer, do not return a menu of disconnected marketing disciplines. Recommend the smallest coherent pipeline, explain why in plain language, and create the connected artifact pack. Copywriting is mandatory inside `plan-from-zero`; it is not an optional follow-up.
+When the user is a non-marketer, do not return a menu of disconnected marketing disciplines. Recommend the smallest coherent pipeline. Explain why in plain language, then create the connected artifact pack. Copywriting is mandatory inside `plan-from-zero`; it is not an optional follow-up.
 
 ## Secondary overlays
 
@@ -56,7 +56,7 @@ Load only when relevant:
 - Logo, wordmark, favicon, banner grid, type scale: `identity-design.md`.
 - Palette, contrast, lightness separation, chroma budget, tonal ramps: `colour-combination.md` plus
   `data/palettes.csv` and `data/colour-gates.csv`. Load this before naming a colour, and before
-  answering any question that quotes a colour-psychology statistic.
+  quoting a colour-psychology statistic.
 - One person holding every marketing role, what the week can actually carry, and which roles are
   silently being dropped: `vietnam-operating-reality.md` plus `data/vn-marketer-roles.csv` and
   `scripts/plan_operating_load.py`. Load this before recommending a plan to a small team, and before
@@ -88,6 +88,16 @@ Load only when relevant:
   usually cannot win them at any length. The script measures the draft and refuses to estimate
   volume, difficulty or position, because those are live facts and inventing them is fabrication.
 - Where a number came from and what it actually measures: `market-data-collection.md`.
+- How big the market is: `market-assessment.md` plus `scripts/size_market.py`. Load it before a sizing
+  figure reaches a slide. The script totals a chain only when every term carries a range, a family and
+  a source, and it refuses a platform-reported figure as a population. It reports the geometric centre,
+  because the average of a product's low and high sits above its middle.
+- Whether you already know enough to decide: the same script, given `--threshold`. It says whether the
+  range still holds the number that flips the decision, and which single term would settle it. Terms it
+  does not name cannot change the outcome. Research hours die there.
+- How to search a Vietnamese question, and what a delegated finding is worth before you re-read it:
+  `research-protocol.md`. Load it before treating three agreeing articles as three sources. If two
+  trace to one press release, you have two signals.
 - Whether a number can be measured at all, and whether the thing measured is the thing promised:
   `measurement-plan.md` plus `data/tracking-events.csv`, `data/attribution-windows.csv` and
   `scripts/check_tracking_plan.py`. Load this before the first campaign ships, because a naming

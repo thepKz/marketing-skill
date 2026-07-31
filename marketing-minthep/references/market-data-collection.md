@@ -14,8 +14,8 @@
 
 ## What this unit is for
 
-Finding sources is not the hard part. `data/market-data-sources.csv` lists thirty-seven of them with
-verified status. The hard part is that the cheapest and most-cited sources measure something
+Finding sources is not the hard part. Provenance is. `data/market-data-sources.csv` already lists
+thirty-seven sources with verified status. The cheapest and most-cited of them measure something
 different from what the deck says they measure, and the gap is largest in exactly the market this
 skill is most often pointed at.
 
@@ -23,10 +23,10 @@ Load this before `market-assessment.md` when the question is *where do the numbe
 `research-protocol.md` for the search procedure and `source-map.md` for creative and craft sources.
 This unit is about the numbers and their provenance.
 
-For numbers other people have already collected — disclosed advertising spend, budget benchmarks,
-advertising elasticity, the empirical generalisations — go to `how-companies-market.md` and
-`data/marketing-benchmarks.csv`. That unit covers what a published number means and which benchmark may
-be quoted at whom; this one covers collecting your own.
+Numbers other people have already collected live elsewhere: disclosed advertising spend, budget
+benchmarks, advertising elasticity, the empirical generalisations. Those are in
+`how-companies-market.md` and `data/marketing-benchmarks.csv`. That unit covers what a published number
+means and which benchmark may be quoted at whom; this one covers collecting your own.
 
 ## The four measurement families
 
@@ -41,14 +41,14 @@ Every source belongs to one. The family determines what it can be wrong about.
 
 ## Triangulation that actually triangulates
 
-`research-protocol.md` requires at least three sources from different categories. Tighten that: the
-three must come from **different families in the table above**. Three listening vendors are not three
-sources; they index overlapping public text and inherit one blindness. DataReportal, a Meta planner
+`research-protocol.md` requires at least three sources from different categories. Tighten that. The
+three must come from **different families in the table above**, because three listening vendors are not
+three sources; they index overlapping public text and inherit one blindness. DataReportal, a Meta planner
 screenshot and a social-listening share-of-voice chart are all downstream of platform self-report,
 so agreement between them is not corroboration — it is the same number arriving three times.
 
-The test is mechanical: for each source, name the family. If two of the three share a family,
-replace one before you draw a conclusion.
+The test is mechanical. For each source, name the family, and if two of the three share one, replace
+one of them before you draw a conclusion.
 
 When the families disagree, that is the finding, not a problem to average away. A category where
 listening shows silence and marketplace trace shows volume is a category selling in closed channels.
@@ -60,23 +60,25 @@ These are the errors that survive into finished decks, in descending order of fr
 
 **1. Ad reach quoted as penetration.** The headline social figures in the annual digital reports are
 advertising-audience sizes read out of each platform's own campaign planner. They count addressable
-ad accounts — including duplicates, dormant accounts, bots, and users whose stated age band is
-unverified — with no deduplication across platforms. Dividing that numerator by an official
-population denominator produces a percentage whose two halves come from different universes.
+ad accounts, duplicates and dormant accounts and bots and unverified age bands included, with no
+deduplication across platforms. Dividing that numerator by an official population denominator
+produces a percentage whose two halves come from different universes.
+
 Platform ad-reach totals for Viet Nam have at times exceeded the plausible online population of the
-relevant age band, which is arithmetically impossible for a penetration figure and unremarkable for
-an account count.
+relevant age band. That is arithmetically impossible for a penetration figure and unremarkable for an
+account count, which tells you which of the two it is.
 
 Write it as what it is: *addressable ad accounts, platform-reported, month and year*. Never as
-*percent of Vietnamese*.
+penetration.
 
 **2. Listening silence read as absence of demand.** Social listening indexes public, indexed,
 machine-readable text. Vietnamese purchase conversation concentrates in closed Zalo groups, private
-and secret Facebook groups, livestream comment streams, direct messages, and text baked into images
-— none of which enter the index. The under-count is not random noise. It falls hardest on the
-closed and live channels with the shortest path to a sale, so listening data is biased *against*
-exactly the channels worth finding. Treat a quiet channel as unmeasured until a second family says
-otherwise.
+and secret Facebook groups, livestream comment streams, direct messages, and text baked into images.
+None of those enter the index.
+
+Silence is not absence. The under-count falls hardest on the closed and live channels with the
+shortest path to a sale, so listening data is biased *against* exactly the channels worth finding.
+Treat a quiet channel as unmeasured until a second family says otherwise.
 
 **3. Marketplace inference read as category size.** Marketplace trackers scrape listing data and
 infer revenue from displayed sold and review counts. Those counts are seller-influenceable, the
@@ -94,17 +96,17 @@ Two of the most-cited Vietnamese government hosts no longer resolve. Checked 202
 | `gso.gov.vn` | Does not resolve | National Statistics Office, `nso.gov.vn` |
 | `mic.gov.vn` | Does not resolve | Merged into the Ministry of Science and Technology, `mst.gov.vn` |
 
-A citation to a dead host is a reliable tell that nobody opened it. When an institution is renamed
-or merged, individual table URLs move too, and tables are sometimes dropped rather than carried
-over. Re-verify the specific table, not just the new homepage, and record the date you did it.
+A citation to a dead host is a tell. Nobody opened it. When an institution is renamed or merged,
+individual table URLs move too, and tables are sometimes dropped rather than carried over. Re-verify
+the specific table, not just the new homepage, and record the date you did it.
 
 The general rule this stands for: **any URL in a deck older than a year is a hypothesis.** Check
 status before citing. A 403 means the source is alive and blocking automated access, which is a
-different problem from a dead domain and has a different fix — open a browser session.
+different problem from a dead domain and has a different fix: open a browser session.
 
 ## Access tiers and how to record them
 
-Record the HTTP status and the date, because it is reproducible and a reader can re-run it.
+Record the HTTP status and the date you checked it. Both are reproducible.
 
 | Tier | Signal | What to do |
 |---|---|---|
@@ -131,11 +133,17 @@ households or people in scope      <- official statistic, with province and age 
 
 Two disciplines make this honest. First, pull each term from a different family and label which one,
 so the weakest link is visible rather than buried in a single confident total. Second, carry a range
-rather than a point: state each term as low and high, multiply the lows and multiply the highs. A
-five-term chain where each term is comfortably within a factor of 1.3 produces a top-to-bottom spread
+rather than a point: state each term as low and high, multiply the lows and multiply the highs.
+
+A five-term chain where each term is comfortably within a factor of 1.3 produces a top-to-bottom spread
 of roughly 1.3^5, about 3.7x. That spread is the actual state of your knowledge. A single number is a
 claim to precision the inputs cannot support, and the range is usually the more persuasive slide
 because it survives the first challenge.
+
+Do not multiply this by hand. `scripts/size_market.py` takes the chain as a CSV with a family label and
+a source on every term, refuses to total it if any term is unsourced or self-reported by a platform,
+and reports which single term carries most of the spread. `market-assessment.md` is the unit that reads
+its output.
 
 ## Sample size and what a difference has to beat
 
@@ -152,10 +160,10 @@ half-width of a proportion near 50% is `1.96 x sqrt(0.25 / n)`:
 Two independent proportions from the same survey need roughly `1.4x` the single-sample margin before
 the difference is defensible, because both carry error. At n = 300 that is about 8 points.
 
-Most brand-tracking movements argued over in review meetings — "we went from 31% to 34%" — sit inside
-the noise band of the survey that produced them. Before treating a movement as real, check n, check
-the fielding window, and check whether the question wording changed. A wording change between waves
-makes the comparison invalid at any sample size.
+Most brand-tracking movements argued over in review meetings, the "we went from 31% to 34%" kind, sit
+inside the noise band of the survey that produced them. Check n first. Then the fielding window, and
+then whether the question wording changed, because a wording change between waves makes the comparison
+invalid at any sample size.
 
 ## Collection log template
 
