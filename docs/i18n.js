@@ -95,6 +95,12 @@ window.HANDBOOK_I18N = {
     "Photoshoot": "Photoshoot",
     "Video brief": "Video brief",
     "Edit ảnh ref": "Edit reference",
+    // The four decision tabs. Their panel text comes from the useCases object in app.js, which
+    // carries its own English; only these button labels are static text nodes and need a key here.
+    "Giá & khuyến mãi": "Pricing & offers",
+    "Báo cáo KPI": "KPI reporting",
+    "Đọc kết quả A/B": "A/B readout",
+    "Viết lại cho người": "Human rewrite",
     "Bạn không cần biết marketing trước.": "You do not need to know marketing first.",
     "Chỉ cần nói bạn bán gì, muốn đạt điều gì và gửi ảnh/ref nếu có. Skill sẽ tự hỏi phần còn thiếu, giải thích quyết định bằng ngôn ngữ dễ hiểu rồi tạo báo cáo Markdown để bạn dùng tiếp.": "Tell the skill what you sell, what you want to achieve, and attach references if you have them. It fills the gaps, explains decisions in plain language, and creates Markdown reports you can keep using.",
     "Brief bằng lời thường": "Brief in plain language",

@@ -2480,6 +2480,129 @@ class HandbookTranslationTests(unittest.TestCase):
         self.assertEqual(dead, [], f"{len(dead)} keys match no text node: {dead[:5]}")
 
 
+class UseCaseGridTests(unittest.TestCase):
+    """The tab grid is the front door, and for months it had nine creative tabs and no commercial
+    ones. A visitor asking "can I afford this discount", "which numbers do I report", "is this test
+    big enough" or "does this draft read like a person" found nothing, while price_offer.py,
+    score_kpi.py, check_test_readout.py and rewrite_human.py all sat finished in the repository. A
+    tool that cannot be found from the front page is a tool that does not exist, which is the same
+    defect the README carried until it was recounted.
+
+    Three of the Vietnamese panels were also written in English - photoshoot, video and edit - so a
+    Vietnamese reader clicked a Vietnamese tab and got English bullets. That is invisible to anyone
+    testing the page in English, which is how it survived."""
+
+    DOCS = REPO_ROOT / "docs"
+    DECISIONS = {
+        "pricing": "price_offer.py",
+        "measure": "score_kpi.py",
+        "experiment": "check_test_readout.py",
+        "rewrite": "rewrite_human.py",
+    }
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        app = (cls.DOCS / "app.js").read_text(encoding="utf-8")
+        start = app.index("const useCases = {")
+        depth = 0
+        end = len(app)
+        for index in range(app.index("{", start), len(app)):
+            if app[index] == "{":
+                depth += 1
+            elif app[index] == "}":
+                depth -= 1
+                if depth == 0:
+                    end = index
+                    break
+        block = app[start:end]
+        cls.entries = {}
+        for match in re.finditer(r"^  (\w+): \{$(.*?)^  \},$", block, re.M | re.S):
+            slug, body = match.group(1), match.group(2)
+            cls.entries[slug] = {}
+            for lang in ("vi", "en"):
+                found = re.search(rf"^    {lang}: \{{(.*)\}},$", body, re.M)
+                if not found:
+                    continue
+                fields = found.group(1)
+                entry = {
+                    name: (re.search(rf"{name}: '((?:[^'\\]|\\.)*)'", fields) or [None, ""])[1]
+                    for name in ("title", "description", "request")
+                }
+                listed = re.search(r"deliverables: \[(.*?)\]", fields)
+                entry["deliverables"] = re.findall(r"'((?:[^'\\]|\\.)*)'", listed.group(1)) if listed else []
+                cls.entries[slug][lang] = entry
+        html = (cls.DOCS / "index.html").read_text(encoding="utf-8")
+        cls.tabs = re.findall(r'data-use-case="(\w+)"', html)
+
+    def test_every_tab_has_a_panel_and_every_panel_has_a_tab(self) -> None:
+        """Either half alone is a silent failure: a tab with no entry throws on click, and an entry
+        with no tab is content nobody can reach. Order matters too - the tabs are arrow-key
+        navigable, so the reading order is the keyboard order."""
+        self.assertEqual(self.tabs, list(self.entries), "the tab list and the panel list disagree")
+
+    def test_the_hero_counts_the_tabs_it_is_counting(self) -> None:
+        """The hero said nine workbenches because there were nine tabs when it was typed. It is the
+        first number a visitor reads and the page shows the tabs a scroll below it, so it cannot be
+        the one figure here that is maintained by hand."""
+        html = (self.DOCS / "index.html").read_text(encoding="utf-8")
+        stated = re.search(r"<strong>(\d+)</strong><span>marketing workbenches</span>", html)
+        self.assertIsNotNone(stated, "the hero no longer states a workbench count in the expected shape")
+        self.assertEqual(int(stated.group(1)), len(self.tabs))
+
+    def test_the_grid_carries_the_four_decision_questions(self) -> None:
+        missing = sorted(slug for slug in self.DECISIONS if slug not in self.entries)
+        self.assertEqual(missing, [], f"decision tabs dropped from the grid: {missing}")
+
+    def test_every_panel_is_complete_in_both_languages(self) -> None:
+        for slug, langs in self.entries.items():
+            self.assertEqual(sorted(langs), ["en", "vi"], f"{slug} is not bilingual")
+            for lang, entry in langs.items():
+                for field in ("title", "description", "request"):
+                    self.assertTrue(entry[field].strip(), f"{slug}.{lang}.{field} is empty")
+                # Four bullets is the shape the panel's CSS grid was built around, and a fifth would
+                # overflow the card rather than wrap.
+                self.assertEqual(len(entry["deliverables"]), 4, f"{slug}.{lang} has {len(entry['deliverables'])} bullets")
+
+    def test_no_vietnamese_panel_is_written_in_english(self) -> None:
+        for slug, langs in self.entries.items():
+            vi, en = langs["vi"], langs["en"]
+            self.assertTrue(
+                any(HandbookTranslationTests.vietnamese(item) for item in vi["deliverables"]),
+                f"{slug}.vi has no Vietnamese in its bullets - it is the English list",
+            )
+            # One shared bullet is plausible when the phrase is jargon a Vietnamese marketer says in
+            # English anyway. Two is a list that was copied and never translated.
+            shared = [item for item in vi["deliverables"] if item in en["deliverables"]]
+            self.assertLessEqual(len(shared), 1, f"{slug} shares {len(shared)} untranslated bullets: {shared}")
+
+    def test_every_script_a_panel_names_exists(self) -> None:
+        """The request strings are meant to be copied and sent, so a script named in one is a
+        promise the repository has to keep. A renamed tool would otherwise fail in the customer's
+        session, which is the worst place to find out."""
+        named = set()
+        for langs in self.entries.values():
+            for entry in langs.values():
+                named |= set(re.findall(r"scripts/([a-z_]+\.py)", entry["request"]))
+        self.assertTrue(named, "no panel names a script")
+        for script in sorted(named):
+            self.assertTrue((SKILL_ROOT / "scripts" / script).exists(), f"{script} is named on the page but absent")
+
+    def test_each_decision_panel_names_the_tool_that_settles_it(self) -> None:
+        for slug, script in self.DECISIONS.items():
+            for lang in ("vi", "en"):
+                request = self.entries[slug][lang]["request"]
+                self.assertIn(script, request, f"{slug}.{lang} does not name {script}")
+
+    def test_the_virtual_panel_no_longer_promises_a_choice_of_adjectives(self) -> None:
+        """It used to open on "impression options before facial design", which stopped being true
+        when the adjectives became a parameter table. A person described as warm and elegant renders
+        as a different face every time, so the panel promised the one thing the unit cannot do."""
+        virtual = self.entries["virtual"]
+        self.assertNotIn("Impression options", virtual["en"]["deliverables"])
+        self.assertIn("person_id", virtual["vi"]["request"])
+        self.assertIn("person_id", virtual["en"]["request"])
+
+
 class RewriteHumanTests(unittest.TestCase):
     """The cadence gates are statistical, which means a human reviewer cannot check them by
     reading and a wrong measurement would go unnoticed for as long as the copy kept passing.
