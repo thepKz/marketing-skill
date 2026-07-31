@@ -28,6 +28,7 @@ from compile_prompt import compile_provider
 # would leave one test silently asserting against the other module's table.
 import check_address_register
 import check_test_readout
+import price_offer
 import check_specificity
 import find_recipe
 import generate_image
@@ -4010,6 +4011,116 @@ class TestReadoutTests(unittest.TestCase):
         self.assertIn("check_test_readout.py", text)
         self.assertIn("--plan", text)
         self.assertIn("--claim", text)
+
+
+class PriceOfferTests(unittest.TestCase):
+    """The discount arithmetic is the reason this unit exists, so it is what gets pinned.
+
+    plan-from-zero promised an offer and the skill had no arithmetic behind the word. The specific
+    consequence is that a discount gets decided against the price and lands on the margin, and the two
+    are not the same number. If the volume multiple ever stops being printed, the unit is back to being
+    a word.
+    """
+
+    def test_self_check_passes(self) -> None:
+        report = price_offer.self_check()
+        self.assertTrue(report.rstrip().endswith("verdict passed"), report)
+        self.assertNotIn("FAIL", report)
+
+    def test_twenty_percent_off_forty_percent_margin_needs_double_the_units(self) -> None:
+        # The case the whole unit is for, and it is checkable by hand: 20 off 40 leaves 20, and 40
+        # over 20 is 2. Exactly 2, not approximately.
+        effect = price_offer.discount_effect(100.0, 60.0, 0.20)
+        self.assertEqual(effect["contribution_after"], 20.0)
+        self.assertEqual(effect["volume_multiple_to_hold_gross_profit"], 2.0)
+        self.assertEqual(effect["contribution_lost_share"], 0.5)
+
+    def test_the_same_discount_is_a_different_decision_at_a_different_margin(self) -> None:
+        # This asymmetry is why a fixed "keep discounts under 20 percent" rule is not a rule. Same
+        # discount, same price, different cost, and the volume it demands is nowhere near the same.
+        fat = price_offer.discount_effect(100.0, 30.0, 0.20)
+        thin = price_offer.discount_effect(100.0, 60.0, 0.20)
+        self.assertAlmostEqual(fat["volume_multiple_to_hold_gross_profit"], 1.4, places=4)
+        self.assertAlmostEqual(thin["volume_multiple_to_hold_gross_profit"], 2.0, places=4)
+        self.assertGreater(thin["volume_multiple_to_hold_gross_profit"],
+                           fat["volume_multiple_to_hold_gross_profit"])
+
+    def test_a_discount_below_variable_cost_has_no_survivable_volume(self) -> None:
+        effect = price_offer.discount_effect(100.0, 60.0, 0.50)
+        self.assertLess(effect["contribution_after"], 0)
+        # No multiple is offered, because there is not one. Returning a number here would suggest the
+        # promotion is recoverable with enough units, and it is not.
+        self.assertIsNone(effect["volume_multiple_to_hold_gross_profit"])
+        report = price_offer.build(100.0, 60.0, 0.50, None, None, None, None, 3.0)
+        self.assertEqual(report["verdict"]["status"], "failed")
+
+    def test_break_even_roas_is_the_reciprocal_of_the_contribution_ratio(self) -> None:
+        for price, cost in ((100.0, 60.0), (390000.0, 234000.0), (49.0, 12.25)):
+            with self.subTest(price=price, cost=cost):
+                core = price_offer.margin(price, cost)
+                # The reported figure is rounded for reading; the identity is what is being pinned.
+                self.assertAlmostEqual(core["break_even_roas"],
+                                       1.0 / core["contribution_ratio"], places=3)
+
+    def test_a_price_under_cost_is_refused_before_any_other_arithmetic(self) -> None:
+        report = price_offer.build(100.0, 130.0, None, None, None, None, None, 3.0)
+        self.assertEqual(report["verdict"]["status"], "failed")
+        # Nothing downstream is computed, because a break-even unit count against a negative
+        # contribution is a number that would only ever mislead.
+        self.assertNotIn("break_even_units", report)
+        self.assertTrue(any("loses money" in note for note in report["notes"]))
+
+    def test_a_high_volume_multiple_is_unsettled_rather_than_passed(self) -> None:
+        # 30 percent off a 40 percent margin leaves 10, so it needs 4x the units. That is not a
+        # promotion anybody signed off on.
+        report = price_offer.build(100.0, 60.0, 0.30, None, None, None, None, 3.0)
+        self.assertEqual(report["verdict"]["status"], "review")
+        self.assertAlmostEqual(report["discount"]["volume_multiple_to_hold_gross_profit"], 4.0,
+                               places=4)
+        self.assertTrue(any("business model" in note for note in report["notes"]))
+
+    def test_break_even_units_are_computed_on_the_discounted_contribution(self) -> None:
+        # The trap: recovering a fixed cost at the undiscounted margin while running the discount.
+        plain = price_offer.build(100.0, 60.0, None, 4000.0, None, None, None, 3.0)
+        cut = price_offer.build(100.0, 60.0, 0.20, 4000.0, None, None, None, 3.0)
+        self.assertEqual(plain["break_even_units"], 100)
+        self.assertEqual(cut["break_even_units"], 200)
+
+    def test_both_acquisition_ceilings_are_reported_and_the_binding_one_is_named(self) -> None:
+        # 40 contribution, 2 purchases, 3x return gives a policy ceiling of 26.67, which is below
+        # first-order break-even of 40. A cost between the two is profitable on order one and outside
+        # policy, and the report has to say so rather than just failing a gate.
+        report = price_offer.build(100.0, 60.0, None, None, None, 2.0, 30.0, 3.0)
+        self.assertAlmostEqual(report["max_acquisition_cost"], 80.0 / 3.0, places=3)
+        self.assertEqual(report["first_order_acquisition_ceiling"], 40.0)
+        self.assertTrue(any("stricter than first-order" in note for note in report["notes"]))
+        # And the other direction, where the gap is a bet on the repeat rate.
+        generous = price_offer.build(100.0, 60.0, None, None, None, 6.0, 30.0, 3.0)
+        self.assertGreater(generous["max_acquisition_cost"],
+                           generous["first_order_acquisition_ceiling"])
+        self.assertTrue(any("bet that the repeat rate is real" in note
+                            for note in generous["notes"]))
+
+    def test_an_acquisition_cost_without_a_repeat_rate_is_first_order_only(self) -> None:
+        report = price_offer.build(100.0, 60.0, None, None, None, None, 30.0, 3.0)
+        self.assertNotIn("max_acquisition_cost", report)
+        self.assertTrue(any("first-order figure only" in note for note in report["notes"]))
+
+    def test_the_unit_refuses_to_guess_a_currency(self) -> None:
+        # A margin helper that assumes a currency will one day be wrong by a factor of 25,000. The
+        # numbers are printed as numbers and the caller owns the unit.
+        text = price_offer.as_text(price_offer.build(390000.0, 234000.0, 0.2, None, None, None,
+                                                     None, 3.0))
+        for token in ("VND", "USD", "đ", "$", "dong", "dollar"):
+            self.assertNotIn(token, text)
+
+    def test_the_reference_and_the_script_stay_together(self) -> None:
+        text = (SKILL_ROOT / "references" / "pricing-and-offers.md").read_text(encoding="utf-8")
+        self.assertIn("price_offer.py", text)
+        # The Vietnam variable-cost lines are the reason a healthy-looking margin goes negative here
+        # specifically, so they are part of the unit rather than a nice-to-have.
+        for cost in ("commission", "COD", "return"):
+            self.assertIn(cost, text)
 
 
 class CompositionSetTests(unittest.TestCase):
