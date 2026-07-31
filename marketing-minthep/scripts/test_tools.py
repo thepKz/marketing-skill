@@ -7,6 +7,7 @@ import argparse
 import contextlib
 import csv
 import datetime as dt
+import fnmatch
 import io
 import json
 import math
@@ -39,6 +40,7 @@ import price_offer
 import check_specificity
 import find_recipe
 import generate_image
+import install_global
 import list_capabilities
 import model_affiliate
 import plan_command_chain
@@ -2241,6 +2243,84 @@ def _english_number(value: int) -> str:
 def _vietnamese_number(value: int) -> str:
     names = {6: "sáu", 7: "bảy", 8: "tám", 9: "chín", 10: "mười", 11: "mười một", 12: "mười hai"}
     return names.get(value, str(value))
+
+
+class InstallScopeTests(unittest.TestCase):
+    """A global install is a copy, and until now nothing checked what it copied.
+
+    `.gitignore` and the installer's exclusion list were maintained by hand and had already come
+    apart: `research_assets/` was ignored by the repository and shipped by the installer, so the
+    next install would have put 25 MB of cached vendor help pages and photographs into
+    `~/.claude/skills` and `~/.codex/skills`, where an agent reads whatever it finds as skill
+    content and no `.gitignore` is watching. Both directions are tested here, because the failure
+    was invisible from either side alone.
+    """
+
+    @staticmethod
+    def _sample(rule: str) -> str:
+        """A concrete filename that the gitignore rule would match.
+
+        Testing a glob against itself passes for the wrong reason: `fnmatch("*.pyc", "*.pyc")` is
+        true whatever the exclusion list says. Substituting a character for the star gives
+        `x.pyc`, which only matches if the installer really covers the rule.
+        """
+        return rule.rstrip("/").rsplit("/", 1)[-1].replace("*", "x")
+
+    def _rules(self) -> list[str]:
+        text = (REPO_ROOT / ".gitignore").read_text(encoding="utf-8")
+        rules = [line.strip() for line in text.splitlines()
+                 if line.strip() and not line.startswith("#")]
+        self.assertGreater(len(rules), 10, ".gitignore is empty, unreadable, or has been gutted")
+        return rules
+
+    def test_every_gitignore_rule_is_also_an_install_rule(self) -> None:
+        """The one rule the installer follows: what the repository will not commit, it will not copy.
+
+        Ten rules were uncovered when this was written, including `.env` and `*.key`. The skill
+        reads an image-API bearer token from a `.env` beside it, so that gap was a live key copied
+        into two directories nobody audits.
+        """
+        for rule in self._rules():
+            sample = self._sample(rule)
+            with self.subTest(rule=rule):
+                self.assertTrue(install_global.EXCLUDE("anywhere", [sample]),
+                                f"{rule} is ignored by the repository but an install would copy {sample}")
+
+    def test_the_skill_directory_contains_nothing_the_repository_refuses_to_commit(self) -> None:
+        """The other direction, checked against the filesystem rather than against a list.
+
+        Reads as vacuous on a clean tree, which is exactly when a regression guard is doing its job:
+        it was not vacuous an hour ago, when three caches totalling 159 MB sat in here under `.tmp_`
+        names that said only `temporary` about files that are the provenance for 65 published rows.
+        """
+        patterns = [rule.rstrip("/").rsplit("/", 1)[-1] for rule in self._rules()]
+        for path in sorted(SKILL_ROOT.rglob("*")):
+            ignored = [p for p in patterns if fnmatch.fnmatch(path.name, p)]
+            if not ignored:
+                continue
+            with self.subTest(path=path.relative_to(SKILL_ROOT).as_posix()):
+                self.assertTrue(install_global.EXCLUDE(str(path.parent), [path.name]),
+                                f"matches {ignored} in .gitignore but an install would copy it")
+
+    def test_an_install_ships_the_six_things_the_skill_is_and_nothing_else(self) -> None:
+        """A seventh entry should be a decision somebody made, not a directory that appeared.
+
+        `research_assets/` appeared, and the only reason it never reached a global install is that
+        nobody ran the installer while it was there.
+        """
+        entries = sorted(path.name for path in SKILL_ROOT.iterdir())
+        shipped = sorted(set(entries) - install_global.EXCLUDE(str(SKILL_ROOT), entries))
+        self.assertEqual(shipped, ["SKILL.md", "agents", "assets", "data", "references", "scripts"])
+
+    def test_the_names_check_ignores_are_the_names_an_install_drops(self) -> None:
+        """These were two hand-written lists that had to agree, and they did not: three names the
+        installer dropped were missing from the check list, so `--check` reported them as drift
+        forever and an operator learned to read real drift as noise."""
+        for name in install_global.excluded_names(SKILL_ROOT):
+            with self.subTest(name=name):
+                self.assertTrue(install_global.EXCLUDE("anywhere", [name]))
+        # Pruning: the walk must not descend into an excluded directory to enumerate its contents.
+        self.assertNotIn("hook.cache.json", install_global.excluded_names(SKILL_ROOT))
 
 
 class ReferenceIntegrityTests(unittest.TestCase):
