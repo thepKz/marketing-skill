@@ -34,6 +34,14 @@
         "research_plan.py",
         "plan_marketing_system.py",
         "plan_operating_load.py",
+        "price_offer.py",
+        "find_recipe.py",
+        "check_specificity.py",
+        "rewrite_human.py",
+        "check_address_register.py",
+        "score_kpi.py",
+        "plan_composition_set.py",
+        "render_refsheet.py",
         "run_status.py"
       ],
       "deliverables": [
@@ -317,12 +325,14 @@
             {
               "en": "Price and presentation",
               "vi": "Giá và cách trình bày",
-              "write": "Number, currency formatting, anchoring, and what is bundled or unbundled."
+              "write": "Number, currency formatting, anchoring, and what is bundled or unbundled.",
+              "run": "python scripts/price_offer.py --price PRICE --variable-cost COST --discount 0.20 - the volume multiple a discount actually demands, before it is offered. Twenty percent off a forty percent contribution needs twice the units."
             },
             {
               "en": "Risk reversal",
               "vi": "Đảo ngược rủi ro",
-              "write": "The specific mechanism that removes the buyer's downside, and its real cost to the business."
+              "write": "The specific mechanism that removes the buyer's downside, and its real cost to the business.",
+              "run": "python scripts/price_offer.py --price PRICE --variable-cost COST --return-rate RATE - a guarantee is a cost, so put it in variable cost and read the contribution again."
             },
             {
               "en": "Real urgency or none",
@@ -403,7 +413,8 @@
             {
               "en": "Headlines",
               "vi": "Tiêu đề",
-              "write": "Ten or more, tagged by pattern and awareness stage. Kill any that could headline a competitor."
+              "write": "Ten or more, tagged by pattern and awareness stage. Kill any that could headline a competitor.",
+              "run": "python scripts/find_recipe.py --table copy --query \"<the job>\" - 22 structures with a worked VI and EN example and the case each one fails in."
             },
             {
               "en": "Landing page blocks",
@@ -438,7 +449,8 @@
             {
               "en": "CTA set",
               "vi": "Bộ CTA",
-              "write": "One primary action per surface, with the friction-reducing microcopy underneath."
+              "write": "One primary action per surface, with the friction-reducing microcopy underneath.",
+              "run": "python scripts/check_specificity.py --check <file> first, then scripts/rewrite_human.py --check <file> --channel <where it goes>, then scripts/check_address_register.py on any Vietnamese copy. In that order: rhythm work deletes specifics, so counting facts has to come before measuring cadence."
             }
           ]
         },
@@ -469,7 +481,8 @@
             {
               "en": "Per-channel operating plan",
               "vi": "Kế hoạch vận hành từng kênh",
-              "write": "Asset types, cadence, targeting or distribution mechanic, owner, first-week actions."
+              "write": "Asset types, cadence, targeting or distribution mechanic, owner, first-week actions.",
+              "run": "python scripts/plan_operating_load.py - the hours this plan costs the person who has to run it, counted per week. A channel plan nobody has time to execute is a wish list."
             },
             {
               "en": "What we are not doing",
@@ -544,12 +557,14 @@
             {
               "en": "Unit economics",
               "vi": "Kinh tế đơn vị",
-              "write": "Price, variable cost, contribution margin per unit, in local currency, with the arithmetic."
+              "write": "Price, variable cost, contribution margin per unit, in local currency, with the arithmetic.",
+              "run": "python scripts/price_offer.py --price PRICE --variable-cost COST - and include commission, payment fees, part-funded shipping and expected returns in the cost, because those are the lines a remembered margin leaves out. See references/pricing-and-offers.md."
             },
             {
               "en": "CAC ceiling",
               "vi": "Trần chi phí thu khách",
-              "write": "Derive from contribution margin, repeat rate, and acceptable payback period. Show the calculation."
+              "write": "Derive from contribution margin, repeat rate, and acceptable payback period. Show the calculation.",
+              "run": "python scripts/price_offer.py --price PRICE --variable-cost COST --repeat-purchases N --acquisition-cost CAC - two ceilings, and the report names which one binds. Do not hand-calculate this."
             },
             {
               "en": "Budget split",
@@ -569,7 +584,8 @@
             {
               "en": "Break-even",
               "vi": "Điểm hòa vốn",
-              "write": "Units and days at the planned spend."
+              "write": "Units and days at the planned spend.",
+              "run": "The same command prints break-even ROAS, which is the reciprocal of the contribution ratio. Check any handed-down ROAS target against it before accepting the target."
             },
             {
               "en": "Reallocation rules",
@@ -595,7 +611,8 @@
             {
               "en": "North star and metric tree",
               "vi": "Chỉ số cốt lõi và cây chỉ số",
-              "write": "One business outcome, decomposed into the leading indicators that actually drive it."
+              "write": "One business outcome, decomposed into the leading indicators that actually drive it.",
+              "run": "python scripts/find_recipe.py --table kpi --query \"<the aspect>\" - 27 measurables, each with the direction that is good, whether it leads or lags, and the specific way it gets gamed. See references/kpi-scorecards.md, and scripts/score_kpi.py if this cascades to a person."
             },
             {
               "en": "Legitimate metric per stage",
@@ -655,12 +672,14 @@
             {
               "en": "Visual grammar",
               "vi": "Ngữ pháp thị giác",
-              "write": "Palette, light character, composition signature, type, texture, and the anti-references."
+              "write": "Palette, light character, composition signature, type, texture, and the anti-references.",
+              "run": "python scripts/find_recipe.py --query \"<the job>\" for the recipe and scripts/render_refsheet.py --sheet palettes for the measured contrast of every palette. Do not write a lighting setup or a hex pair from memory."
             },
             {
               "en": "Asset system",
               "vi": "Hệ thống tài sản",
-              "write": "The minimum set of assets, with ratios and channels, that covers the plan. No blind Cartesian product."
+              "write": "The minimum set of assets, with ratios and channels, that covers the plan. No blind Cartesian product.",
+              "run": "python scripts/plan_composition_set.py --photos N - how many of the frames this plan assumes can come from the photographs that already exist, and how many need another exposure. A count, not a promise."
             },
             {
               "en": "Handoff",
@@ -1140,6 +1159,8 @@
         "plan_image_generation.py",
         "build_asset_manifest.py",
         "score_creative.py",
+        "find_recipe.py",
+        "check_prompt_grammar.py",
         "run_status.py"
       ],
       "deliverables": [
@@ -1252,7 +1273,8 @@
             {
               "en": "Capture mode",
               "vi": "Chế độ chụp",
-              "write": "Studio, editorial, documentary, or native-social. This governs everything below."
+              "write": "Studio, editorial, documentary, or native-social. This governs everything below.",
+              "run": "python scripts/find_recipe.py --query \"<the job>\" then --brief RECIPE_ID, and keep --checklist RECIPE_ID open while looking at the render."
             },
             {
               "en": "Optics",
@@ -1349,7 +1371,8 @@
           "title": "Provider prompts",
           "title_vi": "Prompt cho nhà cung cấp",
           "gate": "One file per variant. Each names its provider, its single changed axis, and its locks. Producing a prompt is not rendering an image; never report otherwise.",
-          "readme": "One .txt per variant, named campaign-lane-channel-asset-ratio-variant-vNN.txt. Generate with scripts/compile_prompt.py from 04-craft-spec so the prompt and the spec cannot drift apart."
+          "readme": "One .txt per variant, named campaign-lane-channel-asset-ratio-variant-vNN.txt. Generate with scripts/compile_prompt.py from 04-craft-spec so the prompt and the spec cannot drift apart.",
+          "run": "python scripts/compile_prompt.py to adapt the brief, then scripts/check_prompt_grammar.py --prompt-file <file> --provider <provider> on what it emits. Five of the nine families document no negative-prompt field, and sending exclusions to them puts the excluded thing into the prompt."
         },
         {
           "id": "08-qa",
@@ -1367,7 +1390,8 @@
             {
               "en": "Critical gates",
               "vi": "Cổng loại trực tiếp",
-              "write": "Identity drift, product or label falsehood, anatomy, physics, claim, rights, disclosure."
+              "write": "Identity drift, product or label falsehood, anatomy, physics, claim, rights, disclosure.",
+              "run": "python scripts/find_recipe.py --checklist RECIPE_ID - the tells that can actually occur in this frame, sorted by severity. Look at the render against it; re-reading the prompt proves nothing."
             },
             {
               "en": "Scores",
@@ -1461,6 +1485,9 @@
         "plan_design_options.py",
         "plan_palette.py",
         "render_mockup.py",
+        "find_recipe.py",
+        "render_social_post.py",
+        "render_refsheet.py",
         "run_status.py"
       ],
       "deliverables": [
@@ -1624,7 +1651,8 @@
             {
               "en": "Canvas and grid",
               "vi": "Khổ và lưới",
-              "write": "Trim, bleed, safe margin, columns, gutters, baseline, spacing unit."
+              "write": "Trim, bleed, safe margin, columns, gutters, baseline, spacing unit.",
+              "run": "python scripts/find_recipe.py --table ratios --query \"<where it is going>\" - the question arrives as \"cho Reels\" or \"in A4\", never as \"9:16\". --table grids settles the golden-ratio question with arithmetic."
             },
             {
               "en": "Type scale",
@@ -1634,7 +1662,8 @@
             {
               "en": "Palette",
               "vi": "Bảng màu",
-              "write": "Roles with hex and perceptual lightness, the accessible-pair matrix, and the CMYK or screen caveats."
+              "write": "Roles with hex and perceptual lightness, the accessible-pair matrix, and the CMYK or screen caveats.",
+              "run": "python scripts/plan_palette.py and scripts/render_refsheet.py --sheet palettes - every ratio is computed, and two of the twenty accents genuinely fail 3:1 and may not carry text."
             },
             {
               "en": "Components",
@@ -1769,6 +1798,7 @@
         "new_run.py",
         "plan_video_sequence.py",
         "compile_prompt.py",
+        "check_prompt_grammar.py",
         "run_status.py"
       ],
       "deliverables": [
@@ -1893,7 +1923,8 @@
           "title": "Shot list",
           "title_vi": "Danh sách cảnh",
           "gate": "Generated by scripts/plan_video_sequence.py from a sequence spec, not typed by hand. The script refuses a screen-direction reversal on a straight cut, a generative shot over the drift ceiling, and durations that do not sum to the target, so a shot list that exists has already passed those checks.",
-          "header": "shot,start_s,end_s,duration_s,job,action,framing,camera,transition,text,audio,carried,changes"
+          "header": "shot,start_s,end_s,duration_s,job,action,framing,camera,transition,text,audio,carried,changes",
+          "run": "python scripts/plan_video_sequence.py - continuity is carried forward from shot to shot, so prompt 4 cannot contradict prompt 3. Do not write shots by hand."
         },
         {
           "id": "05-storyboard",
@@ -2057,6 +2088,7 @@
         "new_run.py",
         "analyze_performance.py",
         "score_creative.py",
+        "check_test_readout.py",
         "run_status.py"
       ],
       "deliverables": [
@@ -2144,7 +2176,8 @@
             {
               "en": "Funnel read",
               "vi": "Đọc phễu",
-              "write": "Where the loss actually happens, stage by stage, with numbers."
+              "write": "Where the loss actually happens, stage by stage, with numbers.",
+              "run": "python scripts/analyze_performance.py - and read the guardrails it prints. Never call a causal winner from CTR alone or across mixed conditions."
             },
             {
               "en": "Candidate causes ranked",
@@ -2215,7 +2248,8 @@
             {
               "en": "Sample requirement",
               "vi": "Yêu cầu về mẫu",
-              "write": "Calculated, with the baseline rate and the minimum detectable effect stated."
+              "write": "Calculated, with the baseline rate and the minimum detectable effect stated.",
+              "run": "python scripts/check_test_readout.py --plan --baseline RATE --mde LIFT - at a 3% conversion rate a 20% lift needs about fourteen thousand clicks per arm, which is worth knowing while the test is still cheap."
             },
             {
               "en": "If sample is unreachable",
@@ -2225,7 +2259,8 @@
             {
               "en": "Decision rules",
               "vi": "Quy tắc quyết định",
-              "write": "Written before launch: scale, hold, revise, or kill, at what threshold."
+              "write": "Written before launch: scale, hold, revise, or kill, at what threshold.",
+              "run": "python scripts/check_test_readout.py --claim ARM checks a winner against the confidence interval rather than the point estimate. A 58% headline lift at p = 0.29 is not a result."
             }
           ]
         },
@@ -2312,6 +2347,8 @@
       "scripts": [
         "rewrite_human.py",
         "find_recipe.py",
+        "check_specificity.py",
+        "check_address_register.py",
         "run_status.py"
       ],
       "deliverables": [
@@ -2368,7 +2405,8 @@
             {
               "en": "Measured before",
               "vi": "Đo bản gốc",
-              "write": "Paste the gate table and tell table from `python scripts/rewrite_human.py --check <draft>`."
+              "write": "Paste the gate table and tell table from `python scripts/rewrite_human.py --check <draft>`.",
+              "run": "python scripts/check_specificity.py --check <file> before scripts/rewrite_human.py --check <file>. Under three checkable facts the draft has a content problem, and every rhythm edit from there makes it read better while still saying nothing."
             },
             {
               "en": "Cadence failures",
@@ -2566,7 +2604,8 @@
             {
               "en": "Scored output",
               "vi": "Kết quả chấm",
-              "write": "Paste the output of `python scripts/score_kpi.py --input <card>.json`. Not a summary of it, and not a total retyped by hand."
+              "write": "Paste the output of `python scripts/score_kpi.py --input <card>.json`. Not a summary of it, and not a total retyped by hand.",
+              "run": "python scripts/score_kpi.py --input CARD.json - an achievement rate has four branches and picking the wrong one changes the number without changing its plausibility."
             },
             {
               "en": "Caps applied",
@@ -2641,6 +2680,7 @@
         "compile_prompt.py",
         "plan_image_generation.py",
         "generate_image.py",
+        "check_prompt_grammar.py",
         "run_status.py"
       ],
       "deliverables": [
@@ -2702,7 +2742,8 @@
             {
               "en": "Identity locks",
               "vi": "Yếu tố khoá danh tính",
-              "write": "Face, body, and pose locks from virtual-person-system.md, copied field by field, not summarised."
+              "write": "Face, body, and pose locks from virtual-person-system.md, copied field by field, not summarised.",
+              "run": "python scripts/plan_virtual_person.py - 35 measurable axes, nineteen locked as identity, hashed to a stable seed so the same person renders twice. Adjectives do not reproduce a face; see references/virtual-person-system.md."
             },
             {
               "en": "Name and continuity",
@@ -2752,7 +2793,8 @@
             {
               "en": "Compiled prompts",
               "vi": "Prompt đã biên soạn",
-              "write": "Output of scripts/compile_prompt.py --mode outfit-edit per look, pasted verbatim."
+              "write": "Output of scripts/compile_prompt.py --mode outfit-edit per look, pasted verbatim.",
+              "run": "python scripts/compile_prompt.py then scripts/check_prompt_grammar.py --provider <provider> --recurring-person - the consistency ceiling is published by exactly one vendor, and it is four characters."
             }
           ]
         },

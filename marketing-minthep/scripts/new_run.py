@@ -324,6 +324,11 @@ def _header(spec: dict, lang: str | None, context: dict) -> str:
         "---",
         "",
     ]
+    # Deliverables with no sections carry the RUN line on the deliverable itself. 07-prompts and
+    # 04-shot-list are both of that shape, and both have a script whose whole purpose is to stop the
+    # file being written by hand.
+    if spec.get("run"):
+        lines[-1:] = [f"> RUN: {spec['run']}", ""]
     return "\n".join(lines)
 
 
@@ -338,18 +343,32 @@ def _markdown_stub(spec: dict, lang: str | None, context: dict, seeds: dict | No
         else:
             heading = f"{section['vi']} / {section['en']}"
         body = seeds.get(section["en"])
-        parts.append(f"## {heading}\n\n{body}\n" if body else f"## {heading}\n\n> WRITE: {section['write']}\n")
+        block = f"## {heading}\n\n{body}\n" if body else f"## {heading}\n\n> WRITE: {section['write']}\n"
+        # A RUN line names the tool that already answers this section. It is emitted even when the
+        # section arrives seeded, because the failure it exists to stop is not an empty stub - it is a
+        # full one. A cold run used to say "derive the CAC ceiling and show the calculation" while
+        # price_offer.py sat unnamed in the same repository, and hand arithmetic in a deliverable is
+        # indistinguishable from a remembered number.
+        if section.get("run"):
+            block += f"\n> RUN: {section['run']}\n"
+        parts.append(block)
     return "\n".join(parts) + "\n"
 
 
 def _dir_readme(spec: dict, context: dict) -> str:
-    return (
+    text = (
         f"<!-- minthep:deliverable id={spec['id']} lang=vi+en status=empty -->\n"
         f"# {spec['title_vi']} / {spec['title']}\n\n"
         f"**Run:** `{context['run_id']}` · **Status:** `empty`\n\n"
         f"**Acceptance gate / Tiêu chí nghiệm thu:** {spec['gate']}\n\n"
         f"> WRITE: {spec.get('readme', 'Populate this folder, then replace this line.')}\n"
     )
+    # A folder deliverable gets its RUN line the same way a markdown one does. 07-prompts is the
+    # case that matters: the folder is filled with compiled prompts, and the compiler is the thing
+    # that keeps a negative constraint out of a prompt for a provider that has no negative field.
+    if spec.get("run"):
+        text += f"\n> RUN: {spec['run']}\n"
+    return text
 
 
 def resolved_specs(pipeline: dict, mode: str, signals: dict) -> list[dict]:
@@ -399,18 +418,22 @@ def build_run(request: dict, registry: dict | None = None) -> dict:
             paths = [f"{spec['file']}/README.md"]
         else:
             paths = [spec["file"]]
-        deliverables.append(
-            {
-                "id": spec["id"],
-                "kind": kind,
-                "bilingual": bool(spec.get("bilingual")),
-                "title": spec["title"],
-                "title_vi": spec["title_vi"],
-                "gate": spec["gate"],
-                "paths": paths,
-                "status": "empty",
-            }
-        )
+        entry = {
+            "id": spec["id"],
+            "kind": kind,
+            "bilingual": bool(spec.get("bilingual")),
+            "title": spec["title"],
+            "title_vi": spec["title_vi"],
+            "gate": spec["gate"],
+            "paths": paths,
+            "status": "empty",
+        }
+        # A csv deliverable is a bare header row, so a RUN line cannot live inside the file the way
+        # it does in a markdown stub or a folder README. Carrying it on the manifest entry lets the
+        # run index name the command instead, which is the only remaining place a reader would look.
+        if spec.get("run"):
+            entry["run"] = spec["run"]
+        deliverables.append(entry)
 
     return {
         "schema_version": 1,
@@ -525,14 +548,25 @@ def _index(run: dict, written: list[str]) -> str:
         files = " · ".join(f"[`{path}`]({path})" for path in entry["paths"])
         gate = entry["gate"].replace("|", "\\|")
         lines.append(f"| {index} | {entry['title']} | {entry['title_vi']} | {files} | {gate} |")
+    # Deliverables whose file cannot hold prose - a csv is a header row, a json is a template - name
+    # their command here. Everything else carries its own RUN line, and repeating it would only
+    # teach a reader that this section is a duplicate to skip.
+    silent = [entry for entry in run["deliverables"] if entry.get("run") and entry["kind"] in ("csv", "json")]
+    if silent:
+        lines += ["", "## Do not write these by hand / Đừng viết tay mấy file này", ""]
+        for entry in silent:
+            lines.append(f"- `{entry['paths'][0]}` — {entry['run']}")
     lines += [
         "",
         "## How to use / Cách dùng",
         "",
         "1. Fill `01-intake` first. Everything downstream inherits its truth labels.",
         "2. Replace every `> WRITE:` line with real content. That marker is how completeness is measured.",
-        "3. Update the `status=` marker in each file header: `empty` -> `draft` -> `final`.",
-        "4. Run `python scripts/run_status.py --run .` to see what is still outstanding.",
+        "3. A `> RUN:` line is a command, not a suggestion. Run it and paste what it prints. Those sections "
+        "are arithmetic and measured craft values; answering them from memory is how a plausible wrong "
+        "number gets into a plan. Leave the `> RUN:` line in place — it is the citation.",
+        "4. Update the `status=` marker in each file header: `empty` -> `draft` -> `final`.",
+        "5. Run `python scripts/run_status.py --run .` to see what is still outstanding.",
         "",
         "## Truth gate / Cổng sự thật",
         "",

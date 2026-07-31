@@ -42,6 +42,7 @@ import plan_palette
 import render_refsheet
 import rewrite_human
 import score_kpi
+import run_status
 from new_run import build_run, load_registry, route_pipeline, write_run
 from plan_image_generation import route_image_request
 from plan_design_options import plan_options
@@ -1118,6 +1119,132 @@ class RunWorkspaceTests(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 write_run(run, Path(tmp))
             write_run(run, Path(tmp), force=True)
+
+
+class DeliverableRunLineTests(unittest.TestCase):
+    """A deliverable that asks for arithmetic has to name the script that does the arithmetic.
+
+    This class exists because of a cold customer run. `start_workbench.py` scaffolded sixteen
+    deliverables for a shop owner who said she knew nothing about marketing, and `11-budget` asked
+    her to "derive the CAC ceiling and show the calculation" while `price_offer.py` sat unnamed in
+    the same repository. A hand-calculated margin in a filled deliverable is indistinguishable from
+    a remembered one, and that is the failure these tests are pointed at - not an empty stub, a
+    confidently full one.
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.registry = load_registry()
+        cls.script_dir = Path(__file__).resolve().parent
+        cls.lines = []  # (pipeline, deliverable id, section or None, run line)
+        for name, pipeline in cls.registry["pipelines"].items():
+            for spec in pipeline["deliverables"]:
+                if spec.get("run"):
+                    cls.lines.append((name, spec["id"], None, spec["run"]))
+                for section in spec.get("sections", []):
+                    if section.get("run"):
+                        cls.lines.append((name, spec["id"], section["en"], section["run"]))
+
+    def _scripts_named(self, line: str) -> set[str]:
+        return set(re.findall(r"([a-z_]+\.py)", line))
+
+    def test_the_registry_actually_carries_run_lines(self) -> None:
+        self.assertGreaterEqual(len(self.lines), 20, "the wiring was reverted")
+
+    def test_every_script_named_in_a_run_line_exists_on_disk(self) -> None:
+        for pipeline, did, section, line in self.lines:
+            for script in self._scripts_named(line):
+                with self.subTest(pipeline=pipeline, deliverable=did, section=section, script=script):
+                    self.assertTrue((self.script_dir / script).exists(), script)
+
+    def test_every_script_named_in_a_run_line_is_in_that_pipelines_script_list(self) -> None:
+        """Otherwise the pipeline manifest hides a tool the deliverable depends on."""
+        for pipeline, did, section, line in self.lines:
+            declared = set(self.registry["pipelines"][pipeline]["scripts"])
+            for script in self._scripts_named(line):
+                with self.subTest(pipeline=pipeline, deliverable=did, script=script):
+                    self.assertIn(script, declared)
+
+    def test_run_status_stays_last_in_every_script_list(self) -> None:
+        """It is the gate, not a step, and inserting tools after it would read as an order."""
+        for name, pipeline in self.registry["pipelines"].items():
+            scripts = pipeline["scripts"]
+            if "run_status.py" in scripts:
+                with self.subTest(pipeline=name):
+                    self.assertEqual(scripts[-1], "run_status.py")
+
+    def test_a_run_line_says_what_the_command_settles_not_just_the_command(self) -> None:
+        for pipeline, did, section, line in self.lines:
+            with self.subTest(pipeline=pipeline, deliverable=did, section=section):
+                self.assertTrue(self._scripts_named(line) or line.startswith("The same command"), line)
+                self.assertGreater(len(line), 80, "a bare command teaches nothing about why")
+
+    def test_the_arithmetic_sections_of_a_cold_plan_name_their_tool(self) -> None:
+        run = build_run(
+            {"request": "Tôi mở shop mỹ phẩm nhỏ, không biết gì về marketing, ngân sách nhỏ",
+             "date": "2026-01-01"},
+            self.registry,
+        )
+        self.assertEqual(run["pipeline"], "plan-from-zero")
+        with tempfile.TemporaryDirectory() as tmp:
+            write_run(run, Path(tmp))
+            run_dir = Path(tmp) / "runs" / run["run_id"]
+            budget = (run_dir / "11-budget-and-unit-economics.en.md").read_text(encoding="utf-8")
+            self.assertIn("price_offer.py", budget)
+            self.assertIn("--acquisition-cost", budget)
+            self.assertIn("Do not hand-calculate this", budget)
+            copy = (run_dir / "08-copy-pack.en.md").read_text(encoding="utf-8")
+            self.assertIn("check_specificity.py", copy)
+            self.assertIn("rewrite_human.py", copy)
+            # Order is load-bearing: rhythm edits delete specifics, so facts get counted first.
+            self.assertLess(copy.index("check_specificity.py"), copy.index("rewrite_human.py"))
+            index = (run_dir / "README.md").read_text(encoding="utf-8")
+            self.assertIn("`> RUN:` line is a command", index)
+
+    def test_a_run_line_reaches_a_deliverable_with_no_sections(self) -> None:
+        run = build_run({"request": "Sửa ảnh này thành key visual", "date": "2026-01-01"}, self.registry)
+        self.assertEqual(run["pipeline"], "image-from-reference")
+        with tempfile.TemporaryDirectory() as tmp:
+            write_run(run, Path(tmp))
+            readme = (Path(tmp) / "runs" / run["run_id"] / "07-prompts" / "README.md")
+            text = readme.read_text(encoding="utf-8")
+            self.assertIn("> RUN:", text)
+            self.assertIn("check_prompt_grammar.py", text)
+
+    def test_a_csv_deliverable_names_its_tool_in_the_run_index(self) -> None:
+        """A csv is a bare header row, so the command has nowhere to live inside the file."""
+        run = build_run({"request": "Làm video TikTok và shot list", "date": "2026-01-01"}, self.registry)
+        with tempfile.TemporaryDirectory() as tmp:
+            write_run(run, Path(tmp))
+            run_dir = Path(tmp) / "runs" / run["run_id"]
+            shot_list = next(
+                entry for entry in run["deliverables"] if entry["id"] == "04-shot-list"
+            )
+            self.assertEqual(shot_list["kind"], "csv")
+            index = (run_dir / "README.md").read_text(encoding="utf-8")
+            self.assertIn("Do not write these by hand", index)
+            self.assertIn("plan_video_sequence.py", index)
+            # And the csv itself is still only a header, not prose pretending to be data.
+            csv_text = (run_dir / "04-shot-list.csv").read_text(encoding="utf-8")
+            self.assertNotIn("RUN:", csv_text)
+            self.assertEqual(len(csv_text.strip().splitlines()), 1)
+
+    def test_a_run_line_does_not_trip_the_strict_completeness_gate(self) -> None:
+        """`> RUN:` is a citation that stays in the finished file, so it may not read as unfinished."""
+        filled = (
+            "<!-- minthep:deliverable id=11-budget lang=en status=final -->\n"
+            "# Budget\n\n## CAC ceiling\n\n"
+            "Contribution is 168,000 VND, so the single-purchase ceiling is 168,000.\n\n"
+            "> RUN: python scripts/price_offer.py --price 280000 --variable-cost 112000\n"
+        )
+        self.assertFalse(run_status.WRITE_MARKER.search(filled))
+        self.assertFalse(run_status.PLACEHOLDER.search(filled))
+
+    def test_the_registry_still_roundtrips_byte_identically(self) -> None:
+        """The run lines were patched programmatically; the file may not carry formatting drift."""
+        path = Path(__file__).resolve().parent.parent / "assets" / "registries" / "pipelines.json"
+        raw = path.read_text(encoding="utf-8")
+        self.assertEqual(json.dumps(json.loads(raw), ensure_ascii=False, indent=2) + "\n", raw)
 
 
 class RunAuditTests(unittest.TestCase):
