@@ -1473,7 +1473,7 @@ class DataTableTests(unittest.TestCase):
         "tracking-events.csv": (15, 12),
         "attribution-windows.csv": (9, 12),
         "affiliate-mechanics.csv": (38, 11),
-        "vn-advertising-law.csv": (45, 13),
+        "vn-advertising-law.csv": (65, 13),
         "claim-evidence.csv": (41, 16),
         "lifecycle-duties.csv": (25, 17),
     }
@@ -6660,6 +6660,116 @@ class AffiliateModelTests(unittest.TestCase):
         for name in ("affiliate-commerce.md", "creator-ugc.md"):
             text = (SKILL_ROOT / "references" / name).read_text(encoding="utf-8")
             self.assertNotIn("must include the phrase", text)
+
+class PressPlacementLawTests(unittest.TestCase):
+    """`pr-communications.md` is the one reference that quotes fine bands in running prose.
+
+    That is a liability. A band remembered from a paragraph is how a wrong number reaches a client, so
+    every figure in the file is recomputed here from the table rather than compared against a second
+    copy of itself. The other thing worth pinning is the honesty of the file: it makes two claims about
+    what the corpus does not settle, and both are checkable - if a Điều 56.1 row ever lands in the
+    table, the sentence saying it is deliberately absent has become a lie.
+    """
+
+    REFERENCE = SKILL_ROOT / "references" / "pr-communications.md"
+    TABLE = SKILL_ROOT / "data" / "vn-advertising-law.csv"
+    # Rows the file prices in prose. Bands are read out of the table, never typed here.
+    PRICED = (
+        "fine-takedown-24h", "fine-ignoring-a-ministry-takedown", "fine-ad-beside-unlawful-content",
+        "fine-partnering-with-a-named-violator", "fine-no-information-on-request",
+        "fine-missing-marker", "fine-front-page-advertising", "fine-print-missing-marker",
+        "fine-print-area-exceeded", "print-supplement-page-one-line",
+        "fine-advertising-in-a-bulletin",
+    )
+
+    def setUp(self) -> None:
+        self.text = self.REFERENCE.read_text(encoding="utf-8")
+        # The file is hard-wrapped, so `30 to 40 million` can straddle a line break. Every phrase
+        # assertion below runs against the flattened copy or it fails on typography, not on content.
+        self.flat = re.sub(r"\s+", " ", self.text)
+        with io.open(self.TABLE, encoding="utf-8-sig") as handle:
+            self.rows = {row["id"]: row for row in csv.DictReader(handle)}
+
+    @staticmethod
+    def _millions(value: str) -> str:
+        """`40000000 to 50000000` is how the table stores a band; `40 to 50 million` is how a person
+        says it. The prose has to say it the second way and mean the first."""
+        match = re.fullmatch(r"(\d+) to (\d+)", value)
+        assert match, value
+        low, high = (int(part) // 1_000_000 for part in match.groups())
+        return f"{low} to {high} million"
+
+    def test_every_band_the_file_quotes_is_the_band_the_table_holds(self) -> None:
+        for row_id in self.PRICED:
+            row = self.rows[row_id]
+            self.assertEqual(row["unit"], "VND", row_id)
+            self.assertIn(row["article"], self.flat, row_id)
+            self.assertIn(self._millions(row["value"]), self.flat, row_id)
+        # And nothing invented: no millions figure appears that no priced row supports.
+        allowed = {self._millions(self.rows[row_id]["value"]) for row_id in self.PRICED}
+        allowed.add("20 to 30 million")  # Điều 56.1, named as out of scope rather than tabled.
+        for quoted in re.findall(r"\d+ to \d+ million", self.flat):
+            self.assertIn(quoted, allowed, quoted)
+
+    def test_the_takedown_clock_is_read_as_calendar_hours(self) -> None:
+        """The trap is reading 24 hours the way `lifecycle-retention.md` reads its notice clock. One
+        counts working days and pauses over a weekend; this one does not, and a file that leaves that
+        implicit has handed the reader a missed deadline."""
+        for article in ("Điều 18.1", "Điều 18.2", "Điều 18.3"):
+            self.assertIn(article, self.flat, article)
+        self.assertIn("24", self.rows["takedown-24h-duty"]["value"])
+        self.assertIn("lifecycle-retention.md", self.flat)
+        self.assertIn("Điều 42", self.flat)
+        self.assertIn("working days", self.flat)
+        self.assertIn("Saturday", self.flat)
+        # The unresolved allocation between the two takedown limbs must travel with the bands.
+        self.assertEqual(self.rows["open-which-takedown-limb-applies"]["unit"], "finding")
+        self.assertIn("open-which-takedown-limb-applies", self.flat)
+
+    def test_the_print_and_online_marker_asymmetry_is_stated_with_both_bands(self) -> None:
+        """Same editorial failure, two prices. A reader who knows only the print band will under-brief
+        a network campaign by a factor the file has to name."""
+        print_band = self._millions(self.rows["fine-print-missing-marker"]["value"])
+        online_band = self._millions(self.rows["fine-missing-marker"]["value"])
+        self.assertNotEqual(print_band, online_band)
+        for band in (print_band, online_band):
+            self.assertIn(band, self.flat)
+        self.assertIn("three times", self.flat)
+
+    def test_the_counterparty_section_names_the_remedy_not_just_the_band(self) -> None:
+        """Điều 56.3.a and Điều 56.3.c carry the same band, so the band cannot be what distinguishes
+        them. Disgorgement is, and it only attaches to two of the five limbs."""
+        adjacency = self.rows["fine-ad-beside-unlawful-content"]
+        cooperation = self.rows["fine-partnering-with-a-named-violator"]
+        self.assertEqual(adjacency["value"], cooperation["value"])
+        remedy = self.rows["remedy-disgorgement-for-placement"]
+        self.assertIn("Điều 56.3.b", remedy["what_it_actually_says"])
+        self.assertIn("Điều 56.3.c", remedy["what_it_actually_says"])
+        self.assertIn(remedy["article"], self.flat)
+        self.assertIn("not to the adjacency limb", self.flat)
+
+    def test_the_file_leaves_the_advertorial_question_open_in_both_directions(self) -> None:
+        """Having found that the amended definition names no payment, the tempting move is to declare
+        that unpaid coverage is advertising. The corpus does not carry the scope provision that would
+        decide it either way, so the file must refuse both answers, not just the convenient one."""
+        definition = self.rows["advertising-defined"]
+        self.assertIn("names no payment", definition["what_it_actually_says"])
+        self.assertIn("Luật 16/2012", definition["what_it_does_not_establish"])
+        self.assertIn("we did not pay", self.flat)
+        self.assertIn("it is journalism", self.flat)
+        self.assertIn("advertising-defined", self.flat)
+        # The outlet being a named role is settled, and is what the reader can act on.
+        self.assertIn("cơ quan báo chí", self.rows["press-agency-is-a-publisher"]["what_it_actually_says"])
+        self.assertIn(self.rows["liability-is-concurrent"]["article"], self.flat)
+        # Disclosure wording is prescribed nowhere, and this file must not become the fourth telling.
+        self.assertNotIn("must include the phrase", self.flat)
+        self.assertIn("creator-ugc.md", self.flat)
+
+    def test_what_the_file_disclaims_is_genuinely_absent_from_the_table(self) -> None:
+        articles = {row["article"] for row in self.rows.values()}
+        for absent in ("Điều 56.1", "Điều 58"):
+            self.assertNotIn(absent, articles, absent)
+            self.assertIn(absent, self.flat, absent)
 
 class ClaimEvidenceTests(unittest.TestCase):
     """What has to be pinned here is the boundary between what a regex decided and what a person did.

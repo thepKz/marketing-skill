@@ -1095,9 +1095,16 @@ Additional duties in the same `[verified]` source:
 - **Do not partner with parties who violate advertising law.**
 - **Respond to removal requests within 24 hours** where content violates the regulations.
 
-The same source notes the law references consumer-protection statutes for violations but does not state penalty
-amounts. `[UNVERIFIED - needs the amended Decree 38/2021 penalty schedule, or its replacement, for the specific
-fine bands applicable to endorser breaches from 2026]`
+Both of those last two bullets have since been read at primary-source level, and the secondary source
+under-described them. The 24-hour duty is Nghị định 342/2025 Điều 18.2 and it binds the advertiser, the
+ad-service business, the publisher and the conveyor alike rather than only an endorser; the request
+counts when it arrives electronically, and a miss brings technical blocking by two ministries under
+Điều 18.3. The partnering rule is Nghị định 87/2026 Điều 56.3.c, and it is triggered by a public
+announcement rather than by what you knew. Read `data/vn-advertising-law.csv` and
+`references/pr-communications.md` for both, not this table.
+
+The fine bands the secondary source could not supply are now in that table, from Nghị định 87/2026:
+Điều 51 for endorser breaches, Điều 56 for online placement and Điều 57 for print.
 
 Corroborating `[search-level]`: the amended law is characterised as introducing a **post-verification
 ("hậu kiểm") principle** — shifting from pre-publication licensing to monitoring and enforcement after
