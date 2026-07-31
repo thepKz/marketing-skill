@@ -20,6 +20,7 @@
         "brand-dna.md",
         "claims-proof-ledger.md",
         "copywriting.md",
+        "seo-writing.md",
         "channel-deliverables.md",
         "learning-loop.md",
         "vietnam-operating-reality.md",
@@ -38,6 +39,7 @@
         "check_specificity.py",
         "rewrite_human.py",
         "check_address_register.py",
+        "audit_seo_page.py",
         "score_kpi.py",
         "plan_composition_set.py",
         "render_refsheet.py",
@@ -2339,6 +2341,7 @@
       "references": [
         "rewrite-human.md",
         "copywriting.md",
+        "seo-writing.md",
         "brand-dna.md",
         "anti-ai-quality.md",
         "claims-proof-ledger.md"
@@ -2348,6 +2351,7 @@
         "find_recipe.py",
         "check_specificity.py",
         "check_address_register.py",
+        "audit_seo_page.py",
         "run_status.py"
       ],
       "deliverables": [

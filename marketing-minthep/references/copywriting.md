@@ -56,9 +56,14 @@ Capture:
 
 ### SEO content
 
-- Satisfy the real query before expanding into brand narrative.
-- Use descriptive headings and information gain from first-party truth, examples, or synthesis.
-- Do not stuff keywords or fabricate expertise signals.
+Route out to `seo-writing.md`. Three bullets sat here promising a capability the skill advertised in
+its own description, which is the worst place to be thin. The unit is ten query intents in
+`data/seo-intents.csv` plus `scripts/audit_seo_page.py`, which measures a draft against the intent
+you name.
+
+The first of those bullets is now a number. *Satisfy the real query before expanding into brand
+narrative* changed no drafts as a sentence; the audit fails a page whose text has not carried every
+head term of the query together inside the first hundred and twenty words.
 
 ## Editing pass
 

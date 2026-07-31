@@ -81,6 +81,12 @@ Load only when relevant:
   `address-register.md` plus `data/address-registers.csv` and `scripts/check_address_register.py`.
   Load this before writing or localising any Vietnamese copy. Vietnamese has no neutral second
   person, so the choice is grammar, not tone, and a translated draft re-invents it every sentence.
+- What kind of page can answer a search query at all, and whether the draft answers it before it
+  starts talking about the company: `seo-writing.md` plus `data/seo-intents.csv` and
+  `scripts/audit_seo_page.py`. Load this before writing anything meant to be found, and before
+  quoting a price for `best-of` work - those SERPs are held by aggregators and a brand domain
+  usually cannot win them at any length. The script measures the draft and refuses to estimate
+  volume, difficulty or position, because those are live facts and inventing them is fabrication.
 - Where a number came from and what it actually measures: `market-data-collection.md`.
 - Which customer source can answer the question you actually have, how many people a theme needs before
   it is a theme, and whether a share may be spoken out loud: `customer-evidence.md` plus

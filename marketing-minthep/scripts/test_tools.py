@@ -27,6 +27,7 @@ from build_asset_manifest import build_manifest
 from compile_prompt import compile_provider
 # Imported as modules, not names: both define PLACEMENTS, and `from ... import PLACEMENTS` twice
 # would leave one test silently asserting against the other module's table.
+import audit_seo_page
 import check_address_register
 import check_evidence_saturation
 import check_prompt_grammar
@@ -1462,6 +1463,7 @@ class DataTableTests(unittest.TestCase):
         "prompt-grammar.csv": (69, 9),
         "reference-set-calibration.csv": (11, 10),
         "evidence-sources.csv": (20, 12),
+        "seo-intents.csv": (10, 12),
     }
 
     # Most of these tables are keyed by their first column. The weights table is keyed by two, and
@@ -5502,6 +5504,248 @@ class CustomerEvidenceTests(unittest.TestCase):
         report = check_evidence_saturation.self_check()
         self.assertIn("passed", report.lower())
         self.assertNotIn("FAIL", report)
+
+
+class SeoWritingTests(unittest.TestCase):
+    """SEO was the skill's loudest false promise, and these tests exist to stop it becoming one again.
+
+    The capability was named in the SKILL.md description and delivered as three bullets in
+    `copywriting.md`. The temptation when building the replacement is to make it look complete by
+    printing numbers for search volume, difficulty and position - which are live SERP facts no
+    offline script can know, so every one of them would be invented. Two tests below hold that line:
+    the unknowns block must appear on every run, and no gate may claim to measure competition.
+
+    The rest hold the reference to the script. A prose file quoting a limit of 160 characters beside
+    a script that fires at 150 is worse than either alone, because the reader trusts the number they
+    read and the tool grades on a different one.
+    """
+
+    REFERENCE = "seo-writing.md"
+    TABLE = "seo-intents.csv"
+
+    # Spelled out rather than read from the script, because a test that derives its expectations from
+    # the code under test still passes after a gate has been deleted.
+    ALWAYS = ("title-present", "title-truncation", "meta-description", "single-h1", "heading-ladder",
+              "information-gain", "internal-link")
+    # Gates that must be absent rather than passing when the evidence for them was never supplied.
+    CONDITIONAL = ("query-in-title", "query-in-a-heading", "answer-before-narrative",
+                   "phrase-repetition", "proof-count-for-intent", "image-alt")
+
+    # Each script constant paired with the words the reference is required to use for it. The
+    # reference sets its numbers in words where a bare digit would break the register of the
+    # sentence, which is a formatting choice and must not become a way for the two to drift.
+    IN_WORDS = {
+        "TITLE_CHARS_MIN": "fifteen characters",
+        "TITLE_PIXELS_MAX": "580 pixels",
+        "META_CHARS_MIN": "seventy",
+        "META_CHARS_MAX": "a hundred and sixty characters",
+        "ANSWER_WITHIN_UNITS": "hundred and twenty words",
+        "PHRASE_PER_300_MAX": "three times per three hundred words",
+        "GAIN_PER_300_MIN": "three specifics per three hundred words",
+    }
+
+    # A page that does everything right, used as the control. Front matter declared, query answered
+    # in the first sentence, four checkable things, one internal link.
+    GOOD = ("---\ntitle: Giá bàn gỗ sồi tháng 7 2026\n"
+            "description: Giá bàn gỗ sồi tại xưởng Gò Vấp, cập nhật 12/07/2026, kèm phí giao "
+            "và thời gian bảo hành.\nquery: giá bàn gỗ sồi\nintent: price\n---\n\n"
+            "# Giá bàn gỗ sồi\n\nGiá bàn gỗ sồi là 4.500.000 đồng, cập nhật ngày 12/07/2026. "
+            "Mặt bàn dày 25mm. Giao trong 48 giờ ở TP HCM với phí 150.000 đồng.\n\n"
+            "## Giá thay đổi theo gì\n\nBản 1m6 cộng thêm 800.000 đồng. Gọi 0901 234 567.\n\n"
+            "Xem thêm [bàn ăn gỗ](/ban-an-go).\n")
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.rows = {row["id"]: row for row in DataTableTests.rows(cls.TABLE)}
+        cls.prose = (SKILL_ROOT / "references" / cls.REFERENCE).read_text(encoding="utf-8")
+        cls.flat = " ".join(cls.prose.split())
+
+    def gates_for(self, text: str, query: str | None = None, intent: str | None = None) -> dict:
+        stats = audit_seo_page.read_page(text, query, intent)
+        return {row["gate"]: row for row in audit_seo_page.gates(stats)}
+
+    def test_the_self_check_passes(self) -> None:
+        self.assertIn("passed", audit_seo_page.self_check())
+
+    def test_the_control_page_clears_every_gate(self) -> None:
+        verdicts = self.gates_for(self.GOOD)
+        failed = [name for name, row in verdicts.items() if not row["pass"]]
+        self.assertEqual(failed, [], failed)
+        self.assertEqual(audit_seo_page.blocking_count(list(verdicts.values())), 0)
+
+    def test_a_gate_with_no_evidence_is_absent_rather_than_passing(self) -> None:
+        """A pass on no evidence reads as a clean bill of health, which is the failure mode."""
+        bare = "# Bàn gỗ sồi Gò Vấp\n\nXưởng ở Gò Vấp, mở từ 2019. Gọi 0901 234 567.\n"
+        named = set(self.gates_for(bare))
+        for gate in self.ALWAYS:
+            self.assertIn(gate, named, gate)
+        for gate in self.CONDITIONAL:
+            self.assertNotIn(gate, named, gate)
+
+    def test_naming_the_query_and_intent_turns_the_conditional_gates_on(self) -> None:
+        named = set(self.gates_for(self.GOOD))
+        for gate in self.CONDITIONAL:
+            if gate == "image-alt":
+                continue  # the control page carries no images, so this one stays absent
+            self.assertIn(gate, named, gate)
+
+    def test_the_narrative_first_page_blocks(self) -> None:
+        """`copywriting.md` said satisfy the real query first. That sentence changed no drafts."""
+        narrative = ("---\ntitle: Về chúng tôi và hành trình thương hiệu\nquery: giá bàn gỗ sồi\n"
+                     "---\n\n# Về chúng tôi\n\n"
+                     + ("Chúng tôi là thương hiệu tận tâm với nhiều năm kinh nghiệm trong ngành nội "
+                        "thất cao cấp và luôn đặt khách hàng lên hàng đầu. " * 6)
+                     + "\n\nGiá bàn gỗ sồi là 4.500.000 đồng.\n")
+        verdicts = self.gates_for(narrative)
+        self.assertFalse(verdicts["answer-before-narrative"]["pass"])
+        self.assertEqual(verdicts["answer-before-narrative"]["severity"], "high")
+        self.assertGreaterEqual(audit_seo_page.blocking_count(list(verdicts.values())), 1)
+
+    def test_proof_inside_a_table_row_counts(self) -> None:
+        """The regression that made the reader change. Counting prose only scored 26 of the 60
+        reference files as carrying nothing, with their numbers sitting in rows it skipped - and on a
+        commercial page it is worse, because the winning `comparison` page is a table."""
+        table = ("---\ntitle: So sánh bàn gỗ sồi và gỗ cao su\nquery: so sánh bàn gỗ sồi\n"
+                 "description: Bảng so sánh hai loại mặt bàn theo giá, độ dày, bảo hành và thời "
+                 "gian giao, đo tháng 7 2026.\nintent: comparison\n---\n\n"
+                 "# So sánh bàn gỗ sồi và gỗ cao su\n\n"
+                 "| Trục | Sồi | Cao su |\n|---|---|---|\n"
+                 "| Giá | 4.500.000 đồng | 2.100.000 đồng |\n"
+                 "| Độ dày | 25mm | 18mm |\n| Bảo hành | 24 tháng | 12 tháng |\n"
+                 "| Giao ở TP HCM | 48 giờ | 24 giờ |\n\nXem [bàn ăn gỗ](/ban-an-go).\n")
+        stats = audit_seo_page.read_page(table, None, None)
+        self.assertGreaterEqual(stats["checkable_statements"], int(self.rows["comparison"]["proofs_required"]))
+        verdicts = {row["gate"]: row for row in audit_seo_page.gates(stats)}
+        self.assertTrue(verdicts["information-gain"]["pass"], verdicts["information-gain"])
+        self.assertTrue(verdicts["proof-count-for-intent"]["pass"])
+
+    def test_a_code_fence_is_not_proof(self) -> None:
+        """A snippet full of numbers must not read as evidence, and a `#` inside one is not a
+        heading. Both would let a technical page pass on content nobody claimed."""
+        fenced = "# Cấu hình\n\nĐoạn dưới là ví dụ.\n\n```\n# giá\nprice = 4500000\n```\n"
+        stats = audit_seo_page.read_page(fenced, None, None)
+        self.assertEqual(stats["h1_count"], 1)
+        self.assertFalse(any("4500000" in piece for piece in audit_seo_page.reading_stream(fenced)))
+
+    def test_diacritics_do_not_invent_a_missing_keyword(self) -> None:
+        """Vietnamese searchers type both forms and phones autocorrect between them, so a matcher
+        that separates `giá` from `gia` reports a keyword missing from a page that carries it."""
+        self.assertEqual(audit_seo_page.fold("Giá iPhone ở TP HCM"), "gia iphone o tp hcm")
+        folded = ("---\ntitle: Gia ban go soi 2026\nquery: giá bàn gỗ sồi\n---\n\n"
+                  "# Gia ban go soi\n\nGia ban go soi la 4.500.000 dong.\n")
+        self.assertTrue(self.gates_for(folded)["query-in-title"]["pass"])
+
+    def test_the_title_gate_measures_width_rather_than_characters(self) -> None:
+        """A character count passes a title of capitals that will be cut in the results."""
+        self.assertGreater(audit_seo_page.title_pixels("MMMMMMMMMMMM"),
+                           audit_seo_page.title_pixels("iiiiiiiiiiii"))
+        wide = "M" * 60
+        self.assertFalse(self.gates_for(f"# {wide}\n\nProse here about it.\n")["title-truncation"]["pass"])
+
+    def test_an_inferred_title_is_labelled_rather_than_silently_accepted(self) -> None:
+        """A markdown draft has no title tag. Reading the H1 is the only option, and a report that
+        did not say so would let a page ship with no title while showing a pass."""
+        stats = audit_seo_page.read_page("# Giá bàn gỗ sồi Gò Vấp\n\nGiá là 4.500.000 đồng.\n", None, None)
+        self.assertEqual(stats["title_provenance"], "inferred")
+        self.assertIn("inferred", self.gates_for(self.GOOD.replace("title: Giá bàn gỗ sồi tháng 7 2026\n", ""))
+                      ["title-present"]["observed"])
+
+    def test_every_run_prints_what_it_could_not_establish(self) -> None:
+        """The difference between an on-page audit and the SEO audit somebody will assume they got."""
+        stats = audit_seo_page.read_page(self.GOOD, None, None)
+        block = " ".join(audit_seo_page.unknowns(stats)).lower()
+        for owed in ("volume", "difficulty", "indexab", "claims"):
+            self.assertIn(owed, block, owed)
+        self.assertIn("Not established by this run",
+                      audit_seo_page.report(stats, audit_seo_page.gates(stats)))
+
+    def test_no_gate_claims_to_measure_a_live_serp_fact(self) -> None:
+        """Volume, difficulty, position and competitor strength change weekly and differ by city.
+        A gate reporting any of them would be printing an invented number."""
+        forbidden = ("volume", "difficulty", "ranking position", "competitor", "domain authority")
+        for row in audit_seo_page.gates(audit_seo_page.read_page(self.GOOD, None, None)):
+            for word in forbidden:
+                self.assertNotIn(word, row["observed"].lower(), (row["gate"], word))
+                self.assertNotIn(word, row["target"].lower(), (row["gate"], word))
+
+    def test_the_reference_uses_the_numbers_the_script_enforces(self) -> None:
+        for constant, words in self.IN_WORDS.items():
+            self.assertIn(words, self.flat, f"{constant} is not stated as `{words}`")
+
+    def test_the_reference_and_the_table_agree_on_the_proof_counts(self) -> None:
+        """The reference names two rows by their count. If a row changes, the prose must change."""
+        self.assertEqual(int(self.rows["definition"]["proofs_required"]), 2)
+        self.assertEqual(int(self.rows["best-of"]["proofs_required"]), 6)
+        self.assertIn("A `definition` query needs two checkable things", self.flat)
+        self.assertIn("a `best-of` list needs six", self.flat)
+
+    def test_every_intent_explains_itself_and_an_unknown_one_fails_loudly(self) -> None:
+        for intent in self.rows:
+            text = audit_seo_page.explain(intent)
+            self.assertIn(self.rows[intent]["page_type_that_wins"], text, intent)
+            self.assertIn(self.rows[intent]["vn_note"], text, intent)
+        missing = audit_seo_page.explain("no-such-intent")
+        self.assertIn("No intent", missing)
+        self.assertIn("price", missing)  # the available ids are listed rather than just refused
+
+    def test_every_intent_row_names_a_reflex_to_reject_and_an_honest_limit(self) -> None:
+        """The two columns that make the table a decision rather than a description."""
+        for intent, row in self.rows.items():
+            self.assertGreater(len(row["reflex_to_reject"].split()), 4, intent)
+            self.assertGreater(len(row["what_it_does_not_establish"].split()), 4, intent)
+            self.assertGreaterEqual(int(row["proofs_required"]), 2, intent)
+
+    def test_the_scoping_warning_survives_in_both_the_table_and_the_prose(self) -> None:
+        """The most expensive mistake this unit prevents is quoting for work that cannot win."""
+        self.assertIn("aggregator", self.rows["best-of"]["vn_note"].lower())
+        self.assertIn("aggregators", self.flat)
+
+    def test_the_exit_code_blocks_a_failing_page(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            good = Path(tmp) / "good.md"
+            good.write_text(self.GOOD, encoding="utf-8")
+            out = Path(tmp) / "report.md"
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(audit_seo_page.main(["--check", str(good), "--output", str(out)]), 0)
+            self.assertIn("Blocking failures: 0", out.read_text(encoding="utf-8"))
+            bad = Path(tmp) / "bad.md"
+            bad.write_text("# Nha\n\nChung toi rat tan tam voi khach hang cua minh.\n", encoding="utf-8")
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(audit_seo_page.main(["--check", str(bad)]), 2)
+
+    def test_the_json_report_carries_the_unknowns_and_the_blocking_count(self) -> None:
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            audit_seo_page.main(["--text", self.GOOD, "--json"])
+        payload = json.loads(buffer.getvalue())
+        self.assertEqual(sorted(payload), ["blocking", "gates", "stats", "unknown"])
+        self.assertEqual(payload["blocking"], 0)
+        self.assertTrue(payload["unknown"])
+
+    def test_the_copywriting_bullets_route_out_instead_of_pretending(self) -> None:
+        """Three bullets stood in for the unit. Deleting them without a route would be a worse gap."""
+        copy = (SKILL_ROOT / "references" / "copywriting.md").read_text(encoding="utf-8")
+        self.assertIn("seo-writing.md", copy)
+        self.assertNotIn("Do not stuff keywords or fabricate expertise signals.", copy)
+
+    def test_the_unit_is_reachable_from_the_router_and_a_pipeline(self) -> None:
+        registry = json.loads((SKILL_ROOT / "assets" / "registries" / "pipelines.json")
+                              .read_text(encoding="utf-8"))["pipelines"]
+        self.assertIn(self.REFERENCE, registry["plan-from-zero"]["references"])
+        self.assertIn("audit_seo_page.py", registry["rewrite-human"]["scripts"])
+        router = (SKILL_ROOT / "references" / "marketing-system-router.md").read_text(encoding="utf-8")
+        self.assertIn(self.REFERENCE, router)
+
+    def test_the_reference_clears_the_skill_own_prose_gates(self) -> None:
+        """The unit that measures writing cannot ship prose its own sibling would block."""
+        stats = rewrite_human.measure(self.prose, "en")
+        rows = rewrite_human.gates(stats, "deliverable")
+        tells = rewrite_human.find_tells(self.prose, "en")
+        blocking = [row["gate"] for row in rows
+                    if not row["pass"] and row["severity"] in ("critical", "high")]
+        self.assertEqual(blocking, [], blocking)
+        self.assertEqual(rewrite_human.blocking_count(rows, tells), 0,
+                         [row["gate"] for row in rows if not row["pass"]] + [t["id"] for t in tells])
 
 
 if __name__ == "__main__":
