@@ -33,7 +33,7 @@ For requests that must become files on disk, use `scripts/start_workbench.py`. I
 | `design-render` | Menu, poster, layout, wireframe, one-pager, or other designed artifact | Options, recommendation, information architecture, wireframe, copy, render/spec, QA |
 | `video-campaign` | Video concept, storyboard, short ad, demo, or AI-video prompt pack | Script, beats, shots, continuity, audio/captions, cutdowns, delivery QA |
 | `optimize-iterate` | Existing work has evidence or performance to diagnose | Metric tree, hypotheses, one-variable tests, guardrails, decision log |
-| `rewrite-human` | A draft reads machine-written or machine-translated, or approved copy must move between Vietnamese and English | Fact inventory, `rewrite-human.md`, `scripts/rewrite_human.py` gates, `data/translation-tells.csv` repairs, `scripts/check_address_register.py` on Vietnamese, re-measurement |
+| `rewrite-human` | A draft reads machine-written or machine-translated, or approved copy must move between Vietnamese and English | `specificity.md` and `scripts/check_specificity.py` first, then `rewrite-human.md` and `scripts/rewrite_human.py` gates, `data/translation-tells.csv` repairs, `scripts/check_address_register.py` on Vietnamese, re-measurement |
 
 When the user is a non-marketer, do not return a menu of disconnected marketing disciplines. Recommend the smallest coherent pipeline, explain why in plain language, and create the connected artifact pack. Copywriting is mandatory inside `plan-from-zero`; it is not an optional follow-up.
 
@@ -68,6 +68,11 @@ Load only when relevant:
   `product-composition-set.md` plus `data/product-compositions.csv` and
   `scripts/plan_composition_set.py`. Load this before answering "can AI make the rest of my photos",
   and before promising a full listing set from one file.
+- How many checkable facts a draft actually carries, and which of its sentences a competitor could
+  publish unchanged: `specificity.md` plus `scripts/check_specificity.py` and the `evidence` and
+  `hedge` layers of `data/translation-tells.csv`. Load this before rewriting any draft for cadence,
+  because rhythm work deletes specifics - a specific is the awkward part of a sentence - and a draft
+  with fewer than three has a content problem that reads worse after it has been made to flow.
 - Who a Vietnamese draft is talking to, and whether it holds that decision to the last line:
   `address-register.md` plus `data/address-registers.csv` and `scripts/check_address_register.py`.
   Load this before writing or localising any Vietnamese copy. Vietnamese has no neutral second

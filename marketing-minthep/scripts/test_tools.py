@@ -27,6 +27,7 @@ from compile_prompt import compile_provider
 # Imported as modules, not names: both define PLACEMENTS, and `from ... import PLACEMENTS` twice
 # would leave one test silently asserting against the other module's table.
 import check_address_register
+import check_specificity
 import find_recipe
 import generate_image
 import list_capabilities
@@ -1265,7 +1266,7 @@ class DataTableTests(unittest.TestCase):
         "layout-dials.csv": (17, 11),
         "slop-tells.csv": (33, 9),
         "copy-formulas.csv": (22, 9),
-        "translation-tells.csv": (35, 10),
+        "translation-tells.csv": (42, 10),
         "reference-axes.csv": (11, 9),
         "frame-ratios.csv": (13, 12),
         "composition-grids.csv": (7, 10),
@@ -2382,6 +2383,183 @@ class AddressRegisterTests(unittest.TestCase):
         localise = next(row for row in DataTableTests.rows("command-artifacts.csv")
                         if row["command"] == "localise")
         self.assertIn("check_address_register.py", localise["machinery"])
+
+
+class SpecificityTests(unittest.TestCase):
+    """The gates in `rewrite_human.py` measure the shape of a sentence and can all pass on a sentence
+    that says nothing. `Chúng tôi cam kết mang đến trải nghiệm tốt nhất` has good length variance, no
+    pictograph and one register, and it is the single commonest machine-written line in Vietnamese
+    marketing. This checker is the half that reads content, so the assertions below are mostly about
+    the two directions it can be wrong in: passing empty copy, and failing copy that is merely plain.
+
+    The second direction matters more. A checker that demands a citation for `200 chai mỗi tuần`
+    teaches the copywriter to stop running it, and then nothing is measured at all."""
+
+    def gates(self, text: str) -> dict[str, dict]:
+        return {gate["gate"]: gate for gate in check_specificity.check(text)["gates"]}
+
+    def test_self_check_passes(self) -> None:
+        self.assertIn("passed", check_specificity.self_check())
+
+    def test_a_bare_number_is_structure_and_does_not_count_as_a_fact(self) -> None:
+        """The distinction the whole unit rests on. `3 lý do` and `bước 2` are how a listicle is
+        built, and counting them would let any numbered outline pass as evidence."""
+        for structure in ("3 lý do bạn nên chọn chúng tôi", "Bước 2: đặt hàng", "Top 5 mẫu mới"):
+            with self.subTest(structure):
+                self.assertEqual(check_specificity.quantities(structure), [])
+        for fact in ("giao trong 2 giờ", "một ly 45.000đ", "delivered in 2 hours", "$12 flat"):
+            with self.subTest(fact):
+                self.assertTrue(check_specificity.quantities(fact), f"{fact} carries a unit")
+
+    def test_a_sentence_initial_name_is_not_counted_and_a_mid_sentence_one_is(self) -> None:
+        """Vietnamese writes each syllable of a name as its own token, so `Gò Vấp` at the start of a
+        sentence is two capitals that mean nothing. Dropping only the first would count `Vấp`."""
+        self.assertEqual(check_specificity.names("Gò Vấp là nơi rang", False), [])
+        self.assertEqual(check_specificity.names("Rang tại Gò Vấp mỗi sáng", False), ["Gò Vấp"])
+        self.assertEqual(check_specificity.names("Giao qua GHTK trong ngày", False), ["GHTK"])
+        self.assertEqual(check_specificity.names("I called them twice", False), [])
+
+    def test_title_case_buys_no_specificity(self) -> None:
+        """`Cà Phê Rang Mộc Nguyên Chất` is four capitals and no name. Counting it would mean a
+        writer could pass the fact floor by capitalising a headline, which is also a tell the
+        translation table already flags as `title-case-vi`."""
+        self.assertTrue(check_specificity.title_cased("Cà Phê Rang Mộc Nguyên Chất"))
+        self.assertFalse(check_specificity.title_cased("Cà phê rang tại Gò Vấp"))
+        self.assertEqual(check_specificity.names("Cà Phê Rang Mộc Nguyên Chất", True), [])
+
+    def test_the_commonest_empty_vietnamese_draft_fails_on_content_not_cadence(self) -> None:
+        empty = ("Chúng tôi cam kết mang đến trải nghiệm tốt nhất cho khách hàng. "
+                 "Sản phẩm của chúng tôi luôn đảm bảo chất lượng và uy tín hàng đầu. "
+                 "Đội ngũ chuyên nghiệp, tận tâm sẽ đồng hành cùng bạn trên mọi hành trình. "
+                 "Hãy để chúng tôi chứng minh giá trị thực sự mà dịch vụ mang lại cho bạn.")
+        report = check_specificity.check(empty)
+        self.assertEqual(report["verdict"], "failed")
+        self.assertEqual(report["facts"], 0)
+        for gate in ("fact-floor", "fact-density", "brand-swap", "empty-adjective"):
+            with self.subTest(gate):
+                self.assertEqual(self.gates(empty)[gate]["status"], "failed")
+
+    def test_the_cadence_gates_pass_the_draft_this_one_fails(self) -> None:
+        """The justification for the unit existing. If `rewrite_human.py` already blocked this
+        draft, a second script would be duplication - so this asserts that it does not."""
+        empty = ("Bạn xứng đáng có thứ tốt hơn. "
+                 "Chúng tôi làm ra sản phẩm này với tất cả sự cẩn thận mà một người thợ có thể dồn "
+                 "vào công việc của mình, không hơn không kém. "
+                 "Đơn giản là vậy. "
+                 "Và nếu bạn thử một lần, chúng tôi tin bạn sẽ hiểu tại sao nhiều người đã ở lại "
+                 "lâu như thế.")
+        cadence = rewrite_human.gates(rewrite_human.measure(empty, "vi"))
+        self.assertTrue(all(row["pass"] for row in cadence),
+                        [row["gate"] for row in cadence if not row["pass"]])
+        self.assertEqual(check_specificity.check(empty)["verdict"], "failed")
+
+    def test_an_evidence_adjective_beside_a_fact_is_not_the_defect(self) -> None:
+        """`slop-tells.csv` calls `adjective-substitute` critical, and the substitution is the whole
+        defect. `premium` next to `ủ 80 giờ` summarises a fact the reader can check; `premium` alone
+        in its sentence replaces it. One string match cannot tell those apart - only a sentence can,
+        and that is why this gate lives here rather than in the phrase table."""
+        substitute = ("Cà phê của chúng tôi là loại premium, chất lượng đảm bảo và rất uy tín. "
+                      "Chúng tôi tin rằng bạn sẽ hài lòng với dịch vụ tận tâm này. "
+                      "Sản phẩm luôn đạt tiêu chuẩn cao nhất trên thị trường hiện nay. "
+                      "Hãy trải nghiệm sự khác biệt mà thương hiệu mang lại cho bạn.")
+        beside = ("Cà phê premium này ủ lạnh 80 giờ ở Gò Vấp trước khi vào chai. "
+                  "Một chai 250ml giá 65.000đ, đủ cho hai người uống sáng. "
+                  "Mẻ đầu ra lò ngày 12 tháng 3, mỗi tuần chỉ 200 chai. "
+                  "Đặt qua 0901234567 trước thứ năm nếu muốn nhận cuối tuần.")
+        self.assertEqual(self.gates(substitute)["empty-adjective"]["status"], "failed")
+        self.assertEqual(self.gates(beside)["empty-adjective"]["status"], "passed")
+
+    def test_only_a_claim_about_the_world_needs_a_source(self) -> None:
+        """A price, the brand's own stock count and a discount are all facts it owns. Demanding a
+        citation for them is the false positive that would get this gate switched off."""
+        own = ("Một ly 45.000đ, một túi 250g là 180.000đ tại xưởng Gò Vấp. "
+               "Mỗi tuần chỉ 200 chai, rang thứ hai và thứ năm, giao trong 2 giờ. "
+               "Đang giảm giá 20% cho đơn đầu tiên, tới hết ngày 12 tháng 3. "
+               "Gọi 0901234567 nếu túi tới muộn, chúng tôi giao lại miễn phí.")
+        self.assertEqual(self.gates(own)["sourced-number"]["status"], "passed")
+        claim = ("Có tới 87% khách quay lại trong vòng một tháng sau lần mua đầu tiên. "
+                 "Cà phê rang tại Gò Vấp mỗi sáng thứ hai, giao trong 2 giờ nội thành. "
+                 "Một ly 45.000đ, ngày rang in dưới đáy túi cho bạn tự kiểm tra. "
+                 "Gọi 0901234567 trước thứ năm nếu muốn nhận vào cuối tuần này.")
+        self.assertEqual(self.gates(claim)["sourced-number"]["status"], "failed")
+        sourced = claim.replace("Có tới 87%", "Theo khảo sát 320 đơn tháng 3 của xưởng, 87%")
+        self.assertEqual(self.gates(sourced)["sourced-number"]["status"], "passed")
+
+    def test_a_concentration_is_a_spec_not_a_finding(self) -> None:
+        """The false positive this gate was caught producing on its first real draft. `axit azelaic
+        10%` is what is in the bottle; `hiệu quả 90%` is a claim about what happens to people. A
+        percentage alone cannot tell them apart, so the default is exempt and the gate fires only
+        when the sentence also quantifies a person or an outcome."""
+        self.assertFalse(check_specificity.needs_a_source("Dùng axit azelaic 10% trên da", "10%"))
+        self.assertFalse(check_specificity.needs_a_source("Áo cotton 95%, dệt tại Nam Định", "95%"))
+        self.assertTrue(check_specificity.needs_a_source("Hiệu quả lên tới 90% sau một liệu trình",
+                                                        "90%"))
+        self.assertTrue(check_specificity.needs_a_source("87% khách quay lại trong một tháng", "87%"))
+        # A multiplier is comparative by construction and needs no context test.
+        self.assertTrue(check_specificity.needs_a_source("Khô nhanh hơn 3 lần", "hơn 3 lần"))
+
+    def test_stacked_hedges_fail_even_when_the_draft_is_otherwise_specific(self) -> None:
+        hedged = ("Dịch vụ có thể giúp bạn tiết kiệm khá nhiều thời gian mỗi tuần. "
+                  "Nhìn chung thì phần lớn khách hàng đều tương đối hài lòng với kết quả. "
+                  "Rang tại Gò Vấp mỗi sáng thứ hai, giao trong 2 giờ nội thành. "
+                  "Một ly 45.000đ, gọi 0901234567 để đặt trước thứ năm hàng tuần.")
+        self.assertEqual(self.gates(hedged)["hedge-stack"]["status"], "failed")
+
+    def test_the_word_lists_are_read_from_the_table_not_hardcoded(self) -> None:
+        """If this script carried its own copy of the adjective list it would drift from
+        `translation-tells.csv` within a month, and the two would then disagree about the same
+        draft. Both layers must be reachable from the table in both languages."""
+        for language in ("vi", "en"):
+            for layer in ("evidence", "hedge"):
+                with self.subTest(language=language, layer=layer):
+                    self.assertTrue(check_specificity.phrase_rows(language, layer),
+                                    f"no {layer} rows for {language} in translation-tells.csv")
+        # The real proof is that what the script matches on is exactly what the table declares. A
+        # hardcoded list would show up here as an id the table has never heard of, or a missing one.
+        for layer in ("evidence", "hedge"):
+            declared = {row["id"] for row in DataTableTests.rows("translation-tells.csv")
+                        if row["layer"] == layer and row["language"] in ("vi", "any")}
+            self.assertEqual({row["id"] for row in check_specificity.phrase_rows("vi", layer)},
+                             declared, f"{layer} rows in the script differ from the table")
+
+    def test_it_declines_to_judge_what_it_cannot_read(self) -> None:
+        """A caption and a price list are the two inputs where every gate here is meaningless. Both
+        have to come back as something other than `failed`, or the unit reports defects in work that
+        has none - which is the failure mode the four-status vocabulary exists for."""
+        caption = check_specificity.check("Rang mộc, giao nhanh.")
+        self.assertEqual(caption["verdict"], "skipped")
+        self.assertEqual(caption["gates"][0]["status"], "skipped")
+        sheet = ("Ly nhỏ 35.000đ, ly lớn 45.000đ, túi 250g 180.000đ tại Gò Vấp. "
+                 "Giao 2 giờ nội thành, 24 giờ đi Đà Nẵng, 48 giờ ra Hà Nội. "
+                 "Rang thứ hai và thứ năm, mỗi mẻ 40kg, đóng túi 250g và 1kg. "
+                 "Gọi 0901234567 hoặc 0987654321, mở 7 giờ tới 21 giờ mỗi ngày.")
+        self.assertEqual(self.gates(sheet)["brand-swap"]["status"], "review")
+        self.assertEqual(check_specificity.check(sheet)["verdict"], "review")
+
+    def test_the_same_emptiness_in_english_fails_identically(self) -> None:
+        english = ("We are committed to delivering the best possible experience to our customers. "
+                   "Our products are always of premium quality and reliable standard. "
+                   "Our dedicated team will accompany you on every step of the journey. "
+                   "Let us prove the real value that our service brings to you.")
+        report = check_specificity.check(english)
+        self.assertEqual(report["language"], "en")
+        self.assertEqual(report["verdict"], "failed")
+        self.assertEqual(report["facts"], 0)
+
+    def test_the_exit_code_matches_the_verdict(self) -> None:
+        # A gate that always exits 0 cannot be wired into anything that stops on failure.
+        self.assertEqual(check_specificity.STATUS_EXIT["passed"], 0)
+        self.assertEqual(check_specificity.STATUS_EXIT["failed"], 2)
+        self.assertEqual(check_specificity.STATUS_EXIT["review"], 3)
+
+    def test_the_unit_is_registered_where_a_run_would_find_it(self) -> None:
+        router = (SKILL_ROOT / "references" / "marketing-system-router.md").read_text(encoding="utf-8")
+        self.assertIn("specificity.md", router)
+        self.assertIn("check_specificity.py", router)
+        self.assertTrue((SKILL_ROOT / "references" / "specificity.md").exists())
+        humanise = next(row for row in DataTableTests.rows("command-artifacts.csv")
+                        if row["command"] == "humanise")
+        self.assertIn("check_specificity.py", humanise["machinery"])
 
 
 class KpiScoringTests(unittest.TestCase):
