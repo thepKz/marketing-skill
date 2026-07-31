@@ -50,7 +50,8 @@ Load only when relevant:
 - Sales: `sales-enablement.md`.
 - Creator/UGC: `creator-ugc.md`.
 - Lifecycle: `lifecycle-retention.md`.
-- Claims and proof: `claims-proof-ledger.md`.
+- Claims and proof: `claims-proof-ledger.md` plus `data/claim-evidence.csv` and
+  `scripts/check_claims.py`.
 - Current placements/specs: `channel-spec-registry.md`.
 - Product/human/virtual imagery: relevant image references.
 - Logo, wordmark, favicon, banner grid, type scale: `identity-design.md`.
@@ -113,6 +114,15 @@ Load only when relevant:
   deal reached 5.58% of attributed value on the worked example. Load it also before briefing a creator
   at all: Vietnamese law names the creator, sets no follower threshold, and prescribes no wording, and
   the same decree that fines partial disclosure also ends the arrangement outright for borrowed content.
+- Whether a claim may be published at all, and what document has to exist first:
+  `claims-proof-ledger.md` plus `data/claim-evidence.csv` and `scripts/check_claims.py`. Load this
+  before any public copy carrying a factual assertion, and before generating the picture rather than
+  after: a doctor, a uniform or a clinic in a cosmetics or device frame is banned outright, and
+  consent discharges nothing because the prohibition is on the category of image. The question the
+  substantiation model does not ask is the expensive one - the benchmark named in Điều 50.5.c is the
+  product's own filing, so a claim can be true, evidenced, and still fined for exceeding the Phiếu
+  công bố. Four sectors are refused by name rather than half-answered: medicine, chemicals,
+  insecticidal preparations, plant protection products.
 - Which customer source can answer the question you actually have, how many people a theme needs before
   it is a theme, and whether a share may be spoken out loud: `customer-evidence.md` plus
   `data/evidence-sources.csv` and `scripts/check_evidence_saturation.py`. Load this before quoting any

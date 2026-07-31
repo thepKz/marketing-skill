@@ -29,6 +29,7 @@ from compile_prompt import compile_provider
 # would leave one test silently asserting against the other module's table.
 import audit_seo_page
 import check_address_register
+import check_claims
 import check_evidence_saturation
 import check_prompt_grammar
 import check_test_readout
@@ -1471,6 +1472,7 @@ class DataTableTests(unittest.TestCase):
         "attribution-windows.csv": (9, 12),
         "affiliate-mechanics.csv": (38, 11),
         "vn-advertising-law.csv": (45, 13),
+        "claim-evidence.csv": (41, 16),
     }
 
     # Most of these tables are keyed by their first column. The weights table is keyed by two, and
@@ -6655,6 +6657,349 @@ class AffiliateModelTests(unittest.TestCase):
         for name in ("affiliate-commerce.md", "creator-ugc.md"):
             text = (SKILL_ROOT / "references" / name).read_text(encoding="utf-8")
             self.assertNotIn("must include the phrase", text)
+
+class ClaimEvidenceTests(unittest.TestCase):
+    """What has to be pinned here is the boundary between what a regex decided and what a person did.
+
+    `claims-proof-ledger.md` taught the substantiation question and then handed the Vietnamese
+    instrument back to a Vietnamese marketer. The rebuilt unit answers it, which creates two new ways
+    to be wrong. A regex over Vietnamese can invent an offence, because `nhat` is both the superlative
+    marker and a bound syllable in `thong nhat` - so the false friends are tested by name. And an
+    answer sheet can be read as clearance, so the tests assert that silence fails rather than passes,
+    and that the sheet never asks a question the scanner already answered.
+
+    The arithmetic in the prose is a claim about the table, so it is recomputed rather than trusted.
+    """
+
+    AS_OF = "2026-07-31"
+    REFERENCE = SKILL_ROOT / "references" / "claims-proof-ledger.md"
+    # The draft that produced the figure quoted in the reference. Kept here rather than in a fixture
+    # file so the number in the prose and the input that yields it cannot drift apart.
+    SERUM = ("# Serum Vitamin C Glow - bai dang ra mat\n\n"
+             "Serum Vitamin C tốt nhất thị trường Việt Nam hiện nay, được bác sĩ da liễu tại phòng "
+             "khám\nThẩm mỹ Sài Gòn khuyên dùng.\n\n"
+             "Công thức đặc trị nám và kháng viêm, cho hiệu quả rõ rệt sau 7 ngày. Sáng hơn hẳn so "
+             "với\ncác loại serum cùng giá.\n\n"
+             "Hai bên đã thống nhất giá bán lẻ 390.000đ và giữ nhất quán trên mọi sàn.\n")
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.ledger = check_claims.read_ledger()
+        cls.prose = cls.REFERENCE.read_text(encoding="utf-8")
+
+    def filled_sheet(self, sector: str) -> dict:
+        """Every question on the sector's sheet answered the way a diligent person would answer it."""
+        return {row["id"]: {"claim_id": row["id"],
+                            "status": "absent" if row["id"] in check_claims.MUST_BE_ABSENT
+                                      else "present",
+                            "document": "Phieu cong bo", "issued_by": "So Y te",
+                            "reference": "12345/20/CBMP-HN", "expires": "2030-01-01",
+                            "verified_at": self.AS_OF}
+                for row in check_claims.rows_needing_an_answer(self.ledger, sector)}
+
+    def test_self_check_passes(self) -> None:
+        report = check_claims.self_check()
+        self.assertIn("All assertions passed.", report)
+        self.assertNotIn("FAIL", report)
+
+    def test_every_row_is_cited_to_the_gazette_at_a_date(self) -> None:
+        """A band without an instrument behind it is a number somebody remembered. Every row carries
+        the decree, the article, the gazette URL and the day it was read, because the whole unit is
+        an argument from the text and the reader has to be able to go and check it."""
+        for row in self.ledger:
+            self.assertEqual(row["instrument"], "Nghị định 87/2026/NĐ-CP", row["id"])
+            self.assertTrue(row["article"].startswith("Điều "), (row["id"], row["article"]))
+            self.assertTrue(row["source_url"].startswith("https://congbao.chinhphu.vn/"), row["id"])
+            self.assertEqual(row["verified_at"], "2026-07-31", row["id"])
+            self.assertGreater(row["fine_high"], 0, row["id"])
+            self.assertGreaterEqual(row["fine_high"], row["fine_low"], row["id"])
+
+    def test_every_regex_fires_on_a_trigger_the_table_declares(self) -> None:
+        """`trigger_vi` is what a reader consults and `detect_regex` is what the machine runs, so a
+        row where the two disagree documents a check that is not the one being made. Three rows had
+        exactly that: `asset-advertising` advertised itself as `quang cao tai san` while the scanner
+        looked for `can ho` and `so do`. The tokens now sit in the trigger cell beside the
+        description."""
+        for row in self.ledger:
+            if row["detect_regex"] == "-":
+                continue
+            pattern = re.compile(row["detect_regex"])  # also asserts it compiles
+            tokens = [token.strip() for token in row["trigger_vi"].split(";")]
+            tokens += [token.strip() for token in row["trigger_en"].split(";")]
+            self.assertTrue(any(pattern.search(token) for token in tokens),
+                            f"{row['id']}: no declared trigger fires its own regex")
+
+    def test_the_false_friends_do_not_fire_the_superlative_row(self) -> None:
+        """`nhat` carries the superlative in `tot nhat` and carries nothing at all in `thong nhat`,
+        `nhat quan`, `nhat dinh`. A scanner blind to that fires on every second paragraph of ordinary
+        commercial Vietnamese, which trains the reader to ignore it."""
+        for phrase in check_claims.FALSE_FRIENDS:
+            sentence = f"Hai bên đã {phrase} về điều khoản này trong hợp đồng."
+            hits = [hit["id"] for hit in check_claims.scan(sentence, self.ledger, "general")]
+            self.assertNotIn("superlative", hits, f"{phrase!r} should not read as a superlative")
+        real = "Kem dưỡng tốt nhất thị trường, thương hiệu số 1 Việt Nam."
+        self.assertEqual([hit["id"] for hit in
+                          check_claims.scan(real, self.ledger, "general")], ["superlative"])
+        # And masking preserves length, so the line numbers in the report still point at the copy.
+        text = "Hai bên đã thống nhất giá.\nKem tốt nhất thị trường."
+        self.assertEqual(len(check_claims.mask_false_friends(text)), len(text))
+        self.assertEqual(check_claims.scan(text, self.ledger, "general")[0]["line"], 2)
+
+    def test_a_prohibition_bound_to_one_sector_stays_bound_to_it(self) -> None:
+        """The defect this replaces was found by running the tool, not by reading it. `bác sĩ` fired
+        both the cosmetics article and the device article on a serum post, so the audit invented an
+        offence and printed 20 million more exposure than the copy could incur. Điều 70.3.c binds
+        cosmetics, Điều 73.3 binds devices, and no article bans a doctor in a food advertisement."""
+        doctor = "Được bác sĩ da liễu tại phòng khám khuyên dùng."
+        self.assertEqual([hit["id"] for hit in check_claims.scan(doctor, self.ledger, "cosmetics")],
+                         ["banned-medical-staff-cosmetics"])
+        self.assertEqual([hit["id"] for hit in check_claims.scan(doctor, self.ledger, "device")],
+                         ["banned-medical-staff-device"])
+        self.assertEqual(check_claims.scan(doctor, self.ledger, "food"), [])
+        # The four closed categories are the exception: they apply whatever sector was declared,
+        # because a draft naming a vape is advertising one regardless of the flag passed in.
+        for sector in ("general", "food", "cosmetics"):
+            hits = [hit["id"] for hit in
+                    check_claims.scan("Ưu đãi thuốc lá điện tử cuối tuần.", self.ledger, sector)]
+            self.assertEqual(hits, ["banned-tobacco"], sector)
+        for row in self.ledger:
+            if row["claim_family"] in check_claims.UNIVERSAL_PROHIBITIONS:
+                self.assertEqual(row["verdict"], "prohibited_outright", row["id"])
+
+    def test_every_sector_gets_the_same_fourteen_gates(self) -> None:
+        """A gate that disappears for a sector is a check nobody notices going missing. They all run
+        for every sector; `applies` is what varies, and it is reported."""
+        for sector in check_claims.SECTORS:
+            rows = check_claims.gates(self.ledger, sector, [], {}, self.AS_OF)
+            self.assertEqual(len(rows), 14, sector)
+            self.assertEqual(len({row["gate"] for row in rows}), 14, sector)
+            for row in rows:
+                self.assertIn(row["severity"], check_claims.SEVERITY_ORDER, row["gate"])
+                self.assertIn(row["reads"], ("ledger", "draft", "answers", "draft and answers"),
+                              row["gate"])
+                self.assertGreater(len(row["why"].split()), 25, (sector, row["gate"]))
+                self.assertEqual(row["claim_ids"], list(dict.fromkeys(row["claim_ids"])),
+                                 f"{row['gate']} lists a claim id twice")
+
+    def test_an_unanswered_sheet_fails_and_a_filled_one_clears(self) -> None:
+        """The load-bearing decision in the unit. Six gates read a sheet instead of the copy, and an
+        empty cell has to fail, because the alternative is a report that goes green on the strength
+        of nobody having looked. `no-expired-approval` is the single gate an empty sheet may clear:
+        nothing named is nothing lapsed."""
+        empty = check_claims.gates(self.ledger, "cosmetics", [], {}, self.AS_OF)
+        sheet_gates = [row for row in empty
+                       if row["applies"] and row["reads"].endswith("answers")]
+        self.assertEqual(len(sheet_gates), 7)
+        self.assertEqual(sum(1 for row in sheet_gates if not row["pass"]), 6)
+        for row in sheet_gates:
+            if row["gate"] == "no-expired-approval":
+                self.assertTrue(row["pass"])
+                continue
+            self.assertFalse(row["pass"], f"{row['gate']} passed on an empty sheet")
+        answered = check_claims.gates(self.ledger, "cosmetics", [], self.filled_sheet("cosmetics"),
+                                      self.AS_OF)
+        self.assertEqual(check_claims.failed(answered), 0,
+                         [row["gate"] for row in answered if row["applies"] and not row["pass"]])
+        # A status with no paper behind it is not an answer either.
+        vague = {key: dict(value, document="", reference="", issued_by="")
+                 for key, value in self.filled_sheet("cosmetics").items()}
+        self.assertGreater(check_claims.failed(
+            check_claims.gates(self.ledger, "cosmetics", [], vague, self.AS_OF)), 0)
+
+    def test_a_lapsed_approval_fails_where_a_missing_one_would(self) -> None:
+        """Điều 70.4.a treats an expired Phiếu công bố receipt exactly like an absent one, and a
+        campaign cleared in March and still running in November is the ordinary way that happens."""
+        sheet = self.filled_sheet("cosmetics")
+        sheet["cosmetic-notice-number"] = dict(sheet["cosmetic-notice-number"],
+                                               expires="2026-01-01")
+        rows = check_claims.gates(self.ledger, "cosmetics", [], sheet, self.AS_OF)
+        stale = next(row for row in rows if row["gate"] == "no-expired-approval")
+        self.assertFalse(stale["pass"])
+        self.assertIn("cosmetic-notice-number", stale["claim_ids"])
+        # The day itself is the boundary: expiring today is expired.
+        today = dict(sheet)
+        today["cosmetic-notice-number"] = dict(sheet["cosmetic-notice-number"], expires=self.AS_OF)
+        self.assertTrue(check_claims.expired(today["cosmetic-notice-number"], self.AS_OF))
+
+    def test_the_sheet_asks_only_what_the_scanner_cannot_read(self) -> None:
+        """Two answers to one question is worse than one, because the sheet and the draft can
+        disagree and the sheet is the one a person signed. So a row the regex decides is not asked,
+        with five deliberate exceptions in `ALWAYS_ASK` where the copy cannot show what matters -
+        whether a real face is in the shot, whether the warning is legible at shipping size."""
+        for sector in check_claims.SECTORS:
+            wanted = check_claims.rows_needing_an_answer(self.ledger, sector)
+            ids = [row["id"] for row in wanted]
+            self.assertEqual(len(ids), len(set(ids)), sector)
+            for row in wanted:
+                self.assertIn(row["id"], {ledger_row["id"] for ledger_row in self.ledger})
+                if row["detect_regex"] != "-":
+                    self.assertIn(row["id"], check_claims.ALWAYS_ASK + check_claims.MUST_BE_ABSENT,
+                                  f"{row['id']} is scannable and is being asked as well")
+                self.assertNotIn(row["id"], check_claims.NO_ANSWER_DISCHARGES, row["id"])
+            template = check_claims.build_template(self.ledger, sector)
+            self.assertIn(",".join(check_claims.ANSWER_COLUMNS), template)
+            for row_id in ids:
+                self.assertIn(row_id, template)
+        # Điều 53.2 is the catch-all that names no test, so signing for it would read as clearance.
+        for row_id in check_claims.NO_ANSWER_DISCHARGES:
+            self.assertIn(row_id, {row["id"] for row in self.ledger})
+            self.assertNotIn(row_id, check_claims.build_template(self.ledger, "general"))
+
+    def test_the_sheet_it_writes_is_a_sheet_it_can_read(self) -> None:
+        """Found by running the documented workflow end to end. `--template` writes a blank line
+        between its instructions and its header; `csv.DictReader` takes the first line handed to it as
+        the field names, so the tool rejected the file it had just written and told the user to run
+        `--template` to get the right shape. A blank sheet has to parse and then fail, not error."""
+        with tempfile.TemporaryDirectory() as folder:
+            sheet = Path(folder) / "answers.csv"
+            sheet.write_text(check_claims.build_template(self.ledger, "food"), encoding="utf-8")
+            answers = check_claims.read_answers(sheet)
+            self.assertEqual(sorted(answers),
+                             sorted(row["id"] for row in
+                                    check_claims.rows_needing_an_answer(self.ledger, "food")))
+            for answer in answers.values():
+                self.assertEqual(answer["status"], "")
+                self.assertFalse(check_claims.documented(answer))
+            rows = check_claims.gates(self.ledger, "food", [], answers, self.AS_OF)
+            self.assertGreater(check_claims.blocking(rows), 0,
+                               "a sheet with every status blank must not clear the answer gates")
+            # A status the vocabulary does not contain is refused rather than silently ignored.
+            sheet.write_text("claim_id,status\nfood-identity-block,probably\n", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                check_claims.read_answers(sheet)
+
+    def test_the_four_refused_sectors_are_refused_by_article(self) -> None:
+        """Medicine, chemicals and plant protection each carry their own article, their own documents
+        and their own bands, none of which is in this table. A partial answer there reads as
+        clearance, so the gate fails and names what would have to be read instead."""
+        for sector, expected in check_claims.OUT_OF_SCOPE.items():
+            rows = check_claims.gates(self.ledger, sector, [], {}, self.AS_OF)
+            covered = next(row for row in rows if row["gate"] == "sector-is-covered-by-this-table")
+            self.assertFalse(covered["pass"], sector)
+            self.assertEqual(covered["severity"], "critical", sector)
+            self.assertIn("Dieu", covered["observed"], sector)
+            self.assertIn(expected.split()[1], covered["observed"], sector)
+        with self.assertRaises(ValueError):
+            check_claims.families_for("cars")
+
+    def test_the_verdict_table_in_the_reference_is_recomputed_from_the_csv(self) -> None:
+        """Five verdicts, and the reference prints a row count and a worst band for each. Both are
+        derived figures, so they rot the first time a row is added. `form_prescribed` was printed at
+        20 million while the two Điều 53.2 rows in it reach 40."""
+        for verdict in check_claims.VERDICTS:
+            rows = [row for row in self.ledger if row["verdict"] == verdict]
+            self.assertGreater(len(rows), 0, verdict)
+            worst = max(row["fine_high"] for row in rows)
+            line = next((candidate for candidate in self.prose.splitlines()
+                         if candidate.startswith(f"| `{verdict}`")), None)
+            self.assertIsNotNone(line, f"{verdict} is not in the reference table")
+            cells = [cell.strip() for cell in line.strip("|").split("|")]
+            self.assertEqual(cells[2], str(len(rows)), f"{verdict}: row count in the prose")
+            self.assertEqual(cells[3], f"{worst:,}", f"{verdict}: worst band in the prose")
+        # And the claim made about that table: one verdict carries the highest band in the decree.
+        highest = max(row["fine_high"] for row in self.ledger)
+        self.assertEqual(highest, max(row["fine_high"] for row in self.ledger
+                                      if row["verdict"] == "must_match_filing"))
+
+    def test_the_exposure_figure_in_the_reference_is_the_sum_of_the_bands(self) -> None:
+        """The number in the prose is the argument of the whole unit, so it is recomputed by running
+        the audit on the draft that produced it. Fines stack under Điều 4, which is why a single
+        non-compliant serum post reaches a figure a marketer will not believe until it is itemised."""
+        with tempfile.TemporaryDirectory() as folder:
+            draft = Path(folder) / "serum.md"
+            draft.write_text(self.SERUM, encoding="utf-8")
+            hits = check_claims.scan(self.SERUM, self.ledger, "cosmetics")
+            rows = check_claims.gates(self.ledger, "cosmetics", hits, {}, self.AS_OF)
+            report = check_claims.render(self.ledger, "cosmetics", str(draft), hits, rows,
+                                        self.AS_OF)
+        self.assertEqual({hit["id"] for hit in hits},
+                         {"superlative", "comparative-named-rival", "banned-cosmetic-as-drug",
+                          "banned-medical-staff-cosmetics"})
+        exposed = sorted({claim_id for row in rows if row["applies"] and not row["pass"]
+                          for claim_id in row["claim_ids"]})
+        low, high = check_claims.exposure(self.ledger, exposed)
+        self.assertEqual((low, high), (345_000_000, 505_000_000))
+        self.assertEqual(len(exposed), 16)
+        self.assertIn("345 to 505 million VND across sixteen rows", self.prose)
+        self.assertIn(f"{low:,} to {high:,} VND", report)
+        # The two false friends in the same draft stay out of the total.
+        self.assertNotIn("thống nhất", report)
+
+    def test_the_bands_agree_with_the_wider_law_table(self) -> None:
+        """`data/vn-advertising-law.csv` and `data/claim-evidence.csv` both cite Nghị định
+        87/2026/NĐ-CP, and three articles appear in both. The law table stores a band as a `value`
+        string with a separate `unit`, so the two files record the same fine in two shapes - which is
+        exactly the arrangement where one gets corrected and the other does not."""
+        with io.open(SKILL_ROOT / "data" / "vn-advertising-law.csv", encoding="utf-8-sig") as handle:
+            law = list(csv.DictReader(handle))
+        ledger = {}
+        for row in self.ledger:
+            ledger.setdefault(row["article"], []).append(row)
+        shared = 0
+        for row in law:
+            if row["unit"] != "VND" or row["article"] not in ledger:
+                continue
+            band = re.fullmatch(r"(\d+) to (\d+)", row["value"].strip())
+            if not band:
+                continue
+            shared += 1
+            low, high = int(band.group(1)), int(band.group(2))
+            for claim in ledger[row["article"]]:
+                self.assertEqual((claim["fine_low"], claim["fine_high"]), (low, high),
+                                 f"{claim['id']} and {row['id']} cite {row['article']} differently")
+        self.assertGreaterEqual(shared, 3, "the two tables stopped overlapping; check the articles")
+
+    def test_the_reference_names_the_instruments_it_leans_on(self) -> None:
+        """The old file's defect was nationality: it taught the FTC substantiation question and handed
+        the Vietnamese decree back to the reader. So the articles the unit actually turns on have to
+        appear in the prose, and the FTC links may stay only as the outside-Vietnam note."""
+        for article in ("Điều 50.5.c", "Điều 70.3.c", "Điều 70.4.a", "Điều 71.4", "Điều 73.3",
+                        "Điều 53.1.b", "Điều 50.3.a", "Điều 69"):
+            self.assertIn(article, self.prose, f"{article} carries a gate and is not explained")
+        self.assertIn("scripts/check_claims.py", self.prose)
+        self.assertIn("data/claim-evidence.csv", self.prose)
+        head = self.prose.split("## Working outside Vietnam")[0]
+        self.assertNotIn("https://www.ftc.gov", head,
+                         "the FTC links are back above the Vietnamese law")
+        for name in re.findall(r"references/([a-z0-9-]+\.md)", self.prose):
+            self.assertTrue((SKILL_ROOT / "references" / name).exists(), name)
+
+    def test_the_cli_refuses_a_bad_call_and_exits_two_on_a_failing_gate(self) -> None:
+        """Exit 2 is the whole point of the tool in a pipeline: a draft that fails a blocking gate has
+        to stop the run rather than print a warning into a log nobody reads."""
+        with tempfile.TemporaryDirectory() as folder:
+            draft = Path(folder) / "serum.md"
+            draft.write_text(self.SERUM, encoding="utf-8")
+            clean = Path(folder) / "clean.md"
+            clean.write_text("Serum dưỡng sáng da, dùng buổi sáng và buổi tối.\n", encoding="utf-8")
+            sheet = Path(folder) / "answers.csv"
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(check_claims.main(
+                    ["--template", str(sheet), "--sector", "cosmetics"]), 0)
+                self.assertEqual(check_claims.main(
+                    ["--audit", str(draft), "--sector", "cosmetics"]), 2)
+                with contextlib.redirect_stderr(io.StringIO()) as complaint:
+                    self.assertEqual(check_claims.main(
+                        ["--audit", str(clean), "--sector", "spaceflight"]), 1)
+            self.assertIn("unknown sector", complaint.getvalue())
+            rows = list(csv.DictReader(
+                line for line in sheet.read_text(encoding="utf-8").splitlines()
+                if line.strip() and not line.lstrip().startswith("#")))
+            self.assertEqual([row["claim_id"] for row in rows],
+                             [row["id"] for row in
+                              check_claims.rows_needing_an_answer(self.ledger, "cosmetics")])
+            # A sheet answered in full turns the same draft's answer gates green and leaves the copy
+            # failures standing, which is the split the unit is built on.
+            with io.open(sheet, "w", encoding="utf-8", newline="") as handle:
+                handle.write(",".join(check_claims.ANSWER_COLUMNS) + "\n")
+                for row in rows:
+                    answer = self.filled_sheet("cosmetics")[row["claim_id"]]
+                    handle.write(",".join(answer[column]
+                                          for column in check_claims.ANSWER_COLUMNS) + "\n")
+            with contextlib.redirect_stdout(io.StringIO()) as printed:
+                self.assertEqual(check_claims.main(
+                    ["--audit", str(draft), "--sector", "cosmetics", "--answers", str(sheet)]), 2)
+            self.assertIn("nothing-in-the-prohibited-list", printed.getvalue())
 
 if __name__ == "__main__":
     unittest.main()

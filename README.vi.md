@@ -17,7 +17,7 @@ $marketing-minthep
 
 - [Skill tạo ra gì](#skill-tạo-ra-gì) · [Gọi skill lên thì nó làm gì](#gọi-skill-lên-thì-nó-làm-gì) · [Cách nó quyết định](#cách-nó-quyết-định) · [Bắt đầu nhanh](#bắt-đầu-nhanh)
 - [Năm phần thường gây khó hiểu](#năm-phần-thường-gây-khó-hiểu) — copywriting, edit ảnh, xây campaign, màu sắc, bố cục
-- [Những câu hỏi phía sau các tool còn lại](#những-câu-hỏi-phía-sau-các-tool-còn-lại) — giá và offer, hoa hồng affiliate và luật công bố, prompt, KPI, người ảo, test, khối lượng việc
+- [Những câu hỏi phía sau các tool còn lại](#những-câu-hỏi-phía-sau-các-tool-còn-lại) — giá và offer, hoa hồng affiliate và luật công bố, câu nào được phép nói, prompt, KPI, người ảo, test, khối lượng việc
 - [Output mẫu](#output-mẫu) · [Thư viện reference](#thư-viện-reference) · [Cổng chống AI-slop](#cổng-chống-ai-slop)
 - [Cấu trúc repo](#cấu-trúc-repo) · [Kiểm tra](#kiểm-tra) · [Những gì skill không làm](#những-gì-skill-không-làm)
 
@@ -221,6 +221,19 @@ Tỉ lệ tính trên giá trị đặt hàng nhưng trả trên giá trị đã
 
 Cũng chính đơn vị này giữ phần nghĩa vụ pháp lý của người đăng link. `data/vn-advertising-law.csv` có 45 dòng thuộc tám văn bản, mỗi dòng dẫn về đúng file công báo: luật Việt Nam gọi thẳng người có ảnh hưởng chứ không chỉ nhãn hàng, không đặt ngưỡng follower, buộc thông báo ngay trước *và trong khi* quảng cáo, và không quy định câu chữ cụ thể. Nên brief phải yêu cầu có dấu hiệu nhận biết, đồng thời tuyệt đối không nói với khách rằng một cụm từ nào đó là bắt buộc theo luật. Sáu dòng không có con số, vì phát hiện chính là không văn bản nào đặt ra con số đó, và ba trong số đó là câu hỏi còn mở, được ghi là còn mở. [`references/affiliate-commerce.md`](marketing-minthep/references/affiliate-commerce.md).
 
+### "Câu này nói ra có bị phạt không?"
+
+```powershell
+python marketing-minthep/scripts/check_claims.py --audit draft.md --sector cosmetics
+python marketing-minthep/scripts/check_claims.py --template answers.csv --sector cosmetics
+```
+
+> 10 trong 12 cổng kiểm fail, 8 cổng chặn. Các dòng bị gọi tên cộng lại 345.000.000 đến 505.000.000 đồng nếu bị xử phạt riêng từng hành vi, điều mà Điều 4 cho phép.
+
+Đó là một bài đăng serum, có từ "tốt nhất", có một câu so sánh, có chữ `đặc trị`, có bác sĩ da liễu trong hình, và còn một câu hỏi về hồ sơ chưa ai trả lời. Lời khuyên ai cũng biết là phải có bằng chứng cho điều mình nói. Đó là câu hỏi của luật Mỹ, và ở đây nó không phải câu hỏi đắt nhất. Nghị định 87/2026/NĐ-CP hỏi năm câu khác nhau, và `data/claim-evidence.csv` xếp cả 41 dòng theo đúng năm loại đó: cấm tuyệt đối, cần giấy tờ, không được vượt hồ sơ đã công bố, câu chữ do luật quy định sẵn, và cách trình bày do luật quy định sẵn. Loại skill này từng bỏ sót là loại thứ ba. Thước đo mà Điều 50.5.c gọi tên chính là hồ sơ đăng ký hoặc công bố của sản phẩm, nên một nhãn hàng có thể có kết quả thử nghiệm sạch sẽ, nói đúng sự thật, và vẫn bị phạt 30 đến 40 triệu vì công dụng đó chưa từng được ghi vào Phiếu công bố.
+
+Hai cổng kiểm thuộc phần dựng hình chứ không thuộc phần chữ. Bác sĩ, dược sĩ, áo blouse hay hình phòng khám trong một khung ảnh mỹ phẩm là cấm tuyệt đối, mức 15 đến 20 triệu, và có giấy đồng ý cũng không gỡ được, vì điều luật cấm chính loại hình ảnh đó. Thế nên nó phải nằm ở phần ràng buộc phủ định trước khi tạo ảnh, không phải ở buổi review sau khi ảnh đã xong. Chín cổng đọc bản nháp, sáu cổng đọc phiếu trả lời do `--template` sinh ra, và một dòng để trống trên phiếu đó thì fail chứ không pass. Một báo cáo xanh chỉ vì không ai kiểm tra chính là thứ đơn vị này sinh ra để chặn. Bốn lĩnh vực bị từ chối thẳng thay vì trả lời một nửa: thuốc, hóa chất, chế phẩm diệt côn trùng, thuốc bảo vệ thực vật. [`references/claims-proof-ledger.md`](marketing-minthep/references/claims-proof-ledger.md).
+
 ### "Provider này có làm đúng thứ prompt tôi viết không?"
 
 ```powershell
@@ -336,10 +349,10 @@ Kiểm tra bậc hai bắt cửa thoát: sau khi từ chối cái nhìn hiển n
 
 ```
 marketing-minthep/
-  SKILL.md                  điểm vào và bộ định tuyến, 181 dòng
+  SKILL.md                  điểm vào và bộ định tuyến, 183 dòng
   references/               63 file chủ đề, mỗi file dưới 150 dòng
     dossiers/               15 dossier craft chuyên sâu + index
-  data/                     31 bảng tra: image recipe, palette, layout dial,
+  data/                     32 bảng tra: image recipe, palette, layout dial,
                             slop tell, copy formula, translation tell và
                             ngôi xưng, reference axis, frame ratio,
                             composition grid, chỉ số KPI và trọng số, cổng
@@ -347,7 +360,7 @@ marketing-minthep/
                             prompt grammar, bố cục sản phẩm, benchmark,
                             nguồn dữ liệu thị trường, nguồn bằng chứng khách
                             hàng, command artifact, các vai marketer Việt Nam
-  scripts/                  43 công cụ + bộ test
+  scripts/                  44 công cụ + bộ test
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json và khung deliverable
@@ -365,7 +378,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-493 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv`, test fail nếu một ví dụ copy chứa số in được, test fail nếu một cờ năng lực dẫn tới dòng nguồn không tồn tại, và test fail nếu một deliverable gọi tên một script không có trong repo. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
+509 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv`, test fail nếu một ví dụ copy chứa số in được, test fail nếu một cờ năng lực dẫn tới dòng nguồn không tồn tại, và test fail nếu một deliverable gọi tên một script không có trong repo. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
 
 ## Những gì skill không làm
 

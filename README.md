@@ -17,7 +17,7 @@ $marketing-minthep
 
 - [What it produces](#what-it-produces) · [What happens when you invoke it](#what-happens-when-you-invoke-it) · [How it decides](#how-it-decides) · [Quick start](#quick-start)
 - [The five things people find confusing](#the-five-things-people-find-confusing) — copywriting, image editing, campaign building, colour, layout
-- [The questions behind the other tools](#the-questions-behind-the-other-tools) — pricing, affiliate deals and disclosure law, prompt grammar, KPIs, a repeatable person, testing, workload
+- [The questions behind the other tools](#the-questions-behind-the-other-tools) — pricing, affiliate deals and disclosure law, what a claim is allowed to say, prompt grammar, KPIs, a repeatable person, testing, workload
 - [Sample output](#sample-output) · [Reference library](#reference-library) · [Anti-AI-slop gate](#anti-ai-slop-gate)
 - [Repository layout](#repository-layout) · [Tests](#tests) · [What it will not do](#what-it-will-not-do)
 
@@ -221,6 +221,19 @@ The rate is charged on ordered value and paid on settled value, and four subtrac
 
 The same unit carries what the person posting the link now owes by law. `data/vn-advertising-law.csv` holds 45 rows across eight instruments, each cited to its gazette PDF: Vietnamese law names the creator personally, sets no follower threshold, requires disclosure immediately before *and during* the advertising, and prescribes no wording — so a brief must mandate a marker without claiming a particular phrase is legally required. Six rows carry no number because the finding is that no instrument establishes one, and three of those are open questions recorded as open. [`references/affiliate-commerce.md`](marketing-minthep/references/affiliate-commerce.md).
 
+### "Can we legally say this?"
+
+```powershell
+python marketing-minthep/scripts/check_claims.py --audit draft.md --sector cosmetics
+python marketing-minthep/scripts/check_claims.py --template answers.csv --sector cosmetics
+```
+
+> 10 of 12 gates fail, 8 of them blocking. The rows named carry 345,000,000 to 505,000,000 VND if every one is charged separately, which Điều 4 allows.
+
+That is one serum post with a superlative, a comparison, the word `đặc trị`, a dermatologist in frame and an unanswered dossier question. The advice everybody knows — hold evidence for what you claim — is the American question, and it is not the expensive one here. Nghị định 87/2026/NĐ-CP asks five, and `data/claim-evidence.csv` sorts all 41 rows by which: prohibited outright, needs a document, must match the filing, wording dictated by statute, layout dictated by statute. The one this skill had missed is the third. The benchmark named in Điều 50.5.c is the product's own registration or declaration, so a brand can hold a flawless clinical study, be telling the plain truth, and still be fined 30 to 40 million because the function was never written into the Phiếu công bố.
+
+Two of the gates are art direction rather than copy. A doctor, a pharmacist, a uniform or a clinic in a cosmetics frame is banned outright at 15 to 20 million, and consent discharges nothing, because the prohibition is on the category of image — so it belongs in the negative constraints before an image is generated, not in a review afterwards. Nine gates read the draft and six read an answer sheet `--template` writes for you, and a blank row on that sheet fails its gate rather than passing it: a green report earned by nobody having looked is the failure this unit exists to prevent. Four sectors are refused by name instead of half-answered — medicine, chemicals, insecticidal preparations, plant protection products. [`references/claims-proof-ledger.md`](marketing-minthep/references/claims-proof-ledger.md).
+
 ### "Will this provider actually do what my prompt asks?"
 
 ```powershell
@@ -336,10 +349,10 @@ The second-order check catches the escape hatch: having rejected the obvious cat
 
 ```
 marketing-minthep/
-  SKILL.md                  entry point and router, 181 lines
+  SKILL.md                  entry point and router, 183 lines
   references/               63 topic files, each under 150 lines
     dossiers/               15 deep-craft dossiers + index
-  data/                     31 lookup tables: image recipes, palettes, layout
+  data/                     32 lookup tables: image recipes, palettes, layout
                             dials, slop tells, copy formulas, translation and
                             address-register tells, reference axes, frame
                             ratios, composition grids, KPI metrics and aspect
@@ -348,7 +361,7 @@ marketing-minthep/
                             product compositions, benchmarks, market-data
                             sources, customer-evidence sources, command
                             artifacts, VN marketer roles
-  scripts/                  43 tools + test suite
+  scripts/                  44 tools + test suite
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json and deliverable skeletons
@@ -366,7 +379,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-493 tests, including ones that recompute every contrast ratio in `data/palettes.csv`, fail if a copy example contains a printable number, fail if a capability flag cites a source row that does not exist, and fail if a deliverable names a script that is not in the repository. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
+509 tests, including ones that recompute every contrast ratio in `data/palettes.csv`, fail if a copy example contains a printable number, fail if a capability flag cites a source row that does not exist, and fail if a deliverable names a script that is not in the repository. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
 
 ## What it will not do
 
