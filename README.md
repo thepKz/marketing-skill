@@ -13,6 +13,17 @@ One invocation, many workbenches. The skill loads only the knowledge the current
 $marketing-minthep
 ```
 
+<table>
+  <tr>
+    <td width="25%"><a href="docs/assets/generated/minthep-serum-packshot.png"><img src="docs/assets/generated/minthep-serum-packshot.png" alt="Serum packshot, concept packaging" /></a></td>
+    <td width="25%"><a href="docs/assets/generated/minthep-serum-key-visual.png"><img src="docs/assets/generated/minthep-serum-key-visual.png" alt="Serum key visual" /></a></td>
+    <td width="25%"><a href="docs/assets/generated/bun-bo-menu-quiet-editorial.svg"><img src="docs/assets/generated/bun-bo-menu-quiet-editorial.svg" alt="Menu, quiet editorial direction, drawn by code" /></a></td>
+    <td width="25%"><a href="docs/assets/generated/refsheet-palettes.svg"><img src="docs/assets/generated/refsheet-palettes.svg" alt="Palette sheet with measured contrast ratios" /></a></td>
+  </tr>
+</table>
+
+The two photographs came out of the controlled-branch image pipeline. The menu and the palette sheet did not: `render_mockup.py` and `render_refsheets.py` drew them, and every contrast ratio printed on that sheet is a measurement. Not a style. The rest is on the [live demo page](https://thepkz.github.io/marketing-skill/), including the failures the sheets admit to.
+
 ## Contents
 
 - [What it produces](#what-it-produces) · [What happens when you invoke it](#what-happens-when-you-invoke-it) · [How it decides](#how-it-decides) · [Quick start](#quick-start)

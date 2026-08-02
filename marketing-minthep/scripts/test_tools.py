@@ -2760,9 +2760,14 @@ class UseCaseGridTests(unittest.TestCase):
     def test_the_hero_counts_the_tabs_it_is_counting(self) -> None:
         """The hero said nine workbenches because there were nine tabs when it was typed. It is the
         first number a visitor reads and the page shows the tabs a scroll below it, so it cannot be
-        the one figure here that is maintained by hand."""
+        the one figure here that is maintained by hand.
+
+        The label moved from "marketing workbenches" to "worked use cases" because a visitor who
+        reads the README first arrives holding "nine pipelines", and 14 of a thing with the same
+        name reads as a contradiction rather than a second count. The number counts the use-case
+        tabs below the hero; now the label says so."""
         html = (self.DOCS / "index.html").read_text(encoding="utf-8")
-        stated = re.search(r"<strong>(\d+)</strong><span>marketing workbenches</span>", html)
+        stated = re.search(r"<strong>(\d+)</strong><span>worked use cases</span>", html)
         self.assertIsNotNone(stated, "the hero no longer states a workbench count in the expected shape")
         self.assertEqual(int(stated.group(1)), len(self.tabs))
 

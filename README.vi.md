@@ -13,6 +13,17 @@ Một lần gọi, nhiều workbench. Skill chỉ nạp phần kiến thức mà
 $marketing-minthep
 ```
 
+<table>
+  <tr>
+    <td width="25%"><a href="docs/assets/generated/minthep-serum-packshot.png"><img src="docs/assets/generated/minthep-serum-packshot.png" alt="Packshot serum, bao bì concept" /></a></td>
+    <td width="25%"><a href="docs/assets/generated/minthep-serum-key-visual.png"><img src="docs/assets/generated/minthep-serum-key-visual.png" alt="Key visual cho serum" /></a></td>
+    <td width="25%"><a href="docs/assets/generated/bun-bo-menu-quiet-editorial.svg"><img src="docs/assets/generated/bun-bo-menu-quiet-editorial.svg" alt="Menu hướng quiet editorial, vẽ bằng code" /></a></td>
+    <td width="25%"><a href="docs/assets/generated/refsheet-palettes.svg"><img src="docs/assets/generated/refsheet-palettes.svg" alt="Bảng palette với tỉ lệ tương phản đo được" /></a></td>
+  </tr>
+</table>
+
+Hai tấm ảnh chụp đi ra từ pipeline ảnh có kiểm soát nhánh. Menu với bảng palette thì không: `render_mockup.py` và `render_refsheets.py` vẽ chúng bằng code, tỉ lệ tương phản in trên bảng là số đo thật. Không phải trang trí. Phần còn lại nằm ở [trang demo](https://thepkz.github.io/marketing-skill/), kể cả những lỗi mà chính các bảng này tự khai ra.
+
 ## Mục lục
 
 - [Skill tạo ra gì](#skill-tạo-ra-gì) · [Gọi skill lên thì nó làm gì](#gọi-skill-lên-thì-nó-làm-gì) · [Cách nó quyết định](#cách-nó-quyết-định) · [Bắt đầu nhanh](#bắt-đầu-nhanh)
@@ -51,7 +62,7 @@ Không phải một đoạn chat. Một thư mục. Đây là một lần chạy
 python marketing-minthep/scripts/start_workbench.py --request "Tôi mở shop mỹ phẩm nhỏ ở Gò Vấp, không biết gì về marketing, muốn có kế hoạch và ảnh sản phẩm đẹp, ngân sách nhỏ" --root .
 ```
 
-Nó chấm điểm cả chín pipeline theo câu chữ và cho xem điểm — `plan-from-zero` 3 điểm, sát nhất là `deep-research` 1 điểm — rồi ghi ra 34 file. Mười ba deliverable song ngữ Việt và Anh đặt cạnh nhau, một file intake trích nguyên văn câu bạn viết, `claims.csv` và `sources.md` cho những chỗ sau này phải dẫn nguồn, một log quyết định, và một `README.md` mục lục mà đoạn thứ hai của nó là phần đáng đọc nhất:
+Nó chấm điểm cả chín pipeline theo câu chữ và cho xem điểm — `plan-from-zero` 3 điểm, sát nhất là `deep-research` 1 điểm — rồi ghi ra 34 file. Mười ba deliverable song ngữ Việt và Anh đặt cạnh nhau, một file intake trích nguyên văn câu bạn viết, `claims.csv` và `sources.md` cho những chỗ sau này phải dẫn nguồn, một log quyết định, và một `README.md` mục lục mà đoạn thứ hai của nó là phần đáng đọc nhất (trích nguyên văn — skill ghi log bằng tiếng Anh, deliverable thì song ngữ):
 
 > Read from the request: horizon **13 weeks** (assumed, not stated); budget **small** (from "ngân sách nhỏ"); product family **beauty** (from "mỹ phẩm"). Correct any of these in `01-intake` first — everything downstream is built on them.
 
