@@ -2615,6 +2615,42 @@ class ReferenceIntegrityTests(unittest.TestCase):
         for name in ("01-draft-vi.md", "02-rewrite-vi.md", "03-transcreation-en.md"):
             self.assertIn(name, index, f"the example index no longer lists {name}")
 
+    def test_the_anti_slop_index_names_the_whole_layer_in_its_running_order(self) -> None:
+        """The anti-slop machinery spans three scripts, three tables and four references, and
+        before the index existed the only place the full set was assembled was a reader's head.
+        The index is only worth routing to while it names all of it, and while it states the
+        order — content, then cadence, then register — because running cadence first rewards
+        deleting the specifics, which is the failure the layer exists to catch."""
+        text = (SKILL_ROOT / "references" / "anti-slop-index.md").read_text(encoding="utf-8")
+        for name in ("check_specificity.py", "rewrite_human.py", "check_address_register.py",
+                     "find_recipe.py", "translation-tells.csv", "address-registers.csv",
+                     "slop-tells.csv", "specificity.md", "rewrite-human.md",
+                     "address-register.md", "claims-proof-ledger.md"):
+            self.assertIn(name, text, f"the index no longer names {name}")
+        order = [text.index(script) for script in
+                 ("check_specificity.py", "rewrite_human.py", "check_address_register.py")]
+        self.assertEqual(order, sorted(order),
+                         "the index lists the instruments out of their running order")
+
+    def test_every_claim_in_the_anti_slop_index_keeps_its_provenance(self) -> None:
+        """The index's one job is separating sourced tells from house observation. Its own
+        citations therefore have to stay checkable, and its two honesty clauses have to stay:
+        the thresholds are this repo's rules, and the Vietnamese tells cite no catalogue
+        because none was found — a negative finding someone tidying the file would delete."""
+        text = (SKILL_ROOT / "references" / "anti-slop-index.md").read_text(encoding="utf-8")
+        for source in ("Signs_of_AI_writing", "arXiv:2412.11385", "arXiv:2404.08627",
+                       "arXiv:2406.08651", "simonwillison.net/2024/May/8/slop/",
+                       "github.com/blader/humanizer"):
+            self.assertIn(source, text, f"the index dropped its citation of {source}")
+        self.assertGreaterEqual(text.count("retrieved 2026-"), 4,
+                                "the retrieval dates are gone, so nothing says when the web "
+                                "sources were last true")
+        self.assertIn("house-rule", text,
+                      "the index no longer says its thresholds are the repo's own")
+        self.assertIn("No published Vietnamese tell catalogue was found", text,
+                      "the negative finding is the provenance of every Vietnamese tell; "
+                      "deleting it turns house observation back into implied citation")
+
 
 class _TextNodes(HTMLParser):
     """The text nodes docs/app.js would hand to its translator, in the same order.

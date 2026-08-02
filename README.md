@@ -230,7 +230,7 @@ python marketing-minthep/scripts/model_affiliate.py --notch
 
 The rate is charged on ordered value and paid on settled value, and four subtractions sit in between: returns, the 0.98% platform service fee, 10% personal income tax withheld at source, and what the posts cost to make. Both sides are modelled, because they are two different subtractions on one deal and the script refuses to run without being told which. `--notch` prints the consequence nobody publishes: withholding applies to the whole payment once it reaches 250,000 VND rather than to the excess, so every payment between 250,000 and 277,778 takes home less than 249,999 does. Twelve gates, and the three critical ones ask where the numbers came from rather than whether the deal is good — an unsourced return rate blocks before any total is believed, and a fee quoted from a page Shopee superseded in July 2025 is caught by name.
 
-The same unit carries what the person posting the link now owes by law. `data/vn-advertising-law.csv` holds 45 rows across eight instruments, each cited to its gazette PDF: Vietnamese law names the creator personally, sets no follower threshold, requires disclosure immediately before *and during* the advertising, and prescribes no wording — so a brief must mandate a marker without claiming a particular phrase is legally required. Six rows carry no number because the finding is that no instrument establishes one, and three of those are open questions recorded as open. [`references/affiliate-commerce.md`](marketing-minthep/references/affiliate-commerce.md).
+The same unit carries what the person posting the link now owes by law. `data/vn-advertising-law.csv` holds 65 rows across eight instruments, each cited to its gazette PDF: Vietnamese law names the creator personally, sets no follower threshold, requires disclosure immediately before *and during* the advertising, and prescribes no wording — so a brief must mandate a marker without claiming a particular phrase is legally required. Seven rows carry a finding instead of a number, and four of those are open rather than settled: three need a lawyer, and one is an article the research never reached. [`references/affiliate-commerce.md`](marketing-minthep/references/affiliate-commerce.md).
 
 ### "Can we legally say this?"
 
@@ -322,7 +322,7 @@ python marketing-minthep/scripts/rewrite_human.py --check draft.md --channel web
 python marketing-minthep/scripts/check_address_register.py --check draft.md
 ```
 
-In that order, and the order is the point. Rhythm editing deletes specifics, so the checkable facts get counted first: under three of them the draft has a content problem, and every cadence fix from there makes it read better while still saying nothing. The third command is Vietnamese-only and settles a question English style guides cannot — which pronoun register the copy is in, and whether it stays there, because a page that opens with *bạn* and closes with *quý khách* has changed who it thinks it is talking to.
+In that order, and the order is the point. Rhythm editing deletes specifics, so the checkable facts get counted first: under three of them the draft has a content problem, and every cadence fix from there makes it read better while still saying nothing. The third command is Vietnamese-only and settles a question English style guides cannot — which pronoun register the copy is in, and whether it stays there, because a page that opens with *bạn* and closes with *quý khách* has changed who it thinks it is talking to. The whole layer is indexed in [`references/anti-slop-index.md`](marketing-minthep/references/anti-slop-index.md): each tell family traced to the published literature it comes from, and the Vietnamese tells recorded as this repo's own observation, because no Vietnamese catalogue existed to cite.
 
 ### "Who is supposed to do all this on Monday?"
 
@@ -394,8 +394,8 @@ The second-order check catches the escape hatch: having rejected the obvious cat
 
 ```
 marketing-minthep/
-  SKILL.md                  entry point and router, 189 lines
-  references/               64 topic files, each under 150 lines
+  SKILL.md                  entry point and router, 199 lines
+  references/               65 topic files, each under 150 lines
     dossiers/               15 deep-craft dossiers + index
   data/                     34 lookup tables: image recipes, palettes, layout
                             dials, slop tells, copy formulas, translation and
@@ -425,7 +425,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-594 tests, including ones that recompute every contrast ratio in `data/palettes.csv`, fail if a copy example contains a printable number, fail if a capability flag cites a source row that does not exist, fail if any placement check clears an asset against a figure the vendor page never published, and fail if a deliverable names a script that is not in the repository. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
+596 tests, including ones that recompute every contrast ratio in `data/palettes.csv`, fail if a copy example contains a printable number, fail if a capability flag cites a source row that does not exist, fail if any placement check clears an asset against a figure the vendor page never published, and fail if a deliverable names a script that is not in the repository. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
 
 ## What it will not do
 

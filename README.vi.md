@@ -230,7 +230,7 @@ python marketing-minthep/scripts/model_affiliate.py --notch
 
 Tỉ lệ tính trên giá trị đặt hàng nhưng trả trên giá trị đã chốt, và giữa hai con số đó có bốn lần trừ: hàng hoàn, phí dịch vụ sàn 0,98%, thuế thu nhập cá nhân 10% giữ tại nguồn, và chi phí làm ra mấy bài đăng. Script dựng cả hai phía, vì bên nhãn hàng và bên người đăng là hai phép trừ khác nhau trên cùng một hợp đồng, nên nó không chạy nếu chưa được cho biết đang tính cho ai. `--notch` in ra cái hệ quả không ai công bố: thuế giữ trên toàn bộ khoản chi trả một khi khoản đó chạm 250.000 đồng, chứ không phải giữ trên phần vượt, nên mọi khoản từ 250.000 đến 277.778 về tay ít hơn khoản 249.999. Mười hai cổng kiểm, và ba cổng nghiêm trọng nhất hỏi số này lấy ở đâu ra chứ không hỏi hợp đồng có lời hay không: tỉ lệ hoàn hàng không có nguồn thì chặn trước khi ai kịp tin vào tổng, còn mức phí trích từ trang Shopee đã thay bằng trang khác từ tháng 7/2025 thì bị gọi đúng tên.
 
-Cũng chính đơn vị này giữ phần nghĩa vụ pháp lý của người đăng link. `data/vn-advertising-law.csv` có 45 dòng thuộc tám văn bản, mỗi dòng dẫn về đúng file công báo: luật Việt Nam gọi thẳng người có ảnh hưởng chứ không chỉ nhãn hàng, không đặt ngưỡng follower, buộc thông báo ngay trước *và trong khi* quảng cáo, và không quy định câu chữ cụ thể. Nên brief phải yêu cầu có dấu hiệu nhận biết, đồng thời tuyệt đối không nói với khách rằng một cụm từ nào đó là bắt buộc theo luật. Sáu dòng không có con số, vì phát hiện chính là không văn bản nào đặt ra con số đó, và ba trong số đó là câu hỏi còn mở, được ghi là còn mở. [`references/affiliate-commerce.md`](marketing-minthep/references/affiliate-commerce.md).
+Cũng chính đơn vị này giữ phần nghĩa vụ pháp lý của người đăng link. `data/vn-advertising-law.csv` có 65 dòng thuộc tám văn bản, mỗi dòng dẫn về đúng file công báo: luật Việt Nam gọi thẳng người có ảnh hưởng chứ không chỉ nhãn hàng, không đặt ngưỡng follower, buộc thông báo ngay trước *và trong khi* quảng cáo, và không quy định câu chữ cụ thể. Nên brief phải yêu cầu có dấu hiệu nhận biết, đồng thời tuyệt đối không nói với khách rằng một cụm từ nào đó là bắt buộc theo luật. Bảy dòng ghi một phát hiện thay vì một con số, và bốn trong số đó còn mở chứ chưa khép lại: ba dòng cần luật sư trả lời, một dòng là điều luật mà đợt nghiên cứu chưa đọc tới. [`references/affiliate-commerce.md`](marketing-minthep/references/affiliate-commerce.md).
 
 ### "Câu này nói ra có bị phạt không?"
 
@@ -322,7 +322,7 @@ python marketing-minthep/scripts/rewrite_human.py --check draft.md --channel web
 python marketing-minthep/scripts/check_address_register.py --check draft.md
 ```
 
-Đúng thứ tự đó, và thứ tự chính là điểm chính. Sửa nhịp câu sẽ xoá mất chi tiết cụ thể, nên phải đếm số dữ kiện kiểm được trước: dưới ba dữ kiện thì bản nháp đang có vấn đề về nội dung, và từ đó mọi lần sửa nhịp chỉ làm nó đọc mượt hơn trong lúc vẫn không nói gì cả. Câu lệnh thứ ba chỉ dành cho tiếng Việt và giải quyết một chuyện mà style guide tiếng Anh không với tới — bài đang ở ngôi nào, và có giữ nguyên ngôi đó không, vì một trang mở đầu bằng *bạn* rồi kết bằng *quý khách* là đã đổi luôn cái nhìn về người mình đang nói với.
+Đúng thứ tự đó, và thứ tự chính là điểm chính. Sửa nhịp câu sẽ xoá mất chi tiết cụ thể, nên phải đếm số dữ kiện kiểm được trước: dưới ba dữ kiện thì bản nháp đang có vấn đề về nội dung, và từ đó mọi lần sửa nhịp chỉ làm nó đọc mượt hơn trong lúc vẫn không nói gì cả. Câu lệnh thứ ba chỉ dành cho tiếng Việt và giải quyết một chuyện mà style guide tiếng Anh không với tới — bài đang ở ngôi nào, và có giữ nguyên ngôi đó không, vì một trang mở đầu bằng *bạn* rồi kết bằng *quý khách* là đã đổi luôn cái nhìn về người mình đang nói với. Cả tầng chống slop này được lập chỉ mục trong [`references/anti-slop-index.md`](marketing-minthep/references/anti-slop-index.md): mỗi họ dấu hiệu dẫn về đúng tài liệu đã công bố mà nó xuất phát, còn các dấu hiệu tiếng Việt được ghi là quan sát riêng của repo, vì không có catalogue tiếng Việt nào để dẫn.
 
 ### "Rồi thứ Hai ai làm hết mấy việc này?"
 
@@ -394,8 +394,8 @@ Kiểm tra bậc hai bắt cửa thoát: sau khi từ chối cái nhìn hiển n
 
 ```
 marketing-minthep/
-  SKILL.md                  điểm vào và bộ định tuyến, 189 dòng
-  references/               64 file chủ đề, mỗi file dưới 150 dòng
+  SKILL.md                  điểm vào và bộ định tuyến, 199 dòng
+  references/               65 file chủ đề, mỗi file dưới 150 dòng
     dossiers/               15 dossier craft chuyên sâu + index
   data/                     34 bảng tra: image recipe, palette, layout dial,
                             slop tell, copy formula, translation tell và
@@ -425,7 +425,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-594 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv`, test fail nếu một ví dụ copy chứa số in được, test fail nếu một cờ năng lực dẫn tới dòng nguồn không tồn tại, test fail nếu một lượt kiểm spec cho asset đạt trong khi trang của nền tảng chưa từng công bố con số đó, và test fail nếu một deliverable gọi tên một script không có trong repo. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
+596 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv`, test fail nếu một ví dụ copy chứa số in được, test fail nếu một cờ năng lực dẫn tới dòng nguồn không tồn tại, test fail nếu một lượt kiểm spec cho asset đạt trong khi trang của nền tảng chưa từng công bố con số đó, và test fail nếu một deliverable gọi tên một script không có trong repo. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
 
 ## Những gì skill không làm
 
