@@ -24,8 +24,25 @@ $marketing-minthep
 
 Hai tấm ảnh chụp đi ra từ pipeline ảnh có kiểm soát nhánh. Menu với bảng palette thì không: `render_mockup.py` và `render_refsheets.py` vẽ chúng bằng code, tỉ lệ tương phản in trên bảng là số đo thật. Không phải trang trí. Phần còn lại nằm ở [trang demo](https://thepkz.github.io/marketing-skill/), kể cả những lỗi mà chính các bảng này tự khai ra.
 
+## Nó có tác dụng thật không? Đây là số đo
+
+Cùng một đoạn giới thiệu tiếng Việt, trước và sau. Cả hai file đều nằm trong repo, và có test đánh trượt nếu bản dở bắt đầu đậu hoặc bản tốt thôi đậu: [`assets/examples/rewrite-human/`](marketing-minthep/assets/examples/rewrite-human/).
+
+| Số đo | Bản nháp | Bản viết lại | Ngưỡng |
+|---|--:|--:|---|
+| Dữ kiện kiểm chứng được | 1 | 8 | ≥ 3 |
+| Câu đối thủ copy nguyên vẫn dùng được | 3 trên 4 | 2 trên 8 | ≤ 50% |
+| Độ dao động chiều dài câu (CV) | 0.10 | 0.85 | ≥ 0.45 |
+| Câu dài nhất ÷ câu ngắn nhất | 1.3× | 19.0× | ≥ 3.0 |
+| Tính từ rỗng trên 150 âm tiết | 1.55 | 0.0 | ≤ 1.0 |
+| Dấu hiệu dịch máy tiếng Việt bị gọi tên | 4 | 0 | không chặn |
+| **Kết luận** | **trượt, 6 lỗi chặn** | **đậu** | |
+
+Bản viết lại mang tám dữ kiện kiểm chứng được trong 101 âm tiết. Bản nháp mang một, trong 97. Dữ kiện lấy từ chính cái tiệm, không phải từ mô hình — đó là toàn bộ khác biệt, và là lý do cổng này là số học chứ không phải khẩu vị. Mọi con số ở trên đều do một script in ra, bạn chạy được trên bản nháp của mình, còn kiến trúc sinh ra chúng nằm ở [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ## Mục lục
 
+- [Nó có tác dụng thật không? Đây là số đo](#nó-có-tác-dụng-thật-không-đây-là-số-đo) · [Kiến trúc](ARCHITECTURE.md)
 - [Skill tạo ra gì](#skill-tạo-ra-gì) · [Gọi skill lên thì nó làm gì](#gọi-skill-lên-thì-nó-làm-gì) · [Cách nó quyết định](#cách-nó-quyết-định) · [Bắt đầu nhanh](#bắt-đầu-nhanh)
 - [Năm phần thường gây khó hiểu](#năm-phần-thường-gây-khó-hiểu) — copywriting, edit ảnh, xây campaign, màu sắc, bố cục
 - [Những câu hỏi phía sau các tool còn lại](#những-câu-hỏi-phía-sau-các-tool-còn-lại) — giá và offer, hoa hồng affiliate và luật công bố, câu nào được phép nói, prompt, KPI, báo cáo hết kỳ, người ảo, test, khối lượng việc
@@ -425,7 +442,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-608 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv`, test fail nếu một ví dụ copy chứa số in được, test fail nếu một cờ năng lực dẫn tới dòng nguồn không tồn tại, test fail nếu một lượt kiểm spec cho asset đạt trong khi trang của nền tảng chưa từng công bố con số đó, và test fail nếu một deliverable gọi tên một script không có trong repo. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
+616 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv`, test fail nếu một ví dụ copy chứa số in được, test fail nếu một cờ năng lực dẫn tới dòng nguồn không tồn tại, test fail nếu một lượt kiểm spec cho asset đạt trong khi trang của nền tảng chưa từng công bố con số đó, và test fail nếu một deliverable gọi tên một script không có trong repo. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
 
 ## Những gì skill không làm
 

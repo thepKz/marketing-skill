@@ -2233,12 +2233,157 @@ class RepoReadmeTests(unittest.TestCase):
                 with self.subTest(lang=lang, script=script):
                     self.assertIn(script, text)
 
+    def test_the_front_page_numbers_are_what_the_instruments_actually_print(self) -> None:
+        """The before/after table is the first thing a stranger reads and the strongest claim the
+        repository makes, so it is recomputed here rather than trusted.
+
+        Hand-typed evidence is worse than none: a threshold that moves leaves the old figures on
+        the front page, still formatted as measurements, now advertising a result the tools no
+        longer produce. Both languages are checked, because the rot would start in one of them.
+        """
+        folder = SKILL_ROOT / "assets" / "examples" / "rewrite-human"
+        # Needles that survive translation: a threshold, a symbol, an abbreviation. The two rows
+        # whose label is unavoidably prose are keyed per language instead of faked as neutral.
+        for name, column in (("01-draft-vi.md", 1), ("02-rewrite-vi.md", 2)):
+            text = (folder / name).read_text(encoding="utf-8")
+            cadence = rewrite_human.measure(text, "vi")
+            said = check_specificity.measure(text)
+            adjective = {row["gate"]: row for row in
+                         check_specificity.gates(said)}["empty-adjective"]["observed"].split()[0]
+            tells = rewrite_human.find_tells(text, "vi")
+            blocking = rewrite_human.blocking_count(rewrite_human.gates(cadence), tells)
+            claims = {
+                "| ≥ 3 |": [str(said["facts"])],
+                "≤ 50%": [str(said["empty_sentences"]), str(said["sentences"])],
+                "(CV)": [f"{cadence['cv']:.2f}"],
+                "÷": [f"{cadence['ratio']:.1f}"],
+                "≤ 1.0": [adjective],
+            }
+            for lang, whole in self.text.items():
+                rows = [line for line in whole.splitlines() if line.count("|") >= 4]
+                needles = dict(claims)
+                needles["tells" if lang == "en" else "dịch máy"] = [str(len(tells))]
+                needles["Verdict" if lang == "en" else "Kết luận"] = (
+                    [str(blocking)] if blocking else [])
+                for needle, wanted in needles.items():
+                    with self.subTest(name=name, lang=lang, row=needle):
+                        matched = [row for row in rows if needle in row]
+                        self.assertEqual(len(matched), 1, f"{needle!r} matched {matched}")
+                        cell = matched[0].split("|")[column + 1]
+                        for value in wanted:
+                            self.assertIn(value, cell, f"{needle!r} -> {cell!r}")
+
     def test_the_two_files_stay_the_same_document(self) -> None:
         """Divergence is how one language quietly becomes the stale one."""
         heads = {lang: len(re.findall(r"^## ", text, re.MULTILINE)) for lang, text in self.text.items()}
         self.assertEqual(heads["en"], heads["vi"])
         blocks = {lang: text.count("```powershell") for lang, text in self.text.items()}
         self.assertEqual(blocks["en"], blocks["vi"])
+
+
+class ArchitectureDocTests(unittest.TestCase):
+    """`ARCHITECTURE.md` is the page that decides whether a stranger trusts the repository, and it
+    is the easiest page in it to falsify. Nothing in a layer diagram breaks when the layer moves.
+
+    So the doc claims only things that can be recounted: the size of each layer, the honesty columns
+    on the tables, and the name of the test holding each invariant. That last one is the reason this
+    class exists. A document naming `test_no_reference_is_unreachable_from_the_router` is making a
+    checkable promise, and a rename would turn it into a citation to nothing while still reading as
+    rigour - which is the exact defect the whole skill is built against.
+    """
+
+    DOC = REPO_ROOT / "ARCHITECTURE.md"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.text = cls.DOC.read_text(encoding="utf-8")
+
+    def _one(self, pattern: str) -> tuple:
+        found = re.findall(pattern, self.text)
+        self.assertTrue(found, f"ARCHITECTURE.md no longer states {pattern}")
+        self.assertEqual(len(set(found)), 1, f"{pattern} is stated more than one way: {found}")
+        return found[0] if isinstance(found[0], tuple) else (found[0],)
+
+    @staticmethod
+    def _tables_with(fragment: str) -> int:
+        """Tables whose header carries a column of this kind.
+
+        Matched on the header rather than on a fixed column name on purpose: the tables disagree
+        about the wording - `source`, `source_url`, `value_source`, and `what_it_does_not_prove`
+        beside `what_it_does_not_establish` - because each was named for the row it describes. The
+        convention being counted is that the column is there at all.
+        """
+        total = 0
+        for path in sorted((SKILL_ROOT / "data").glob("*.csv")):
+            with path.open(encoding="utf-8-sig", newline="") as handle:
+                header = next(csv.reader(handle), [])
+            if any(fragment in column.lower() for column in header):
+                total += 1
+        return total
+
+    def test_the_entry_point_states_its_own_table_count_in_digits(self) -> None:
+        """`SKILL.md` said "thirty-four tables" for as long as there were thirty-five, because a
+        number spelled in words is invisible to every count test in this file. Digits are not a
+        style choice here - they are what makes the claim checkable."""
+        text = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        total = len(list((SKILL_ROOT / "data").glob("*.csv")))
+        self.assertIn(f"`data/` holds {total} tables", text)
+
+    def test_the_architecture_counts_match_the_filesystem(self) -> None:
+        skill_lines = len((SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8").splitlines())
+        tools = len([p for p in (SKILL_ROOT / "scripts").glob("*.py") if p.stem != "test_tools"])
+        self.assertEqual(self._one(r"\| (\d+) lines \|"), (str(skill_lines),))
+        self.assertEqual(self._one(r"\| (\d+) pipelines \|"),
+                         (str(len(load_registry()["pipelines"])),))
+        self.assertEqual(
+            self._one(r"\| (\d+) \+ (\d+) \|"),
+            (str(len(list((SKILL_ROOT / "references").glob("*.md")))),
+             str(len(list((SKILL_ROOT / "references" / "dossiers").glob("*.md"))))))
+        self.assertEqual(self._one(r"(\d+) lookup tables"),
+                         (str(len(list((SKILL_ROOT / "data").glob("*.csv")))),))
+        self.assertEqual(self._one(r"\| (\d+) tools \|"), (str(tools),))
+
+    def test_the_stated_honesty_columns_are_on_that_many_tables(self) -> None:
+        """The three columns are the architecture's actual claim, so the share carrying them is
+        not decoration. Under-stating it is harmless; over-stating it sells a discipline the
+        tables do not have."""
+        sourced, total = self._one(r"(\d+) of (\d+) tables")
+        self.assertEqual(int(total), len(list((SKILL_ROOT / "data").glob("*.csv"))))
+        self.assertEqual(int(sourced), self._tables_with("source"))
+        self.assertEqual(int(self._one(r"(\d+) tables carry a grade")[0]),
+                         self._tables_with("evidence_grade"))
+        self.assertEqual(int(self._one(r"(\d+) tables carry a limit")[0]),
+                         self._tables_with("does_not"))
+
+    def test_the_stated_test_count_matches_the_suite(self) -> None:
+        suite = unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__])
+        self.assertEqual(int(self._one(r"(\d+) tests, and these")[0]), suite.countTestCases())
+
+    def test_every_invariant_names_a_test_that_actually_exists(self) -> None:
+        """The invariant table is a set of citations into this file. A citation that does not
+        resolve is the failure mode this repository refuses everywhere else."""
+        defined = {name for value in list(globals().values())
+                   if isinstance(value, type) and issubclass(value, unittest.TestCase)
+                   for name in dir(value) if name.startswith("test_")}
+        cited = set(re.findall(r"`(test_[a-z0-9_]+)`", self.text))
+        self.assertGreaterEqual(len(cited), 8, "the invariant table lost its citations")
+        self.assertEqual(sorted(cited - defined), [], "named in ARCHITECTURE.md, not in the suite")
+
+    def test_every_path_named_here_exists(self) -> None:
+        for ref in sorted(set(re.findall(r"`((?:scripts|references|data|assets)/[^`]+)`", self.text))):
+            with self.subTest(ref=ref):
+                if any(ch in ref for ch in "*<>"):
+                    continue
+                self.assertTrue((SKILL_ROOT / ref).exists(), ref)
+
+    def test_both_readmes_reach_it_and_it_reaches_both(self) -> None:
+        """A page nobody links to is a page nobody reads, which is how the previous version of
+        this repository shipped nine pipelines and looked like four."""
+        for path in (REPO_ROOT / "README.md", REPO_ROOT / "README.vi.md"):
+            with self.subTest(path.name):
+                self.assertIn("ARCHITECTURE.md", path.read_text(encoding="utf-8"))
+        self.assertIn('href="README.md"', self.text)
+        self.assertIn('href="README.vi.md"', self.text)
 
 
 def _english_number(value: int) -> str:

@@ -24,8 +24,25 @@ $marketing-minthep
 
 The two photographs came out of the controlled-branch image pipeline. The menu and the palette sheet did not: `render_mockup.py` and `render_refsheets.py` drew them, and every contrast ratio printed on that sheet is a measurement. Not a style. The rest is on the [live demo page](https://thepkz.github.io/marketing-skill/), including the failures the sheets admit to.
 
+## Does it work? Here is the measurement
+
+The same Vietnamese About-us paragraph, before and after. Both files are in the repository, and a test fails if the bad one ever starts passing or the good one ever stops: [`assets/examples/rewrite-human/`](marketing-minthep/assets/examples/rewrite-human/).
+
+| Measured | Draft | Rewrite | Gate |
+|---|--:|--:|---|
+| Checkable facts | 1 | 8 | ≥ 3 |
+| Sentences a competitor could publish unchanged | 3 of 4 | 2 of 8 | ≤ 50% |
+| Sentence-length variation (CV) | 0.10 | 0.85 | ≥ 0.45 |
+| Longest ÷ shortest sentence | 1.3× | 19.0× | ≥ 3.0 |
+| Empty-evidence adjectives per 150 syllables | 1.55 | 0.0 | ≤ 1.0 |
+| Named Vietnamese machine-translation tells | 4 | 0 | none blocking |
+| **Verdict** | **failed, 6 blocking** | **passed** | |
+
+The rewrite carries eight checkable facts in 101 syllables. The draft carried one in 97. The facts came from the shop, not from the model — which is the entire difference, and the reason the gate is arithmetic instead of taste. Every number above is printed by a script you can run on your own draft, and the shape that produces them is in [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ## Contents
 
+- [Does it work? Here is the measurement](#does-it-work-here-is-the-measurement) · [Architecture](ARCHITECTURE.md)
 - [What it produces](#what-it-produces) · [What happens when you invoke it](#what-happens-when-you-invoke-it) · [How it decides](#how-it-decides) · [Quick start](#quick-start)
 - [The five things people find confusing](#the-five-things-people-find-confusing) — copywriting, image editing, campaign building, colour, layout
 - [The questions behind the other tools](#the-questions-behind-the-other-tools) — pricing, affiliate deals and disclosure law, what a claim is allowed to say, prompt grammar, KPIs, reporting a period, a repeatable person, testing, workload
@@ -425,7 +442,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-608 tests, including ones that recompute every contrast ratio in `data/palettes.csv`, fail if a copy example contains a printable number, fail if a capability flag cites a source row that does not exist, fail if any placement check clears an asset against a figure the vendor page never published, and fail if a deliverable names a script that is not in the repository. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
+616 tests, including ones that recompute every contrast ratio in `data/palettes.csv`, fail if a copy example contains a printable number, fail if a capability flag cites a source row that does not exist, fail if any placement check clears an asset against a figure the vendor page never published, and fail if a deliverable names a script that is not in the repository. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
 
 ## What it will not do
 
