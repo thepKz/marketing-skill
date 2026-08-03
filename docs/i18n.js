@@ -52,15 +52,25 @@ window.HANDBOOK_I18N = {
     "Năm bảng này là artefact thật, không phải concept: chạy": "These five sheets are real artefacts, not concepts: running",
     "là ra đúng những hình trên. Cột tương phản trong bảng palette là tính ra chứ không khai ra, và hai trong hai mươi accent thật sự không đạt ngưỡng 3:1 nên bị đánh dấu chỉ dùng để tô, không dùng cho chữ. Như vậy hữu ích hơn một bộ palette mà cái nào cũng đạt. Bảng tỉ lệ cũng vậy: nó không khen tỉ lệ vàng, nó đo — xoắn ốc vàng bị xếp là": "produces exactly the images above. The contrast column in the palette sheet is computed rather than claimed, and two of the twenty accents genuinely miss the 3:1 threshold, so they are marked fill-only and not for text. That is more useful than a palette set where everything passes. The ratio sheet works the same way: it does not flatter the golden ratio, it measures it — the golden spiral is graded",
     ", và trên giấy A4 thì chia ba với đối xứng động là cùng một cái lưới.": ", and on A4 paper thirds and dynamic symmetry are the same grid.",
-    "Bốn hướng ảnh, ba hướng menu và hai post mẫu, cùng một skill: packshot, beauty, art campaign, fashion, ba bố cục menu và hai bài đăng — tất cả phần bố cục đều dựng bằng code. Bấm vào bất kỳ ô nào để xem bản đầy đủ.": "Four image directions, three menu directions, and two sample posts from one skill: packshot, beauty, art campaign, fashion, three menu layouts, and two posts — every layout built by code. Click any tile to open it full size.",
+    "Bốn hướng ảnh, tám hướng menu và hai post mẫu, cùng một skill. Năm menu mới đổi cả cấu trúc, nhịp đọc, tỉ lệ ảnh và cách đặt giá — không phải một template mặc năm bộ màu. Bấm vào bất kỳ ô nào để xem bản đầy đủ.": "Four image directions, eight menu directions, and two sample posts from one skill. The five new menus change structure, reading rhythm, image ratio, and price placement — not one template in five colourways. Click any tile to open it full size.",
     // The disclaimer is three keys, not one, because `setLanguage` walks text nodes and skips
     // anything inside <code>. The single key that used to live here matched nothing at all: the
     // paragraph had been split by two <code> elements, so the whole line stayed Vietnamese in the
     // English edition. Each fragment below is one text node, and they have to read as one
     // sentence when the script names are put back between them.
     "Các hình trên là concept hư cấu để minh họa art direction. Hai post mẫu dựng bằng": "These are fictional concepts illustrating art direction. The two sample posts are built by",
-    ": story không phải bản feed bị cắt, nó chừa 250px trên và 420px dưới cho khung giao diện của ứng dụng. Ba menu là cùng một nội dung, dựng bằng": ": the story is not the feed post cropped — it leaves 250px at the top and 420px at the bottom for the app's own interface. The three menus carry the same content, built by",
-    ", chỉ đổi hướng thiết kế — lề, cỡ chữ tiêu đề, giãn dòng và cách xử lý dòng món đều khác nhau, không chỉ đổi màu. Quán, món và giá là ví dụ hư cấu để minh họa bố cục thật; đây chưa phải file in cho một khách hàng thật.": ", changing only the design direction — margin, title size, leading, and row treatment all differ, not just the colour. The shop, dishes, and prices are a fictional example illustrating a real layout; this is not a print file for an actual customer.",
+    ": story không phải bản feed bị cắt, nó chừa 250px trên và 420px dưới cho khung giao diện của ứng dụng. Tám menu dựng bằng": ": the story is not the feed post cropped — it leaves 250px at the top and 420px at the bottom for the app's own interface. The eight menus are built by",
+    ": ba hướng hệ thống để so dial và năm hướng art-directed đổi toàn bộ cấu trúc, mỗi hướng có scene ảnh riêng cùng lớp motif vector. Quán, món và giá là ví dụ hư cấu để minh họa bố cục thật; đây chưa phải file in cho một khách hàng thật.": ": three system directions for comparing dials and five art-directed directions that change the whole structure, each with its own photographic scene and vector motif layer. The shop, dishes, and prices are a fictional example illustrating a real layout; this is not a print file for an actual customer.",
+    "Menu · Nocturne": "Menu · Nocturne",
+    "full-bleed · poster đêm · gọi nhanh": "full-bleed · night poster · fast ordering",
+    "Menu · Lacquer": "Menu · Lacquer",
+    "ảnh nguyên liệu · sơn mài · tasting": "ingredient imagery · lacquer · tasting",
+    "Menu · Counter Signal": "Menu · Counter Signal",
+    "ảnh cobalt thật · quầy nhanh · số món": "real cobalt scene · fast counter · item numbers",
+    "Menu · Gallery Mono": "Menu · Gallery Mono",
+    "steam đen trắng · gallery · ít nhiễu": "monochrome steam · gallery · low noise",
+    "Menu · Broadsheet": "Menu · Broadsheet",
+    "bếp thật · báo khổ lớn · kể chuyện": "real kitchen · broadsheet · story-led",
     "Bỏ qua điều hướng": "Skip navigation",
     "Bắt đầu": "Start",
     "Dùng để làm gì": "Use cases",

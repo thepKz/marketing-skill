@@ -78,6 +78,25 @@ colour would be one option wearing three hats.
 
 Rendered output lives in `docs/assets/generated/bun-bo-menu-<direction>.svg`.
 
+## Five art-directed departures
+
+The three system directions above are useful for comparing layout dials. The five `art-*` specs are
+deliberate departures for a brand decision, not more palette options:
+
+| Direction | Structural move | Ordering job |
+|---|---|---|
+| `art-nocturne` | Full-bleed photograph, dark field, poster-scale title | Night service and social shareability |
+| `art-lacquer` | Circular hero, centered title, tasting-menu rhythm | Slow browsing and premium positioning |
+| `art-counter-signal` | Split colour field, diagonal crop, giant order numbers | Fast counter ordering |
+| `art-gallery-mono` | Tall monochrome crop, open right rail, gallery pacing | Quiet premium dining and print |
+| `art-broadsheet` | Newspaper headline, two-column editorial grid, callout strip | Story-led neighborhood brand |
+
+Each one is rendered by `render_mockup.py` from a separate JSON spec. Each art-directed lane has its
+own food scene: lacquer-table ingredients, cobalt counter geometry, monochrome steam, or a
+documentary stock-pot kitchen. The photograph is copied beside the SVG on render, while all copy
+and prices remain editable type rather than model-generated pixels. Decorative waves, rings, rules,
+and crop marks are vector art layered on top of the photographs, not Canva filler.
+
 The three columns of numbers above are not invented per direction. They come from
 `data/layout-dials.csv`, which names 17 dials, each with a minimum, a maximum, a default per
 direction, what raising it changes and the value it breaks at. To see a dial instead of reading it:
@@ -150,7 +169,8 @@ would collide with it. A missing leader is invisible; a leader printed through a
 
 ## The photograph
 
-`bun-bo-photoreal-menu-hero.png` is a real photoreal key visual generated for this demo. The renderer
-copies it beside the SVG output, so the menu remains portable after the skill is installed globally.
-It contains no copy, logo, price, or claim; those belong in the layout after the shop confirms them.
-Replace `hero_image` with an approved source photo when the real bowl is available.
+The generated image set is intentionally copy-free: `bun-bo-photoreal-menu-hero.png`,
+`bun-bo-lacquer-table.png`, `bun-bo-counter.png`, `bun-bo-gallery-mono.png`, and
+`bun-bo-broadsheet.png`. The renderer copies the selected source beside the SVG output, so every
+menu remains portable after the skill is installed globally. Replace any `hero_image` with an
+approved source photo when the real bowl is available.

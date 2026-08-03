@@ -205,11 +205,143 @@ def _bowl(x: float, y: float, box_w: float, box_h: float, scale: float) -> str:
     )
 
 
+def _art_menu(spec: dict, width: int, height: int) -> str:
+    """Render art-directed restaurant menus whose structures differ, not only their palettes."""
+    theme = str(spec.get("theme", "art-nocturne"))
+    image = html.escape(str(spec.get("hero_image", "")), quote=True)
+    secondary = html.escape(str(spec.get("secondary_image", spec.get("hero_image", ""))), quote=True)
+    title = html.escape(str(spec.get("title", "Bún bò")))
+    kicker = html.escape(str(spec.get("kicker", "MENU / CONCEPT")))
+    subtitle = html.escape(str(spec.get("subtitle", "Thông tin chờ quán xác nhận")))
+    footer = html.escape(str(spec.get("footer", "CONCEPT MENU / Nội dung cần được quán duyệt")))
+    items = list(spec.get("items", []))[:4]
+    scale = width / 1080
+
+    def rows(x: int, y: int, span: int, pitch: int, ink: str, accent: str,
+             numbered: bool = False, descriptions: bool = True) -> str:
+        output = []
+        for index, item in enumerate(items):
+            row_y = y + index * pitch
+            name = html.escape(str(item.get("name", "Món")))
+            desc = html.escape(str(item.get("description", "")))
+            price = html.escape(str(item.get("price", "—")))
+            marker = f'<text x="{x}" y="{row_y}" class="art-marker">{index + 1:02d}</text>' if numbered else ""
+            name_x = x + (54 if numbered else 0)
+            output.append(
+                f'{marker}<text x="{name_x}" y="{row_y}" class="art-item">{name}</text>'
+                f'<text x="{x + span}" y="{row_y}" text-anchor="end" class="art-price">{price}</text>'
+                + (f'<text x="{name_x}" y="{row_y + round(27 * scale)}" class="art-desc">{desc}</text>'
+                   if descriptions else "")
+                + f'<line x1="{x}" y1="{row_y + round(43 * scale)}" x2="{x + span}" '
+                  f'y2="{row_y + round(43 * scale)}" stroke="{ink}" stroke-opacity=".22"/>'
+            )
+        return "".join(output)
+
+    common_defs = (
+        '<filter id="mono"><feColorMatrix type="saturate" values="0"/></filter>'
+        '<filter id="warm"><feColorMatrix type="matrix" values="1.08 0 0 0 0.02  0 0.95 0 0 0  0 0 0.82 0 0  0 0 0 1 0"/></filter>'
+    )
+
+    if theme == "art-nocturne":
+        bg, ink, accent = "#11100f", "#f8f3e8", "#ff5b2e"
+        hero_h = round(height * 0.50)
+        body = rows(round(70 * scale), round(height * 0.66), round(940 * scale), round(112 * scale), ink, accent, True)
+        art = f'''
+<defs>{common_defs}<clipPath id="art-clip"><rect width="{width}" height="{hero_h}"/></clipPath></defs>
+<rect width="100%" height="100%" fill="{bg}"/>
+<image href="{image}" width="{width}" height="{hero_h}" preserveAspectRatio="xMidYMid slice" clip-path="url(#art-clip)"/>
+<rect width="{width}" height="{hero_h}" fill="#080706" opacity=".34"/>
+<text x="{round(70*scale)}" y="{round(74*scale)}" class="art-kicker">{kicker}</text>
+<text x="{round(70*scale)}" y="{round(hero_h-92*scale)}" class="art-title">{title}</text>
+<text x="{round(73*scale)}" y="{round(hero_h-48*scale)}" class="art-subtitle">{subtitle}</text>
+<rect x="{round(70*scale)}" y="{round(hero_h+42*scale)}" width="{round(940*scale)}" height="{round(8*scale)}" fill="{accent}"/>
+{body}<text x="{round(70*scale)}" y="{height-round(28*scale)}" class="art-footer">{footer}</text>'''
+        css = f'.art-title{{font:900 {round(104*scale)}px {SANS};fill:{ink};letter-spacing:-4px}}.art-kicker,.art-footer{{font:700 {round(17*scale)}px {SANS};fill:{ink};letter-spacing:3px}}.art-subtitle{{font:500 {round(21*scale)}px {SANS};fill:{ink}}}.art-item{{font:800 {round(29*scale)}px {SANS};fill:{ink}}}.art-marker{{font:700 {round(16*scale)}px {SANS};fill:{accent}}}.art-price{{font:800 {round(27*scale)}px {SANS};fill:{accent}}}.art-desc{{font:400 {round(17*scale)}px {SANS};fill:{ink};opacity:.68}}'
+    elif theme == "art-lacquer":
+        bg, ink, accent = "#721f24", "#fff4df", "#efb54a"
+        circle = round(245 * scale)
+        body = rows(round(145*scale), round(680*scale), round(790*scale), round(125*scale), ink, accent, False)
+        art = f'''
+<defs>{common_defs}<clipPath id="art-clip"><circle cx="{width//2}" cy="{round(280*scale)}" r="{circle}"/></clipPath></defs>
+<rect width="100%" height="100%" fill="{bg}"/>
+<g fill="none" stroke="{accent}" stroke-opacity=".20" stroke-width="3">
+  <path d="M50 80 C240 20 420 140 540 70 S850 20 1030 110"/>
+  <path d="M30 1170 C220 1080 390 1210 560 1140 S850 1080 1050 1180"/>
+  <circle cx="118" cy="1020" r="44"/><circle cx="118" cy="1020" r="28"/>
+  <circle cx="965" cy="155" r="36"/><circle cx="965" cy="155" r="20"/>
+</g>
+<circle cx="{width//2}" cy="{round(280*scale)}" r="{circle+round(16*scale)}" fill="none" stroke="{accent}" stroke-width="2"/>
+<image href="{image}" x="{width//2-circle}" y="{round(280*scale)-circle}" width="{circle*2}" height="{circle*2}" preserveAspectRatio="xMidYMid slice" clip-path="url(#art-clip)" filter="url(#warm)"/>
+<text x="{width//2}" y="{round(54*scale)}" text-anchor="middle" class="art-kicker">{kicker}</text>
+<text x="{width//2}" y="{round(585*scale)}" text-anchor="middle" class="art-title">{title}</text>
+<text x="{width//2}" y="{round(624*scale)}" text-anchor="middle" class="art-subtitle">{subtitle}</text>
+{body}<text x="{width//2}" y="{height-round(30*scale)}" text-anchor="middle" class="art-footer">{footer}</text>'''
+        css = f'.art-title{{font:700 {round(72*scale)}px {SERIF};fill:{ink}}}.art-kicker,.art-footer{{font:600 {round(15*scale)}px {SANS};fill:{accent};letter-spacing:4px}}.art-subtitle{{font:400 {round(19*scale)}px {SERIF};fill:{ink};opacity:.82}}.art-item{{font:700 {round(27*scale)}px {SERIF};fill:{ink}}}.art-price{{font:700 {round(23*scale)}px {SANS};fill:{accent}}}.art-desc{{font:400 {round(16*scale)}px {SANS};fill:{ink};opacity:.7}}'
+    elif theme == "art-counter-signal":
+        bg, ink, accent = "#174bd6", "#ffffff", "#ff6b35"
+        photo_x = round(600*scale)
+        body = rows(round(62*scale), round(690*scale), round(956*scale), round(122*scale), ink, accent, True, False)
+        art = f'''
+<defs>{common_defs}<clipPath id="art-clip"><polygon points="{photo_x},0 {width},0 {width},{round(620*scale)} {round(510*scale)},{round(620*scale)}"/></clipPath></defs>
+<rect width="100%" height="100%" fill="{bg}"/>
+<g fill="none" stroke="#ffffff" stroke-opacity=".18" stroke-width="5">
+  <path d="M40 470 L300 210 L560 470"/><path d="M94 520 L326 288 L558 520"/>
+  <circle cx="82" cy="112" r="26"/><circle cx="82" cy="112" r="12"/>
+</g>
+<rect x="0" y="0" width="{round(585*scale)}" height="{round(620*scale)}" fill="{accent}"/>
+<image href="{image}" x="{round(470*scale)}" y="0" width="{round(610*scale)}" height="{round(620*scale)}" preserveAspectRatio="xMidYMid slice" clip-path="url(#art-clip)"/>
+<text x="{round(62*scale)}" y="{round(66*scale)}" class="art-kicker">{kicker}</text>
+<text x="{round(62*scale)}" y="{round(225*scale)}" class="art-title"><tspan x="{round(62*scale)}">BÚN</tspan><tspan x="{round(62*scale)}" dy="{round(116*scale)}">BÒ</tspan></text>
+<text x="{round(62*scale)}" y="{round(520*scale)}" class="art-subtitle">{subtitle}</text>
+<text x="{round(62*scale)}" y="{round(610*scale)}" class="art-category">CHỌN MÓN / GỌI SỐ</text>
+{body}<text x="{round(62*scale)}" y="{height-round(30*scale)}" class="art-footer">{footer}</text>'''
+        css = f'.art-title{{font:900 {round(126*scale)}px {SANS};fill:#11100f;letter-spacing:-5px}}.art-kicker,.art-category,.art-footer{{font:800 {round(16*scale)}px {SANS};fill:{ink};letter-spacing:3px}}.art-subtitle{{font:700 {round(22*scale)}px {SANS};fill:#11100f}}.art-item{{font:900 {round(33*scale)}px {SANS};fill:{ink}}}.art-marker{{font:900 {round(18*scale)}px {SANS};fill:{accent}}}.art-price{{font:900 {round(31*scale)}px {SANS};fill:{accent}}}'
+    elif theme == "art-gallery-mono":
+        bg, ink, accent = "#f7f7f5", "#111111", "#111111"
+        body = rows(round(510*scale), round(510*scale), round(500*scale), round(155*scale), ink, accent, False)
+        art = f'''
+<defs>{common_defs}<clipPath id="art-clip"><rect x="0" y="0" width="{round(435*scale)}" height="{height}"/></clipPath></defs>
+<rect width="100%" height="100%" fill="{bg}"/>
+<path d="M470 0 L470 1350" stroke="#111111" stroke-width="8"/>
+<image href="{image}" x="0" y="0" width="{round(435*scale)}" height="{height}" preserveAspectRatio="xMidYMid slice" clip-path="url(#art-clip)" filter="url(#mono)"/>
+<text x="{round(510*scale)}" y="{round(76*scale)}" class="art-kicker">{kicker}</text>
+<text x="{round(510*scale)}" y="{round(235*scale)}" class="art-title">{title}</text>
+<text x="{round(514*scale)}" y="{round(284*scale)}" class="art-subtitle">{subtitle}</text>
+<line x1="{round(510*scale)}" y1="{round(350*scale)}" x2="{round(1010*scale)}" y2="{round(350*scale)}" stroke="{ink}" stroke-width="3"/>
+{body}<text x="{round(510*scale)}" y="{height-round(32*scale)}" class="art-footer">{footer}</text>'''
+        css = f'.art-title{{font:700 {round(54*scale)}px {SERIF};fill:{ink}}}.art-kicker{{font:700 {round(15*scale)}px {SANS};fill:{ink};letter-spacing:3px}}.art-footer{{font:700 {round(11*scale)}px {SANS};fill:{ink};letter-spacing:2px}}.art-subtitle{{font:400 {round(20*scale)}px {SERIF};fill:{ink}}}.art-item{{font:700 {round(25*scale)}px {SERIF};fill:{ink}}}.art-price{{font:700 {round(22*scale)}px {SANS};fill:{ink}}}.art-desc{{font:400 {round(15*scale)}px {SANS};fill:{ink};opacity:.66}}'
+    else:  # art-broadsheet
+        bg, ink, accent = "#eee9df", "#1b1a18", "#c53b24"
+        body_left = rows(round(62*scale), round(760*scale), round(448*scale), round(132*scale), ink, accent, False)
+        art = f'''
+<defs>{common_defs}<clipPath id="art-clip"><rect x="{round(552*scale)}" y="{round(315*scale)}" width="{round(466*scale)}" height="{round(835*scale)}"/></clipPath></defs>
+<rect width="100%" height="100%" fill="{bg}"/>
+<g fill="none" stroke="{accent}" stroke-width="4" opacity=".6">
+  <path d="M60 360 h420"/><path d="M60 372 h300"/>
+  <circle cx="970" cy="148" r="40"/><path d="M940 148 h60 M970 118 v60"/>
+</g>
+<text x="{round(62*scale)}" y="{round(65*scale)}" class="art-kicker">{kicker}</text>
+<line x1="{round(62*scale)}" y1="{round(92*scale)}" x2="{round(1018*scale)}" y2="{round(92*scale)}" stroke="{ink}" stroke-width="5"/>
+<text x="{round(62*scale)}" y="{round(255*scale)}" class="art-title">{title}</text>
+<text x="{round(66*scale)}" y="{round(300*scale)}" class="art-subtitle">{subtitle}</text>
+<image href="{image}" x="{round(552*scale)}" y="{round(315*scale)}" width="{round(466*scale)}" height="{round(835*scale)}" preserveAspectRatio="xMidYMid slice" clip-path="url(#art-clip)" filter="url(#warm)"/>
+<text x="{round(62*scale)}" y="{round(660*scale)}" class="art-category">MÓN TRONG NGÀY</text>
+{body_left}<rect x="{round(552*scale)}" y="{round(1178*scale)}" width="{round(466*scale)}" height="{round(92*scale)}" fill="{accent}"/>
+<text x="{round(575*scale)}" y="{round(1236*scale)}" class="art-callout">NƯỚC DÙNG NẤU MỖI SÁNG</text>
+<text x="{round(62*scale)}" y="{height-round(30*scale)}" class="art-footer">{footer}</text>'''
+        css = f'.art-title{{font:900 {round(102*scale)}px {SANS};fill:{ink};letter-spacing:-4px}}.art-kicker,.art-category,.art-footer{{font:800 {round(15*scale)}px {SANS};fill:{ink};letter-spacing:3px}}.art-subtitle{{font:400 {round(20*scale)}px {SERIF};fill:{ink}}}.art-item{{font:800 {round(25*scale)}px {SANS};fill:{ink}}}.art-price{{font:800 {round(22*scale)}px {SANS};fill:{accent}}}.art-desc{{font:400 {round(15*scale)}px {SERIF};fill:{ink};opacity:.72}}.art-callout{{font:900 {round(18*scale)}px {SANS};fill:#fff;letter-spacing:2px}}'
+
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title subtitle">
+<title id="title">{title}</title><desc id="subtitle">{subtitle}</desc>{art}<style>{css}</style></svg>'''
+
+
 def render(spec: dict) -> str:
     width = int(spec.get("width", 1080))
     height = int(spec.get("height", 1350))
     if width < 480 or height < 480:
         raise ValueError(f"canvas {width}x{height} is too small to lay out; minimum is 480x480")
+    if str(spec.get("theme", "")).startswith("art-"):
+        return _art_menu(spec, width, height)
     style = THEMES.get(str(spec.get("theme", "quiet-editorial")), THEMES["quiet-editorial"])
     display_font, body_font = style["display"], style["body"]
     bg = html.escape(str(spec.get("background", style["bg"])))

@@ -1,0 +1,18 @@
+{
+  "theme": "art-lacquer",
+  "width": 1080,
+  "height": 1350,
+  "kicker": "QUÁN NHÀ / HUẾ",
+  "title": "Tô gọi tên",
+  "subtitle": "Nước dùng nấu mỗi sáng — minh họa concept",
+  "category": "",
+  "hero_image": "bun-bo-lacquer-table.png",
+  "secondary_image": "bun-bo-photoreal-menu-hero.png",
+  "items": [
+    {"name": "Bún bò giò heo", "description": "Chân giò mềm, sả và mắm ruốc Huế", "price": "65.000đ"},
+    {"name": "Bún bò đặc biệt", "description": "Giò, chả cua, huyết và bò tái", "price": "79.000đ"},
+    {"name": "Chả cua chiên", "description": "Giòn ngoài, mềm trong", "price": "25.000đ"},
+    {"name": "Trà đá / trà chanh", "description": "Lạnh, nhẹ, đi cùng tô nóng", "price": "10.000đ"}
+  ],
+  "footer": "CONCEPT MENU / Giá và món cần quán duyệt trước khi in"
+}

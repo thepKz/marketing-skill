@@ -377,6 +377,28 @@ class ToolTests(unittest.TestCase):
             depth = max(float(value) for value in re.findall(r"L[-\d.]+ ([\d.]+)", wall.get("d"))) - float(rim.get("cy"))
             self.assertGreater(depth, rim_ry, f"{width}x{height}: bowl is {depth:.0f}px deep on a {rim_ry:.0f}px rim")
 
+    def test_art_menu_directions_are_structurally_distinct_and_keep_real_type(self) -> None:
+        themes = (
+            "art-nocturne", "art-lacquer", "art-counter-signal",
+            "art-gallery-mono", "art-broadsheet",
+        )
+        signatures = set()
+        for theme in themes:
+            svg = render({
+                "theme": theme, "width": 1080, "height": 1350,
+                "title": "Bún bò", "subtitle": "Bản concept",
+                "hero_image": "dish.png",
+                "items": [{"name": "Bún bò giò heo", "description": "Chờ duyệt", "price": "—"}],
+            })
+            root = ET.fromstring(svg)
+            self.assertIn("Bún bò giò heo", svg)
+            self.assertIn("dish.png", svg)
+            images = [node for node in root.iter() if node.tag.endswith("image")]
+            self.assertEqual(len(images), 1, theme)
+            signatures.add((images[0].get("x"), images[0].get("y"), images[0].get("width"),
+                            images[0].get("height"), images[0].get("clip-path")))
+        self.assertEqual(len(signatures), len(themes), "art directions collapsed to one image geometry")
+
     def test_scaffold_v4_separates_job_and_artifact_mode(self) -> None:
         record = build_record("Launch", "product", "beauty", "gpt-image-2", ["meta", "web"])
         self.assertEqual(record["schema_version"], 4)
