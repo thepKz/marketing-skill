@@ -4,14 +4,14 @@
   "height": 1080,
   "kicker": "BÚN BÒ / QUÁN NHÀ",
   "title": "Nấu theo lối cũ",
-  "subtitle": "Bản minh họa bố cục — nguồn gốc và công thức phải do quán cung cấp",
+  "subtitle": "Quán và giá là ví dụ hư cấu — minh họa bố cục thật",
   "category": "MÓN CHÍNH",
   "hero_shape": "bowl",
   "items": [
-    {"name": "Tô tiêu chuẩn", "description": "Mô tả nguyên liệu chờ quán cung cấp", "price": "—"},
-    {"name": "Tô đặc biệt", "description": "Không tự viết câu chuyện gia truyền", "price": "—"},
-    {"name": "Phần thêm", "description": "Chỉ hiển thị khi có menu và giá nguồn", "price": "—"},
-    {"name": "Đồ uống", "description": "Sắp theo logic hoàn tất giỏ hàng", "price": "—"}
+    {"name": "Bún bò giò heo", "description": "Chân giò hầm mềm, nêm sả và mắm ruốc theo lối Huế", "price": "65.000đ"},
+    {"name": "Bún bò đặc biệt", "description": "Đủ giò, chả cua, huyết, thịt bò tái", "price": "79.000đ"},
+    {"name": "Chả cua chiên", "description": "Món thêm, giòn ngoài mềm trong", "price": "25.000đ"},
+    {"name": "Trà đá / trà chanh", "description": "Đi kèm mọi phần chính, giải nhiệt", "price": "10.000đ"}
   ],
-  "footer": "CONCEPT LAYOUT / Không phải menu giá đã được duyệt"
+  "footer": "CONCEPT MENU / Quán, món và giá đều hư cấu — minh họa bố cục"
 }

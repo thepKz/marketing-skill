@@ -2398,6 +2398,145 @@ class ArchitectureDocTests(unittest.TestCase):
         self.assertIn('href="README.vi.md"', self.text)
 
 
+@repository_only
+class LandingProofTests(unittest.TestCase):
+    """The landing page now carries the same before/after table the READMEs open on. A number typed
+    into HTML is the weakest kind of evidence available - it survives every threshold change and
+    every rewrite of the instrument that supposedly produced it - so each cell is recomputed here
+    from the two fixtures, and the quoted drafts are compared against the files they claim to be."""
+
+    FOLDER = SKILL_ROOT / "assets" / "examples" / "rewrite-human"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.page = (REPO_ROOT / "docs" / "index.html").read_text(encoding="utf-8")
+        cls.section = cls.page[cls.page.index('id="proof"'):cls.page.index('id="use-cases"')]
+
+    def _row(self, label: str) -> list[str]:
+        rows = re.findall(r"<tr[^>]*>(.*?)</tr>", self.section, re.S)
+        matched = [row for row in rows if label in row]
+        self.assertEqual(len(matched), 1, f"{label!r} matched {len(matched)} rows")
+        return [re.sub(r"<[^>]+>", "", cell).strip()
+                for cell in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", matched[0], re.S)]
+
+    def test_the_quoted_drafts_are_the_files_the_page_says_they_are(self) -> None:
+        """A page that paraphrases the fixture is measuring one text and showing another."""
+        quoted = re.findall(r"<pre>(.*?)</pre>", self.section, re.S)
+        self.assertEqual(len(quoted), 2, "the two quoted drafts are no longer two")
+        for name, shown in zip(("01-draft-vi.md", "02-rewrite-vi.md"), quoted):
+            with self.subTest(name):
+                self.assertEqual(shown.strip(),
+                                 (self.FOLDER / name).read_text(encoding="utf-8").strip())
+
+    def test_every_measured_cell_is_what_the_instruments_print(self) -> None:
+        stats = []
+        for name in ("01-draft-vi.md", "02-rewrite-vi.md"):
+            text = (self.FOLDER / name).read_text(encoding="utf-8")
+            cadence = rewrite_human.measure(text, "vi")
+            said = check_specificity.measure(text)
+            tells = rewrite_human.find_tells(text, "vi")
+            stats.append({
+                "Dữ kiện kiểm chứng được": str(said["facts"]),
+                "Câu đối thủ copy": f"{said['empty_sentences']} trên {said['sentences']}",
+                "(CV)": f"{cadence['cv']:.2f}",
+                "÷": f"{cadence['ratio']:.1f}",
+                "Tính từ rỗng": {row["gate"]: row for row in check_specificity.gates(said)}[
+                    "empty-adjective"]["observed"].split()[0],
+                "Dấu hiệu dịch máy": str(len(tells)),
+            })
+        for label in stats[0]:
+            cells = self._row(label)
+            for column, computed in enumerate(stats, start=1):
+                with self.subTest(row=label, column=column):
+                    self.assertIn(computed[label], cells[column], f"{label} -> {cells[column]!r}")
+
+    def test_the_verdict_row_counts_the_gates_that_actually_block(self) -> None:
+        """The verdict is prose in both columns, so it is checked separately: the failing side has
+        to name its blocking count, and the passing side is only allowed to say passed at zero."""
+        draft, rewrite = ((self.FOLDER / name).read_text(encoding="utf-8")
+                          for name in ("01-draft-vi.md", "02-rewrite-vi.md"))
+        counts = [rewrite_human.blocking_count(rewrite_human.gates(rewrite_human.measure(t, "vi")),
+                                               rewrite_human.find_tells(t, "vi"))
+                  for t in (draft, rewrite)]
+        cells = self._row("Kết luận")
+        self.assertGreater(counts[0], 0, "the draft stopped failing, so the page is now wrong")
+        self.assertIn(str(counts[0]), cells[1], cells[1])
+        self.assertEqual(counts[1], 0, "the rewrite stopped passing, so the page is now wrong")
+        self.assertIn("đậu", cells[2], cells[2])
+        self.assertIn(f"trượt, {counts[0]} lỗi chặn", self.section,
+                      "the card above the table disagrees with the row below it")
+
+    def test_the_sentences_read_under_each_card_carry_the_measured_numbers(self) -> None:
+        """Prose is where numbers rot, because a table is obviously data and a sentence is not. Both
+        readings here spell their counts in Vietnamese words, which no count test can see."""
+        words = {1: "một", 2: "hai", 3: "ba", 4: "bốn", 5: "năm", 8: "tám"}
+        draft = check_specificity.measure((self.FOLDER / "01-draft-vi.md").read_text(encoding="utf-8"))
+        rewrite_text = (self.FOLDER / "02-rewrite-vi.md").read_text(encoding="utf-8")
+        rewrite = check_specificity.measure(rewrite_text)
+        lower = self.section.lower()
+        self.assertIn(f"{words[draft['empty_sentences']]} trong {words[draft['sentences']]} câu",
+                      lower)
+        self.assertIn(f"{words[rewrite['facts']]} dữ kiện", lower)
+        self.assertIn(f"{rewrite_human.measure(rewrite_text, 'vi')['total_units']} âm tiết", lower)
+
+    def test_the_page_reaches_the_architecture_and_the_nav_reaches_the_proof(self) -> None:
+        self.assertIn("ARCHITECTURE.md", self.section)
+        self.assertIn('href="#proof"', self.page[:self.page.index('id="main"')])
+
+
+@repository_only
+class WorkflowGateTests(unittest.TestCase):
+    """The deploy workflow asserts the existence of about sixty paths by hand. That list went red
+    for five days because five of those paths were photographs the repository had deliberately
+    deleted, and nothing on a developer's machine could tell them: the assertions only run on a
+    runner. They run here now, so the gate fails in the same second the path moves."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.text = (REPO_ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(
+            encoding="utf-8")
+
+    def _paths(self, flag: str) -> list[str]:
+        found = re.findall(rf"^\s+test {re.escape(flag)} (\S+)$", self.text, re.M)
+        # A later step scaffolds a run workspace into a temporary directory and asserts its files
+        # as "$RUN/run.json". Those exist only mid-job; the static structure gate is the literals.
+        return sorted({ref for ref in found if "$" not in ref})
+
+    def test_every_path_the_workflow_requires_is_present(self) -> None:
+        required = self._paths("-f")
+        self.assertGreater(len(required), 40, "the structure gate lost its assertions")
+        for ref in required:
+            with self.subTest(ref=ref):
+                self.assertTrue((REPO_ROOT / ref).is_file(), ref)
+
+    def test_every_path_the_workflow_forbids_is_absent(self) -> None:
+        forbidden = self._paths("! -e")
+        self.assertGreaterEqual(len(forbidden), 4, "the removal assertions vanished")
+        for ref in forbidden:
+            with self.subTest(ref=ref):
+                self.assertFalse((REPO_ROOT / ref).exists(), ref)
+
+    def test_the_deleted_photographs_are_named_as_forbidden_not_required(self) -> None:
+        """Deletion is only enforced if the workflow says so. Dropping the lines instead would let
+        a future commit reintroduce a scraped photograph with the build still green."""
+        forbidden = set(self._paths("! -e"))
+        for name in ("instagram-for-everyoung10.jpg", "instagram-goyounjung.jpg",
+                     "instagram-katarinabluu.jpg", "winter-mirror-makeup.jpg",
+                     "karina-fullbody-negative-space.jpg"):
+            with self.subTest(name):
+                self.assertIn(f"docs/assets/references/{name}", forbidden)
+
+    def test_every_image_the_page_loads_is_asserted_by_the_workflow(self) -> None:
+        """docs/index.html referencing an asset the gate never checks is how the page ends up with
+        a broken tile in production and a green tick in the pull request."""
+        page = (REPO_ROOT / "docs" / "index.html").read_text(encoding="utf-8")
+        loaded = {"docs/" + ref.lstrip("./")
+                  for ref in re.findall(r'(?:src|href)="\.?/?(assets/[^"]+\.(?:png|jpe?g|svg))"', page)}
+        self.assertGreater(len(loaded), 8, "the page stopped loading its own artefacts")
+        self.assertEqual(sorted(loaded - set(self._paths("-f"))), [],
+                         "loaded by docs/index.html, unguarded by the workflow")
+
+
 def _english_number(value: int) -> str:
     names = {6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten", 11: "eleven", 12: "twelve"}
     return names.get(value, str(value))

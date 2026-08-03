@@ -20,6 +20,7 @@
         <span>M</span> MARKETING-MINTHEP
       </a>
       <nav aria-label="Điều hướng chính" data-aria-en="Primary navigation">
+        <a href="#proof">Số đo</a>
         <a href="#use-cases">Dùng để làm gì</a>
         <a href="#start">Bắt đầu</a>
         <a href="#outputs">Ảnh mẫu</a>
@@ -38,7 +39,7 @@
       <section class="hero" id="top">
         <div class="hero-copy">
           <div class="compatibility"><span>Claude</span><i>+</i><span>GPT / Codex</span><i>+</i><span>VI / EN</span></div>
-          <h1>Từ vài ảnh ref.<br />Ra cả campaign.</h1>
+          <h1>Marketing-Minthep biến vài ảnh ref<br />thành cả chiến dịch.</h1>
           <p class="hero-deck">Một skill nối marketing, content và art direction thành cùng một hệ thống. Bạn gửi sản phẩm, mục tiêu và ảnh tham chiếu; Marketing-Minthep trả chiến lược, copy, prompt, hình ảnh và asset plan có thể triển khai.</p>
           <div class="hero-actions">
             <button class="button primary copy-button" data-copy="$marketing-minthep" type="button">Copy $marketing-minthep</button>
@@ -66,6 +67,58 @@
           </button>
           <div class="stage-note"><b>INPUT</b><span>product truth + goals + references</span><i>→</i><b>OUTPUT</b><span>strategy + content + visual system</span></div>
         </div>
+      </section>
+
+      <section class="proof" id="proof" aria-labelledby="proof-title">
+        <header class="output-heading">
+          <div>
+            <p class="use-case-label">Số đo, không phải lời hứa</p>
+            <h2 id="proof-title">Cùng một đoạn.<br />Trước và sau.</h2>
+          </div>
+          <p>Một đoạn About-us tiếng Việt, trước và sau khi qua gate. Hai file dưới đây nằm sẵn trong repo và có test canh: nếu bản nháp bắt đầu đậu, hoặc bản viết lại bắt đầu trượt, suite đỏ. Mọi con số trong bảng đều do script in ra, không ai gõ tay.</p>
+        </header>
+
+        <div class="proof-grid">
+          <article class="proof-sample is-fail">
+            <p class="proof-tag">Bản nháp · trượt, 6 lỗi chặn</p>
+            <pre>Chúng tôi tự hào là một trong những đơn vị hàng đầu trong lĩnh vực cung cấp cà phê rang xay tại Việt Nam. Với đội ngũ nhân viên giàu kinh nghiệm và nhiệt huyết, chúng tôi cam kết mang đến cho quý khách hàng những sản phẩm chất lượng cao nhất. Sản phẩm của chúng tôi được sản xuất theo quy trình khép kín, đảm bảo vệ sinh an toàn thực phẩm. Hãy liên hệ với chúng tôi ngay hôm nay để được tư vấn miễn phí và nhận được những ưu đãi hấp dẫn nhất.</pre>
+            <p class="proof-read">Ba trong bốn câu này đối thủ copy nguyên vẫn dùng được, vì không câu nào nói về một cái xưởng cụ thể.</p>
+          </article>
+          <article class="proof-sample is-pass">
+            <p class="proof-tag">Bản viết lại · đậu</p>
+            <pre>Cà phê rang tại xưởng ở Gò Vấp, giao trong ngày cho quán trong bán kính 8km.
+
+Robusta Đắk Lắk, rang theo mẻ 12kg rồi đóng túi van một chiều ngay khi vừa nguội, nên túi bạn mở ra tuần này là mẻ rang tuần này chứ không phải hàng tồn kho từ tháng trước. Ngày rang in dưới đáy túi. Không thấy ngày rang thì đừng mua, của ai cũng vậy.
+
+195.000đ/kg. Từ 5kg còn 175.000đ. Uống không hợp gu thì đổi mẻ khác trong 7 ngày, mở túi rồi vẫn đổi.
+
+Gọi 0938 xxx xxx, gửi mẫu 200g miễn phí.</pre>
+            <p class="proof-read">Tám dữ kiện kiểm chứng được trong 101 âm tiết. Dữ kiện đến từ cái xưởng, không đến từ model — đó là toàn bộ khác biệt.</p>
+          </article>
+        </div>
+
+        <table class="proof-table">
+          <caption>Đo bằng check_specificity.py và rewrite_human.py, chạy được trên bản nháp của bạn</caption>
+          <thead>
+            <tr>
+              <th scope="col">Số đo</th>
+              <th scope="col">Bản nháp</th>
+              <th scope="col">Bản viết lại</th>
+              <th scope="col">Ngưỡng</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Dữ kiện kiểm chứng được</th><td>1</td><td>8</td><td>≥ 3</td></tr>
+            <tr><th scope="row">Câu đối thủ copy nguyên vẫn dùng được</th><td>3 trên 4</td><td>2 trên 8</td><td>≤ 50%</td></tr>
+            <tr><th scope="row">Độ dao động chiều dài câu (CV)</th><td>0.10</td><td>0.85</td><td>≥ 0.45</td></tr>
+            <tr><th scope="row">Câu dài nhất ÷ câu ngắn nhất</th><td>1.3×</td><td>19.0×</td><td>≥ 3.0</td></tr>
+            <tr><th scope="row">Tính từ rỗng trên 150 âm tiết</th><td>1.55</td><td>0.0</td><td>≤ 1.0</td></tr>
+            <tr><th scope="row">Dấu hiệu dịch máy bị gọi tên</th><td>4</td><td>0</td><td>không chặn</td></tr>
+            <tr class="proof-verdict"><th scope="row">Kết luận</th><td>trượt, 6 lỗi chặn</td><td>đậu</td><td></td></tr>
+          </tbody>
+        </table>
+
+        <p class="proof-foot">Ngưỡng là số học, không phải khẩu vị, nên nó không đổi theo tâm trạng người review. Hình dạng sinh ra những con số này nằm ở <a href="https://github.com/thepKz/marketing-skill/blob/main/ARCHITECTURE.md">ARCHITECTURE.md</a> — sáu lớp, chia theo câu hỏi chuyện gì xảy ra khi lớp này sai.</p>
       </section>
 
       <section class="use-cases" id="use-cases" aria-labelledby="use-case-title">
@@ -167,7 +220,7 @@
             <span><b>Post mẫu · Story 9:16</b><small>safe zone · dựng lại · không cắt</small></span>
           </button>
         </div>
-        <p class="concept-disclaimer">Các hình trên là concept hư cấu để minh họa art direction. Hai post mẫu dựng bằng <code>render_social_post.py</code>: story không phải bản feed bị cắt, nó chừa 250px trên và 420px dưới cho khung giao diện của ứng dụng. Ba menu là cùng một nội dung, dựng bằng <code>render_mockup.py</code>, chỉ đổi hướng thiết kế — lề, cỡ chữ tiêu đề, giãn dòng và cách xử lý dòng món đều khác nhau, không chỉ đổi màu. Giá và thành phần cố ý để trống; đây chưa phải file in đã duyệt.</p>
+        <p class="concept-disclaimer">Các hình trên là concept hư cấu để minh họa art direction. Hai post mẫu dựng bằng <code>render_social_post.py</code>: story không phải bản feed bị cắt, nó chừa 250px trên và 420px dưới cho khung giao diện của ứng dụng. Ba menu là cùng một nội dung, dựng bằng <code>render_mockup.py</code>, chỉ đổi hướng thiết kế — lề, cỡ chữ tiêu đề, giãn dòng và cách xử lý dòng món đều khác nhau, không chỉ đổi màu. Quán, món và giá là ví dụ hư cấu để minh họa bố cục thật; đây chưa phải file in cho một khách hàng thật.</p>
       </section>
 
       <section class="sheets" id="sheets" aria-labelledby="sheets-title">

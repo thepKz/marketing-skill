@@ -1,5 +1,37 @@
 window.HANDBOOK_I18N = {
   en: {
+    // The measured before/after. The two quoted drafts are inside <pre>, which the tree walker
+    // rejects, so they stay Vietnamese in both editions - correct, because the numbers in the table
+    // were measured on that Vietnamese text and an English paraphrase would not produce them.
+    // The heading is two keys because a <br /> splits it into two text nodes. The closing
+    // paragraph below is two keys for the same reason, but split by the ARCHITECTURE.md link.
+    "Số đo": "Measured",
+    "Số đo, không phải lời hứa": "Measured, not promised",
+    "Cùng một đoạn.": "The same paragraph.",
+    "Trước và sau.": "Before and after.",
+    "Một đoạn About-us tiếng Việt, trước và sau khi qua gate. Hai file dưới đây nằm sẵn trong repo và có test canh: nếu bản nháp bắt đầu đậu, hoặc bản viết lại bắt đầu trượt, suite đỏ. Mọi con số trong bảng đều do script in ra, không ai gõ tay.": "One Vietnamese About-us paragraph, before and after the gate. Both files below sit in the repository with a test watching them: if the draft ever starts passing, or the rewrite ever starts failing, the suite goes red. Every number in the table is printed by a script, not typed by hand.",
+    "Bản nháp · trượt, 6 lỗi chặn": "Draft · failed, 6 blocking",
+    "Ba trong bốn câu này đối thủ copy nguyên vẫn dùng được, vì không câu nào nói về một cái xưởng cụ thể.": "Three of these four sentences a competitor could publish unchanged, because not one of them is about a particular roastery.",
+    "Bản viết lại · đậu": "Rewrite · passed",
+    "Tám dữ kiện kiểm chứng được trong 101 âm tiết. Dữ kiện đến từ cái xưởng, không đến từ model — đó là toàn bộ khác biệt.": "Eight checkable facts in 101 syllables. The facts came from the roastery, not from the model — which is the entire difference.",
+    "Đo bằng check_specificity.py và rewrite_human.py, chạy được trên bản nháp của bạn": "Measured by check_specificity.py and rewrite_human.py, which you can run on your own draft",
+    "Bản nháp": "Draft",
+    "Bản viết lại": "Rewrite",
+    "Ngưỡng": "Gate",
+    "Dữ kiện kiểm chứng được": "Checkable facts",
+    "Câu đối thủ copy nguyên vẫn dùng được": "Sentences a competitor could publish unchanged",
+    "3 trên 4": "3 of 4",
+    "2 trên 8": "2 of 8",
+    "Độ dao động chiều dài câu (CV)": "Sentence-length variation (CV)",
+    "Câu dài nhất ÷ câu ngắn nhất": "Longest ÷ shortest sentence",
+    "Tính từ rỗng trên 150 âm tiết": "Empty-evidence adjectives per 150 syllables",
+    "Dấu hiệu dịch máy bị gọi tên": "Named machine-translation tells",
+    "không chặn": "none blocking",
+    "Kết luận": "Verdict",
+    "trượt, 6 lỗi chặn": "failed, 6 blocking",
+    "đậu": "passed",
+    "Ngưỡng là số học, không phải khẩu vị, nên nó không đổi theo tâm trạng người review. Hình dạng sinh ra những con số này nằm ở": "The gate is arithmetic rather than taste, so it does not move with the reviewer's mood. The shape that produces these numbers is in",
+    "— sáu lớp, chia theo câu hỏi chuyện gì xảy ra khi lớp này sai.": "— six layers, split by the question of what happens when each one is wrong.",
     // The reference-sheet section. The heading is two keys because it is split by a <br />, and the
     // closing paragraph is two keys because a <code> element sits in the middle of it and the tree
     // walker skips <code>; each fragment below is exactly one text node.
@@ -28,7 +60,7 @@ window.HANDBOOK_I18N = {
     // sentence when the script names are put back between them.
     "Các hình trên là concept hư cấu để minh họa art direction. Hai post mẫu dựng bằng": "These are fictional concepts illustrating art direction. The two sample posts are built by",
     ": story không phải bản feed bị cắt, nó chừa 250px trên và 420px dưới cho khung giao diện của ứng dụng. Ba menu là cùng một nội dung, dựng bằng": ": the story is not the feed post cropped — it leaves 250px at the top and 420px at the bottom for the app's own interface. The three menus carry the same content, built by",
-    ", chỉ đổi hướng thiết kế — lề, cỡ chữ tiêu đề, giãn dòng và cách xử lý dòng món đều khác nhau, không chỉ đổi màu. Giá và thành phần cố ý để trống; đây chưa phải file in đã duyệt.": ", changing only the design direction — margin, title size, leading, and row treatment all differ, not just the colour. Prices and ingredients are deliberately left blank; this is not an approved print file.",
+    ", chỉ đổi hướng thiết kế — lề, cỡ chữ tiêu đề, giãn dòng và cách xử lý dòng món đều khác nhau, không chỉ đổi màu. Quán, món và giá là ví dụ hư cấu để minh họa bố cục thật; đây chưa phải file in cho một khách hàng thật.": ", changing only the design direction — margin, title size, leading, and row treatment all differ, not just the colour. The shop, dishes, and prices are a fictional example illustrating a real layout; this is not a print file for an actual customer.",
     "Bỏ qua điều hướng": "Skip navigation",
     "Bắt đầu": "Start",
     "Makeup đổi bề mặt.": "Makeup changes the surface.",
@@ -37,8 +69,8 @@ window.HANDBOOK_I18N = {
     "Ảnh mẫu": "Outputs",
     "Cài skill": "Install",
     "Copy skill": "Copy skill",
-    "Từ vài ảnh ref.": "From a few references.",
-    "Ra cả campaign.": "Build the whole campaign.",
+    "Marketing-Minthep biến vài ảnh ref": "Marketing-Minthep turns a few reference photos",
+    "thành cả chiến dịch.": "into a full campaign.",
     "Một skill nối marketing, content và art direction thành cùng một hệ thống. Bạn gửi sản phẩm, mục tiêu và ảnh tham chiếu; Marketing-Minthep trả chiến lược, copy, prompt, hình ảnh và asset plan có thể triển khai.": "One skill connects marketing, content, and art direction into a single system. Send your product, goal, and references; Marketing-Minthep returns strategy, copy, prompts, imagery, and an actionable asset plan.",
     "Xem kết quả thật": "See real outputs",
     "Bạn đang muốn làm gì?": "What do you want to make?",

@@ -119,7 +119,7 @@ looks exactly like a pass.
 
 ## The invariants, and the test that holds each
 
-The architecture is not a description. It is 616 tests, and these are the ones that hold the shape
+The architecture is not a description. It is 625 tests, and these are the ones that hold the shape
 rather than the arithmetic.
 
 | Invariant | Test |

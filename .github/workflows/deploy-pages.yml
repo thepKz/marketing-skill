@@ -73,15 +73,34 @@ jobs:
           test -f docs/styles.css
           test -f docs/app.js
           test -f docs/i18n.js
-          test -f docs/assets/references/instagram-for-everyoung10.jpg
-          test -f docs/assets/references/instagram-goyounjung.jpg
-          test -f docs/assets/references/instagram-katarinabluu.jpg
-          test -f docs/assets/references/winter-mirror-makeup.jpg
-          test -f docs/assets/references/karina-fullbody-negative-space.jpg
+          test -f docs/assets/references/ATTRIBUTION.txt
+          test -f docs/assets/references/aespa-red-carpet-2024.jpg
+          test -f docs/assets/references/wonyoung-editorial-2020.jpg
+          test -f docs/assets/references/wonyoung-portrait-2025.jpg
+          # Seventeen scraped photographs of real people were deleted on 2026-07-29. This job kept
+          # demanding five of them for five days, so the gate was red for the right reason: the
+          # repository refuses to ship them. Inverted rather than dropped - a build that puts one
+          # back should fail here, not pass quietly.
+          test ! -e docs/assets/references/instagram-for-everyoung10.jpg
+          test ! -e docs/assets/references/instagram-goyounjung.jpg
+          test ! -e docs/assets/references/instagram-katarinabluu.jpg
+          test ! -e docs/assets/references/winter-mirror-makeup.jpg
+          test ! -e docs/assets/references/karina-fullbody-negative-space.jpg
           test -f docs/assets/generated/minthep-serum-packshot.png
           test -f docs/assets/generated/minthep-beauty-campaign.png
           test -f docs/assets/generated/minthep-serum-key-visual.png
           test -f docs/assets/generated/minthep-fashion-look.png
+          test -f docs/assets/generated/refsheet-dial-margin.svg
+          test -f docs/assets/generated/refsheet-frames.svg
+          test -f docs/assets/generated/refsheet-lighting.svg
+          test -f docs/assets/generated/refsheet-palettes.svg
+          test -f docs/assets/generated/refsheet-ratios.svg
+          test -f docs/assets/generated/refsheet-reference.svg
+          test -f docs/assets/generated/bun-bo-menu-heritage-craft.svg
+          test -f docs/assets/generated/bun-bo-menu-modern-street.svg
+          test -f docs/assets/generated/bun-bo-menu-quiet-editorial.svg
+          test -f docs/assets/generated/bun-bo-post-feed.svg
+          test -f docs/assets/generated/bun-bo-post-story.svg
           test ! -e marketing-content-art-director
           test ! -e marketing-creative-director
           test ! -e marketing-one-page-studio
