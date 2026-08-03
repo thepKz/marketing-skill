@@ -174,3 +174,20 @@ The generated image set is intentionally copy-free: `bun-bo-photoreal-menu-hero.
 `bun-bo-broadsheet.png`. The renderer copies the selected source beside the SVG output, so every
 menu remains portable after the skill is installed globally. Replace any `hero_image` with an
 approved source photo when the real bowl is available.
+
+## AI art-board menus
+
+The three `bun-bo-ai-menu-*.png` files use a different production split from the SVG studies:
+
+1. AI generates the complete copy-free art board: food, material, collage, engraving, texture, and
+   intentional blank zones.
+2. A deterministic type pass overlays every Vietnamese label and price using the bundled fonts
+   with verified Vietnamese glyph coverage. The image-generation provider and compositing tool are
+   deliberately not stored in this skill.
+3. The flattened PNG is visually reviewed at full size. Any missing glyph, fake writing, food drift,
+   or unusable text zone rejects the output.
+
+The bundled `Be Vietnam Pro` and `Fraunces` files are distributed under the SIL Open Font License;
+their licence texts live beside the font files in `assets/fonts/`. This hybrid route is deliberate:
+the image model owns the expressive visual world, while deterministic type prevents broken accents,
+invented prices, and inconsistent menu rows.

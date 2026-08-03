@@ -109,6 +109,9 @@ jobs:
           test -f docs/assets/generated/bun-bo-counter.png
           test -f docs/assets/generated/bun-bo-broadsheet.png
           test -f docs/assets/generated/bun-bo-gallery-mono.png
+          test -f docs/assets/generated/bun-bo-ai-menu-night-opera.png
+          test -f docs/assets/generated/bun-bo-ai-menu-street-riso.png
+          test -f docs/assets/generated/bun-bo-ai-menu-botanical-atlas.png
           test -f docs/assets/generated/bun-bo-post-feed.svg
           test -f docs/assets/generated/bun-bo-post-story.svg
           test ! -e marketing-content-art-director
