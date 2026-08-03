@@ -394,10 +394,10 @@ The second-order check catches the escape hatch: having rejected the obvious cat
 
 ```
 marketing-minthep/
-  SKILL.md                  entry point and router, 199 lines
-  references/               65 topic files, each under 150 lines
+  SKILL.md                  entry point and router, 203 lines
+  references/               66 topic files, each under 150 lines
     dossiers/               15 deep-craft dossiers + index
-  data/                     34 lookup tables: image recipes, palettes, layout
+  data/                     35 lookup tables: image recipes, palettes, layout
                             dials, slop tells, copy formulas, translation and
                             address-register tells, reference axes, frame
                             ratios, composition grids, KPI metrics and aspect
@@ -405,9 +405,9 @@ marketing-minthep/
                             diagnostics, person parameters, prompt grammar,
                             product compositions, benchmarks, market-data
                             sources, customer-evidence sources, lifecycle
-                            duties, channel specs, command artifacts, VN
-                            marketer roles
-  scripts/                  47 tools + test suite
+                            duties, lead states, channel specs, command
+                            artifacts, VN marketer roles
+  scripts/                  48 tools + test suite
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json and deliverable skeletons
@@ -425,7 +425,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-596 tests, including ones that recompute every contrast ratio in `data/palettes.csv`, fail if a copy example contains a printable number, fail if a capability flag cites a source row that does not exist, fail if any placement check clears an asset against a figure the vendor page never published, and fail if a deliverable names a script that is not in the repository. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
+608 tests, including ones that recompute every contrast ratio in `data/palettes.csv`, fail if a copy example contains a printable number, fail if a capability flag cites a source row that does not exist, fail if any placement check clears an asset against a figure the vendor page never published, and fail if a deliverable names a script that is not in the repository. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
 
 ## What it will not do
 

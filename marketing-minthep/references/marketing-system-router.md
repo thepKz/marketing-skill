@@ -67,6 +67,15 @@ Load only when relevant:
   twelve-month policy is unlawful processing. A service of three months or more owes two notices
   seven working days out under Điều 42. And the popup itself is priced at 30 to 40 million by
   Nghị định 342/2025 Điều 17 before a single message is written.
+- What happens after somebody messages, before any flow exists: `lead-handling.md` plus
+  `data/lead-states.csv` and `scripts/plan_lead_flow.py`. Load it whenever a request will produce
+  enquiries — every campaign, launch, creator and commerce job above — because those workbenches all
+  end at the moment the message arrives. Nine states defined by an observable buyer action, fit and
+  intent as two separate questions, a follow-up ladder that must declare its stop rule, and funnel
+  arithmetic that refuses a percentage on a base under thirty. No response-time target is supplied
+  and that is deliberate; the operator declares it and the script certifies nothing. Two things stay
+  elsewhere: whether you may contact a silent person again is `lifecycle-duties.csv`, and what a
+  concession costs is `pricing-and-offers.md`.
 - Claims and proof: `claims-proof-ledger.md` plus `data/claim-evidence.csv` and
   `scripts/check_claims.py`.
 - Current placements/specs: `channel-spec-registry.md` plus `data/channel-specs.csv` and

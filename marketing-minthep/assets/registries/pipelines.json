@@ -2088,13 +2088,15 @@
         "creative-evaluation.md",
         "production-pipeline.md",
         "claims-proof-ledger.md",
-        "measurement-plan.md"
+        "measurement-plan.md",
+        "lead-handling.md"
       ],
       "scripts": [
         "start_workbench.py",
         "check_tracking_plan.py",
         "new_run.py",
         "analyze_performance.py",
+        "plan_lead_flow.py",
         "score_creative.py",
         "check_test_readout.py",
         "run_status.py"
@@ -2185,7 +2187,7 @@
               "en": "Funnel read",
               "vi": "Đọc phễu",
               "write": "Where the loss actually happens, stage by stage, with numbers.",
-              "run": "python scripts/analyze_performance.py - and read the guardrails it prints. Never call a causal winner from CTR alone or across mixed conditions."
+              "run": "python scripts/analyze_performance.py - and read the guardrails it prints. Never call a causal winner from CTR alone or across mixed conditions. Where the funnel continues past the click into a conversation, write the state counts to a CSV and run python scripts/plan_lead_flow.py --funnel counts.csv: it prints each stage rate with a confidence interval, refuses a percentage on a base under thirty, and fails rather than warns when a later state holds more contacts than the one it is entered from, which is what an untallied marketplace inbox looks like from here."
             },
             {
               "en": "Candidate causes ranked",

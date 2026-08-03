@@ -48,6 +48,7 @@ import model_affiliate
 import plan_command_chain
 import plan_composition_set
 import plan_identity
+import plan_lead_flow
 import plan_lifecycle
 import plan_operating_load
 import plan_palette
@@ -1480,6 +1481,7 @@ class DataTableTests(unittest.TestCase):
         "vn-advertising-law.csv": (65, 13),
         "claim-evidence.csv": (41, 16),
         "lifecycle-duties.csv": (25, 17),
+        "lead-states.csv": (9, 12),
         "channel-specs.csv": (24, 20),
     }
 
@@ -2413,7 +2415,14 @@ class ReferenceIntegrityTests(unittest.TestCase):
     # impeccable 168, marketing-council 161, brand-guidelines 183, taste-skill 192, design-system
     # 240, skill-creator 298, marketing-psychology 455 - so 200 is not an outlier, and it is a
     # ceiling rather than a target. Detail still belongs in references/, which load on demand.
-    LINE_BUDGET = 200
+    #
+    # Raised again from 200 to 210 for the lead-handling unit, and the reason is the same failure as
+    # last time rather than drift. Everything above the intake section routed the work that produces
+    # enquiries and nothing routed the work of answering them, so a plan shipped channels and handed
+    # the messages to nobody. Four lines bought the overlay row, the script paragraph and the intake
+    # question a non-marketer can actually answer. The next raise needs its own paragraph here or it
+    # is drift; a fifth would mean the entry point has become the manual.
+    LINE_BUDGET = 210
 
     def test_skill_md_stays_within_the_progressive_disclosure_budget(self) -> None:
         """SKILL.md is loaded on every activation, so its length is a tax on every request.
@@ -2424,7 +2433,7 @@ class ReferenceIntegrityTests(unittest.TestCase):
         # A budget nobody is near is not a budget, it is a comment. If the file has drifted far below
         # the ceiling, the ceiling was raised for nothing and should come back down.
         self.assertGreater(len(lines), 150,
-                           "SKILL.md no longer needs a 200-line budget. Lower it back to 150")
+                           "SKILL.md no longer needs a 210-line budget. Lower it back to 150")
     def test_the_description_is_wide_enough_to_be_found(self) -> None:
         """The description is not prose the user reads; it is the only text a runtime matches a
         request against before loading anything. Holding it to one tidy sentence was a mistake:
@@ -7720,6 +7729,130 @@ class LifecycleDutyTests(unittest.TestCase):
         self.assertIn("not in this corpus", self.prose)
         note = plan_lifecycle._frequency_note(plan_lifecycle.clean_declaration())
         self.assertIn("no article in this corpus", note)
+
+
+class LeadFlowTests(unittest.TestCase):
+    """This unit ships a refusal rather than a number, so the refusal is the thing worth guarding.
+
+    Everything else here has a source. The lead-response figure everybody quotes does not survive
+    reading - US B2B web forms answered by telephone, funded by a dialler vendor - and the platform
+    thresholds returned nothing citable, so no response-time target is supplied. That absence looks
+    exactly like an oversight to the next person editing the file, and the tidy fix is to write in a
+    plausible five minutes. So the sentences that record the absence are pinned, along with the
+    house-rule label on the price-bias gate.
+
+    The other half is a bug pin. `audit()` first translated each verdict straight to an exit code,
+    and unsettled is 3 while failed is 2, so taking max() over the codes let a single review verdict
+    hide every gate failure on the sheet. That is invisible in a passing run and catastrophic in a
+    failing one, so severity now ranks separately from the exit code and both directions are tested.
+    """
+
+    REFERENCE = SKILL_ROOT / "references" / "lead-handling.md"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.states = plan_lead_flow.load_states()
+        cls.prose = cls.REFERENCE.read_text(encoding="utf-8")
+
+    def test_self_check_passes(self) -> None:
+        report, code = plan_lead_flow.self_check()
+        self.assertEqual(code, 0, report)
+        self.assertNotIn("FAIL", report)
+
+    def test_a_review_verdict_never_hides_a_gate_failure(self) -> None:
+        # The original bug. A valid response target grades review, so a sheet that also has a real
+        # failure must still exit 2. Both directions, because the fix could be inverted just as
+        # silently: a sheet with only reviews must not exit 2 either.
+        sound = {field: "x" for field, _prompt, _why in plan_lead_flow.DECLARED}
+        sound.update({"contact_channels": "zalo;phone", "manual_tally": "no",
+                      "first_response_target_minutes": "30", "reply_is_human_written": "yes",
+                      "fit_criteria": "in district;budget over 2 million", "touches_max": "2",
+                      "touch_gaps_hours": "24;72", "stop_rule": "they ask us to stop"})
+        results, code = plan_lead_flow.audit(sound)
+        self.assertEqual(code, 3, "a sheet with only reviews must be unsettled, not failed")
+        self.assertTrue(any(verdict == "review" for _gate, verdict, _msg in results))
+
+        broken = dict(sound, stop_rule="")
+        results, code = plan_lead_flow.audit(broken)
+        self.assertEqual(code, 2, "a failure was hidden by a review verdict")
+        self.assertTrue(any(verdict == "failed" for _gate, verdict, _msg in results))
+        self.assertTrue(any(verdict == "review" for _gate, verdict, _msg in results),
+                        "fixture no longer exercises the collision it exists to pin")
+
+    def test_an_impossible_count_is_not_hidden_by_a_small_base(self) -> None:
+        # Same collision one function over. A base under thirty grades unsettled, an impossible count
+        # grades failed, and a funnel holding both must report the failure.
+        _report, code = plan_lead_flow.funnel({"new": 10, "replied": 40, "qualified": 5})
+        self.assertEqual(code, 2)
+
+    def test_the_reference_records_that_no_response_time_number_is_supplied(self) -> None:
+        # The sentence a tidy editor deletes, and the precedent that makes it a rule rather than a
+        # gap. Deleting either leaves the absence looking like an omission somebody should fill.
+        self.assertIn("ships no response-time target", self.prose)
+        self.assertIn("wearing a stopwatch", self.prose)
+        why = dict((field, why) for field, _prompt, why in plan_lead_flow.DECLARED)
+        self.assertIn("Nothing in this corpus certifies a number",
+                      why["first_response_target_minutes"])
+        self.assertIn("Yours to choose", why["touches_max"])
+
+    def test_the_price_bias_gate_is_labelled_a_house_rule_and_not_a_finding(self) -> None:
+        # The gate is right and its evidence is not measured here. Both facts have to travel
+        # together, or the next reader cites this repo for a bias nobody in it established.
+        self.assertIn("house-rule caution rather than a cited finding", self.prose)
+
+    def test_the_legality_of_contacting_a_silent_person_is_routed_not_answered(self) -> None:
+        self.assertIn("lifecycle-duties.csv", self.prose)
+        self.assertIn("Điều 10.1.b", self.prose)
+        # No sends-per-week number anywhere: that refusal already belongs to plan_lifecycle.py and
+        # re-deciding it here would give the skill two different answers.
+        self.assertNotRegex(self.prose, r"\d+\s+(sends|messages)\s+(a|per)\s+week")
+
+    def test_every_state_the_table_defines_is_documented_in_the_reference(self) -> None:
+        for row in self.states:
+            with self.subTest(state=row["id"]):
+                self.assertIn(f"`{row['id']}`", self.prose)
+
+    def test_no_state_row_leaves_the_honesty_columns_empty(self) -> None:
+        # exits_to and stall_exits_to are legitimately "-" on a terminal state. These two never are:
+        # a row that cannot say what may be counted, or what the count does not prove, is a row that
+        # will be counted as proof of something.
+        for row in self.states:
+            for column in ("may_be_counted", "may_not_be_counted", "what_it_does_not_prove",
+                           "entry_moment", "vn_channel_note"):
+                with self.subTest(state=row["id"], column=column):
+                    self.assertNotIn(row[column].strip(), ("", "-"))
+
+    def test_the_unexportable_channels_are_channels_the_script_knows(self) -> None:
+        # The manual-tally gate fires on this list. A typo here would silently stop firing, and the
+        # symptom is a funnel that reads as a collapse rather than an error.
+        for channel in plan_lead_flow.UNEXPORTABLE:
+            self.assertIn(channel, plan_lead_flow.VN_CHANNELS)
+
+    def test_a_sheet_saved_by_excel_or_powershell_still_parses(self) -> None:
+        # Both write a UTF-8 BOM, and the BOM arrives glued to the first column name. This is the
+        # tooling a shop owner actually has, so a rejected header is a rejected user.
+        with tempfile.TemporaryDirectory() as tmp:
+            sheet = Path(tmp) / "sheet.csv"
+            plan_lead_flow.write_template(sheet)
+            raw = sheet.read_text(encoding="utf-8")
+            sheet.write_text("﻿" + raw, encoding="utf-8")
+            parsed = plan_lead_flow.read_sheet(sheet)
+            self.assertIn("contact_channels", parsed)
+
+    def test_a_rate_under_the_floor_prints_the_count_and_names_the_floor(self) -> None:
+        report, code = plan_lead_flow.funnel({"new": 12, "replied": 9, "won": 2})
+        self.assertEqual(code, 3)
+        rendered = plan_lead_flow.render_funnel(report)
+        self.assertIn(str(plan_lead_flow.RATE_FLOOR), rendered)
+        # The point of the floor is that the percentage is absent, not annotated.
+        self.assertNotIn("75.0%", rendered)
+
+    def test_no_lead_value_is_computed_anywhere(self) -> None:
+        report, _code = plan_lead_flow.funnel({"new": 400, "replied": 300, "qualified": 150,
+                                               "quoted": 45, "negotiating": 30, "won": 12})
+        rendered = plan_lead_flow.render_funnel(report)
+        self.assertIn("No lead value", rendered)
+        self.assertIn("No lead value is computed", self.prose)
 
 
 class ChannelSpecTests(unittest.TestCase):
