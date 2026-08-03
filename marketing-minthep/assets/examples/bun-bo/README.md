@@ -181,9 +181,12 @@ The three `bun-bo-ai-menu-*.png` files deliberately separate photography from gr
 
 1. AI produces a restrained documentary food photograph with ordinary restaurant context, imperfect
    crop, believable light, and no rendered copy or decorative prompt collage.
-2. The menu hierarchy, Vietnamese typography, prices, spacing, and asymmetric grid are composed with
+2. The composite direction also keeps `bun-bo-isolated-hero.png`: a transparent dish asset whose
+   edge, color contamination, source-derived motif, and rebuilt contact shadow are checked before use.
+   It is a generated workflow proof, not a substitute for extracting the restaurant's actual served bowl.
+3. The menu hierarchy, Vietnamese typography, prices, spacing, and asymmetric grid are composed with
    deterministic design tools using the bundled fonts.
-3. Each candidate is inspected at full size and rejected for generic luxury cues, excessive ornament,
+4. Each candidate is inspected at full size and rejected for generic luxury cues, excessive ornament,
    oversized titles, fake writing, altered prices, overflow, or collisions.
 
 This route follows the user's rejection of visibly generative menu boards. The AI supplies source

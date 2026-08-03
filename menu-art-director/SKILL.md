@@ -58,6 +58,8 @@ For a short menu, use a single-column list or a disciplined asymmetric split. Al
 
 For food photography specify subject truth, camera height/angle, lens behavior, light direction/hardness, surface, contact shadow, crop, and what is intentionally ordinary. Add rejects: no ingredient explosion, duplicated toppings, impossible steam, floating bowl, glossy CGI food, decorative border, fake logo, random text, or luxury cliché.
 
+For a cutout composite, prefer extracting the served dish from a real source photograph. If no usable source exists, generate one proof on a removable chroma-key field before scaling. Validate alpha coverage, transparent corners, edge halos, subject completeness, and color contamination. Derive the palette or motif from a visible property of the dish, bowl, or restaurant rather than adding unrelated decoration. Rebuild contact shadow and color response for the destination surface; a clean cutout with no grounding is still a sticker.
+
 For `full-ai-proof`, include exact copy in a quoted block and require:
 
 - native Vietnamese diacritics;
