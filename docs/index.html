@@ -8,12 +8,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600;700&display=swap&subset=vietnamese" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css" />
-    <script src="./i18n.js" defer></script>
-    <script src="./app.js" defer></script>
+    <link rel="stylesheet" href="./styles.css?v=20260803-3" />
+    <script src="./i18n.js?v=20260803" defer></script>
+    <script src="./vendor/gsap/gsap.min.js?v=3.13.0" defer></script>
+    <script src="./vendor/gsap/ScrollTrigger.min.js?v=3.13.0" defer></script>
+    <script src="./app.js?v=20260803-2" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Bỏ qua điều hướng</a>
+    <div class="scroll-progress" aria-hidden="true"></div>
 
     <header class="topbar">
       <a class="wordmark" href="#top" aria-label="Marketing-Minthep — về đầu trang" data-aria-en="Marketing-Minthep — back to top">
@@ -38,9 +41,13 @@
     <main id="main">
       <section class="hero" id="top">
         <div class="hero-copy">
-          <div class="compatibility"><span>Claude</span><i>+</i><span>GPT / Codex</span><i>+</i><span>VI / EN</span></div>
-          <h1>Marketing-Minthep biến vài ảnh ref<br />thành cả chiến dịch.</h1>
-          <p class="hero-deck">Một skill nối marketing, content và art direction thành cùng một hệ thống. Bạn gửi sản phẩm, mục tiêu và ảnh tham chiếu; Marketing-Minthep trả chiến lược, copy, prompt, hình ảnh và asset plan có thể triển khai.</p>
+          <div class="compatibility"><span>MARKETING</span><i>/</i><span>COPY</span><i>/</i><span>IMAGE SYSTEM</span></div>
+          <h1>
+            <span class="hero-line"><span>Từ ảnh ref đến</span></span>
+            <span class="hero-line"><span>chiến dịch</span></span>
+            <span class="hero-line"><span>có thể triển khai.</span></span>
+          </h1>
+          <p class="hero-deck">Bạn đưa sản phẩm, mục tiêu và ảnh tham chiếu. Skill tự nghiên cứu, định vị, viết copy và dựng hệ thống hình ảnh — trong cùng một nguồn sự thật.</p>
           <div class="hero-actions">
             <button class="button primary copy-button" data-copy="$marketing-minthep" type="button">Copy $marketing-minthep</button>
             <a class="button secondary" href="#outputs">Xem kết quả thật</a>

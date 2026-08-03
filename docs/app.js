@@ -236,5 +236,57 @@ if ('IntersectionObserver' in window) {
   sections.forEach((section) => observer.observe(section));
 }
 
+let motionInitialized = false;
+
+function initMotion() {
+  const gsap = window.gsap;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.documentElement.dataset.motion = reduceMotion ? 'reduced' : gsap ? 'gsap' : 'static';
+  if (!gsap || reduceMotion || motionInitialized) return;
+  motionInitialized = true;
+
+  const ScrollTrigger = window.ScrollTrigger;
+  if (ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
+
+  gsap.timeline({ defaults: { ease: 'power3.out' } })
+    .from('.topbar', { yPercent: -100, duration: 0.4 }, 0)
+    .from('.compatibility', { autoAlpha: 0, y: 16, duration: 0.45 }, 0.14)
+    .from('.hero-line > span', { yPercent: 108, stagger: 0.06, duration: 0.55 }, 0.2)
+    .from('.hero-deck, .hero-actions, .hero-proof', { autoAlpha: 0, y: 22, stagger: 0.06, duration: 0.5 }, 0.48)
+    .from('.stage-shot', { autoAlpha: 0, clipPath: 'inset(100% 0 0 0)', stagger: 0.08, duration: 0.68 }, 0.26)
+    .from('.stage-note', { autoAlpha: 0, x: -24, duration: 0.45 }, 0.68);
+
+  if (!ScrollTrigger) return;
+
+  gsap.to('.scroll-progress', {
+    scaleX: 1,
+    ease: 'none',
+    scrollTrigger: { start: 'top top', end: 'max', scrub: 0.15 },
+  });
+
+  document.querySelectorAll('.section-intro, .output-heading, .starter-path-heading, .identity-copy, .prompt-copy, .install-heading, .technical-notes > h2').forEach((heading) => {
+    gsap.from(heading, {
+      autoAlpha: 0,
+      x: -32,
+      duration: 0.7,
+      ease: 'power3.out',
+      scrollTrigger: { trigger: heading, start: 'top 84%', once: true },
+    });
+  });
+
+  document.querySelectorAll('.proof-grid, .use-case-shell, .starter-path-grid, .output-wall, .sheet-wall, .identity-visual, .prompt-console, .install-rails, .reference-wall, .details-grid').forEach((surface) => {
+    gsap.from(surface, {
+      autoAlpha: 0,
+      y: 38,
+      clipPath: 'inset(0 0 12% 0)',
+      duration: 0.82,
+      ease: 'power2.out',
+      scrollTrigger: { trigger: surface, start: 'top 88%', once: true },
+    });
+  });
+}
+
 const requestedLanguage = new URLSearchParams(window.location.search).get('lang');
 setLanguage(requestedLanguage || window.localStorage.getItem('marketing-minthep-language') || 'vi');
+if (document.readyState === 'complete') initMotion();
+else window.addEventListener('load', initMotion, { once: true });
