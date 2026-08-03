@@ -52,7 +52,7 @@ window.HANDBOOK_I18N = {
     "Năm bảng này là artefact thật, không phải concept: chạy": "These five sheets are real artefacts, not concepts: running",
     "là ra đúng những hình trên. Cột tương phản trong bảng palette là tính ra chứ không khai ra, và hai trong hai mươi accent thật sự không đạt ngưỡng 3:1 nên bị đánh dấu chỉ dùng để tô, không dùng cho chữ. Như vậy hữu ích hơn một bộ palette mà cái nào cũng đạt. Bảng tỉ lệ cũng vậy: nó không khen tỉ lệ vàng, nó đo — xoắn ốc vàng bị xếp là": "produces exactly the images above. The contrast column in the palette sheet is computed rather than claimed, and two of the twenty accents genuinely miss the 3:1 threshold, so they are marked fill-only and not for text. That is more useful than a palette set where everything passes. The ratio sheet works the same way: it does not flatter the golden ratio, it measures it — the golden spiral is graded",
     ", và trên giấy A4 thì chia ba với đối xứng động là cùng một cái lưới.": ", and on A4 paper thirds and dynamic symmetry are the same grid.",
-    "Bốn hướng ảnh, sáu hướng menu và hai post mẫu, cùng một skill. Ba menu nổi bật dùng AI tạo toàn bộ art-board; chữ Việt và giá được đặt lại bằng font thật để không sai dấu. Bấm vào bất kỳ ô nào để xem bản đầy đủ.": "Four image directions, six menu directions, and two sample posts from one skill. AI creates the complete art board for the three featured menus; verified fonts replace all Vietnamese type and prices. Click any tile to open it full size.",
+    "Bốn hướng ảnh, sáu hướng menu và hai post mẫu, cùng một skill. Ba menu nổi bật được AI tạo hoàn chỉnh trong một ảnh: món ăn, hoa văn, bố cục, chữ Việt và giá. Bấm vào bất kỳ ô nào để xem bản đầy đủ.": "Four image directions, six menu directions, and two sample posts from one skill. The three featured menus are complete AI-generated images: food, ornament, layout, Vietnamese typography, and prices. Click any tile to open it full size.",
     // The disclaimer is split because `setLanguage` walks text nodes and skips
     // anything inside <code>. The single key that used to live here matched nothing at all: the
     // paragraph had been split by two <code> elements, so the whole line stayed Vietnamese in the
@@ -70,13 +70,13 @@ window.HANDBOOK_I18N = {
     "Menu · Broadsheet": "Menu · Broadsheet",
     "bếp thật · báo khổ lớn · kể chuyện": "real kitchen · broadsheet · story-led",
     "AI Menu · Đêm Đỏ": "AI Menu · Red Night",
-    "AI art-board · font Việt thật · sơn mài": "AI art board · verified type · lacquer",
+    "full AI · chữ Việt · sơn mài": "full AI · Vietnamese type · lacquer",
     "AI Menu · In Đậm": "AI Menu · Bold Print",
-    "risograph · collage · quầy nhanh": "risograph · collage · fast counter",
+    "full AI · risograph · title nhỏ": "full AI · risograph · compact title",
     "AI Menu · Botanical Atlas": "AI Menu · Botanical Atlas",
-    "tranh khắc · nguyên liệu · editorial": "engraving · ingredients · editorial",
+    "full AI · tranh khắc · editorial": "full AI · engraving · editorial",
     ". Ba layout study dựng bằng": ". Three layout studies are built by",
-    ". Ba menu nổi bật bắt đầu từ art-board AI không chữ; chữ Việt và giá được đặt lại bằng font thật trước khi QA. Quán, món và giá là ví dụ hư cấu; đây chưa phải file in cho một khách hàng thật.": ". The three featured menus start from text-free AI art boards; Vietnamese type and prices are rebuilt with verified fonts before QA. The shop, dishes, and prices are fictional; these are not print files for a real customer.",
+    ". Ba menu nổi bật là ảnh AI hoàn chỉnh và chỉ được chọn sau khi kiểm tra title, dấu tiếng Việt, giá và tràn chữ. Quán, món và giá là ví dụ hư cấu; đây chưa phải file in cho một khách hàng thật.": ". The three featured menus are complete AI images selected only after checking title scale, Vietnamese diacritics, prices, and text overflow. The shop, dishes, and prices are fictional; these are not print files for a real customer.",
     "Bỏ qua điều hướng": "Skip navigation",
     "Bắt đầu": "Start",
     "Dùng để làm gì": "Use cases",

@@ -31,7 +31,7 @@ different containers, and that split is the whole architecture.
 
 | Layer | What it holds | Now | How it fails | What stops that |
 |---|---|---|---|---|
-| Entry point | `SKILL.md`: routing, ten core rules, intake, the run loop. No craft values | 205 lines | It absorbs the manual. Every new unit wants four lines here | A line budget with a ceiling *and* a floor, and a written reason beside every raise |
+| Entry point | `SKILL.md`: routing, ten core rules, intake, the run loop. No craft values | 206 lines | It absorbs the manual. Every new unit wants four lines here | A line budget with a ceiling *and* a floor, and a written reason beside every raise |
 | Contract | `assets/registries/pipelines.json`: per pipeline, the references, scripts and deliverables it owes | 9 pipelines | A deliverable names a script the pipeline never loads, or one nobody shipped | Every `run:` line is checked against its own pipeline's script list |
 | Prose | `references/`, each under 150 lines, with `references/dossiers/` for depth | 66 + 15 | A reference nothing routes to. Knowledge that never loads reads as depth and ships as nothing | Every reference must be named by the entry point, the router, or the registry |
 | Rows | `data/`: craft values, legal articles, vendor capabilities, one row per decision | 35 lookup tables | The table drifts from the script that reads it, or arrives undeclared | Each table's row and column count is declared in the suite; an undeclared CSV fails |
