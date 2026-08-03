@@ -148,9 +148,9 @@ hero rather than running under the bowl.
 It will also quietly drop the dotted price leader when a dish name is long enough that the dots
 would collide with it. A missing leader is invisible; a leader printed through a dish name is not.
 
-## Not a photograph
+## The photograph
 
-`hero_shape: "bowl"` draws a schematic bowl — an ellipse, a broth disc, two garnish arcs. It is
-deliberately a diagram. It stands in for a photo of *your* bowl that nobody has taken yet, and a
-placeholder aiming at photorealism would invite someone to mistake it for the dish. When you have
-a real photo, set `hero_image` to its path instead.
+`bun-bo-photoreal-menu-hero.png` is a real photoreal key visual generated for this demo. The renderer
+copies it beside the SVG output, so the menu remains portable after the skill is installed globally.
+It contains no copy, logo, price, or claim; those belong in the layout after the shop confirms them.
+Replace `hero_image` with an approved source photo when the real bowl is available.

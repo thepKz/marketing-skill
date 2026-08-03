@@ -6,7 +6,7 @@
   "title": "Một tô, mỗi sáng",
   "subtitle": "Quán và giá là ví dụ hư cấu — minh họa bố cục thật",
   "category": "MÓN CHÍNH",
-  "hero_shape": "bowl",
+  "hero_image": "bun-bo-photoreal-menu-hero.png",
   "items": [
     {"name": "Bún bò giò heo", "description": "Chân giò hầm mềm, nêm sả và mắm ruốc theo lối Huế", "price": "65.000đ"},
     {"name": "Bún bò đặc biệt", "description": "Đủ giò, chả cua, huyết, thịt bò tái", "price": "79.000đ"},

@@ -75,11 +75,20 @@
       <section class="proof" id="proof" aria-labelledby="proof-title">
         <header class="output-heading">
           <div>
-            <p class="use-case-label">Số đo, không phải lời hứa</p>
-            <h2 id="proof-title">Cùng một đoạn. Trước và sau.</h2>
+            <p class="use-case-label">Đọc kết quả trước</p>
+            <h2 id="proof-title">Một dữ kiện thành tám.</h2>
           </div>
-          <p>Một đoạn About-us tiếng Việt, trước và sau khi qua gate. Hai file dưới đây nằm sẵn trong repo và có test canh: nếu bản nháp bắt đầu đậu, hoặc bản viết lại bắt đầu trượt, suite đỏ. Mọi con số trong bảng đều do script in ra, không ai gõ tay.</p>
+          <p>Gate biến một đoạn chung chung thành copy có thể kiểm chứng. Bản đầy đủ và phép đo nằm sau một lớp mở rộng để bạn xem nhanh trước, soi kỹ sau.</p>
         </header>
+
+        <div class="proof-verdict-rail" aria-label="Kết quả gate">
+          <div><strong>1 → 8</strong><span>dữ kiện kiểm chứng</span></div>
+          <div><strong>FAIL → PASS</strong><span>kết quả gate</span></div>
+          <div><strong>6 → 0</strong><span>lỗi chặn</span></div>
+        </div>
+
+        <details class="proof-details">
+          <summary>Xem bản copy và cách gate chấm</summary>
 
         <div class="proof-grid">
           <article class="proof-sample is-fail">
@@ -122,6 +131,7 @@ Gọi 0938 xxx xxx, gửi mẫu 200g miễn phí.</pre>
         </table>
 
         <p class="proof-foot">Ngưỡng là số học, không phải khẩu vị, nên nó không đổi theo tâm trạng người review. Hình dạng sinh ra những con số này nằm ở <a href="https://github.com/thepKz/marketing-skill/blob/main/ARCHITECTURE.md">ARCHITECTURE.md</a> — sáu lớp, chia theo câu hỏi chuyện gì xảy ra khi lớp này sai.</p>
+        </details>
       </section>
 
       <section class="use-cases" id="use-cases" aria-labelledby="use-case-title">

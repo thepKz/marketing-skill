@@ -34,6 +34,21 @@ Reject immediately when any is true:
 
 No score overrides a critical gate.
 
+## Scan before depth
+
+Long proof is a usability failure, not a sign of rigour. Treat the combination as `WALL-OF-TEXT`:
+high cognitive load, weak visual hierarchy, low scannability, and missing progressive disclosure.
+The page must answer the reader's decision question before showing methodology or full source copy.
+
+- Put the verdict, primary number, and next action in the first scan layer.
+- Keep one section to one user question; give secondary evidence a clear `details`/expand state.
+- Do not show full prose, the full measurement table, and methodology at equal visual weight at once.
+- Run a real viewport squint/scan check at desktop and mobile; if the eye cannot find the result in a few seconds, label the failure `HIERARCHY`.
+
+This is a progressive-disclosure and scanning guardrail, informed by Nielsen Norman Group's guidance on
+progressive disclosure and F-shaped web reading ([read 2026-08-03](https://www.nngroup.com/articles/progressive-disclosure/);
+[F-shaped pattern](https://www.nngroup.com/articles/f-shaped-pattern-reading-web-content/)).
+
 ## Selection procedure
 
 1. Review outputs anonymously when possible.
@@ -57,4 +72,3 @@ No score overrides a critical gate.
 - `RIGHTS`: consent, source, trademark, or imitation risk.
 
 Use `scripts/score_creative.py` with `assets/templates/creative-evaluation.json` for a repeatable record.
-

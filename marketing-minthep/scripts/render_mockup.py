@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import shutil
 import unicodedata
 from pathlib import Path
 
@@ -433,9 +434,20 @@ def main() -> None:
     parser.add_argument("--output", required=True)
     parser.add_argument("--html-output")
     args = parser.parse_args()
-    svg = render(json.loads(Path(args.input).read_text(encoding="utf-8-sig")))
+    input_path = Path(args.input)
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
+    spec = json.loads(input_path.read_text(encoding="utf-8-sig"))
+    # Copy a local hero beside the SVG so the rendered menu stays portable after global install.
+    hero_image = spec.get("hero_image")
+    if hero_image and not str(hero_image).startswith("data:"):
+        hero_path = input_path.parent / str(hero_image)
+        if hero_path.is_file():
+            copied_hero = output.parent / hero_path.name
+            if hero_path.resolve() != copied_hero.resolve():
+                shutil.copy2(hero_path, copied_hero)
+            spec["hero_image"] = copied_hero.name
+    svg = render(spec)
     output.write_text(svg, encoding="utf-8")
     if args.html_output:
         page = f'<!doctype html><meta charset="utf-8"><title>Mockup</title><style>body{{margin:0;background:#ddd;display:grid;place-items:center;min-height:100vh}}svg{{max-width:92vw;max-height:92vh;box-shadow:0 12px 40px #0003}}</style>{svg}'

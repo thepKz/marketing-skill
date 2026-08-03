@@ -3,11 +3,15 @@ window.HANDBOOK_I18N = {
     // The measured before/after. The two quoted drafts are inside <pre>, which the tree walker
     // rejects, so they stay Vietnamese in both editions - correct, because the numbers in the table
     // were measured on that Vietnamese text and an English paraphrase would not produce them.
-    // The heading is two keys because a <br /> splits it into two text nodes. The closing
-    // paragraph below is two keys for the same reason, but split by the ARCHITECTURE.md link.
+    // The closing methodology paragraph is two keys because the ARCHITECTURE.md link splits its text nodes.
     "Số đo": "Measured",
-    "Số đo, không phải lời hứa": "Measured, not promised",
-    "Một đoạn About-us tiếng Việt, trước và sau khi qua gate. Hai file dưới đây nằm sẵn trong repo và có test canh: nếu bản nháp bắt đầu đậu, hoặc bản viết lại bắt đầu trượt, suite đỏ. Mọi con số trong bảng đều do script in ra, không ai gõ tay.": "One Vietnamese About-us paragraph, before and after the gate. Both files below sit in the repository with a test watching them: if the draft ever starts passing, or the rewrite ever starts failing, the suite goes red. Every number in the table is printed by a script, not typed by hand.",
+    "Đọc kết quả trước": "Read the result first",
+    "Một dữ kiện thành tám.": "One fact becomes eight.",
+    "Gate biến một đoạn chung chung thành copy có thể kiểm chứng. Bản đầy đủ và phép đo nằm sau một lớp mở rộng để bạn xem nhanh trước, soi kỹ sau.": "The gate turns generic copy into verifiable copy. The full drafts and measurements sit behind a disclosure so you can scan first, inspect second.",
+    "Xem bản copy và cách gate chấm": "View the copy and gate method",
+    "dữ kiện kiểm chứng": "checkable facts",
+    "kết quả gate": "gate result",
+    "lỗi chặn": "blocking errors",
     "Bản nháp · trượt, 6 lỗi chặn": "Draft · failed, 6 blocking",
     "Ba trong bốn câu này đối thủ copy nguyên vẫn dùng được, vì không câu nào nói về một cái xưởng cụ thể.": "Three of these four sentences a competitor could publish unchanged, because not one of them is about a particular roastery.",
     "Bản viết lại · đậu": "Rewrite · passed",
@@ -64,7 +68,6 @@ window.HANDBOOK_I18N = {
     "Cài skill": "Install",
     "Copy skill": "Copy skill",
     "Từ ảnh ref đến chiến dịch có thể triển khai.": "Turn references into a campaign you can run.",
-    "Cùng một đoạn. Trước và sau.": "The same paragraph. Before and after.",
     "Không chỉ viết prompt. Tạo cả thế giới bán hàng.": "More than prompts. Build the whole selling world.",
     "Không mô tả cơ chế. Vẽ nó ra rồi chỉ.": "Do not describe the mechanism. Draw it, then point.",
     "Makeup đổi bề mặt. Không đổi con người.": "Makeup changes the surface. It does not change the person.",
