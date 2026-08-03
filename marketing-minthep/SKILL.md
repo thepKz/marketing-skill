@@ -82,6 +82,7 @@ Load only what the decision needs.
 | Provider execution | `api-image-orchestration.md`, `provider-compilers.md` |
 | Whether a provider actually honours negative prompts, rendered text, a seed, or a recurring face | `prompt-grammar.md` plus `data/prompt-grammar.csv` |
 | Food, restaurant, dish, menu | `menu-engineering.md`, `menu-design.md`, `product-imagery.md` |
+| Website, landing page, menu, poster, wireframe, or any type-led layout | `dossiers/layout-wireframe-typography.md`; set and test the real headline before styling |
 | Visual QA and export | `anti-ai-quality.md`, `creative-evaluation.md`, `production-pipeline.md` |
 | Claims that will be published, and whether Vietnamese law lets you say it at all | `claims-proof-ledger.md` plus `data/claim-evidence.csv` and `scripts/check_claims.py`, then `rights-and-claims.md` |
 | A welcome, cart, renewal or win-back flow, a capture popup, or a consent checkbox | `lifecycle-retention.md` plus `data/lifecycle-duties.csv` and `scripts/plan_lifecycle.py` |
@@ -201,3 +202,4 @@ If filesystem writes are unavailable, reproduce the same deliverable structure i
 - Treat generated packaging without an exact usable reference as concept art.
 - Do not publish, deploy, contact media, creators, or customers, buy ads, change live campaigns, or cause any irreversible external consequence without explicit authorization.
 - Do not bury weak strategy under more channels, formats, copy, or images.
+- For designed artefacts, treat title fit as an acceptance gate. Prefer one or two lines on desktop and two or three on mobile; three desktop lines or four mobile lines require a real content constraint. Reduce size, widen the measure, or rewrite before forcing line breaks. Default to 56px or less for a desktop H1 and 40px or less for section titles; reserve 72px display type for a deliberate poster brief, never as the automatic premium treatment.

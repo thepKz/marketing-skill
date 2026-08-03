@@ -477,3 +477,21 @@ Recommended production scale (1.25 ratio, 16 base, snapped to 4px grid):
 `[derived]` Every value is a multiple of 4; 16/24/32/40/56/72 are multiples of 8. Ratios between
 adjacent steps: 1.167, 1.143, 1.25, 1.2, 1.333, 1.25, 1.4, 1.286 — irregular by design, because
 snapping beats purity.
+
+### 5.6 Title-fit gate
+
+Treat line count as a production constraint, not a stylistic surprise. Use the real VI and EN
+headline at the target viewport before approving the scale.
+
+- Desktop hero: prefer 1–2 lines; 3 is the hard ceiling unless the brief is explicitly poster-led.
+- Desktop section title: prefer 1–2 lines.
+- Mobile hero or section title: prefer 2–3 lines; 4 requires a genuine content constraint.
+- Default desktop H1 to 56px or less and section titles to 40px or less. Use the 72px display token
+  only for an intentional poster composition with enough measure, never as an automatic premium cue.
+- Never insert line breaks before measuring natural wrap. First rewrite, widen the measure, or step
+  the type down. Force a break only when it improves both supported languages at their real widths.
+- Reject a title that occupies more than roughly one third of the first viewport before its deck or
+  primary action appears.
+
+Record viewport, available measure, font size, and observed line count in the QA note. A title that
+fits in Figma but wraps again in the browser has not passed.

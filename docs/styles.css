@@ -150,16 +150,15 @@ main, footer { width: min(100%, var(--max)); margin: 0 auto; background: var(--w
 .hero {
   min-height: calc(100dvh - 64px);
   display: grid;
-  grid-template-columns: minmax(520px, 1.04fr) minmax(520px, 0.96fr);
+  grid-template-columns: minmax(540px, 1.08fr) minmax(500px, 0.92fr);
   border-bottom: 1px solid var(--line);
   overflow: hidden;
 }
 .hero-copy { display: flex; flex-direction: column; justify-content: center; padding: clamp(52px, 5.2vw, 78px); }
 .compatibility { display: flex; flex-wrap: wrap; gap: 10px; color: var(--blue); font-size: 0.68rem; font-weight: 700; }
 .compatibility i { color: var(--orange); font-style: normal; }
-h1 { max-width: 720px; margin: 24px 0 26px; font-size: clamp(3rem, 4.55vw, 4.75rem); line-height: 0.94; }
-.hero-line { display: block; overflow: hidden; padding-bottom: 0.06em; }
-.hero-line > span { display: block; }
+h1 { max-width: 760px; margin: 24px 0 26px; font-size: clamp(2.65rem, 3.2vw, 3.35rem); line-height: 1; }
+.hero-title { display: block; }
 .hero-deck { max-width: 58ch; margin: 0; color: var(--muted); font-size: clamp(1rem, 1.12vw, 1.12rem); }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 34px; }
 .button {
@@ -234,7 +233,7 @@ h1 { max-width: 720px; margin: 24px 0 26px; font-size: clamp(3rem, 4.55vw, 4.75r
   align-items: end;
 }
 .section-intro h2, .output-heading h2, .identity-copy h2, .prompt-copy h2, .install-heading h2,
-.technical-notes > h2 { margin-bottom: 0; font-size: clamp(2.5rem, 5vw, 5rem); line-height: 0.96; }
+.technical-notes > h2 { max-width: 18ch; margin-bottom: 0; font-size: clamp(1.85rem, 2.5vw, 2.25rem); line-height: 1; }
 .section-intro > p, .output-heading > p, .install-heading > p { max-width: 62ch; margin: 0; color: var(--muted); }
 
 .proof { padding: clamp(64px, 8vw, 112px); border-bottom: 1px solid var(--line); }
@@ -281,7 +280,7 @@ h1 { max-width: 720px; margin: 24px 0 26px; font-size: clamp(3rem, 4.55vw, 4.75r
 .use-case-display { min-height: 350px; display: grid; grid-template-columns: 1.2fr 0.8fr; }
 .use-case-main { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: clamp(34px, 5vw, 70px); }
 .use-case-label { margin: 0; color: var(--blue); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; }
-.use-case-main h3 { max-width: 760px; margin: 26px 0 18px; font-size: clamp(2.3rem, 4.4vw, 4.5rem); line-height: 0.95; }
+.use-case-main h3 { max-width: 22ch; margin: 26px 0 18px; font-size: clamp(1.85rem, 2.6vw, 2.4rem); line-height: 1; }
 .use-case-main > p:not(.use-case-label) { max-width: 58ch; margin: 0 0 28px; color: var(--muted); }
 .deliverable-list { padding: 34px; color: var(--white); background: var(--ink); }
 .deliverable-list > span { color: var(--orange); font-size: 0.68rem; font-weight: 700; }
@@ -296,7 +295,7 @@ h1 { max-width: 720px; margin: 24px 0 26px; font-size: clamp(3rem, 4.55vw, 4.75r
   border-bottom: 1px solid var(--line);
 }
 .starter-path-heading { padding: clamp(44px, 6vw, 82px); border-right: 1px solid var(--line); }
-.starter-path-heading h2 { max-width: 8ch; margin: 16px 0 18px; font-size: clamp(2rem, 4vw, 4.2rem); line-height: 0.98; }
+.starter-path-heading h2 { max-width: 14ch; margin: 16px 0 18px; font-size: clamp(1.9rem, 2.65vw, 2.5rem); line-height: 1; }
 .starter-path-heading p:last-child { max-width: 42ch; color: var(--muted); }
 .starter-path-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: center; }
 .starter-path-grid article { min-height: 260px; display: flex; flex-direction: column; padding: 30px 24px; border-right: 1px solid var(--line); }
@@ -512,7 +511,7 @@ footer p { max-width: 60ch; margin: 7px 0 0; color: var(--muted); }
 
 @media (max-width: 1180px) {
   .topbar nav a { padding-inline: 10px; }
-  .hero { grid-template-columns: minmax(460px, 0.96fr) minmax(500px, 1.04fr); }
+  .hero { grid-template-columns: minmax(480px, 1fr) minmax(480px, 1fr); }
   .hero-copy { padding-inline: 42px; }
   .reference-strip { grid-template-columns: repeat(3, 1fr); }
 }
@@ -549,7 +548,7 @@ footer p { max-width: 60ch; margin: 7px 0 0; color: var(--muted); }
   .top-copy { width: 48px; min-width: 48px; padding: 0; font-size: 0; }
   .top-copy::before { content: "+"; font-size: 1.5rem; }
   .hero-copy { min-height: auto; padding: 56px 20px; }
-  h1 { font-size: clamp(2.55rem, 12vw, 3.8rem); }
+  h1 { font-size: clamp(2.2rem, 9.4vw, 2.75rem); }
   .hero-proof { grid-template-columns: 1fr; }
   .hero-proof div, .hero-proof div + div { padding: 13px 0; border-left: 0; border-bottom: 1px solid var(--line); }
   .hero-proof div:last-child { border-bottom: 0; }
@@ -558,7 +557,7 @@ footer p { max-width: 60ch; margin: 7px 0 0; color: var(--muted); }
   .stage-product { width: 38%; height: 36%; right: 4%; top: 10%; }
   .stage-fashion { width: 48%; height: 42%; right: 4%; bottom: 4%; }
   .stage-note { width: 53%; left: 4%; bottom: 7%; padding: 12px; font-size: 0.57rem; }
-  .section-intro h2, .output-heading h2, .identity-copy h2, .prompt-copy h2, .install-heading h2, .technical-notes > h2 { font-size: clamp(2.25rem, 11vw, 3.5rem); }
+  .section-intro h2, .output-heading h2, .identity-copy h2, .prompt-copy h2, .install-heading h2, .technical-notes > h2 { font-size: clamp(1.75rem, 7.2vw, 2.25rem); }
   .proof, .use-cases { padding: 56px 20px; }
   .proof-grid { grid-template-columns: minmax(0, 1fr); }
   .proof-sample + .proof-sample { border-left: 0; border-top: 2px solid var(--line); }
@@ -570,7 +569,7 @@ footer p { max-width: 60ch; margin: 7px 0 0; color: var(--muted); }
   .use-case-tabs { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 2px solid var(--line); }
   .use-case-tabs button { min-width: max-content; min-height: 48px; border-right: 1px solid var(--line); border-bottom: 0; }
   .use-case-main { padding: 34px 20px; }
-  .use-case-main h3 { font-size: 2.5rem; }
+  .use-case-main h3 { font-size: clamp(1.75rem, 7.2vw, 2rem); }
   .deliverable-list { padding: 28px 20px; }
   .starter-path-grid { grid-template-columns: 1fr; }
   .starter-path-grid article { min-height: 0; border-right: 0; border-bottom: 1px solid var(--line); }

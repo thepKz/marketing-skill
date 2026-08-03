@@ -251,7 +251,7 @@ function initMotion() {
   gsap.timeline({ defaults: { ease: 'power3.out' } })
     .from('.topbar', { yPercent: -100, duration: 0.4 }, 0)
     .from('.compatibility', { autoAlpha: 0, y: 16, duration: 0.45 }, 0.14)
-    .from('.hero-line > span', { yPercent: 108, stagger: 0.06, duration: 0.55 }, 0.2)
+    .from('.hero-title', { autoAlpha: 0, y: 24, duration: 0.55 }, 0.2)
     .from('.hero-deck, .hero-actions, .hero-proof', { autoAlpha: 0, y: 22, stagger: 0.06, duration: 0.5 }, 0.48)
     .from('.stage-shot', { autoAlpha: 0, clipPath: 'inset(100% 0 0 0)', stagger: 0.08, duration: 0.68 }, 0.26)
     .from('.stage-note', { autoAlpha: 0, x: -24, duration: 0.45 }, 0.68);
