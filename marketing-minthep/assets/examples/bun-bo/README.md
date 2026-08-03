@@ -170,21 +170,21 @@ would collide with it. A missing leader is invisible; a leader printed through a
 ## The photograph
 
 The generated image set is intentionally copy-free: `bun-bo-photoreal-menu-hero.png`,
-`bun-bo-lacquer-table.png`, `bun-bo-counter.png`, `bun-bo-gallery-mono.png`, and
-`bun-bo-broadsheet.png`. The renderer copies the selected source beside the SVG output, so every
+`bun-bo-documentary-table.png`, `bun-bo-lacquer-table.png`, `bun-bo-counter.png`,
+`bun-bo-gallery-mono.png`, and `bun-bo-broadsheet.png`. The renderer copies the selected source beside the SVG output, so every
 menu remains portable after the skill is installed globally. Replace any `hero_image` with an
 approved source photo when the real bowl is available.
 
-## Full-AI menu boards
+## Anti-AI menu directions
 
-The three `bun-bo-ai-menu-*.png` files are complete menu artworks generated as single images:
+The three `bun-bo-ai-menu-*.png` files deliberately separate photography from graphic design:
 
-1. The image model owns the food photography, ornament, materials, layout, typography, Vietnamese
-   diacritics, prices, and footer in one coherent composition.
-2. No HTML, SVG, canvas, or post-processing text is overlaid onto these menu boards. This avoids
-   oversized titles and awkward Vietnamese wrapping.
-3. Each candidate is inspected at full size. Any missing glyph, fake writing, altered price, title
-   overflow, or collision rejects the output.
+1. AI produces a restrained documentary food photograph with ordinary restaurant context, imperfect
+   crop, believable light, and no rendered copy or decorative prompt collage.
+2. The menu hierarchy, Vietnamese typography, prices, spacing, and asymmetric grid are composed with
+   deterministic design tools using the bundled fonts.
+3. Each candidate is inspected at full size and rejected for generic luxury cues, excessive ornament,
+   oversized titles, fake writing, altered prices, overflow, or collisions.
 
-The bundled fonts remain available for the web UI and SVG studies, but are not used to composite text
-onto the full-AI PNG menu boards.
+This route follows the user's rejection of visibly generative menu boards. The AI supplies source
+photography; the designed system supplies judgement, repeatability, and reliable Vietnamese type.
