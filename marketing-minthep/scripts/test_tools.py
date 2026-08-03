@@ -1346,6 +1346,16 @@ class RunAuditTests(unittest.TestCase):
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = SKILL_ROOT.parent
 
+# The skill installs as a copy of this directory alone, so an installed copy has no repository
+# above it: no README pair, no ARCHITECTURE.md, no docs/, no .gitignore. Ten tests here check
+# those files rather than the skill, and from an install they were erroring on a missing path -
+# which meant anyone who installed the skill and ran its own suite met ten red tests that said
+# nothing about their installation. Skipped, not deleted: in a checkout every one of them runs,
+# and they are the tests holding the front page honest.
+IN_REPOSITORY = (REPO_ROOT / "README.md").exists() and (REPO_ROOT / ".gitignore").exists()
+repository_only = unittest.skipUnless(
+    IN_REPOSITORY, "checks the repository around the skill, which an installed copy has no view of")
+
 # Paths a run workspace creates at runtime. They are named in the prose on purpose and are
 # not expected to exist in the repository.
 RUNTIME_ARTIFACTS = {
@@ -2117,6 +2127,7 @@ class RefSheetTests(unittest.TestCase):
             self.assertLess(top + bottom, ph, f"{name}: the bands cover the whole frame")
 
 
+@repository_only
 class RepoReadmeTests(unittest.TestCase):
     """The README is the only page most people read, so its numbers have to be measured.
 
@@ -2281,6 +2292,7 @@ class RepoReadmeTests(unittest.TestCase):
         self.assertEqual(blocks["en"], blocks["vi"])
 
 
+@repository_only
 class ArchitectureDocTests(unittest.TestCase):
     """`ARCHITECTURE.md` is the page that decides whether a stranger trusts the repository, and it
     is the easiest page in it to falsify. Nothing in a layer diagram breaks when the layer moves.
@@ -2396,6 +2408,7 @@ def _vietnamese_number(value: int) -> str:
     return names.get(value, str(value))
 
 
+@repository_only
 class InstallScopeTests(unittest.TestCase):
     """A global install is a copy, and until now nothing checked what it copied.
 
@@ -2478,6 +2491,7 @@ class ReferenceIntegrityTests(unittest.TestCase):
     """A reference the skill cannot open is worse than no reference: it reads as depth
     that does not ship. This caught three pointers into a gitignored research folder."""
 
+    @repository_only
     def test_every_cited_file_exists_somewhere_the_skill_can_reach(self) -> None:
         # REPO_ROOT is a legitimate base: SKILL.md names the .claude/ and .codex/ adapters by
         # their repository-root paths, because that is where an operator installs them from.
@@ -2501,6 +2515,7 @@ class ReferenceIntegrityTests(unittest.TestCase):
                     unresolved.append(f"{document.relative_to(SKILL_ROOT)} -> {ref}")
         self.assertEqual(unresolved, [], f"unresolved file references: {unresolved}")
 
+    @repository_only
     def test_every_reference_image_has_a_licence_line(self) -> None:
         """An image in the demo's reference directory is republished on a public site, so its
         rights have to be resolved before it lands there — not after somebody notices.
@@ -2594,6 +2609,7 @@ class ReferenceIntegrityTests(unittest.TestCase):
         for term in ("chiến dịch", "thiết kế menu", "chỉnh sửa ảnh", "màu sắc"):
             self.assertIn(term, value, f"description never mentions {term}")
 
+    @repository_only
     def test_runtime_adapters_advertise_the_canonical_description(self) -> None:
         """The adapters are what each runtime actually indexes for skill discovery. When their
         description drifts from the canonical one, the skill stops being found for the work it
@@ -2841,6 +2857,7 @@ class _TextNodes(HTMLParser):
             self.nodes.append(collapsed)
 
 
+@repository_only
 class HandbookTranslationTests(unittest.TestCase):
     """The bilingual demo page is one of the skill's deliverables, so a half-translated page is a
     shipped defect rather than a cosmetic one. Both assertions here failed when they were written:
@@ -2887,6 +2904,7 @@ class HandbookTranslationTests(unittest.TestCase):
         self.assertEqual(dead, [], f"{len(dead)} keys match no text node: {dead[:5]}")
 
 
+@repository_only
 class UseCaseGridTests(unittest.TestCase):
     """The tab grid is the front door, and for months it had nine creative tabs and no commercial
     ones. A visitor asking "can I afford this discount", "which numbers do I report", "is this test
@@ -8137,6 +8155,7 @@ class ChannelSpecTests(unittest.TestCase):
         self.assertGreaterEqual(result["counts"]["refused"], 3)
         self.assertEqual(sum(result["counts"].values()), len(self.ROWS))
 
+    @repository_only
     def test_the_worked_survey_result_in_the_prose_is_recomputed_here(self) -> None:
         """The reference and both READMEs quote the output of one command. They said thirteen and
         eleven, which was true of an earlier survey and stopped being true the moment the ratio gate
