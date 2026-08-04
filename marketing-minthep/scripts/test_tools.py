@@ -2214,7 +2214,6 @@ class RepoReadmeTests(unittest.TestCase):
             "tables": len(list((SKILL_ROOT / "data").glob("*.csv"))),
             # The test file is a harness, not a tool a customer can run.
             "tools": len([p for p in (SKILL_ROOT / "scripts").glob("*.py") if p.stem != "test_tools"]),
-            "skill_lines": len((SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8").splitlines()),
         }
         patterns = {
             "en": {
@@ -2222,14 +2221,12 @@ class RepoReadmeTests(unittest.TestCase):
                 "dossiers": r"(\d+) deep-craft dossiers",
                 "tables": r"(\d+) lookup tables",
                 "tools": r"(\d+) tools \+ test suite",
-                "skill_lines": r"entry point and router, (\d+) lines",
             },
             "vi": {
                 "references": r"(\d+) file chủ đề",
                 "dossiers": r"(\d+) dossier craft",
                 "tables": r"(\d+) bảng tra",
                 "tools": r"(\d+) công cụ \+ bộ test",
-                "skill_lines": r"bộ định tuyến, (\d+) dòng",
             },
         }
         for lang, by_key in patterns.items():
@@ -2237,13 +2234,23 @@ class RepoReadmeTests(unittest.TestCase):
                 with self.subTest(lang=lang, key=key):
                     self.assertEqual(self._count(lang, pattern), measured[key])
 
-    def test_the_stated_test_count_matches_the_suite(self) -> None:
-        """Counted by loading this module, so it cannot be right today and stale next week."""
+    def test_the_stated_test_count_is_a_floor_the_suite_clears(self) -> None:
+        """An exact count was the wrong instrument. It made the READMEs unwritable: adding one test
+        edited two prose files, and editing the prose failed a test about the suite. Worse, it
+        taught nobody anything - a reader cannot tell 635 from 634, only "a lot" from "a few".
+
+        A floor keeps the claim honest where it matters. It still fails the day the suite shrinks
+        past the number on the front page, which is the only direction the claim can lie in."""
         suite = unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__])
         total = suite.countTestCases()
-        for lang, pattern in (("en", r"(\d+) tests, including"), ("vi", r"(\d+) test, trong đó")):
+        for lang, pattern in (("en", r"[Mm]ore than (\d+) tests"), ("vi", r"[Hh]ơn (\d+) test")):
             with self.subTest(lang=lang):
-                self.assertEqual(self._count(lang, pattern), total)
+                claimed = self._count(lang, pattern)
+                self.assertLessEqual(claimed, total,
+                                     f"{lang} advertises more than {claimed} tests; there are {total}")
+                # A floor far under the suite is not a claim, it is a shrug.
+                self.assertGreater(claimed * 2, total,
+                                   f"{lang} says {claimed} for a suite of {total}. Raise the floor")
 
     def test_every_command_in_a_readme_code_block_names_a_script_that_exists(self) -> None:
         for lang, text in self.text.items():
@@ -2365,9 +2372,12 @@ class ArchitectureDocTests(unittest.TestCase):
         self.assertIn(f"`data/` holds {total} tables", text)
 
     def test_the_architecture_counts_match_the_filesystem(self) -> None:
-        skill_lines = len((SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8").splitlines())
         tools = len([p for p in (SKILL_ROOT / "scripts").glob("*.py") if p.stem != "test_tools"])
-        self.assertEqual(self._one(r"\| (\d+) lines \|"), (str(skill_lines),))
+        # SKILL.md's own length used to be pinned here too, against the exact line count. It was a
+        # second copy of a fact `test_skill_md_stays_within_the_progressive_disclosure_budget`
+        # already holds, and the copy was the brittle one: the ceiling is the architecture, the
+        # current line number is a detail. The doc now states the ceiling.
+        self.assertIn("210-line ceiling", self.text)
         self.assertEqual(self._one(r"\| (\d+) pipelines \|"),
                          (str(len(load_registry()["pipelines"])),))
         self.assertEqual(
@@ -2390,9 +2400,12 @@ class ArchitectureDocTests(unittest.TestCase):
         self.assertEqual(int(self._one(r"(\d+) tables carry a limit")[0]),
                          self._tables_with("does_not"))
 
-    def test_the_stated_test_count_matches_the_suite(self) -> None:
+    def test_the_stated_test_count_is_a_floor_the_suite_clears(self) -> None:
         suite = unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__])
-        self.assertEqual(int(self._one(r"(\d+) tests, and these")[0]), suite.countTestCases())
+        total = suite.countTestCases()
+        claimed = int(self._one(r"more than (\d+) tests, and these")[0])
+        self.assertLessEqual(claimed, total, f"claims more than {claimed}; there are {total}")
+        self.assertGreater(claimed * 2, total, f"{claimed} for a suite of {total}. Raise the floor")
 
     def test_every_invariant_names_a_test_that_actually_exists(self) -> None:
         """The invariant table is a set of citations into this file. A citation that does not
@@ -3065,6 +3078,16 @@ class HandbookTranslationTests(unittest.TestCase):
         dead = sorted(key for key in self.keys if key not in self.nodes)
         self.assertEqual(dead, [], f"{len(dead)} keys match no text node: {dead[:5]}")
 
+    def test_no_key_is_defined_twice(self) -> None:
+        """`self.keys` is a set, which is what let two pairs sit in the file twice without either
+        assertion above noticing. In an object literal the last one silently wins, so a duplicate is
+        a translation that looks maintained and is not the one being served."""
+        body = re.sub(r"^\s*//.*$", "", (self.DOCS / "i18n.js").read_text(encoding="utf-8"), flags=re.M)
+        defined = [match.replace('\\"', '"')
+                   for match in re.findall(r'\n\s*"((?:[^"\\]|\\.)*)"\s*:', body)]
+        twice = sorted({key for key in defined if defined.count(key) > 1})
+        self.assertEqual(twice, [], f"defined more than once: {twice}")
+
 
 @repository_only
 class UseCaseGridTests(unittest.TestCase):
@@ -3127,19 +3150,35 @@ class UseCaseGridTests(unittest.TestCase):
         navigable, so the reading order is the keyboard order."""
         self.assertEqual(self.tabs, list(self.entries), "the tab list and the panel list disagree")
 
-    def test_the_hero_counts_the_tabs_it_is_counting(self) -> None:
-        """The hero said nine workbenches because there were nine tabs when it was typed. It is the
-        first number a visitor reads and the page shows the tabs a scroll below it, so it cannot be
-        the one figure here that is maintained by hand.
+    def test_the_hero_numbers_are_recomputed_rather_than_typed(self) -> None:
+        """These are the first three numbers a stranger reads, and the hero has now been rewritten
+        twice with them typed in by hand. The previous version claimed nine workbenches because
+        there were nine tabs on the day someone typed it; the rewrite dropped that stat entirely and
+        this test failed pointing at a shape the page no longer had.
 
-        The label moved from "marketing workbenches" to "worked use cases" because a visitor who
-        reads the README first arrives holding "nine pipelines", and 14 of a thing with the same
-        name reads as a contradiction rather than a second count. The number counts the use-case
-        tabs below the hero; now the label says so."""
+        So each figure is measured here from the thing it claims to count. The test count is checked
+        as a floor rather than an equality, for the same reason the READMEs now say "more than 600":
+        an exact count makes the front page unwritable and tells a reader nothing that "a lot" does
+        not. A floor still fails the day the suite shrinks past it, which is the only direction the
+        claim can lie in."""
         html = (self.DOCS / "index.html").read_text(encoding="utf-8")
-        stated = re.search(r"<strong>(\d+)</strong><span>worked use cases</span>", html)
-        self.assertIsNotNone(stated, "the hero no longer states a workbench count in the expected shape")
-        self.assertEqual(int(stated.group(1)), len(self.tabs))
+
+        def stat(label: str) -> str:
+            found = re.search(rf"<strong>([\d+]+)</strong><span>{re.escape(label)}</span>", html)
+            self.assertIsNotNone(found, f"the hero no longer states a figure for {label!r}")
+            return found.group(1)
+
+        published = len([p for p in (self.DOCS / "assets" / "generated").iterdir() if p.is_file()])
+        self.assertEqual(int(stat("visual output trong archive")), published)
+        self.assertEqual(int(stat("pipeline từ research đến production")),
+                         len(load_registry()["pipelines"]))
+
+        claimed = stat("test giữ cấu trúc và gate")
+        self.assertTrue(claimed.endswith("+"), f"{claimed} is stated as an exact test count")
+        floor = int(claimed.rstrip("+"))
+        total = unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__]).countTestCases()
+        self.assertLessEqual(floor, total, f"the hero advertises {claimed} tests; there are {total}")
+        self.assertGreater(floor * 2, total, f"{claimed} for a suite of {total}. Raise the floor")
 
     def test_the_grid_carries_the_four_decision_questions(self) -> None:
         missing = sorted(slug for slug in self.DECISIONS if slug not in self.entries)

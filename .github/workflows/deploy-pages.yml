@@ -115,6 +115,7 @@ jobs:
           test -f docs/assets/generated/bun-bo-ai-menu-full-proof.png
           test -f docs/assets/generated/bun-bo-multi-food-reference-board.png
           test -f docs/assets/generated/bun-bo-brand-led-mam-goi-mon-v1.png
+          test -f docs/assets/generated/bun-bo-documentary-table.png
           test -f docs/assets/generated/bun-bo-ai-order-ledger-menu.png
           test -f docs/assets/generated/bun-bo-food-ref-banh-bot-loc.png
           test -f docs/assets/generated/bun-bo-food-ref-banh-rang-bua.png
@@ -122,6 +123,7 @@ jobs:
           test -f docs/assets/generated/bun-bo-full-ai-broth-map.png
           test -f docs/assets/generated/bun-bo-full-ai-broth-map-type-v4.png
           test -f docs/assets/generated/bun-bo-full-ai-blueprint-ref-v2.png
+          test -f docs/assets/generated/bun-bo-full-ai-hue-ledger-v2.png
           test -f docs/assets/generated/bun-bo-post-feed.svg
           test -f docs/assets/generated/bun-bo-post-story.svg
           test -f docs/gallery-manifest.js

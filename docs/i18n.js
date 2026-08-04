@@ -5,10 +5,6 @@ window.HANDBOOK_I18N = {
     // were measured on that Vietnamese text and an English paraphrase would not produce them.
     // The closing methodology paragraph is two keys because the ARCHITECTURE.md link splits its text nodes.
     "Số đo": "Measured",
-    "Đọc kết quả trước": "Read the result first",
-    "Một dữ kiện thành tám.": "One fact becomes eight.",
-    "Gate biến một đoạn chung chung thành copy có thể kiểm chứng. Bản đầy đủ và phép đo nằm sau một lớp mở rộng để bạn xem nhanh trước, soi kỹ sau.": "The gate turns generic copy into verifiable copy. The full drafts and measurements sit behind a disclosure so you can scan first, inspect second.",
-    "Xem bản copy và cách gate chấm": "View the copy and gate method",
     "dữ kiện kiểm chứng": "checkable facts",
     "kết quả gate": "gate result",
     "lỗi chặn": "blocking errors",
@@ -37,7 +33,6 @@ window.HANDBOOK_I18N = {
     // The reference-sheet section. The heading is two keys because it is split by a <br />, and the
     // closing paragraph is two keys because a <code> element sits in the middle of it and the tree
     // walker skips <code>; each fragment below is exactly one text node.
-    "Bảng tham chiếu": "Reference sheets",
     "Năm bảng tham chiếu dựng bằng code từ đúng những bảng dữ liệu mà skill tra khi ra quyết định, nên bảng không thể lệch khỏi lời khuyên. Không cần API key, không gọi provider nào. Bấm để xem bản đầy đủ.": "Five reference sheets, built by code from the same data tables the skill consults when it decides, so a sheet cannot drift from the advice. No API key, no image provider. Click to open one full size.",
     "Bố cục là một nhúm con số": "Layout is a handful of numbers",
     "17 dial · min · mặc định · max": "17 dials · min · default · max",
@@ -76,20 +71,16 @@ window.HANDBOOK_I18N = {
     "Menu · Folded editorial": "Menu · Folded editorial",
     "món chính · món thêm · khoảng thở": "mains · add-ons · breathing room",
     "Bỏ qua điều hướng": "Skip navigation",
-    "Bắt đầu": "Start",
-    "Dùng để làm gì": "Use cases",
-    "Ảnh mẫu": "Outputs",
+    "Trước / sau": "Before / after",
+    "45 ảnh mẫu": "45 outputs",
     "Cài skill": "Install",
     "Copy skill": "Copy skill",
-    "Từ ảnh ref đến chiến dịch có thể triển khai.": "Turn references into a campaign you can run.",
     "Không mô tả cơ chế. Vẽ nó ra rồi chỉ.": "Do not describe the mechanism. Draw it, then point.",
     "Makeup đổi bề mặt. Không đổi con người.": "Makeup changes the surface. It does not change the person.",
     "Không biết bắt đầu? Dùng câu này.": "Not sure where to start? Use this request.",
     "Cài một lần. Dùng ở mọi project.": "Install once. Use it in every project.",
-    "Bạn đưa sản phẩm, mục tiêu và ảnh tham chiếu. Skill tự nghiên cứu, định vị, viết copy và dựng hệ thống hình ảnh — trong cùng một nguồn sự thật.": "Bring the product, objective, and visual references. The skill researches, positions, writes, and builds the image system from one source of truth.",
-    "Xem kết quả thật": "See real outputs",
-    "Bạn đang muốn làm gì?": "What do you want to make?",
-    "Chọn một mục tiêu. Skill tự route đúng kiến thức và chỉ tạo bộ đầu ra cần thiết, thay vì đổ mọi thứ vào một câu trả lời khổng lồ.": "Choose an objective. The skill routes to the right knowledge and creates only the outputs you need instead of dumping everything into one enormous response.",
+    "Bắt đầu từ việc cần làm.": "Start with the job to be done.",
+    "Chọn một đầu việc. Skill tự gọi đúng pipeline và trả đúng bộ file, thay vì dồn mọi năng lực vào một câu trả lời.": "Choose one job. The skill calls the right pipeline and returns the right set of files instead of cramming every capability into one response.",
     "Bán sản phẩm": "Sell a product",
     "Khi bạn gửi ảnh chính người cần chỉnh, output phải giữ đúng cấu trúc khuôn mặt và nhận dạng. Một phiên bản “đẹp tương tự” vẫn là lỗi.": "When you submit the person being edited, the output must preserve their exact facial structure and identity. A prettier look-alike is still a failure.",
     "Makeup được đổi": "Makeup may change",
@@ -152,8 +143,6 @@ window.HANDBOOK_I18N = {
     "3 ảnh khác nguồn": "3 images from different sources",
     "Đang thiếu": "Missing",
     "Campaign system có lineage": "A campaign system with lineage",
-    "dữ kiện kiểm chứng": "checkable facts",
-    "lỗi chặn": "blocking errors",
     "Mỗi kết quả đều truy ngược được về quyết định và nguồn tạo ra nó.": "Every result traces back to the decision and source that produced it.",
     "Một kho output, không phải vài ô mẫu.": "An output archive, not a handful of sample tiles.",
     "Tác phẩm được tách khỏi ảnh tham khảo, sắp theo loại đầu ra và mở dần theo nhu cầu. Xem tuyển chọn trước, sau đó đi vào toàn bộ archive mà không phải cuộn qua một bức tường card giống nhau.": "Work is separated from reference material, organized by output family, and progressively revealed. Start with the selection, then enter the full archive without scrolling through a wall of identical cards.",
@@ -169,6 +158,40 @@ window.HANDBOOK_I18N = {
     // `setLanguage` preserves each node's own leading and trailing space, so the English has to start
     // exactly where the Vietnamese did — hence the comma on the middle fragment rather than a word.
     ", không nhập tay từng card. Mỗi ảnh giữ kích thước gốc, loại output và trạng thái output/reference/iteration; khi thêm asset mới, chạy": ", not from hand-authored cards. Each image keeps its source dimensions, output family, and output/reference/iteration status; after adding assets run",
-    "để website tự nhận.": "so the website can discover them."
+    "để website tự nhận.": "so the website can discover them.",
+
+    // The case reel and the rewritten hero. Added with the page, not after it: the suite
+    // fails on a Vietnamese line with no English key and on a key that matches nothing.
+
+    "Một brief vào.": "One brief in.",
+    "Cả campaign đi ra.": "A whole campaign out.",
+    "Từ dữ kiện sản phẩm đến định vị, câu chữ và hình ảnh đồng bộ. Kết quả là bộ file có thể dùng tiếp — không phải một bản kế hoạch dài để bạn tự làm phần còn lại.": "From product facts to positioning, copy, and a coherent visual system. The result is a set of files you can keep using — not a long plan that leaves the rest to you.",
+    "Bắt đầu bằng brief của tôi": "Start with my brief",
+    "Xem kết quả thật": "See the actual work",
+    "visual output trong archive": "visual outputs in the archive",
+    "pipeline từ research đến production": "pipelines from research to production",
+    "test giữ cấu trúc và gate": "tests holding the structure and the gates",
+    "Khác biệt phải nhìn thấy được.": "The difference should be visible.",
+    "Mỗi case bắt đầu bằng một đầu vào thật. Kéo xuống để xem nó được mở thành campaign, menu, editorial và hệ visual như thế nào.": "Each case starts with one real input. Scroll to see it expand into a campaign, menu, editorial work, and a visual system.",
+    "Một chai serum. Một thế giới hình ảnh.": "One serum bottle. One visual world.",
+    "Giữ sản phẩm làm điểm neo. Ánh sáng, vật liệu và bối cảnh cùng kể một câu chuyện thay vì mỗi ảnh nói một giọng.": "Keep the product as the anchor. Light, material, and setting tell one story instead of making every image speak in a different voice.",
+    "Đầu vào": "Input",
+    "packshot + mục tiêu bán hàng": "a packshot + a selling goal",
+    "ánh sáng ấm · vật liệu hổ phách": "warm light · amber material",
+    "Ý tưởng": "Idea",
+    "Nhận": "You get",
+    "Một tô bún. Năm cách khiến người ta muốn gọi món.": "One bowl of noodles. Five reasons to order it.",
+    "Từ ảnh món tại quán thành hero, menu, quầy bán và câu chuyện thương hiệu. Mỗi ảnh có một việc rõ ràng.": "Turn one in-store dish photograph into a hero, a menu, a counter visual, and a brand story. Every image has a clear job.",
+    "một ảnh món tại quán": "one dish photograph taken in the shop",
+    "mỗi visual làm một công việc": "one job per visual",
+    "Dùng ref để quyết định. Không dùng ref để sao chép.": "Use references to decide, not to copy.",
+    "Tách ánh sáng, bố cục, màu và crop thành những lựa chọn có thể kiểm soát; khóa lại mặt người, logo và dấu ấn độc quyền.": "Turn light, composition, colour, and crop into controlled decisions while locking the face, logo, and proprietary signatures.",
+    "một ảnh tham chiếu": "one reference photograph",
+    "đổi ít nhất 3 trục": "at least 3 axes changed",
+    "bố cục · ánh sáng · màu · crop · QA": "composition · light · colour · crop · QA",
+    "Luật": "Rule",
+    "Không tô bóng câu chữ. Thêm lý do để tin.": "Do not polish empty prose. Add reasons to believe.",
+    "Copywriting là một pipeline của skill, không phải phần gắn thêm. Nó đi từ product truth đến message hierarchy, headline, body, proof và CTA; sau đó mới chạy gate.": "Copywriting is a pipeline inside the skill, not an add-on. It moves from product truth to message hierarchy, headline, body, proof, and CTA, then runs the gates.",
+    "Bản copy và cách gate chấm": "The copy, and how the gate scored it",
   }
 };

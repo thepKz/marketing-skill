@@ -28,6 +28,10 @@ const useCases = {
     vi: { title: 'Campaign system', description: 'Biến một product truth thành campaign idea, ba creative lane và hệ asset xuyên suốt paid, social, landing page.', deliverables: ['Message ladder và big idea', 'Clear, Signature, Departure lanes', 'Paid, social, landing asset matrix', 'Prompt và QA cho từng visual'], request: 'Dùng $marketing-minthep ở system mode. Hãy biến product truth và ảnh ref đính kèm thành một campaign system gồm big idea, ba creative lane, message ladder, asset matrix, copy và prompt hình ảnh có QA.' },
     en: { title: 'Campaign system', description: 'Turn one product truth into a campaign idea, three creative lanes, and a connected asset system across paid, social, and landing pages.', deliverables: ['Message ladder and big idea', 'Clear, Signature, and Departure lanes', 'Paid, social, and landing asset matrix', 'Prompts and QA for every visual'], request: 'Use $marketing-minthep in system mode. Turn the attached product truth and references into a campaign system with a big idea, three creative lanes, a message ladder, an asset matrix, copy, and image prompts with QA.' },
   },
+  copy: {
+    vi: { title: 'Copywriting từ product truth', description: 'Viết landing page, PDP, quảng cáo hoặc About us từ dữ kiện thật; chốt lời hứa, bằng chứng, phản đối và CTA trước khi đánh bóng câu chữ.', deliverables: ['Value proposition và message hierarchy', 'Headline, body copy và CTA theo hành trình đọc', 'Proof, objection handling và claim cần xác nhận', 'Specificity, human rewrite và Vietnamese register gates'], request: 'Dùng $marketing-minthep cùng $copywriting để viết [landing page/PDP/quảng cáo/About us] cho sản phẩm đính kèm. Bắt đầu bằng product truth và audience, sau đó tạo value proposition, message hierarchy, headline, body copy, proof, objection handling và CTA. Chạy specificity và human-rewrite gates; không bịa claim.' },
+    en: { title: 'Copywriting from product truth', description: 'Write landing pages, PDPs, ads, or About pages from real facts, deciding the promise, proof, objections, and CTA before polishing the prose.', deliverables: ['Value proposition and message hierarchy', 'Headline, body copy, and CTA along the reading journey', 'Proof, objection handling, and claims requiring confirmation', 'Specificity, human-rewrite, and Vietnamese-register gates'], request: 'Use $marketing-minthep with $copywriting to write a [landing page/PDP/ad/About page] for the attached product. Start with product truth and audience, then create the value proposition, message hierarchy, headline, body copy, proof, objection handling, and CTA. Run specificity and human-rewrite gates; do not fabricate claims.' },
+  },
   commerce: {
     vi: { title: 'Commerce visual system', description: 'Tạo bộ hình ảnh và nội dung bán hàng nhất quán từ hero đến PDP, marketplace, catalog, social commerce và PR kit.', deliverables: ['Packshot và image sequence', 'PDP copy và objection handling', 'Marketplace crops và safe zones', 'SKU consistency và return-reduction proof'], request: 'Dùng $marketing-minthep để tạo commerce visual system cho sản phẩm đính kèm: packshot, PDP sequence, marketplace crops, listing copy, objection handling và QA khóa logo, label, shape, material.' },
     en: { title: 'Commerce visual system', description: 'Create a consistent sales-image and content system spanning hero, PDP, marketplace, catalog, social commerce, and PR kits.', deliverables: ['Packshot and image sequence', 'PDP copy and objection handling', 'Marketplace crops and safe zones', 'SKU consistency and return-reduction proof'], request: 'Use $marketing-minthep to create a commerce visual system for the attached product: packshots, a PDP sequence, marketplace crops, listing copy, objection handling, and QA that locks the logo, label, shape, and materials.' },
@@ -319,7 +323,8 @@ document.querySelectorAll('.copy-button').forEach((button) => {
     if (!text) return;
     try {
       await navigator.clipboard.writeText(text);
-      showToast(currentLanguage === 'en' ? 'Copied to clipboard.' : 'Đã copy vào clipboard.');
+      const customToast = currentLanguage === 'en' ? button.dataset.toastEn : button.dataset.toast;
+      showToast(customToast || (currentLanguage === 'en' ? 'Copied to clipboard.' : 'Đã copy vào clipboard.'));
     } catch {
       showToast(currentLanguage === 'en' ? 'The browser blocked automatic copying.' : 'Trình duyệt không cho phép copy tự động.');
     }
@@ -430,7 +435,7 @@ function initMotion() {
     scrollTrigger: { start: 'top top', end: 'max', scrub: 0.15 },
   });
 
-  document.querySelectorAll('.section-intro, .output-heading, .transformation-heading, .identity-copy, .prompt-copy, .install-heading, .technical-notes > h2').forEach((heading) => {
+  document.querySelectorAll('.section-intro, .output-heading, .case-reel-heading, .transformation-heading, .identity-copy, .prompt-copy, .install-heading, .technical-notes > h2').forEach((heading) => {
     gsap.from(heading, {
       autoAlpha: 0,
       x: -32,
@@ -469,8 +474,28 @@ function initMotion() {
     scrollTrigger: { trigger: '.archive-grid', start: 'top 88%', once: true },
   });
 
+  document.querySelectorAll('.visual-case').forEach((visualCase) => {
+    const caseCopy = visualCase.querySelector('.visual-case-copy');
+    const caseImages = visualCase.querySelectorAll('.case-before-image, .case-image, .system-sheet');
+    gsap.from(caseCopy, {
+      autoAlpha: 0,
+      x: visualCase.classList.contains('visual-case-menu') ? 34 : -34,
+      duration: 0.75,
+      ease: 'power3.out',
+      scrollTrigger: { trigger: visualCase, start: 'top 80%', once: true },
+    });
+    gsap.from(caseImages, {
+      clipPath: 'inset(0 0 100% 0)',
+      y: 18,
+      stagger: 0.08,
+      duration: 0.86,
+      ease: 'power3.out',
+      scrollTrigger: { trigger: visualCase, start: 'top 74%', once: true },
+    });
+  });
+
   const transformationScene = document.querySelector('.transformation-scene');
-  if (transformationScene && window.matchMedia('(min-width: 901px)').matches) {
+  if (transformationScene && !transformationScene.closest('[hidden]') && window.matchMedia('(min-width: 901px)').matches) {
     const steps = gsap.utils.toArray('.transform-step');
     const visuals = gsap.utils.toArray('.after-visual');
     gsap.set(visuals, { clipPath: 'inset(100% 0 0 0)', y: 22 });

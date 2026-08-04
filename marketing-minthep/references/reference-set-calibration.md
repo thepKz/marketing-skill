@@ -49,7 +49,7 @@ every distribution below is a distribution of what survived an editor, not of wh
 The script that produced these numbers lives outside the skill, and both reasons are worth stating
 because both are reusable rules.
 
-It needs Pillow. All 38 shipped tools run on the standard library alone, which is why a customer can
+It needs Pillow. Every shipped tool runs on the standard library alone, which is why a customer can
 clone this repository and use it without installing anything. One tool with a dependency turns that
 into a dependency policy, and the calibration is worth less than the property it would cost.
 

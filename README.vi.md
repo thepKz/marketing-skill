@@ -411,7 +411,7 @@ Kiểm tra bậc hai bắt cửa thoát: sau khi từ chối cái nhìn hiển n
 
 ```
 marketing-minthep/
-  SKILL.md                  điểm vào và bộ định tuyến, 207 dòng
+  SKILL.md                  điểm vào và bộ định tuyến
   references/               66 file chủ đề, mỗi file dưới 150 dòng
     dossiers/               15 dossier craft chuyên sâu + index
   data/                     35 bảng tra: image recipe, palette, layout dial,
@@ -442,7 +442,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-635 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv`, test fail nếu một ví dụ copy chứa số in được, test fail nếu một cờ năng lực dẫn tới dòng nguồn không tồn tại, test fail nếu một lượt kiểm spec cho asset đạt trong khi trang của nền tảng chưa từng công bố con số đó, và test fail nếu một deliverable gọi tên một script không có trong repo. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
+Hơn 600 test, trong đó có test tính lại từng tỉ lệ tương phản trong `data/palettes.csv`, test fail nếu một ví dụ copy chứa số in được, test fail nếu một cờ năng lực dẫn tới dòng nguồn không tồn tại, test fail nếu một lượt kiểm spec cho asset đạt trong khi trang của nền tảng chưa từng công bố con số đó, và test fail nếu một deliverable gọi tên một script không có trong repo. `evaluate_workbench.py` chạy lại các routing case trong `assets/evals/`. `.github/workflows/deploy-pages.yml` kiểm tra cấu trúc, planner, manifest builder, unit test và biên dịch Python, rồi deploy `docs/` lên GitHub Pages.
 
 ## Những gì skill không làm
 

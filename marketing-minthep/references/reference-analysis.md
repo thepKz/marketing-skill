@@ -4,6 +4,8 @@
 
 Treat references as evidence of structure, material, pacing, and market saturation. Never reproduce a distinctive layout, tagline, character, pose, sequence, or artist signature.
 
+A reference you cannot redistribute is still usable. What you keep is the measurement, not the file: `data/reference-observations.csv` holds one row per post actually opened, and `reference-set-calibration.md` holds a population pass over 244 frames this repository deliberately does not ship. That distinction matters to a reader deciding whether a rule here is asserted or measured — "no evidence" and "evidence whose source cannot be republished" look identical from the outside, and only one of them is true here.
+
 ## Reference fingerprint
 
 For every useful reference, capture:
