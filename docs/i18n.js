@@ -52,13 +52,11 @@ window.HANDBOOK_I18N = {
     "Năm bảng này là artefact thật, không phải concept: chạy": "These five sheets are real artefacts, not concepts: running",
     "là ra đúng những hình trên. Cột tương phản trong bảng palette là tính ra chứ không khai ra, và hai trong hai mươi accent thật sự không đạt ngưỡng 3:1 nên bị đánh dấu chỉ dùng để tô, không dùng cho chữ. Như vậy hữu ích hơn một bộ palette mà cái nào cũng đạt. Bảng tỉ lệ cũng vậy: nó không khen tỉ lệ vàng, nó đo — xoắn ốc vàng bị xếp là": "produces exactly the images above. The contrast column in the palette sheet is computed rather than claimed, and two of the twenty accents genuinely miss the 3:1 threshold, so they are marked fill-only and not for text. That is more useful than a palette set where everything passes. The ratio sheet works the same way: it does not flatter the golden ratio, it measures it — the golden spiral is graded",
     ", và trên giấy A4 thì chia ba với đối xứng động là cùng một cái lưới.": ", and on A4 paper thirds and dynamic symmetry are the same grid.",
-    "Bốn hướng ảnh, sáu hướng menu và hai post mẫu, cùng một skill. Ba menu nổi bật dùng ảnh món ăn AI theo art direction riêng, sau đó được dàn trang như menu thật để đọc nhanh và không bị AI slop. Bấm vào bất kỳ ô nào để xem bản đầy đủ.": "Four image directions, six menu directions, and two sample posts from one skill. The three featured menus use AI food photography with specific art direction, then real menu layouts for fast scanning without AI slop. Click any tile to open it full size.",
     // The disclaimer is split because `setLanguage` walks text nodes and skips
     // anything inside <code>. The single key that used to live here matched nothing at all: the
     // paragraph had been split by two <code> elements, so the whole line stayed Vietnamese in the
     // English edition. Each fragment below is one text node, and they have to read as one
     // sentence when the script names are put back between them.
-    "Các hình trên là concept hư cấu để minh họa art direction. Hai post mẫu dựng bằng": "These are fictional concepts illustrating art direction. The two sample posts are built by",
     "Menu · Nocturne": "Menu · Nocturne",
     "full-bleed · poster đêm · gọi nhanh": "full-bleed · night poster · fast ordering",
     "Menu · Lacquer": "Menu · Lacquer",
@@ -69,14 +67,14 @@ window.HANDBOOK_I18N = {
     "steam đen trắng · gallery · ít nhiễu": "monochrome steam · gallery · low noise",
     "Menu · Broadsheet": "Menu · Broadsheet",
     "bếp thật · báo khổ lớn · kể chuyện": "real kitchen · broadsheet · story-led",
+    "Menu · Broth Map artwork": "Menu · Broth Map artwork",
+    "flat artwork · motif có nguồn · 20 món": "flat artwork · source-derived motif · 20 items",
     "Menu · Composite hero": "Menu · Composite hero",
     "tách nền · bóng tiếp xúc · cùng hệ màu": "isolated dish · contact shadow · coherent palette",
     "Menu · Counter split": "Menu · Counter split",
     "quầy gọi món · ảnh lệch · số rõ": "counter ordering · off-axis photo · clear numbers",
     "Menu · Folded editorial": "Menu · Folded editorial",
     "món chính · món thêm · khoảng thở": "mains · add-ons · breathing room",
-    ". Ba layout study dựng bằng": ". Three layout studies are built by",
-    ". Ba menu nổi bật dùng ảnh món ăn AI nhưng được dàn trang riêng theo ba bối cảnh phục vụ; đã kiểm tra title, dấu tiếng Việt, giá và độ đọc. Quán, món và giá là ví dụ hư cấu; đây chưa phải file in cho một khách hàng thật.": ". The three featured menus use AI food photography but are laid out separately for three service contexts; title scale, Vietnamese diacritics, prices, and readability were checked. The shop, dishes, and prices are fictional; these are not print files for a real customer.",
     "Bỏ qua điều hướng": "Skip navigation",
     "Bắt đầu": "Start",
     "Dùng để làm gì": "Use cases",
@@ -84,7 +82,6 @@ window.HANDBOOK_I18N = {
     "Cài skill": "Install",
     "Copy skill": "Copy skill",
     "Từ ảnh ref đến chiến dịch có thể triển khai.": "Turn references into a campaign you can run.",
-    "Không chỉ viết prompt. Tạo cả thế giới bán hàng.": "More than prompts. Build the whole selling world.",
     "Không mô tả cơ chế. Vẽ nó ra rồi chỉ.": "Do not describe the mechanism. Draw it, then point.",
     "Makeup đổi bề mặt. Không đổi con người.": "Makeup changes the surface. It does not change the person.",
     "Không biết bắt đầu? Dùng câu này.": "Not sure where to start? Use this request.",
@@ -108,9 +105,6 @@ window.HANDBOOK_I18N = {
     "Một script cài vào cả Claude Code và GPT/Codex. Nó mirror chứ không merge: file bạn xóa trong repo cũng biến mất ở bản global, nên bản copy cũ không âm thầm sống sót.": "One script installs into both Claude Code and GPT/Codex. It mirrors rather than merges: a file you delete in the repo disappears from the global copy too, so an old copy cannot quietly survive.",
     "báo bản global lệch repo bao nhiêu file mà không ghi gì. Sau khi cài, mở phiên mới rồi gọi": "reports how many files the global copy differs by, without writing anything. After installing, open a new session and invoke",
     // The three-step strip above the starter path, and the captions under the sample renders.
-    "BẠN NÓI": "YOU SAY",
-    "BẠN CHỌN": "YOU CHOOSE",
-    "BẠN NHẬN": "YOU GET",
     "lề rộng · giãn dòng · định vị cao": "wide margin · open leading · premium positioning",
     "quét nhanh · số gọi món · social": "fast scanning · order by number · social",
     "kẻ đôi · dẫn chấm · menu in": "double rule · dotted leader · printed menu",
@@ -146,14 +140,35 @@ window.HANDBOOK_I18N = {
     "Báo cáo KPI": "KPI reporting",
     "Đọc kết quả A/B": "A/B readout",
     "Viết lại cho người": "Human rewrite",
-    "Bạn không cần biết marketing trước.": "You do not need to know marketing first.",
-    "Chỉ cần nói bạn bán gì, muốn đạt điều gì và gửi ảnh/ref nếu có. Skill sẽ tự hỏi phần còn thiếu, giải thích quyết định bằng ngôn ngữ dễ hiểu rồi tạo báo cáo Markdown để bạn dùng tiếp.": "Tell the skill what you sell, what you want to achieve, and attach references if you have them. It fills the gaps, explains decisions in plain language, and creates Markdown reports you can keep using.",
-    "Brief bằng lời thường": "Brief in plain language",
-    "“Tôi bán bún bò, muốn menu hiện đại cho khách văn phòng.” Không cần viết brief chuẩn.": "“I sell bun bo and need a modern menu for office workers.” No formal brief required.",
-    "So sánh hướng đi": "Compare directions",
-    "Nhận 2–3 hướng chiến lược, moodboard, màu sắc, bố cục và trade-off trước khi làm sâu.": "Review 2–3 strategic directions, moodboards, palettes, layouts, and trade-offs before deeper production.",
-    "Hệ thống dùng được": "Receive a usable system",
-    "Copy, wireframe, shot list, prompt hình/video, lịch nội dung và checklist QA nằm trong một thư mục.": "Copy, wireframes, shot lists, image/video prompts, content calendars, and QA checklists live in one folder.",
-    "Mỗi vòng đều có file, lý do và bước tiếp theo.": "Every round includes files, rationale, and the next step."
+    "Một brief rời rạc đi vào. Một hệ thống có thể vận hành đi ra.": "A fragmented brief goes in. An operating system comes out.",
+    "Đây không phải nút “làm marketing”. Skill khóa sự thật trước, tìm phần còn thiếu, chọn đúng pipeline, tạo file thật rồi dùng gate để từ chối phần không đủ tốt.": "This is not a make-marketing button. The skill locks truth first, finds what is missing, selects the right pipeline, writes real files, and uses gates to reject weak work.",
+    "Nguyên liệu chưa thành brief": "Raw material, not yet a brief",
+    "“Tôi có một serum và vài ảnh ref. Làm giúp tôi chiến dịch nhìn xịn, bán được hàng.”": "“I have a serum and a few references. Make me a premium-looking campaign that sells.”",
+    "Sản phẩm": "Product",
+    "1 ảnh packshot": "1 packshot",
+    "Mục tiêu": "Goal",
+    "“bán được hàng”": "“sell more”",
+    "Tham chiếu": "References",
+    "3 ảnh khác nguồn": "3 images from different sources",
+    "Đang thiếu": "Missing",
+    "Campaign system có lineage": "A campaign system with lineage",
+    "dữ kiện kiểm chứng": "checkable facts",
+    "lỗi chặn": "blocking errors",
+    "Mỗi kết quả đều truy ngược được về quyết định và nguồn tạo ra nó.": "Every result traces back to the decision and source that produced it.",
+    "Một kho output, không phải vài ô mẫu.": "An output archive, not a handful of sample tiles.",
+    "Tác phẩm được tách khỏi ảnh tham khảo, sắp theo loại đầu ra và mở dần theo nhu cầu. Xem tuyển chọn trước, sau đó đi vào toàn bộ archive mà không phải cuộn qua một bức tường card giống nhau.": "Work is separated from reference material, organized by output family, and progressively revealed. Start with the selection, then enter the full archive without scrolling through a wall of identical cards.",
+    "output có thể công khai": "publishable outputs",
+    "ảnh ref nội bộ có provenance": "internal references with provenance",
+    "họ đầu ra để khám phá": "output families to explore",
+    "Ảnh ref không được trình bày như tác phẩm do hệ thống tạo. Chúng chỉ xuất hiện dưới dạng số liệu và nguồn vì quyền sử dụng vẫn thuộc chủ sở hữu.": "References are not presented as work created by the system. They appear only as counts and provenance because usage rights remain with their owners.",
+    "tác phẩm đang hiển thị": "works shown",
+    "REFERENCE ARCHIVE / INTERNAL": "REFERENCE ARCHIVE / INTERNAL",
+    "Kho Instagram dùng để phân tích style được giữ nội bộ cùng URL nguồn, kích thước và SHA-256. Website không xuất bản lại ảnh khi chưa có quyền sử dụng riêng.": "The Instagram style-analysis archive remains internal with source URLs, dimensions, and SHA-256 records. The website does not republish images without separate usage rights.",
+    "Archive được dựng từ": "The archive is generated from",
+    // Three keys, not one: two <code> elements split the paragraph and the tree walker skips <code>.
+    // `setLanguage` preserves each node's own leading and trailing space, so the English has to start
+    // exactly where the Vietnamese did — hence the comma on the middle fragment rather than a word.
+    ", không nhập tay từng card. Mỗi ảnh giữ kích thước gốc, loại output và trạng thái output/reference/iteration; khi thêm asset mới, chạy": ", not from hand-authored cards. Each image keeps its source dimensions, output family, and output/reference/iteration status; after adding assets run",
+    "để website tự nhận.": "so the website can discover them."
   }
 };

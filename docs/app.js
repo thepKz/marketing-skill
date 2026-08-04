@@ -3,6 +3,25 @@ let toastTimer;
 let currentLanguage = 'vi';
 let activeUseCase = 'campaign';
 let activePrompt = 'campaign';
+let engineProgress = 0;
+let engineMotion = 'animated';
+
+const engineStatuses = {
+  vi: ['Đang khóa sự thật', 'Đang đối chiếu bằng chứng', 'Đang chốt định vị', 'Đang sản xuất asset', 'Đang chạy QA gate'],
+  en: ['Locking product truth', 'Checking evidence', 'Making the positioning decision', 'Producing assets', 'Running QA gates'],
+};
+const staticEngineStatuses = { vi: 'Pipeline 5 bước', en: 'Five-stage pipeline' };
+
+function renderEngineStatus() {
+  const label = document.querySelector('[data-engine-status]');
+  if (!label) return;
+  if (engineMotion === 'static') {
+    label.textContent = staticEngineStatuses[currentLanguage];
+    return;
+  }
+  const index = Math.min(engineStatuses.vi.length - 1, Math.floor(engineProgress * engineStatuses.vi.length));
+  label.textContent = engineStatuses[currentLanguage][index];
+}
 
 const useCases = {
   campaign: {
@@ -94,6 +113,98 @@ const prompts = {
   },
 };
 
+const galleryAssets = Array.isArray(window.SHOWCASE_ASSETS) ? window.SHOWCASE_ASSETS : [];
+const galleryMeta = window.SHOWCASE_META || { published: galleryAssets.length, internalReferences: 0 };
+const galleryPageSize = 24;
+let galleryFilter = 'all';
+let galleryLimit = galleryPageSize;
+let galleryView = galleryAssets;
+let dialogSequence = [];
+let dialogIndex = -1;
+
+const galleryLabels = {
+  vi: {
+    all: 'Tất cả', campaign: 'Campaign', product: 'Product', photography: 'Photography', artwork: 'Artwork', social: 'Social', systems: 'Systems', process: 'Process',
+    output: 'output', reference: 'reference', iteration: 'iteration', more: 'Xem thêm 24 tác phẩm', empty: 'Không có tác phẩm trong nhóm này.',
+  },
+  en: {
+    all: 'All', campaign: 'Campaign', product: 'Product', photography: 'Photography', artwork: 'Artwork', social: 'Social', systems: 'Systems', process: 'Process',
+    output: 'output', reference: 'reference', iteration: 'iteration', more: 'Show 24 more works', empty: 'No work in this group.',
+  },
+};
+
+function galleryMetaLine(asset) {
+  const labels = galleryLabels[currentLanguage];
+  return `${labels[asset.category] || asset.category} · ${labels[asset.status] || asset.status} · ${asset.width}×${asset.height}`;
+}
+
+function createGalleryButton(asset, selected = false) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = `${selected ? 'selected-work' : 'archive-item'} image-open`;
+  button.dataset.galleryId = asset.id;
+  button.dataset.image = asset.src;
+  button.dataset.caption = `${asset.title} · ${galleryMetaLine(asset)}`;
+  button.dataset.captionEn = button.dataset.caption;
+  button.dataset.shape = asset.shape;
+  button.dataset.fit = asset.fit;
+
+  const media = selected ? button : document.createElement('span');
+  if (!selected) {
+    media.className = 'archive-media';
+    media.style.aspectRatio = `${asset.width} / ${asset.height}`;
+  }
+  const image = document.createElement('img');
+  image.src = asset.src;
+  image.alt = `${asset.title}, ${galleryMetaLine(asset)}`;
+  image.loading = selected && asset.selectedRank < 2 ? 'eager' : 'lazy';
+  media.append(image);
+  if (!selected) button.append(media);
+
+  const caption = document.createElement('span');
+  caption.className = selected ? '' : 'archive-caption';
+  const title = document.createElement('b');
+  title.textContent = asset.title;
+  const detail = document.createElement('small');
+  detail.textContent = galleryMetaLine(asset);
+  caption.append(title, detail);
+  button.append(caption);
+  return button;
+}
+
+function renderGallery() {
+  const selectedGallery = document.querySelector('[data-selected-gallery]');
+  const archiveGrid = document.querySelector('[data-archive-grid]');
+  if (!selectedGallery || !archiveGrid) return;
+
+  const selected = galleryAssets.filter((asset) => asset.selected).slice(0, 6);
+  selectedGallery.replaceChildren(...selected.map((asset) => createGalleryButton(asset, true)));
+
+  galleryView = galleryFilter === 'all' ? galleryAssets : galleryAssets.filter((asset) => asset.category === galleryFilter);
+  const visible = galleryView.slice(0, galleryLimit);
+  if (visible.length) archiveGrid.replaceChildren(...visible.map((asset) => createGalleryButton(asset)));
+  else {
+    const empty = document.createElement('p');
+    empty.className = 'archive-empty';
+    empty.textContent = galleryLabels[currentLanguage].empty;
+    archiveGrid.replaceChildren(empty);
+  }
+
+  document.querySelector('[data-published-count]').textContent = galleryMeta.published;
+  document.querySelector('[data-reference-count]').textContent = galleryMeta.internalReferences;
+  document.querySelector('[data-category-count]').textContent = new Set(galleryAssets.map((asset) => asset.category)).size;
+  document.querySelector('[data-visible-count]').textContent = visible.length;
+  document.querySelector('[data-total-count]').textContent = galleryView.length;
+
+  document.querySelectorAll('[data-gallery-filter]').forEach((button) => {
+    button.textContent = galleryLabels[currentLanguage][button.dataset.galleryFilter] || button.textContent;
+    button.setAttribute('aria-pressed', String(button.dataset.galleryFilter === galleryFilter));
+  });
+  const more = document.querySelector('[data-gallery-more]');
+  more.textContent = galleryLabels[currentLanguage].more;
+  more.hidden = visible.length >= galleryView.length;
+}
+
 const translationMap = window.HANDBOOK_I18N?.en || {};
 const textNodes = [];
 const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
@@ -142,6 +253,8 @@ function setLanguage(language) {
   document.querySelectorAll('[data-language]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.language === currentLanguage)));
   renderUseCase();
   renderPrompt();
+  renderGallery();
+  renderEngineStatus();
   window.localStorage.setItem('marketing-minthep-language', currentLanguage);
 }
 
@@ -186,6 +299,19 @@ document.querySelectorAll('[data-prompt-choice]').forEach((button) => {
   });
 });
 
+document.querySelectorAll('[data-gallery-filter]').forEach((button) => {
+  button.addEventListener('click', () => {
+    galleryFilter = button.dataset.galleryFilter;
+    galleryLimit = galleryPageSize;
+    renderGallery();
+  });
+});
+
+document.querySelector('[data-gallery-more]')?.addEventListener('click', () => {
+  galleryLimit += galleryPageSize;
+  renderGallery();
+});
+
 document.querySelectorAll('.copy-button').forEach((button) => {
   button.addEventListener('click', async () => {
     const target = button.dataset.copyTarget;
@@ -208,21 +334,59 @@ document.querySelectorAll('.copy-button').forEach((button) => {
 const dialog = document.querySelector('.image-dialog');
 const dialogImage = dialog?.querySelector('img');
 const dialogCaption = dialog?.querySelector('p');
-document.querySelectorAll('.image-open').forEach((button) => button.addEventListener('click', () => {
+const dialogIndexLabel = dialog?.querySelector('[data-dialog-index]');
+
+function renderDialogItem() {
+  const item = dialogSequence[dialogIndex];
+  if (!item || !dialogImage || !dialogCaption) return;
+  dialogImage.src = item.src;
+  dialogImage.alt = item.alt || '';
+  dialogCaption.textContent = item.caption || '';
+  if (dialogIndexLabel) dialogIndexLabel.textContent = `${dialogIndex + 1} / ${dialogSequence.length}`;
+}
+
+function moveDialog(delta) {
+  if (dialogSequence.length < 2) return;
+  dialogIndex = (dialogIndex + delta + dialogSequence.length) % dialogSequence.length;
+  renderDialogItem();
+}
+
+function openImage(button) {
   if (!dialog || !dialogImage || !dialogCaption) return;
-  dialogImage.src = button.dataset.image;
-  dialogImage.alt = button.querySelector('img')?.alt || '';
-  // The caption is an attribute, so the tree walker never sees it and the English edition used to
-  // open every lightbox with a Vietnamese line under it. data-caption-en mirrors data-alt-en.
-  const caption = currentLanguage === 'en' ? button.dataset.captionEn || button.dataset.caption : button.dataset.caption;
-  dialogCaption.textContent = caption || '';
+  const galleryId = button.dataset.galleryId;
+  if (galleryId) {
+    const sequenceAssets = galleryView.some((asset) => asset.id === galleryId) ? galleryView : galleryAssets;
+    dialogSequence = sequenceAssets.map((asset) => ({
+      id: asset.id,
+      src: asset.src,
+      alt: `${asset.title}, ${galleryMetaLine(asset)}`,
+      caption: `${asset.title} · ${galleryMetaLine(asset)}`,
+    }));
+    dialogIndex = Math.max(0, dialogSequence.findIndex((item) => item.id === galleryId));
+  } else {
+    const caption = currentLanguage === 'en' ? button.dataset.captionEn || button.dataset.caption : button.dataset.caption;
+    dialogSequence = [{ src: button.dataset.image, alt: button.querySelector('img')?.alt || '', caption: caption || '' }];
+    dialogIndex = 0;
+  }
+  renderDialogItem();
   dialog.showModal();
-}));
+}
+
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('.image-open');
+  if (button) openImage(button);
+});
+dialog?.querySelector('[data-dialog-prev]')?.addEventListener('click', () => moveDialog(-1));
+dialog?.querySelector('[data-dialog-next]')?.addEventListener('click', () => moveDialog(1));
 dialog?.querySelector('.dialog-close')?.addEventListener('click', () => dialog.close());
 dialog?.addEventListener('click', (event) => {
   const bounds = dialog.getBoundingClientRect();
   const outside = event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom;
   if (outside) dialog.close();
+});
+dialog?.addEventListener('keydown', (event) => {
+  if (event.key === 'ArrowLeft') moveDialog(-1);
+  if (event.key === 'ArrowRight') moveDialog(1);
 });
 
 const navLinks = [...document.querySelectorAll('.topbar nav a')];
@@ -241,6 +405,8 @@ let motionInitialized = false;
 function initMotion() {
   const gsap = window.gsap;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  engineMotion = reduceMotion || !gsap || window.matchMedia('(max-width: 900px)').matches ? 'static' : 'animated';
+  renderEngineStatus();
   document.documentElement.dataset.motion = reduceMotion ? 'reduced' : gsap ? 'gsap' : 'static';
   if (!gsap || reduceMotion || motionInitialized) return;
   motionInitialized = true;
@@ -264,7 +430,7 @@ function initMotion() {
     scrollTrigger: { start: 'top top', end: 'max', scrub: 0.15 },
   });
 
-  document.querySelectorAll('.section-intro, .output-heading, .starter-path-heading, .identity-copy, .prompt-copy, .install-heading, .technical-notes > h2').forEach((heading) => {
+  document.querySelectorAll('.section-intro, .output-heading, .transformation-heading, .identity-copy, .prompt-copy, .install-heading, .technical-notes > h2').forEach((heading) => {
     gsap.from(heading, {
       autoAlpha: 0,
       x: -32,
@@ -274,7 +440,7 @@ function initMotion() {
     });
   });
 
-  document.querySelectorAll('.proof-grid, .use-case-shell, .starter-path-grid, .output-wall, .sheet-wall, .identity-visual, .prompt-console, .install-rails, .reference-wall, .details-grid').forEach((surface) => {
+  document.querySelectorAll('.proof-grid, .use-case-shell, .archive-ledger, .sheet-wall, .identity-visual, .prompt-console, .install-rails, .reference-wall, .details-grid').forEach((surface) => {
     gsap.from(surface, {
       autoAlpha: 0,
       y: 38,
@@ -284,6 +450,66 @@ function initMotion() {
       scrollTrigger: { trigger: surface, start: 'top 88%', once: true },
     });
   });
+
+  gsap.from('.selected-work', {
+    clipPath: 'inset(0 0 100% 0)',
+    y: 24,
+    stagger: 0.07,
+    duration: 0.9,
+    ease: 'power3.out',
+    scrollTrigger: { trigger: '.selected-exhibition', start: 'top 82%', once: true },
+  });
+
+  gsap.from('.archive-item', {
+    autoAlpha: 0,
+    y: 24,
+    stagger: 0.025,
+    duration: 0.55,
+    ease: 'power2.out',
+    scrollTrigger: { trigger: '.archive-grid', start: 'top 88%', once: true },
+  });
+
+  const transformationScene = document.querySelector('.transformation-scene');
+  if (transformationScene && window.matchMedia('(min-width: 901px)').matches) {
+    const steps = gsap.utils.toArray('.transform-step');
+    const visuals = gsap.utils.toArray('.after-visual');
+    gsap.set(visuals, { clipPath: 'inset(100% 0 0 0)', y: 22 });
+    gsap.set('.after-proof > div, .artifact-stream code', { autoAlpha: 0, y: 12 });
+
+    const transformationTimeline = gsap.timeline({
+      defaults: { ease: 'none' },
+      scrollTrigger: {
+        trigger: transformationScene,
+        start: 'top top+=64',
+        end: 'bottom bottom',
+        scrub: 0.45,
+        invalidateOnRefresh: true,
+        onUpdate: (self) => {
+          engineProgress = self.progress;
+          renderEngineStatus();
+        },
+      },
+    });
+
+    transformationTimeline
+      .to('.engine-line i', { height: '100%', duration: 5 }, 0)
+      .to('.transform-before', { filter: 'saturate(0.72)', opacity: 0.72, duration: 4 }, 1)
+      .to('.input-ledger .is-unknown dd', { color: '#2952e3', duration: 0.5 }, 0.55);
+
+    steps.forEach((step, index) => {
+      transformationTimeline
+        .to(step, { opacity: 1, x: 0, duration: 0.35 }, index * 0.9)
+        .to(step.querySelector(':scope > span'), { backgroundColor: '#ff5a1f', duration: 0.25 }, index * 0.9);
+      if (index > 0) transformationTimeline.to(steps[index - 1], { opacity: 0.46, duration: 0.25 }, index * 0.9 + 0.5);
+    });
+
+    visuals.forEach((visual, index) => {
+      transformationTimeline.to(visual, { clipPath: 'inset(0% 0 0 0)', y: 0, duration: 0.55, ease: 'power2.out' }, 2.15 + index * 0.48);
+    });
+    transformationTimeline
+      .to('.after-proof > div', { autoAlpha: 1, y: 0, stagger: 0.12, duration: 0.5 }, 3.55)
+      .to('.artifact-stream code', { autoAlpha: 1, y: 0, stagger: 0.08, duration: 0.4 }, 4.05);
+  }
 }
 
 const requestedLanguage = new URLSearchParams(window.location.search).get('lang');

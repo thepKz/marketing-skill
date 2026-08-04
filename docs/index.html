@@ -8,11 +8,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600;700&display=swap&subset=vietnamese" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=20260803-6" />
+    <link rel="stylesheet" href="./styles.css?v=20260804-2" />
     <script src="./i18n.js?v=20260803-5" defer></script>
     <script src="./vendor/gsap/gsap.min.js?v=3.13.0" defer></script>
     <script src="./vendor/gsap/ScrollTrigger.min.js?v=3.13.0" defer></script>
-    <script src="./app.js?v=20260803-3" defer></script>
+    <script src="./gallery-manifest.js?v=20260804-1" defer></script>
+    <script src="./app.js?v=20260804-2" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Bỏ qua điều hướng</a>
@@ -176,26 +177,110 @@ Gọi 0938 xxx xxx, gửi mẫu 200g miễn phí.</pre>
         </div>
       </section>
 
-      <section class="starter-path" id="start" aria-labelledby="start-title">
-        <div class="starter-path-heading">
-          <p class="use-case-label">FOR NON-MARKETERS</p>
-          <h2 id="start-title">Bạn không cần biết marketing trước.</h2>
-          <p>Chỉ cần nói bạn bán gì, muốn đạt điều gì và gửi ảnh/ref nếu có. Skill sẽ tự hỏi phần còn thiếu, giải thích quyết định bằng ngôn ngữ dễ hiểu rồi tạo báo cáo Markdown để bạn dùng tiếp.</p>
+      <section class="transformation" id="start" aria-labelledby="start-title">
+        <header class="transformation-heading">
+          <p class="use-case-label">BEFORE / OPERATING SYSTEM / AFTER</p>
+          <h2 id="start-title">Một brief rời rạc đi vào. Một hệ thống có thể vận hành đi ra.</h2>
+          <p>Đây không phải nút “làm marketing”. Skill khóa sự thật trước, tìm phần còn thiếu, chọn đúng pipeline, tạo file thật rồi dùng gate để từ chối phần không đủ tốt.</p>
+        </header>
+
+        <div class="transformation-scene">
+          <div class="transformation-sticky">
+            <article class="transform-before" aria-label="Đầu vào trước khi dùng skill" data-aria-en="Input before using the skill">
+              <div class="transform-panel-head"><span>00 / BEFORE</span><b>Nguyên liệu chưa thành brief</b></div>
+              <blockquote>“Tôi có một serum và vài ảnh ref. Làm giúp tôi chiến dịch nhìn xịn, bán được hàng.”</blockquote>
+              <dl class="input-ledger">
+                <div><dt>Sản phẩm</dt><dd>1 ảnh packshot</dd></div>
+                <div><dt>Mục tiêu</dt><dd>“bán được hàng”</dd></div>
+                <div><dt>Tham chiếu</dt><dd>3 ảnh khác nguồn</dd></div>
+                <div class="is-unknown"><dt>Đang thiếu</dt><dd>audience · proof · offer · channel</dd></div>
+              </dl>
+              <div class="before-reference">
+                <img src="./assets/generated/minthep-serum-packshot.png" alt="Ảnh sản phẩm đầu vào giả lập" data-alt-en="Simulated input product image" loading="lazy" />
+                <span>REFERENCE A / PRODUCT TRUTH</span>
+              </div>
+            </article>
+
+            <div class="transform-engine" aria-label="Pipeline vận hành" data-aria-en="Operating pipeline">
+              <div class="engine-header"><span>MARKETING-MINTHEP / RUN</span><b data-engine-status>Đang khóa sự thật</b></div>
+              <ol class="engine-steps">
+                <li class="transform-step is-first"><span>01</span><div><b>Truth lock</b><small>confirmed · observed · inferred · unknown</small></div></li>
+                <li class="transform-step"><span>02</span><div><b>Evidence</b><small>market · audience · competitor · source</small></div></li>
+                <li class="transform-step"><span>03</span><div><b>Decision</b><small>positioning · offer · message ladder</small></div></li>
+                <li class="transform-step"><span>04</span><div><b>Production</b><small>copy · campaign · image · channel variants</small></div></li>
+                <li class="transform-step"><span>05</span><div><b>QA gate</b><small>truth · fidelity · craft · rights · metric</small></div></li>
+              </ol>
+              <div class="engine-line" aria-hidden="true"><i></i></div>
+            </div>
+
+            <article class="transform-after" aria-label="Đầu ra sau khi dùng skill" data-aria-en="Output after using the skill">
+              <div class="transform-panel-head"><span>05 / AFTER</span><b>Campaign system có lineage</b></div>
+              <div class="after-mosaic">
+                <button class="after-visual after-visual-main image-open" type="button" data-image="./assets/generated/minthep-beauty-campaign.png" data-caption="Beauty campaign · output từ cùng product truth">
+                  <img src="./assets/generated/minthep-beauty-campaign.png" alt="Beauty campaign hoàn chỉnh" data-alt-en="Finished beauty campaign" loading="lazy" />
+                  <span>CAMPAIGN / HERO</span>
+                </button>
+                <button class="after-visual image-open" type="button" data-image="./assets/generated/minthep-serum-key-visual.png" data-caption="Key visual · campaign extension">
+                  <img src="./assets/generated/minthep-serum-key-visual.png" alt="Key visual nghệ thuật cho serum" data-alt-en="Artistic serum key visual" loading="lazy" />
+                  <span>KEY VISUAL</span>
+                </button>
+                <button class="after-visual image-open" type="button" data-image="./assets/generated/minthep-serum-packshot.png" data-caption="Packshot · PDP and commerce">
+                  <img src="./assets/generated/minthep-serum-packshot.png" alt="Packshot serum cho trang sản phẩm" data-alt-en="Serum packshot for product pages" loading="lazy" />
+                  <span>COMMERCE</span>
+                </button>
+              </div>
+              <div class="after-proof">
+                <div><strong>1 → 8</strong><span>dữ kiện kiểm chứng</span></div>
+                <div><strong>FAIL → PASS</strong><span>copy gate</span></div>
+                <div><strong>6 → 0</strong><span>lỗi chặn</span></div>
+              </div>
+              <div class="artifact-stream"><code>01-intake.md</code><code>research-ledger.md</code><code>campaign-system.md</code><code>visual-qa.md</code></div>
+            </article>
+          </div>
         </div>
-        <div class="starter-path-grid">
-          <article><span>BẠN NÓI</span><h3>Brief bằng lời thường</h3><p>“Tôi bán bún bò, muốn menu hiện đại cho khách văn phòng.” Không cần viết brief chuẩn.</p><code>product-brief.md</code></article>
-          <article><span>BẠN CHỌN</span><h3>So sánh hướng đi</h3><p>Nhận 2–3 hướng chiến lược, moodboard, màu sắc, bố cục và trade-off trước khi làm sâu.</p><code>direction-options.md</code></article>
-          <article><span>BẠN NHẬN</span><h3>Hệ thống dùng được</h3><p>Copy, wireframe, shot list, prompt hình/video, lịch nội dung và checklist QA nằm trong một thư mục.</p><code>campaign-report.md</code></article>
-        </div>
-        <div class="starter-path-foot"><b>INPUT → RESEARCH → DECISION → PRODUCTION → QA</b><span>Mỗi vòng đều có file, lý do và bước tiếp theo.</span></div>
+
+        <footer class="transformation-foot">
+          <b>OBJECTIVE → AUDIENCE → MESSAGE → PROOF → ASSET → CHANNEL → RESULT</b>
+          <span>Mỗi kết quả đều truy ngược được về quyết định và nguồn tạo ra nó.</span>
+        </footer>
       </section>
 
       <section class="outputs" id="outputs" aria-labelledby="output-title">
         <header class="output-heading">
-          <div><h2 id="output-title">Không chỉ viết prompt. Tạo cả thế giới bán hàng.</h2></div>
-          <p>Bốn hướng ảnh, sáu hướng menu và hai post mẫu, cùng một skill. Ba menu nổi bật dùng ảnh món ăn AI theo art direction riêng, sau đó được dàn trang như menu thật để đọc nhanh và không bị AI slop. Bấm vào bất kỳ ô nào để xem bản đầy đủ.</p>
+          <div><h2 id="output-title">Một kho output, không phải vài ô mẫu.</h2></div>
+          <p>Tác phẩm được tách khỏi ảnh tham khảo, sắp theo loại đầu ra và mở dần theo nhu cầu. Xem tuyển chọn trước, sau đó đi vào toàn bộ archive mà không phải cuộn qua một bức tường card giống nhau.</p>
         </header>
-        <div class="output-wall">
+        <div class="archive-ledger" aria-label="Quy mô thư viện" data-aria-en="Library scale">
+          <div><strong data-published-count>—</strong><span>output có thể công khai</span></div>
+          <div><strong data-reference-count>—</strong><span>ảnh ref nội bộ có provenance</span></div>
+          <div><strong data-category-count>—</strong><span>họ đầu ra để khám phá</span></div>
+          <p>Ảnh ref không được trình bày như tác phẩm do hệ thống tạo. Chúng chỉ xuất hiện dưới dạng số liệu và nguồn vì quyền sử dụng vẫn thuộc chủ sở hữu.</p>
+        </div>
+
+        <div class="selected-exhibition" data-selected-gallery aria-label="Tác phẩm tuyển chọn" data-aria-en="Selected work"></div>
+
+        <div class="archive-bar">
+          <div class="archive-filters" role="toolbar" aria-label="Lọc kho hình" data-aria-en="Filter visual archive">
+            <button type="button" data-gallery-filter="all" aria-pressed="true">Tất cả</button>
+            <button type="button" data-gallery-filter="campaign" aria-pressed="false">Campaign</button>
+            <button type="button" data-gallery-filter="product" aria-pressed="false">Product</button>
+            <button type="button" data-gallery-filter="photography" aria-pressed="false">Photography</button>
+            <button type="button" data-gallery-filter="artwork" aria-pressed="false">Artwork</button>
+            <button type="button" data-gallery-filter="social" aria-pressed="false">Social</button>
+            <button type="button" data-gallery-filter="systems" aria-pressed="false">Systems</button>
+          </div>
+          <p><b data-visible-count>0</b> / <span data-total-count>0</span> tác phẩm đang hiển thị</p>
+        </div>
+
+        <div class="archive-grid" data-archive-grid aria-live="polite"></div>
+        <button class="archive-more" type="button" data-gallery-more>Xem thêm 24 tác phẩm</button>
+
+        <div class="reference-policy">
+          <b>REFERENCE ARCHIVE / INTERNAL</b>
+          <p>Kho Instagram dùng để phân tích style được giữ nội bộ cùng URL nguồn, kích thước và SHA-256. Website không xuất bản lại ảnh khi chưa có quyền sử dụng riêng.</p>
+        </div>
+
+        <div class="output-wall output-wall-legacy" hidden aria-hidden="true">
           <button class="output-item output-product image-open" type="button" data-image="./assets/generated/minthep-serum-packshot.png" data-caption="Product packshot · PDP · catalog · PR kit">
             <img src="./assets/generated/minthep-serum-packshot.png" alt="Packshot concept serum trên acrylic màu hổ phách" data-alt-en="Serum packshot concept on amber acrylic" loading="lazy" />
             <span><b>Product packshot</b><small>PDP · catalog · PR kit</small></span>
@@ -211,6 +296,14 @@ Gọi 0938 xxx xxx, gửi mẫu 200g miễn phí.</pre>
           <button class="output-item output-fashion image-open" type="button" data-image="./assets/generated/minthep-fashion-look.png" data-caption="Fashion look · catalog · editorial">
             <img src="./assets/generated/minthep-fashion-look.png" alt="Fashion look full-body màu ivory" data-alt-en="Full-body ivory fashion look" loading="lazy" />
             <span><b>Fashion look</b><small>outfit · catalog · editorial</small></span>
+          </button>
+          <button class="output-item output-menu image-open" type="button" data-image="./assets/generated/bun-bo-brand-led-mam-goi-mon-v1.png" data-caption="Menu · Mâm Gọi Món · hệ nhận diện và bố cục bốn món" data-caption-en="Menu · Mam Goi Mon · brand system and four-dish composition">
+            <img src="./assets/generated/bun-bo-brand-led-mam-goi-mon-v1.png" alt="Menu Bếp Hương Giang với thanh gọi món cobalt, bốn nhóm món và một mâm bún bò, bánh Huế, trà đào" data-alt-en="Bep Huong Giang menu with a cobalt ordering rail, four categories, bun bo, Hue cakes, and peach tea" loading="lazy" />
+            <span><b>Menu · Four-dish system</b><small>hero · supporting dishes · drink accent</small></span>
+          </button>
+          <button class="output-item output-menu image-open" type="button" data-image="./assets/generated/bun-bo-full-ai-blueprint-ref-v2.png" data-caption="Menu · Blueprint reference v2 · flat full-AI art" data-caption-en="Menu · Blueprint reference v2 · flat full-AI art">
+            <img src="./assets/generated/bun-bo-full-ai-blueprint-ref-v2.png" alt="Ảnh menu Bún Bò Huế AI dùng blueprint làm reference, title nhỏ và hoa văn men lam ở vùng biên" data-alt-en="Reference-conditioned full-AI bun bo menu with compact titles and edge-contained cobalt ceramic motifs" loading="lazy" />
+            <span><b>Menu · Broth Map artwork</b><small>flat artwork · motif có nguồn · 20 món</small></span>
           </button>
           <button class="output-item output-menu image-open" type="button" data-image="./assets/generated/bun-bo-ai-menu-night-opera.png" data-caption="Menu · Composite hero · món tách nền, bóng thật, họa tiết cùng nguồn" data-caption-en="Menu · Composite hero · isolated dish, rebuilt shadow, source-derived motif">
             <img src="./assets/generated/bun-bo-ai-menu-night-opera.png" alt="Menu bún bò composite với món tách nền, bóng tiếp xúc và họa tiết lấy từ bát gốm" data-alt-en="Composite bun bo menu with isolated dish, contact shadow, and a motif derived from the ceramic bowl" loading="lazy" />
@@ -265,7 +358,7 @@ Gọi 0938 xxx xxx, gửi mẫu 200g miễn phí.</pre>
             <span><b>Post mẫu · Story 9:16</b><small>safe zone · dựng lại · không cắt</small></span>
           </button>
         </div>
-        <p class="concept-disclaimer">Các hình trên là concept hư cấu để minh họa art direction. Hai post mẫu dựng bằng <code>render_social_post.py</code>. Ba layout study dựng bằng <code>render_mockup.py</code>. Ba menu nổi bật dùng ảnh món ăn AI nhưng được dàn trang riêng theo ba bối cảnh phục vụ; đã kiểm tra title, dấu tiếng Việt, giá và độ đọc. Quán, món và giá là ví dụ hư cấu; đây chưa phải file in cho một khách hàng thật.</p>
+        <p class="concept-disclaimer">Archive được dựng từ <code>gallery-manifest.js</code>, không nhập tay từng card. Mỗi ảnh giữ kích thước gốc, loại output và trạng thái output/reference/iteration; khi thêm asset mới, chạy <code>node docs/build-gallery-manifest.mjs</code> để website tự nhận.</p>
       </section>
 
       <section class="sheets" id="sheets" aria-labelledby="sheets-title">
@@ -406,7 +499,14 @@ provider-ready prompts, QA gates, and the next decision.</code></pre>
     <dialog class="image-dialog" aria-label="Xem ảnh mẫu" data-aria-en="View sample image">
       <button class="dialog-close" type="button" aria-label="Đóng ảnh" data-aria-en="Close image">×</button>
       <img src="./assets/generated/minthep-beauty-campaign.png" alt="" />
-      <p></p>
+      <div class="dialog-footer">
+        <p></p>
+        <div class="dialog-navigation">
+          <button type="button" data-dialog-prev aria-label="Ảnh trước" data-aria-en="Previous image">←</button>
+          <span data-dialog-index>1 / 1</span>
+          <button type="button" data-dialog-next aria-label="Ảnh tiếp theo" data-aria-en="Next image">→</button>
+        </div>
+      </div>
     </dialog>
     <div class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
   </body>

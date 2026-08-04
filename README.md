@@ -411,7 +411,7 @@ The second-order check catches the escape hatch: having rejected the obvious cat
 
 ```
 marketing-minthep/
-  SKILL.md                  entry point and router, 206 lines
+  SKILL.md                  entry point and router, 207 lines
   references/               66 topic files, each under 150 lines
     dossiers/               15 deep-craft dossiers + index
   data/                     35 lookup tables: image recipes, palettes, layout
@@ -424,7 +424,7 @@ marketing-minthep/
                             sources, customer-evidence sources, lifecycle
                             duties, lead states, channel specs, command
                             artifacts, VN marketer roles
-  scripts/                  48 tools + test suite
+  scripts/                  49 tools + test suite
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json and deliverable skeletons
@@ -442,7 +442,7 @@ python marketing-minthep/scripts/evaluate_workbench.py
 python marketing-minthep/scripts/plan_marketing_system.py --input marketing-minthep/assets/examples/all-in-one-product-request.json
 ```
 
-626 tests, including ones that recompute every contrast ratio in `data/palettes.csv`, fail if a copy example contains a printable number, fail if a capability flag cites a source row that does not exist, fail if any placement check clears an asset against a figure the vendor page never published, and fail if a deliverable names a script that is not in the repository. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
+635 tests, including ones that recompute every contrast ratio in `data/palettes.csv`, fail if a copy example contains a printable number, fail if a capability flag cites a source row that does not exist, fail if any placement check clears an asset against a figure the vendor page never published, and fail if a deliverable names a script that is not in the repository. `evaluate_workbench.py` replays the routing cases in `assets/evals/`. `.github/workflows/deploy-pages.yml` runs structure checks, the planner, the manifest builder, the unit tests and Python compilation, then deploys `docs/` to GitHub Pages.
 
 ## What it will not do
 

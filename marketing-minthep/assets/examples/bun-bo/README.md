@@ -177,7 +177,8 @@ approved source photo when the real bowl is available.
 
 ## Anti-AI menu directions
 
-The three `bun-bo-ai-menu-*.png` files deliberately separate photography from graphic design:
+The menu proofs deliberately show both production routes: deterministic composition and a single-image
+full-AI proof with native text.
 
 1. AI produces a restrained documentary food photograph with ordinary restaurant context, imperfect
    crop, believable light, and no rendered copy or decorative prompt collage.
@@ -188,6 +189,31 @@ The three `bun-bo-ai-menu-*.png` files deliberately separate photography from gr
    deterministic design tools using the bundled fonts.
 4. Each candidate is inspected at full size and rejected for generic luxury cues, excessive ornament,
    oversized titles, fake writing, altered prices, overflow, or collisions.
+5. `bun-bo-full-ai-blueprint-ref-v2.png` is the selected explicit `full-ai-artwork` route: a flat direct-print artwork
+   whose cobalt contour motif is derived from noodle loops and Hue ceramic wave bands. It owns the
+   lettering, layout, food, palette, and pattern in one image; it is accepted only after every glyph,
+   price, claim, crop, and direct-print gate passes. The selected pass is reference-conditioned from
+   the deterministic blueprint workflow, keeps the identity compact, uses one Vietnamese type
+   system, and confines the motif to edge and food zones.
+6. `bun-bo-multi-food-reference-board.png` is the multi-food control reference. It combines one dominant
+   bowl, `bun-bo-food-ref-banh-bot-loc.png`, `bun-bo-food-ref-banh-rang-bua.png`, and
+   `bun-bo-food-ref-tra-dao.png` into a directed series with shared light, cream ground, cobalt ceramics,
+   natural contact shadows, and dominant/support/accent hierarchy. It is a reference board, not a claim
+   that a provider actually consumed the image; promote a generated result only after the response contains
+   a real image and the dish-identity, copy, price, ornament, and direct-print gates pass.
 
-This route follows the user's rejection of visibly generative menu boards. The AI supplies source
-photography; the designed system supplies judgement, repeatability, and reliable Vietnamese type.
+7. `bun-bo-ai-order-ledger-menu.png` is the one that closed the loop: a single generated bitmap of the
+   `MÂM GỌI MÓN` order-ledger system, reference-conditioned on the deterministic control, carrying all
+   four categories, all twenty rows and all twenty prices from a locked source with every diacritic
+   intact. It took three passes. Pass one duplicated the category numbers, put a film camera on the
+   table and let the food cover the last two prices; pass two lost `Bánh Bột Lọc 35.000` and
+   `Bánh Răng Bừa 40.000` the same way and spelled `Chả cua` with the wrong accent.
+
+   The prompt shape mattered more than the wording. Asking the model to preserve the words that are
+   in the reference image made it answer in prose and return no bitmap at all; pasting the copy in
+   as literal strings to typeset made it draw. Deleting the fidelity instruction without replacing it
+   is worse than either: the model invented a shop name and its own prices. That is the whole reason
+   step 6 of the image-prompt contract diffs the render against the locked inventory afterwards.
+
+The composite route remains available for exact-copy production when the user accepts a hybrid workflow. The full-AI
+route is now a first-class option when the user explicitly chooses a single generated artwork.

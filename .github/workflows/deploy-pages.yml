@@ -112,8 +112,20 @@ jobs:
           test -f docs/assets/generated/bun-bo-ai-menu-night-opera.png
           test -f docs/assets/generated/bun-bo-ai-menu-street-riso.png
           test -f docs/assets/generated/bun-bo-ai-menu-botanical-atlas.png
+          test -f docs/assets/generated/bun-bo-ai-menu-full-proof.png
+          test -f docs/assets/generated/bun-bo-multi-food-reference-board.png
+          test -f docs/assets/generated/bun-bo-brand-led-mam-goi-mon-v1.png
+          test -f docs/assets/generated/bun-bo-ai-order-ledger-menu.png
+          test -f docs/assets/generated/bun-bo-food-ref-banh-bot-loc.png
+          test -f docs/assets/generated/bun-bo-food-ref-banh-rang-bua.png
+          test -f docs/assets/generated/bun-bo-food-ref-tra-dao.png
+          test -f docs/assets/generated/bun-bo-full-ai-broth-map.png
+          test -f docs/assets/generated/bun-bo-full-ai-broth-map-type-v4.png
+          test -f docs/assets/generated/bun-bo-full-ai-blueprint-ref-v2.png
           test -f docs/assets/generated/bun-bo-post-feed.svg
           test -f docs/assets/generated/bun-bo-post-story.svg
+          test -f docs/gallery-manifest.js
+          test -f docs/build-gallery-manifest.mjs
           test ! -e marketing-content-art-director
           test ! -e marketing-creative-director
           test ! -e marketing-one-page-studio
@@ -191,7 +203,11 @@ jobs:
       - name: Validate handbook JavaScript
         run: |
           node --check docs/i18n.js
+          node --check docs/gallery-manifest.js
+          node --check docs/build-gallery-manifest.mjs
           node --check docs/app.js
+          node docs/build-gallery-manifest.mjs
+          git diff --exit-code -- docs/gallery-manifest.js
 
   deploy:
     if: github.event_name != 'pull_request'

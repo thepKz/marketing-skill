@@ -94,6 +94,7 @@ Load only what the decision needs.
 | Putting the period's figures on a page: signs, percentage points, small bases, empty cells | `report-notation.md` plus `scripts/build_variance_report.py` |
 | Whether a number can be measured at all: event definitions, UTM tagging, why the platforms and analytics disagree | `measurement-plan.md` plus `data/tracking-events.csv`, `data/attribution-windows.csv` and `scripts/check_tracking_plan.py` |
 | Naming a colour, pairing two, or answering a colour-psychology claim | `colour-combination.md` plus `data/colour-gates.csv` |
+| A brand colour going on the same surface as a photograph — menu, post, packshot, poster | `scripts/sample_reference.py --image REF --check accent=HEX` first. It measures the photograph's own chroma per hue arc, so the accent is taken from the scene instead of named after it. Picking the hue by eye and leaving the chroma at swatch strength is what makes a layout look edited in a template |
 | One person holding every marketing role, or a plan for a shop with no team | `vietnam-operating-reality.md` |
 | How many frames one existing photograph can produce, and what is legal as a marketplace main image | `product-composition-set.md` |
 | Any Vietnamese copy: who it addresses, and whether it holds that choice | `address-register.md` plus `data/address-registers.csv` |

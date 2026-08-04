@@ -54,6 +54,7 @@ import plan_operating_load
 import plan_palette
 import render_refsheet
 import rewrite_human
+import sample_reference
 import score_kpi
 import size_market
 import run_status
@@ -1499,7 +1500,7 @@ class DataTableTests(unittest.TestCase):
         "reference-observations.csv": (10, 24),
         "person-parameters.csv": (35, 13),
         "command-artifacts.csv": (28, 11),
-        "colour-gates.csv": (9, 9),
+        "colour-gates.csv": (12, 9),
         "vn-marketer-roles.csv": (13, 11),
         "product-compositions.csv": (18, 18),
         "address-registers.csv": (25, 15),
@@ -4412,7 +4413,7 @@ class CommandSurfaceTests(unittest.TestCase):
 class ColourGateTests(unittest.TestCase):
     """The colour unit's arithmetic, and the discipline that keeps its verdicts worth reading.
 
-    Five of the nine gates in `data/colour-gates.csv` are house rules: the shape of the rule is
+    Eight of the twelve gates in `data/colour-gates.csv` are house rules: the shape of the rule is
     defensible and the number is ours. That is survivable only while two things stay true — the
     table says which gates those are, and the gates that do fail mean something. Every test below
     defends one of the two.
@@ -4436,8 +4437,14 @@ class ColourGateTests(unittest.TestCase):
     RAMP_SEEDS = ("#2A4BD7", "#0F8A5F", "#E8B004", "#00A3AD", "#C1121F",
                   "#6E1420", "#3AB795", "#8A6B1F", "#FF5A5F", "#161616")
 
-    # Which constant each row of the table is quoting. A row that stops quoting its constant has
-    # started documenting a threshold the code no longer holds.
+    # Which constant each row of the table is quoting, and which module holds it. A row that stops
+    # quoting its constant has started documenting a threshold the code no longer holds. The last
+    # three gates judge a brand colour against a measured photograph rather than against another
+    # swatch, so they live in sample_reference.py; the table is one table either way, because a
+    # reader asking "what does this repository check about colour" should not have to know which
+    # script asks which question.
+    MODULES = {sample_reference: ("subject-holds-chroma-peak", "accent-chroma-matches-reference",
+                                  "accent-hue-is-anchored-in-reference")}
     QUOTES = {
         "body-text-contrast": ("WCAG_BODY",),
         "large-text-contrast": ("WCAG_LARGE",),
@@ -4450,6 +4457,9 @@ class ColourGateTests(unittest.TestCase):
         "chroma-budget-by-count": ("LOUD_CHROMA", "CHROMA_BUDGET_LOUD_MAX"),
         "chroma-budget-by-surface-share": ("LOUD_CHROMA", "CHROMA_SHARE_MAX"),
         "ramp-step-evenness": ("RAMP_EVENNESS_TOLERANCE",),
+        "subject-holds-chroma-peak": ("PEAK_MARGIN_FAIL",),
+        "accent-chroma-matches-reference": ("CHROMA_INFLATION_REVIEW", "CHROMA_INFLATION_FAIL"),
+        "accent-hue-is-anchored-in-reference": ("MIN_ANCHOR_SHARE", "NEUTRAL_CHROMA"),
     }
 
     @classmethod
@@ -4575,13 +4585,34 @@ class ColourGateTests(unittest.TestCase):
                             f"measures {self.swing[bucket][statistic]:.2f}",
                     )
 
+    @staticmethod
+    def _module_for(gate: str):
+        for module, gates in ColourGateTests.MODULES.items():
+            if gate in gates:
+                return module
+        return plan_palette
+
+    @staticmethod
+    def _reference_gates() -> list[dict]:
+        """Run the three reference gates on a synthetic frame, so no image fixture is needed."""
+        blue, cream = (0x32, 0x58, 0xC5), (0xF5, 0xF1, 0xE8)
+        field = [blue if (x >= 5 and y >= 5) else cream for y in range(10) for x in range(10)]
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "field.png"
+            path.write_bytes(sample_reference.encode_png(10, 10, field, 4))
+            measured = sample_reference.measure(path, step=1)
+        return sample_reference.check_against_reference(measured, {"accent": "#2A4BD7"})
+
     def test_the_table_names_exactly_the_gates_the_code_has(self) -> None:
         tabled = {row["gate"] for row in DataTableTests.rows("colour-gates.csv")}
         emitted = {g["gate"] for g in
                    plan_palette.check_palette(plan_palette.load_palette_row("paper-cobalt"))
                    ["acceptance_gates"]}
         # The ramp gate is real but lives on `--ramp` rather than on a palette, so it is the one
-        # row with no counterpart in check_palette's output.
+        # row with no counterpart in check_palette's output. The three reference gates come from
+        # sample_reference.py, which judges a colour against a photograph rather than against
+        # another swatch, and they are in the same table because the reader's question is the same.
+        emitted |= {g["gate"] for g in self._reference_gates()}
         self.assertEqual(tabled, emitted | {"ramp-step-evenness"})
 
     def test_the_evidence_grade_is_the_same_in_the_table_and_in_the_code(self) -> None:
@@ -4593,7 +4624,7 @@ class ColourGateTests(unittest.TestCase):
         allowed = {"standard-requirement", "standard-requirement-with-house-threshold", "house-rule"}
         self.assertTrue(set(graded.values()) <= allowed, f"unknown grade in {set(graded.values())}")
         payload = plan_palette.check_palette(plan_palette.load_palette_row("paper-cobalt"))
-        for gate in payload["acceptance_gates"]:
+        for gate in payload["acceptance_gates"] + self._reference_gates():
             with self.subTest(gate=gate["gate"]):
                 self.assertEqual(gate["evidence_grade"], graded[gate["gate"]])
 
@@ -4605,11 +4636,14 @@ class ColourGateTests(unittest.TestCase):
         for gate, constants in self.QUOTES.items():
             text = " ".join(rows[gate].values())
             for constant in constants:
-                value = getattr(plan_palette, constant)
-                # Percent is how the table spells the two fractions a reader thinks of as percents.
+                value = getattr(self._module_for(gate), constant)
+                # Percent is how the table spells the fractions a reader thinks of as percents.
+                # Two spellings, because 0.005 is "0.5 percent" and rounding it to an integer
+                # would have the test looking for "0 percent".
                 spellings = {str(value), f"{value:g}"}
                 if isinstance(value, float) and value < 1:
                     spellings.add(f"{int(round(value * 100))} percent")
+                    spellings.add(f"{value * 100:g} percent")
                 with self.subTest(gate=gate, constant=constant):
                     self.assertTrue(
                         any(spelling in text for spelling in spellings),
@@ -4830,6 +4864,141 @@ class ColourGateTests(unittest.TestCase):
                        "colour-brand-personality", "colour-product-congruity"):
             self.assertIn(wanted, ids, f"{wanted} left the benchmark table")
             self.assertIn(wanted, prose, f"{wanted} is in the table but not cited in the reference")
+
+
+class SampleReferenceTests(unittest.TestCase):
+    """This tool is the only place in the skill that reads a photograph, and it reads it with zlib
+    and struct because a shipped script may not import an imaging library. A hand-written decoder is
+    exactly the kind of code that is silently wrong on the filter nobody tested, so the round trip is
+    checked on all five, and the refusals are pinned by their message rather than by their type."""
+
+    FOOD = SKILL_ROOT / "assets" / "examples" / "bun-bo"
+
+    @staticmethod
+    def _field(width: int, height: int) -> list[tuple[int, int, int]]:
+        """A frame with structure in both axes, so a filter that mixes up left and above shows up."""
+        return [((x * 7 + y * 3) % 256, (x * 11) % 256, (y * 13 + 40) % 256)
+                for y in range(height) for x in range(width)]
+
+    def test_the_decoder_survives_all_five_png_filter_types(self) -> None:
+        pixels = self._field(9, 7)
+        for filter_type in range(5):
+            with self.subTest(filter_type=filter_type):
+                with tempfile.TemporaryDirectory() as folder:
+                    path = Path(folder) / f"f{filter_type}.png"
+                    path.write_bytes(sample_reference.encode_png(9, 7, pixels, filter_type))
+                    width, height, rows, bpp = sample_reference.decode_png(path)
+                self.assertEqual((width, height, bpp), (9, 7, 3))
+                decoded = [tuple(rows[y][x * 3 : x * 3 + 3]) for y in range(7) for x in range(9)]
+                self.assertEqual(decoded, pixels, f"filter type {filter_type} does not round-trip")
+
+    def test_a_jpeg_is_refused_with_the_reason_named(self) -> None:
+        """The refusal is the deliverable. A traceback from zlib would send the caller looking for a
+        corrupt file; naming the container and the fix sends them to `--image ref.png`."""
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "photo.jpg"
+            path.write_bytes(b"\xff\xd8\xff\xe0" + b"\x00" * 32)
+            with self.assertRaises(ValueError) as caught:
+                sample_reference.decode_png(path)
+        message = str(caught.exception)
+        self.assertIn("is a JPEG", message)
+        self.assertIn("PNG only", message)
+        self.assertIn("no imaging library", message)
+
+    def test_the_shipped_tool_takes_no_imaging_dependency(self) -> None:
+        source = (SKILL_ROOT / "scripts" / "sample_reference.py").read_text(encoding="utf-8")
+        for banned in ("from PIL", "import PIL", "import numpy", "import cv2"):
+            self.assertNotIn(banned, source, f"{banned} would make this tool unshippable")
+
+    def test_the_self_check_passes(self) -> None:
+        self.assertEqual(sample_reference.self_check().strip(), "self-check passed")
+
+    def test_the_accent_is_measured_against_the_arc_it_sits_in(self) -> None:
+        """A synthetic frame whose only colour is a muted terracotta. An accent of the same hue at
+        twice the chroma has to fail, and a cobalt that the frame never shows has to come back for
+        review rather than as a failure, because one frame is not a brand."""
+        warm, cream = (0xB0, 0x6A, 0x40), (0xF5, 0xF1, 0xE8)
+        field = [warm if x >= 4 else cream for y in range(10) for x in range(10)]
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "warm.png"
+            path.write_bytes(sample_reference.encode_png(10, 10, field, 0))
+            measured = sample_reference.measure(path, step=1)
+        verdicts = {gate["gate"]: gate for gate in sample_reference.check_against_reference(
+            measured, {"support": "#FF4B00", "accent": "#2A4BD7"})}
+        self.assertEqual(verdicts["accent-hue-is-anchored-in-reference"]["status"], "review")
+        self.assertEqual(verdicts["subject-holds-chroma-peak"]["status"], "failed")
+        for gate in verdicts.values():
+            self.assertEqual(gate["evidence_grade"], "house-rule")
+
+    def test_the_peak_margin_absorbs_what_the_sampling_stride_alone_moves(self) -> None:
+        """`PEAK_MARGIN_FAIL` is a house number, and the honest defence of it is that it was read off
+        a measurement rather than chosen. The measurement: a maximum is the least stable statistic in
+        a sampled frame, so a margin smaller than the stride's own effect says nothing.
+
+        The full sweep behind the CSV is six strides across three photographs. This re-runs the two
+        extremes of the worst of the three, because they are where its spread is set and stride 1
+        alone costs several seconds. The p98 comparison is the point: it is the reason the second
+        gate uses a percentile and this one is allowed a margin."""
+        path = self.FOOD / "bun-bo-food-ref-banh-rang-bua.png"
+        peaks, percentiles = [], []
+        for step in (2, 12):
+            measured = sample_reference.measure(path, step=step)
+            peaks.append(measured["chroma"]["max"])
+            percentiles.append(measured["chroma"]["p98"])
+        peak_spread = max(peaks) / min(peaks)
+        p98_spread = max(percentiles) / min(percentiles)
+        self.assertGreater(peak_spread, 1.09, "the peak used to move by 9 percent on stride alone")
+        self.assertLess(p98_spread, 1.01, "the percentile used to be the stable statistic")
+        self.assertGreaterEqual(
+            sample_reference.PEAK_MARGIN_FAIL, peak_spread,
+            "the fail margin is now smaller than what the sampling stride moves on its own, so the "
+            "gate would fail a palette on a sampling artefact")
+
+    def test_the_brand_cobalt_is_louder_than_every_pixel_of_the_food(self) -> None:
+        """The finding the reference section teaches. If a future edit to the decoder or to OKLCh
+        quietly changes the arithmetic, this is the number that should break, because the whole
+        diagnosis rests on it: the cobalt is more saturated than any pixel of any food photograph."""
+        cobalt = sample_reference._oklch((0x2A, 0x4B, 0xD7))[1]
+        for name in ("banh-bot-loc", "banh-rang-bua", "tra-dao"):
+            path = self.FOOD / f"bun-bo-food-ref-{name}.png"
+            with self.subTest(reference=name):
+                measured = sample_reference.measure(path, step=8)
+                self.assertLess(measured["chroma"]["max"], cobalt,
+                                f"{name} now out-shouts the brand cobalt; re-read the reference")
+
+    def test_the_docstring_table_is_reproducible_from_the_shipped_references(self) -> None:
+        """The module docstring prints a measured table and tells the reader to reproduce it with
+        `--image PATH`. A table in a docstring is the number people quote without running anything,
+        so the two rows whose photographs ship with the skill are recomputed here at the stride the
+        docstring names. The third row is a run artefact and is not asserted."""
+        docstring = sample_reference.__doc__ or ""
+        expected = {
+            "banh-rang-bua": ("4.44%", "0.088", "0.148", "0.164"),
+            "tra-dao": ("1.35%", "0.083", "0.116", "0.132"),
+        }
+        for name, printed in expected.items():
+            with self.subTest(reference=name):
+                self.assertIn(f"{name}.png", docstring)
+                measured = sample_reference.measure(
+                    self.FOOD / f"bun-bo-food-ref-{name}.png", step=4)
+                arc = next(a for a in measured["hue_arcs"] if a["arc"] == "240-270")
+                actual = (f"{arc['share_of_frame'] * 100:.2f}%", f"{arc['chroma_mean']:.3f}",
+                          f"{arc['chroma_p98']:.3f}", f"{arc['chroma_max']:.3f}")
+                self.assertEqual(actual, printed, f"the docstring table has drifted for {name}")
+                for cell in printed:
+                    self.assertIn(cell, docstring)
+
+    def test_every_measurement_states_what_it_does_not_establish(self) -> None:
+        """House style: a number that ships without its limits gets quoted without them."""
+        pixels = self._field(6, 6)
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "f.png"
+            path.write_bytes(sample_reference.encode_png(6, 6, pixels, 0))
+            measured = sample_reference.measure(path, step=1)
+        self.assertTrue(measured["what_this_does_not_establish"].strip())
+        for gate in sample_reference.check_against_reference(measured, {"accent": "#2A4BD7"}):
+            self.assertIn("gate", gate)
+            self.assertIn(gate["status"], {"passed", "failed", "review", "skipped"})
 
 
 class ReferenceSetCalibrationTests(unittest.TestCase):

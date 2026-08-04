@@ -6,8 +6,9 @@
 - Running it
 - The four quantities
 - Why the space matters
-- The nine gates and the four verdicts
+- The twelve gates and the four verdicts
 - Why `review` exists
+- Measuring the photograph before choosing the palette
 - Which numbers are ours
 - A near-neutral has no hue to share
 - Ramps: arc length is not chord distance
@@ -47,6 +48,15 @@ plan_palette.py --check bg=#161616 ink=#F2F2F0 accent=#C8FF3D --carries-meaning 
 plan_palette.py --check bg=#EDEEF0 ink=#101215 accent=#0057FF --share bg=0.7 ink=0.1 accent=0.2
 plan_palette.py --scheme triadic --seed '#0057FF' --against '#EDEEF0'
 plan_palette.py --ramp 9 --seed '#2A4BD7'
+```
+
+When the palette will sit on the same surface as a photograph, measure the photograph too:
+
+```
+sample_reference.py --image ref/bowl.png
+sample_reference.py --image ref/bowl.png --check accent=#2A4BD7 support=#D9541E
+sample_reference.py --image ref/bowl.png --artwork out/menu.png --check accent=#2A4BD7
+sample_reference.py --self-check
 ```
 
 Exit 0 is a clean palette. Exit 1 is a usage error. Exit 2 is a failed gate: something in the
@@ -94,12 +104,12 @@ and hue. When a rotation leaves the sRGB gamut, chroma is reduced until the colo
 channels being clipped, and the output says `chroma_reduced_to_fit_srgb` so nobody has to guess why
 the printed hex is duller than the one requested.
 
-## The nine gates and the four verdicts
+## The twelve gates and the four verdicts
 
 `data/colour-gates.csv` is the table, with nine columns per gate: what it applies to, its threshold,
 its formula, the space it is computed in, the verdict if it fails, its evidence grade, its source,
 and what it does not establish. Read it there rather than restating the thresholds from memory. These
-are the nine names the output uses, so a line in a JSON payload can be traced back to a rule:
+are the twelve names the output uses, so a line in a JSON payload can be traced back to a rule:
 
 | Gate | Asks |
 |---|---|
@@ -112,9 +122,13 @@ are the nine names the output uses, so a line in a JSON payload can be traced ba
 | chroma-budget-by-count | Does more than one colour shout |
 | chroma-budget-by-surface-share | Has the shouting colour become the background |
 | ramp-step-evenness | Are the steps of a generated ramp perceptually equal |
+| subject-holds-chroma-peak | Is the brand louder than the thing being sold |
+| accent-chroma-matches-reference | Was the accent measured from the photograph or only named after it |
+| accent-hue-is-anchored-in-reference | Is this colour in the scene at all |
 
-Eight of the nine run on a palette; `ramp-step-evenness` runs on a generated ramp. Every gate returns
-one of four verdicts, and the difference between them is the whole point.
+Eight run on a palette; `ramp-step-evenness` runs on a generated ramp; the last three run on a
+palette *and* a photograph, and are the subject of the next section. Every gate returns one of four
+verdicts, and the difference between them is the whole point.
 
 | Verdict | Means |
 |---|---|
@@ -142,6 +156,58 @@ Four tests in `test_tools.py` exist because of those four bugs, which is the mor
 gate that fires on a correct palette is worse than no gate, because it teaches the user to skip the
 output.
 
+## Measuring the photograph before choosing the palette
+
+The nine palette gates all ask whether the colours work against each other. None of them can see the
+photograph the palette will be printed next to, and that is where the commonest failure in the trade
+lives. It has a mechanism, and the mechanism is worth naming precisely, because most people who commit
+it think they did the right thing.
+
+The right thing looks like this: open the reference photograph, see that the ceramics are blue, and
+make the brand colour blue. The hue is honest — it really is in the scene. What gets discarded are the
+other two quantities that made the blue harmonious in the photograph: **how saturated it was** and
+**how much of the frame it held**. A hue name carries neither. So the accent comes off a swatch list
+at full chroma, gets applied to a navigation rail at ten times the area, and the result is a palette
+that passes every contrast and budget gate while looking, to anyone who glances at it, like a
+rectangle drawn on top of a photograph. This is mechanically what happens when a menu is opened in a
+template editor and the blue is picked by eye.
+
+`sample_reference.py` inverts the order of work: decode the photograph, measure its chroma
+distribution per 30-degree hue arc, and judge the proposed accent against that measurement. It is
+stdlib-only — zlib and struct decode the PNG — so this needs no imaging library, no key and no
+network, like everything else here.
+
+The three gates it adds are `subject-holds-chroma-peak`, `accent-chroma-matches-reference` and
+`accent-hue-is-anchored-in-reference`. Read `data/colour-gates.csv` for the thresholds. What they
+caught on this repository's own bún bò menu is the clearest teaching case available:
+
+| Measured | Value |
+|---|---|
+| Blue arc 240–270 in the three food references | 0.43, 1.35 and 4.44 percent of frame, mean chroma 0.056 to 0.088 |
+| Highest chroma of any pixel in any of the three | 0.195 |
+| Brand cobalt `#2A4BD7` | C 0.2165 — above the peak of every one of them |
+| Blue arc, reference board → finished menu | 0.97 → 9.48 percent of frame, a factor of 9.8, mean chroma 0.091 → 0.130 |
+| Most saturated pixel, reference board | `#DA4D06`, h 40.0, C 0.1882 — on the food |
+| Most saturated pixel, finished menu | `#1651D9`, h 263.1, C 0.2162 — on the navigation rail |
+
+The blue arc grew by a factor of nearly ten and the chromatic peak moved off the thing being sold onto
+the furniture. That is `không hài hòa` stated as arithmetic rather than as taste, and it is the answer
+to the question of why a palette that cleared nine gates still looked wrong. Run against the reference
+board, the cobalt fails `subject-holds-chroma-peak` at ratio 1.15 and comes back for review on
+`accent-chroma-matches-reference` at factor 1.55, and the script exits 2.
+
+The annatto is the counter-example worth keeping. `#D9541E` at C 0.1784, h 39.8 passes all three gates
+against the reference board and clears the chroma comparison against both bánh bột lọc and trà đào,
+whose warm 30–60 arc genuinely holds 7.3 percent of the frame at p98 chroma 0.158 to 0.175. Against
+bánh răng bừa, where that arc holds 0.35 percent, the same colour comes back for review instead — the
+gate reports that this photograph cannot judge it rather than inventing a verdict. The procedure that
+condemns one accent clears the other, which is the only reason to trust either result.
+
+Two limits. A reference shot flat or under-saturated lowers the bar it sets, so a pass against a weak
+photograph means nothing — look at the photograph before quoting the gate. And one frame is not a
+brand: a colour this photograph never shows may still be carried by a room, a package or a tradition,
+which is why the anchoring gate reviews and never fails.
+
 ## Which numbers are ours
 
 Three grades, and the table states one per gate:
@@ -150,11 +216,12 @@ Three grades, and the table states one per gate:
 - `standard-requirement-with-house-threshold` — the colour-vision gate. SC 1.4.1 is the requirement
   and Machado, Oliveira and Fernandes (2009, IEEE TVCG) is the simulation; the 0.09 OKLab collapse
   distance is ours.
-- `house-rule` — the other five. Lightness separation, edge vibration, both chroma budgets, ramp
-  evenness. No published threshold exists for any of them.
+- `house-rule` — the other eight. Lightness separation, edge vibration, both chroma budgets, ramp
+  evenness, and the three reference gates: chroma peak, accent chroma against the reference arc, and
+  hue anchoring. No published threshold exists for any of them.
 
-Five of nine being house rules is survivable only while two things stay true: the table says which
-five, and the gates that do fail mean something. If a client asks whether a number is a standard or
+Eight of twelve being house rules is survivable only while two things stay true: the table says which
+eight, and the gates that do fail mean something. If a client asks whether a number is a standard or
 a preference, read them the column. The shape of each rule is defensible; the number is ours, and
 the honest defence of a number is that it is written down, tested and open to argument, not that it
 sounds authoritative in a table.
