@@ -52,6 +52,7 @@ import plan_lead_flow
 import plan_lifecycle
 import plan_operating_load
 import plan_palette
+import plan_poster
 import render_refsheet
 import rewrite_human
 import sample_reference
@@ -1484,7 +1485,7 @@ class DataTableTests(unittest.TestCase):
         "image-recipes.csv": (39, 13),
         "palettes.csv": (20, 15),
         "layout-dials.csv": (17, 11),
-        "slop-tells.csv": (33, 9),
+        "slop-tells.csv": (43, 9),
         "copy-formulas.csv": (22, 9),
         "translation-tells.csv": (42, 10),
         "reference-axes.csv": (11, 9),
@@ -1499,7 +1500,7 @@ class DataTableTests(unittest.TestCase):
         "marketing-benchmarks.csv": (35, 12),
         "reference-observations.csv": (10, 24),
         "person-parameters.csv": (35, 13),
-        "command-artifacts.csv": (28, 11),
+        "command-artifacts.csv": (29, 11),
         "colour-gates.csv": (12, 9),
         "vn-marketer-roles.csv": (13, 11),
         "product-compositions.csv": (18, 18),
@@ -1516,6 +1517,7 @@ class DataTableTests(unittest.TestCase):
         "lifecycle-duties.csv": (25, 17),
         "lead-states.csv": (9, 12),
         "channel-specs.csv": (24, 20),
+        "poster-formats.csv": (20, 15),
     }
 
     # Most of these tables are keyed by their first column. The weights table is keyed by two, and
@@ -4351,7 +4353,7 @@ class CommandSurfaceTests(unittest.TestCase):
                 self.assertNotIn(row["produces"], inputs)
 
     def test_every_goal_is_reachable_from_a_cold_brief_and_a_photograph(self) -> None:
-        """A command nothing can reach is a command that will never run. This walks all 28 with
+        """A command nothing can reach is a command that will never run. This walks all 29 with
         only the two roots supplied, which is also the honest worst case for a new user."""
         have = set(plan_command_chain.ROOT_ARTIFACTS)
         for row in self.rows:
@@ -5273,11 +5275,11 @@ class OperatingLoadTests(unittest.TestCase):
     def test_the_roles_and_the_surface_describe_the_same_work(self) -> None:
         """A command no role performs is a command nobody will ever run, and a role the surface
         cannot express is work the skill will plan around without noticing. The reference quotes
-        this coverage as 28 of 28, so it is measured here rather than asserted there."""
+        this coverage as 29 of 29, so it is measured here rather than asserted there."""
         covered = {c for row in self.roles for c in plan_command_chain.split_list(row["commands"])}
         self.assertEqual(covered, set(self.load.surface.by_command),
                          "the roles table and the command surface have drifted apart")
-        self.assertIn("28 of 28", self.flat)
+        self.assertIn("29 of 29", self.flat)
 
     def test_the_two_roles_with_no_command_are_the_two_that_produce_nothing(self) -> None:
         """This is the finding, so it is the thing most likely to be tidied away by somebody
@@ -5319,11 +5321,11 @@ class OperatingLoadTests(unittest.TestCase):
                                   "--have", "positioning-platform")
         brief, _ = self.report("--roles", "content", "design", "marketplace", "video", "report",
                                "--have", "creative-brief")
-        self.assertEqual((base["setup_count"], base["weekly_command_runs"]), (10, 17.0))
+        self.assertEqual((base["setup_count"], base["weekly_command_runs"]), (10, 18.0))
         self.assertEqual(platform["setup_count"], 5)
         self.assertEqual(brief["setup_count"], 9)
         for quoted in ("from 10 commands to 5", "from 10 to 9",
-                       "17 per week with 10 commands of setup"):
+                       "18 per week with 10 commands of setup"):
             self.assertIn(quoted, self.flat, f"the reference no longer says {quoted!r}")
         # The five commands the platform removes are `position` and everything upstream of it.
         removed = set(base["setup_runs_once"]) - set(platform["setup_runs_once"])
@@ -5333,9 +5335,9 @@ class OperatingLoadTests(unittest.TestCase):
     def test_the_all_roles_figure_the_reference_quotes_reproduces(self) -> None:
         report, code = self.report("--cadence", "photo=0.25", "koc=0.25", "print=0.25",
                                    "event=0.25", "ads=1")
-        self.assertEqual(report["weekly_command_runs"], 22.75)
+        self.assertEqual(report["weekly_command_runs"], 24.0)
         self.assertEqual(report["setup_count"], 7)
-        self.assertIn("22.75 command-runs per week and 7 commands", self.flat)
+        self.assertIn("24.0 command-runs per week and 7 commands", self.flat)
         # Every cadence supplied and no capacity stated: the fit is skipped, never passed.
         self.assertEqual(report["capacity_check"]["status"], "skipped")
         self.assertEqual(code, 3)
@@ -5388,7 +5390,7 @@ class OperatingLoadTests(unittest.TestCase):
         over, code = self.report("--roles", "content", "design", "marketplace",
                                  "--have", "offer-architecture", "--capacity", "8")
         self.assertEqual(over["capacity_check"]["status"], "failed")
-        self.assertEqual(over["capacity_check"]["headroom"], -4.0)
+        self.assertEqual(over["capacity_check"]["headroom"], -5.0)
         self.assertEqual(code, 2)
         unstated, code = self.report("--roles", "content", "--have", "creative-brief")
         self.assertEqual(unstated["capacity_check"]["status"], "skipped")
@@ -8971,6 +8973,254 @@ class VarianceReportTests(unittest.TestCase):
                 text = (SKILL_ROOT / path).read_text(encoding="utf-8")
                 self.assertTrue("report-notation" in text or "build_variance_report" in text,
                                 f"{path} names neither the reference nor the script")
+
+
+class PosterPlanTests(unittest.TestCase):
+    """A poster is the one deliverable where taste is not the constraint — geometry is.
+
+    The defect this unit was built against is that everyone opens Canva, picks a template, and sets
+    the headline at whatever size fills the box. That produces a banner nobody can read from the
+    road, and the failure is invisible on a laptop screen because the laptop is 60 cm away and the
+    road is fifteen metres. Cap height is the viewing distance times an angle, and the angle has a
+    published floor, so the size is arithmetic and the tests below pin the arithmetic.
+
+    Two things here are easy to break later. The first is the identity between arcminutes and the
+    sign trade's Legibility Index: they are one axis, inverted, and the whole point of stating both
+    is that an optician's chart, the ADA's ramp clause and a billboard vendor's table become
+    comparable numbers instead of competing rules of thumb. If somebody re-derives `LI_ARCMIN` by
+    hand the ladder silently shifts, so it is recomputed here from the definition. The second is the
+    word gate. Size answers whether a letter resolves; it says nothing about whether the sentence
+    gets finished, and the temptation is to delete the second gate because the first one already
+    passed. A sixteen-word banner passes every legibility check at the size it needs and is still
+    unreadable at riding speed."""
+
+    FORMATS = plan_poster.Formats()
+    LONG = "Bún bò Huế nấu theo lối cũ của bà nội tôi từ năm một chín tám hai"
+
+    def plan(self, format_id: str, **kwargs: object) -> dict:
+        args: dict = {"distance_m": None, "headline": "Bún bò Huế", "support": [], "max_lines": 2}
+        args.update(kwargs)
+        return plan_poster.report(self.FORMATS, format_id, **args)  # type: ignore[arg-type]
+
+    def status(self, payload: dict, gate: str) -> str:
+        found = [item for item in payload["gates"] if item["gate"] == gate]
+        self.assertEqual(len(found), 1, f"{gate} appears {len(found)} times")
+        return found[0]["status"]
+
+    def test_the_self_check_passes(self) -> None:
+        report, code = plan_poster.self_check()
+        self.assertNotIn("FAIL", report)
+        self.assertEqual(code, 0)
+        self.assertIn("0 failed", report)
+
+    def test_arcminutes_and_the_legibility_index_are_one_axis(self) -> None:
+        """`LI_ARCMIN` is not a fitted constant. An LI of n means n feet of legible distance per inch
+        of cap, so cap/distance = (1/12)/n radians, and one radian is 10800/pi arcminutes. Derived
+        from scratch here, then walked along the published ladder the reference prints: if the
+        conversion ever drifts, every rule on that ladder moves together and none of them looks
+        wrong on its own."""
+        derived = (10800.0 / math.pi) * (1.0 / 12.0)
+        self.assertAlmostEqual(plan_poster.LI_ARCMIN, derived, places=9)
+        ladder = {57.30: 5.0,     # the acuity ceiling, an optician's 20/20 optotype
+                  40.0: 7.16,     # MUTCD / FHWA highway signing
+                  30.0: 9.55,     # the USSC simplified default
+                  25.0: 11.46,    # the OAAA published table
+                  10.0: 28.65,    # this unit's glance band
+                  9.6: 29.84,     # ADA 2010 Table 703.5.5, 5/8 in at 72 in
+                  8.0: 35.81}     # ADA 2010 Table 703.5.5, the +1/8 in per foot slope
+        for index, arcmin in ladder.items():
+            with self.subTest(li=index):
+                self.assertAlmostEqual(plan_poster.legibility_index(arcmin), index, delta=0.02)
+                self.assertAlmostEqual(plan_poster.LI_ARCMIN / index, arcmin, delta=0.02)
+
+    def test_the_ada_slope_is_not_read_as_a_legibility_index(self) -> None:
+        """A silent factor-of-twelve trap that the first version of this ladder fell into. ADA's
+        +1/8 inch per foot is inches of cap per inch of distance — a 1:96 ratio — and the Legibility
+        Index is feet of distance per inch of cap, so the same rule is LI 8. Copied across as "LI 96"
+        it puts a legal accessibility floor at 3 arcminutes, below the acuity limit, where nobody can
+        read anything. The check is that the two readings are far apart and the strict one is the
+        one written down."""
+        as_ratio = plan_poster.LI_ARCMIN / (96.0 / 12.0)      # the correct reading
+        as_index = plan_poster.LI_ARCMIN / 96.0               # the mistake
+        self.assertAlmostEqual(as_ratio, 35.81, delta=0.02)
+        self.assertAlmostEqual(as_index, 2.98, delta=0.02)
+        self.assertLess(as_index, plan_poster.ACUITY_ARCMIN)
+        text = (SKILL_ROOT / "references" / "poster-and-banner.md").read_text(encoding="utf-8")
+        self.assertIn("1:96", text)
+        self.assertIn("not LI 96", text)
+
+    def test_the_glance_band_sits_between_the_law_and_the_trade_tables(self) -> None:
+        """LI 10 is stricter than every commercial sign table by 2 to 4 times, and that claim has to
+        stay visible rather than get quietly relaxed to match a vendor's chart. It is not the
+        strictest rule in the unit, though: ADA's clause is stricter still, and the reason to trust
+        LI 10 is that an accessibility statute and a trade rule of thumb converge on it from
+        unrelated directions. Its own evidence is the side-on case, which the reference must keep
+        stating next to the number."""
+        glance = plan_poster.legibility_index(plan_poster.GLANCE_ARCMIN)
+        for gentler in (20.0, 25.0, 30.0, 40.0, 57.3):
+            self.assertLess(glance, gentler)
+        self.assertLessEqual(glance, 25.0 / 2.0)
+        for stricter in (9.6, 8.0):
+            self.assertGreater(glance, stricter)
+        text = (SKILL_ROOT / "references" / "poster-and-banner.md").read_text(encoding="utf-8")
+        for owed in ("Legibility Index", "side-on", "703.5.5", "9241", "no force here"):
+            with self.subTest(owed=owed):
+                self.assertIn(owed, text)
+
+    def test_every_iso_row_is_recomputed_from_the_definition_not_from_the_table(self) -> None:
+        """The self-check halves the stored root, which catches a typo in a row but not a typo in the
+        root. This derives both series from ISO 216's two defining properties instead: the ratio is
+        1:sqrt(2) and A0 encloses one square metre, B0 sqrt(2) square metres. Tolerance is 1.5 mm
+        because the standard rounds every side to a whole millimetre."""
+        areas = {"a": 1.0, "b": math.sqrt(2.0)}
+        for row in self.FORMATS.rows:
+            if row["size_grade"] != "iso-216-definitional":
+                continue
+            series, step = row["format_id"][0], int(row["format_id"][1])
+            area = areas[series] / (2.0 ** step)
+            short = math.sqrt(area / math.sqrt(2.0)) * 1000.0
+            with self.subTest(format=row["format_id"]):
+                self.assertAlmostEqual(float(row["size_w"]), short,
+                                       delta=plan_poster.ISO_TOLERANCE_MM)
+                self.assertAlmostEqual(float(row["size_h"]), short * math.sqrt(2.0),
+                                       delta=plan_poster.ISO_TOLERANCE_MM)
+
+    def test_a_row_with_no_published_size_refuses_instead_of_computing(self) -> None:
+        """Three rows exist precisely because a backdrop, a billboard face and an LED wall have no
+        default size, and the useful thing a tool can do is say so. Computing off a plausible
+        placeholder would be worse than nothing, because the output looks identical to a real plan."""
+        declared = [row for row in self.FORMATS.rows if row["size_grade"] == "vendor-declared"]
+        self.assertGreaterEqual(len(declared), 3)
+        for row in declared:
+            payload = self.plan(row["format_id"])
+            with self.subTest(format=row["format_id"]):
+                self.assertEqual(payload["verdict"]["status"], "failed")
+                self.assertEqual(self.status(payload, "format-has-a-size"), "failed")
+                self.assertNotIn("reader", payload)
+                # And it says what to go and ask for, or the refusal is a dead end.
+                detail = next(g["detail"] for g in payload["gates"]
+                              if g["gate"] == "format-has-a-size")
+                self.assertIn(row["size_source"][:40], detail)
+
+    def test_a_screen_format_refuses_a_viewing_distance(self) -> None:
+        """A CSS pixel is defined as an angle subtended at arm's length, so a screen format already
+        contains its viewing distance. Accepting `--distance` on one would apply it twice and quietly
+        halve or double every size. It is a hard failure, not a warning."""
+        clean = self.plan("web-mobile-banner")
+        self.assertEqual(clean["verdict"]["status"] in ("passed", "review", "failed"), True)
+        self.assertNotIn("distance-belongs-to-the-unit", [g["gate"] for g in clean["gates"]])
+        doubled = self.plan("web-mobile-banner", distance_m=0.6)
+        self.assertEqual(doubled["verdict"]["status"], "failed")
+        self.assertEqual(self.status(doubled, "distance-belongs-to-the-unit"), "failed")
+        # The specified value, not a measured one: 1/96 inch at 28 inches.
+        self.assertAlmostEqual(plan_poster.CSS_PX_ARCMIN, 1.2789, places=3)
+
+    def test_the_word_count_gate_is_keyed_to_the_readers_motion(self) -> None:
+        """The second question, and the one a size check cannot reach. The OAAA calls seven words a
+        proven benchmark and a 238 wpm reader gets through about eight in two seconds, but both
+        numbers were measured on motorists — so the gate fails a rider, reviews a walker or a
+        scroller, and refuses to judge somebody who has stopped. Collapsing those three into one
+        verdict would be inventing evidence for two of them."""
+        gate = "the-headline-is-short-enough-to-finish"
+        self.assertGreater(len(self.LONG.split()), plan_poster.GLANCE_WORD_CEILING)
+        self.assertEqual(self.status(self.plan("bang-ron-ngang", headline=self.LONG), gate), "failed")
+        self.assertEqual(self.status(self.plan("standee", headline=self.LONG), gate), "review")
+        self.assertEqual(self.status(self.plan("web-mobile-banner", headline=self.LONG), gate),
+                         "review")
+        for stopped in ("a2-poster", "table-tent", "a4-flyer"):
+            with self.subTest(format=stopped):
+                self.assertEqual(self.status(self.plan(stopped, headline=self.LONG), gate), "skipped")
+        # Under the ceiling, a rider passes: the gate counts words, it does not dislike banners.
+        self.assertEqual(self.status(self.plan("bang-ron-ngang", headline="Bún bò Huế Bếp Hương "
+                                                                         "Giang"), gate), "passed")
+
+    def test_the_driving_case_only_becomes_reachable_once_a_vendor_supplies_a_size(self) -> None:
+        """`driving` is the other motion the gate fails on, and no row in the table can reach it: the
+        one billboard row refuses on size, because OOH faces have no generic dimensions. That is
+        correct and it means the branch is untested from the table alone, so the vendor's spec sheet
+        is supplied here the way an operator would supply it. The point of the test is the order of
+        the two refusals — no size is a harder stop than too many words, and it comes first."""
+        formats = plan_poster.Formats()
+        row = dict(formats.by_id["billboard-roadside"])
+        self.assertEqual(row["viewer_motion"], "driving")
+        self.assertEqual(row["size_w"], "vendor-declared")
+        row.update({"size_w": "10000", "size_h": "5000", "safe_margin_mm": "200"})
+        formats.by_id["billboard-roadside"] = row
+        payload = plan_poster.report(formats, "billboard-roadside", 60.0, self.LONG, [], 2)
+        self.assertEqual(self.status(payload, "the-headline-is-short-enough-to-finish"), "failed")
+        self.assertEqual(payload["verdict"]["status"], "failed")
+
+    def test_no_size_reduction_rescues_a_headline_that_is_too_long(self) -> None:
+        """The failure mode the unit exists to stop. Shrinking type until the words fit is what a
+        template editor lets you do, and it is why banners are unreadable — so a headline that only
+        fits below the sustained band has to fail on legibility as well as on word count, and the two
+        must be separate lines in the report rather than one merged complaint."""
+        payload = self.plan("bang-ron-ngang", headline=self.LONG, max_lines=1)
+        self.assertEqual(payload["verdict"]["status"], "failed")
+        self.assertEqual(len(payload["verdict"]["why"]), 2)
+        self.assertIn("Cut words, do not cut type", " ".join(payload["verdict"]["why"]))
+        self.assertIn("no size fixes it", " ".join(payload["verdict"]["why"]))
+
+    def test_material_allowance_is_never_confused_with_bleed(self) -> None:
+        """Three different numbers that all live near the edge. Bleed is artwork the blade cuts; the
+        safe margin is a keep-out band inside the finished edge; the allowance is material the shop
+        folds, sews or punches through and consumes. Two Vietnamese shops publish 50 mm every side on
+        hiflex. Treating that as bleed loses 50 mm of artwork into a hem."""
+        hemmed = {"bang-ron-ngang", "phuon-doc", "standee"}
+        for row in self.FORMATS.rows:
+            value = row["edge_allowance_mm"]
+            with self.subTest(format=row["format_id"]):
+                self.assertTrue(re.fullmatch(r"\d+(\.\d+)?", value)
+                                or value in ("vendor-declared", "not-applicable"),
+                                f"{row['format_id']} allowance is {value!r}")
+                if row["format_id"] in hemmed:
+                    self.assertEqual(value, "50")
+                    self.assertNotEqual(row["bleed_mm"], value)
+                    self.assertIn("allowance", row["what_it_does_not_tell_you"])
+        listing = plan_poster.list_formats(self.FORMATS)
+        self.assertIn("outside the visible area", listing)
+        self.assertIn("Not bleed", listing)
+
+    def test_every_grade_the_table_uses_is_explained_where_a_reader_meets_it(self) -> None:
+        """A grade is the cell that decides whether the script computes, warns or refuses, so an
+        unexplained token is a private meaning. This is the assertion that fails when somebody adds a
+        row with a new grade and does not say what it licenses."""
+        text = (SKILL_ROOT / "references" / "poster-and-banner.md").read_text(encoding="utf-8")
+        for row in self.FORMATS.rows:
+            tokens = {row["size_grade"], row["distance_grade"]}
+            if not re.fullmatch(r"\d+(\.\d+)?", row["edge_allowance_mm"]):
+                tokens.add(row["edge_allowance_mm"])
+            for token in tokens:
+                with self.subTest(token=token):
+                    self.assertIn(f"`{token}`", text)
+
+    def test_the_two_generated_type_tells_describe_different_defects(self) -> None:
+        """`diacritic-drift` and `invented-text` both fire on words in a generated image and they are
+        not one finding. `invented-text` is about a word being there at all — a price, a logo, a shop
+        name the model made up, which is a truth problem. `diacritic-drift` is about a correctly
+        spelled Vietnamese word whose marks are wrong, which an English-reading reviewer passes
+        because an English-reading eye never looks above the vowel. Merging them loses the second,
+        and the second is the one that ships."""
+        rows = {row["id"]: row for row in DataTableTests.rows("slop-tells.csv")}
+        for tell in ("diacritic-drift", "invented-text", "font-melt"):
+            with self.subTest(tell=tell):
+                self.assertEqual(sum(1 for row in DataTableTests.rows("slop-tells.csv")
+                                     if row["id"] == tell), 1)
+                self.assertEqual(rows[tell]["severity"], "critical" if tell != "font-melt" else "high")
+        # What each one tells you to look at has to be different, or the second is decoration.
+        self.assertIn("ế", rows["diacritic-drift"]["look_where"])
+        self.assertNotIn("ế", rows["invented-text"]["look_where"])
+        self.assertIn("Every glyph", rows["invented-text"]["look_where"])
+        # Both send the type to the compositor, which is the one shared conclusion, and it is right.
+        for tell in ("diacritic-drift", "font-melt"):
+            self.assertTrue("omposit" in rows[tell]["fix"] or "render_mockup" in rows[tell]["fix"])
+
+    def test_the_unit_is_reachable_from_where_somebody_starts(self) -> None:
+        for path in ("SKILL.md", "assets/registries/pipelines.json"):
+            with self.subTest(path=path):
+                text = (SKILL_ROOT / path).read_text(encoding="utf-8")
+                self.assertIn("plan_poster.py", text)
+        self.assertIn("poster-and-banner.md", (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

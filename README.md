@@ -175,7 +175,7 @@ python marketing-minthep/scripts/find_recipe.py --brief dish-delivery --palette 
 python marketing-minthep/scripts/find_recipe.py --checklist dish-delivery
 ```
 
-Search by the job, in Vietnamese or English — not by a style name. `data/image-recipes.csv` carries 39 jobs, including six the Vietnam market needs and nobody else has a row for: a delivery motorbike, a market stall, a Tết composition, a bánh mì cross-section, a bowl counter, grill smoke. `--brief` composes a `compile_prompt.py` payload and leaves what only the owner knows as `TBD` with the reason attached; it will not invent a `product_truth`. `--checklist` filters the 33 tells in `data/slop-tells.csv` down to the ones that apply to that recipe, sorted by severity — the drink checklist asks about condensation, the before-and-after checklist asks whether the "after" is merely better lit. Keep it open while you look at the render; re-reading the prompt proves nothing.
+Search by the job, in Vietnamese or English — not by a style name. `data/image-recipes.csv` carries 39 jobs, including six the Vietnam market needs and nobody else has a row for: a delivery motorbike, a market stall, a Tết composition, a bánh mì cross-section, a bowl counter, grill smoke. `--brief` composes a `compile_prompt.py` payload and leaves what only the owner knows as `TBD` with the reason attached; it will not invent a `product_truth`. `--checklist` filters the 43 tells in `data/slop-tells.csv` down to the ones that apply to that recipe, sorted by severity — the drink checklist asks about condensation, the before-and-after checklist asks whether the "after" is merely better lit. Keep it open while you look at the render; re-reading the prompt proves nothing.
 
 Two more sheets explain the parts of a brief a non-marketer has no vocabulary for. `--sheet lighting` draws the six setups from above as light positions with the shadow computed from where the key sits, so "45/45 soft key" stops being jargon. `--sheet frames` draws the five placements at their real proportions with the reserved bands shaded — the story frame is the one that shows why a story is laid out again rather than cropped from the feed post.
 
@@ -412,9 +412,9 @@ The second-order check catches the escape hatch: having rejected the obvious cat
 ```
 marketing-minthep/
   SKILL.md                  entry point and router
-  references/               66 topic files, each under 150 lines
+  references/               67 topic files, each under 150 lines
     dossiers/               15 deep-craft dossiers + index
-  data/                     35 lookup tables: image recipes, palettes, layout
+  data/                     36 lookup tables: image recipes, palettes, layout
                             dials, slop tells, copy formulas, translation and
                             address-register tells, reference axes, frame
                             ratios, composition grids, KPI metrics and aspect
@@ -423,8 +423,9 @@ marketing-minthep/
                             product compositions, benchmarks, market-data
                             sources, customer-evidence sources, lifecycle
                             duties, lead states, channel specs, command
-                            artifacts, VN marketer roles
-  scripts/                  49 tools + test suite
+                            artifacts, VN marketer roles,
+                            poster and banner formats
+  scripts/                  50 tools + test suite
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json and deliverable skeletons

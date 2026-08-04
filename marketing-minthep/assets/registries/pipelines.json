@@ -1483,13 +1483,15 @@
         "copywriting.md",
         "creative-tool-interfaces.md",
         "production-pipeline.md",
-        "channel-spec-registry.md"
+        "channel-spec-registry.md",
+        "poster-and-banner.md"
       ],
       "scripts": [
         "start_workbench.py",
         "new_run.py",
         "plan_design_options.py",
         "plan_palette.py",
+        "plan_poster.py",
         "render_mockup.py",
         "find_recipe.py",
         "render_social_post.py",
@@ -1663,7 +1665,8 @@
             {
               "en": "Type scale",
               "vi": "Bậc chữ",
-              "write": "Ratio, computed sizes, weights, line-heights, letter-spacing, and the minimum legible size for the reading situation. Confirm Vietnamese diacritic support and increase line-height accordingly."
+              "write": "Ratio, computed sizes, weights, line-heights, letter-spacing, and the minimum legible size for the reading situation. Confirm Vietnamese diacritic support and increase line-height accordingly.",
+              "run": "python scripts/plan_poster.py --format <format_id> --distance <metres> --headline \"<the real headline>\" --support \"<the real support line>\" - the minimum legible size is not a taste decision, it is the viewing distance times an angle, and the run measures the real headline at that size before anything is laid out. --list-formats carries the trim, bleed and safe margin for the section above."
             },
             {
               "en": "Palette",

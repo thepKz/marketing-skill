@@ -36,8 +36,8 @@ formatting lapse. The thirteenth is the strategy row, and its `filed_under` cell
 sentence out loud: this is the part of the title everyone believes they were hired for.
 
 The roles are content, design, photo, video, community, ads, marketplace, koc, print, report, sales,
-event and strategy. Between them they name 38 command slots drawing on 28 distinct commands, which is
-28 of 28 in the surface. That is worth stating precisely because it is testable and it is
+event and strategy. Between them they name 40 command slots drawing on 29 distinct commands, which is
+29 of 29 in the surface. That is worth stating precisely because it is testable and it is
 tested: there is no command in `data/command-artifacts.csv` that no role performs, and no role that
 invokes a command which does not exist. The surface and the roles table describe the same work from
 two directions.
@@ -71,8 +71,8 @@ because until it is named it is invisible, and invisible work is never resourced
 ## What the numbers are, and what they are not
 
 Ask for every role, put the per-campaign roles at one cycle a month and ads at one a week, and the
-script reports 22.75 command-runs per week and 7 commands of one-time setup. Ask for just the five
-roles that recur weekly, and it reports 17 per week with 10 commands of setup.
+script reports 24.0 command-runs per week and 7 commands of one-time setup. Ask for just the five
+roles that recur weekly, and it reports 18 per week with 10 commands of setup.
 
 A command-run is one distinct piece of work. It is not an hour, and this unit will not convert it
 into one. The reason is not modesty. The time cost of `write` varies between an owner posting from a
@@ -219,7 +219,7 @@ does not, add the row. A statistic could not be checked that way, and a fabricat
 have been quoted back with more confidence than it deserved.
 
 The arithmetic is a different matter and is tested rather than trusted. The role count, the column
-count, the 28-of-28 command coverage, the two empty-command rows, the setup figures and the four
+count, the 29-of-29 command coverage, the two empty-command rows, the setup figures and the four
 verdicts are all re-derived in `scripts/test_tools.py`, because prose in this repository has drifted
 from measurement before.
 

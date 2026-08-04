@@ -175,7 +175,7 @@ python marketing-minthep/scripts/find_recipe.py --brief dish-delivery --palette 
 python marketing-minthep/scripts/find_recipe.py --checklist dish-delivery
 ```
 
-Tìm theo công việc, bằng tiếng Việt hoặc tiếng Anh — không tìm theo tên style. `data/image-recipes.csv` có 39 công việc, trong đó sáu cái thị trường Việt Nam cần mà chưa nơi nào có dòng riêng: xe máy giao hàng, sạp chợ, bố cục Tết, mặt cắt bánh mì, quầy bún, khói than. `--brief` soạn payload cho `compile_prompt.py` và để nguyên `TBD` những gì chỉ chủ hàng biết, kèm lý do; nó không tự bịa `product_truth`. `--checklist` lọc 33 dấu hiệu trong `data/slop-tells.csv` xuống còn những cái áp cho recipe đó, xếp theo mức nặng — checklist đồ uống hỏi về hơi nước đọng, checklist before-after hỏi xem ảnh "after" có phải chỉ là được chiếu sáng đẹp hơn. Mở nó ra trong lúc xem render; đọc lại prompt thì không chứng minh được gì.
+Tìm theo công việc, bằng tiếng Việt hoặc tiếng Anh — không tìm theo tên style. `data/image-recipes.csv` có 39 công việc, trong đó sáu cái thị trường Việt Nam cần mà chưa nơi nào có dòng riêng: xe máy giao hàng, sạp chợ, bố cục Tết, mặt cắt bánh mì, quầy bún, khói than. `--brief` soạn payload cho `compile_prompt.py` và để nguyên `TBD` những gì chỉ chủ hàng biết, kèm lý do; nó không tự bịa `product_truth`. `--checklist` lọc 43 dấu hiệu trong `data/slop-tells.csv` xuống còn những cái áp cho recipe đó, xếp theo mức nặng — checklist đồ uống hỏi về hơi nước đọng, checklist before-after hỏi xem ảnh "after" có phải chỉ là được chiếu sáng đẹp hơn. Mở nó ra trong lúc xem render; đọc lại prompt thì không chứng minh được gì.
 
 Hai sheet nữa giải thích những phần trong brief mà người không làm marketing chưa có từ để gọi. `--sheet lighting` vẽ sáu setup nhìn từ trên xuống thành vị trí đèn, với bóng tính ra từ chỗ đặt key, để "45/45 soft key" thôi là biệt ngữ. `--sheet frames` vẽ năm placement theo đúng tỉ lệ thật và tô những dải bị chiếm — khung story là cái cho thấy vì sao story phải bố cục lại chứ không crop từ post feed.
 
@@ -412,9 +412,9 @@ Kiểm tra bậc hai bắt cửa thoát: sau khi từ chối cái nhìn hiển n
 ```
 marketing-minthep/
   SKILL.md                  điểm vào và bộ định tuyến
-  references/               66 file chủ đề, mỗi file dưới 150 dòng
+  references/               67 file chủ đề, mỗi file dưới 150 dòng
     dossiers/               15 dossier craft chuyên sâu + index
-  data/                     35 bảng tra: image recipe, palette, layout dial,
+  data/                     36 bảng tra: image recipe, palette, layout dial,
                             slop tell, copy formula, translation tell và
                             ngôi xưng, reference axis, frame ratio,
                             composition grid, chỉ số KPI và trọng số, cổng
@@ -423,8 +423,9 @@ marketing-minthep/
                             nguồn dữ liệu thị trường, nguồn bằng chứng khách
                             hàng, nghĩa vụ theo vòng đời khách hàng, trạng
                             thái lead, spec từng vị trí đăng, command
-                            artifact, các vai marketer Việt Nam
-  scripts/                  49 công cụ + bộ test
+                            artifact, các vai marketer Việt Nam,
+                            khổ poster và băng rôn
+  scripts/                  50 công cụ + bộ test
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json và khung deliverable

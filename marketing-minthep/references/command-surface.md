@@ -4,7 +4,7 @@
 
 - What this unit is for
 - The artefact rule
-- The twenty-eight commands
+- The twenty-nine commands
 - What each category is for
 - Routing when no command was named
 - Routing when the request maps to two commands
@@ -58,7 +58,7 @@ Distinguish `takes` from `also_uses` and never blur them. `takes` is a blocker. 
 stated weakness: the command runs, and the plan says out loud what it is running without. Downgrading
 a blocker to a nicety to make a chain look shorter is the same dishonesty as inventing a statistic.
 
-## The twenty-eight commands
+## The twenty-nine commands
 
 Do not restate the table here. `data/command-artifacts.csv` owns it, with eleven columns per
 command: what it does, what it takes, what it also uses, what it produces, what it also satisfies,
@@ -71,7 +71,7 @@ The shape is six categories:
 | discover | brainstorm, research, investigate, survey | What is true, and how do we know? |
 | decide | segment, position, offer, plan, budget | What are we choosing, and what are we giving up? |
 | create | brief, write, humanise, localise, schedule | What does it say, in language a person would use? |
-| direct | compose, colour, identify, stage, shoot, generate, expand | What does it look like, as numbers? |
+| direct | compose, scale, colour, identify, stage, shoot, generate, expand | What does it look like, as numbers? |
 | activate | produce, adapt, approve, launch | What actually ships, and who cleared it? |
 | evaluate | measure, diagnose, improve | What happened, why, and what changes? |
 
@@ -97,8 +97,11 @@ specialist solves the same problem. `write` owns search-led substance, not keywo
 second language from the brief; a literal translation is source material and never the deliverable.
 
 **direct** is for visual authorship, and it is the group most often asked for first. `compose` owns
-layout as quantities. `colour` owns the palette as contrast, lightness separation and a chroma
-budget. `identify` owns the mark at the smallest slot it has to survive. `stage` owns the scene.
+layout as quantities. `scale` owns the one case where the canvas cannot answer the question: anything
+read from a distance, where cap height is the viewing distance times an angle and the type size then
+limits how many words can be finished. `colour` owns the palette as contrast, lightness separation
+and a chroma budget. `identify` owns the mark at the smallest slot it has to survive. `stage` owns
+the scene.
 `shoot` directs a camera. `generate` works from references without reproducing protected expression.
 `expand` handles the constrained case that most small sellers actually have: one usable photograph
 and a marketplace that wants twelve.
