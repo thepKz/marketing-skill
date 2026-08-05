@@ -115,6 +115,43 @@ paragraph in a fence hides it from every gate - that is a hole, and the only def
 obvious in review. And the cadence gates ignore all of this: a code span occupies its slot in a
 sentence and the reader's eye lands on it, so length and rhythm are measured with it in place.
 
+## A web page is read as a web page
+
+Point `--check` at a file that declares a doctype and the script reads it as markup instead of prose. This
+is not a convenience. Before it existed, `docs/index.html` reported a mean sentence length of 110.5
+syllables against a target of 22, and a long/short ratio of 996 against a target of 3, because
+`class="button primary copy-button"` has no full stop, so one tag ran into the next until something
+finally ended in a period. Those numbers described nothing a writer could fix.
+
+What it drops, and the reason is different in each case. `script`, `style`, `svg` and `template` are not
+prose. `pre` and `code` are the page *quoting* something, which is the same rule the backtick convention
+above already applies one level down - and it is the whole reason the reader exists. All three blocking
+tells the old report found on that page (`Chúng tôi tự hào`, `một trong những`, `chất lượng cao`) were
+real strings inside the `<pre>` of the before/after demo, which is the deliberately terrible draft the
+page exists to hold up as terrible. The instrument was failing the exhibit for being the exhibit.
+
+Copy that lives in an attribute is measured for `alt`, `title`, `aria-label`, `placeholder`, `content`
+and the house `data-copy` / `data-toast` pair, and nowhere else. On this repository's landing page the
+brief the visitor copies to their clipboard and the toast they get back both live in attributes, so they
+are copy by any honest reading and were going unmeasured.
+
+Each text node is measured as its own paragraph. Web copy is written in nodes and met in nodes: a heading
+carries no full stop and a button label carries no verb, so a punctuation-driven splitter glues `Cài skill`
+to whatever sentence follows it. Splitting by node moved `landing-beats` on that page from 0.04 per 150 to
+13.4, which is the truth - a four-syllable heading is a landing beat.
+
+One gate is absent rather than passing on markup, on the same terms as `LIST_BLOCKS_MIN` and the
+formal-channel spoken floor. `mean-length-low` cannot be computed on a page: `docs/index.html` measures a
+mean of 7.0 with a median of 4, because most of a page is labels (`Cài skill`, `Sản phẩm`, `01 / MẺ RANG`).
+The gate exists to catch body prose that has been chopped up, and a mean over a population that is mostly
+nav items is not a measurement of body prose. Its own escape hatch does not help either: `SHORT_FORM_UNITS`
+lets a short *document* through, and a page is not short, it is short-nodded. Every other length gate
+survives the split, and two get better for it.
+
+It is not a parser. No HTML tree, no handling of `<` inside an attribute value, and a tag that a formatter
+has split across two lines reads as text. Good enough for the pages in this repository, pinned by the tests
+that measure them, and the sniff is deliberately narrow so it never claims to be a general extractor.
+
 ## Every gate above this line is subtractive
 
 Delete `Hơn nữa`. Delete the em dash. Delete the icon. Break the flat run. That was a complete

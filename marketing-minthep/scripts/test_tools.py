@@ -9680,5 +9680,102 @@ class SpokenRegisterTests(unittest.TestCase):
         self.assertEqual(named["spoken"]["total"], 0, named["spoken"]["hits"])
 
 
+class TestTheRegisterGateReadsAWebPage(unittest.TestCase):
+    """`docs/index.html` is the page this repository ships, and the reason this reader exists.
+
+    Pointed at it before the reader, the instrument reported a mean sentence length of 110.5 syllables
+    against a target of 22 and three blocking tells that were all inside the before/after demo's `<pre>`.
+    Every test here pins one half of that: markup must not be counted as prose, and quotation must not be
+    counted as claim.
+    """
+
+    PAGE = REPO_ROOT / "docs" / "index.html"
+
+    def page(self) -> str:
+        return self.PAGE.read_text(encoding="utf-8")
+
+    def test_a_page_is_recognised_and_a_markdown_reference_is_not(self) -> None:
+        """The sniff is narrow on purpose. A Markdown file in this skill can carry `<pre>` inside a fence
+        without being a web page, and mistaking one for the other strips a document nobody asked to strip."""
+        self.assertTrue(rewrite_human.looks_like_html(self.page()))
+        reference = (SKILL_ROOT / "references" / "rewrite-human.md").read_text(encoding="utf-8")
+        self.assertFalse(rewrite_human.looks_like_html(reference))
+
+    def test_the_demo_draft_is_read_as_quotation_rather_than_as_a_claim(self) -> None:
+        """The page holds a deliberately terrible draft up as terrible. Failing it for that is the
+        instrument failing the exhibit for being the exhibit - the same argument `unquoted()` already
+        makes for backticks, extended to `<pre>`."""
+        raw = self.page()
+        self.assertIn("một trong những", raw)
+        prose = rewrite_human.html_to_prose(raw)
+        self.assertNotIn("một trong những", prose)
+        for tell in rewrite_human.find_tells(raw, "vi"):
+            self.assertNotEqual(tell["severity"], "high", tell)
+
+    def test_markup_is_not_measured_as_prose(self) -> None:
+        """`class="button primary copy-button"` has no full stop, so before the reader a tag ran into the
+        next tag until something ended in a period. That produced the 110-syllable mean."""
+        prose = rewrite_human.html_to_prose(self.page())
+        for machinery in ("copy-button", "<script", "aria-hidden", "viewBox"):
+            self.assertNotIn(machinery, prose)
+        self.assertLess(rewrite_human.measure(self.page(), "vi")["mean"], 22)
+
+    def test_copy_living_in_an_attribute_is_still_copy(self) -> None:
+        """The brief the visitor copies to their clipboard lives in `data-copy` on this page. An extractor
+        that drops every attribute drops the one piece of copy the page exists to hand over."""
+        prose = rewrite_human.html_to_prose('<button data-copy="Viết cho tôi một campaign brief.">Copy</button>')
+        self.assertIn("Viết cho tôi một campaign brief.", prose)
+        self.assertNotIn("data-copy", prose)
+
+    def test_a_node_carrying_no_letter_and_no_digit_carries_no_words(self) -> None:
+        """Three `<strong data-published-count>—</strong>` slots are filled by script at load, so the em
+        dash never reaches a reader. Counting them put three of the page's em dashes on a gate about how
+        Vietnamese is punctuated."""
+        prose = rewrite_human.html_to_prose("<p>Câu thật.</p><strong data-published-count>—</strong>")
+        self.assertNotIn("—", prose)
+        self.assertEqual(rewrite_human.measure(self.page(), "vi")["em_dashes"], 0)
+
+    def test_each_text_node_is_its_own_paragraph(self) -> None:
+        """A heading carries no full stop and a button label no verb, so a punctuation-driven splitter
+        glues a four-syllable heading to the sentence after it. Splitting by node is what lets the
+        landing-beat gate see that the heading is a landing beat."""
+        prose = rewrite_human.html_to_prose("<h2>Cài skill</h2><p>Một câu dài hơn hẳn ở phía sau.</p>")
+        self.assertEqual(prose.split("\n\n"), ["Cài skill", "Một câu dài hơn hẳn ở phía sau."])
+        self.assertGreaterEqual(rewrite_human.measure(self.page(), "vi")["short_per_150"],
+                                rewrite_human.SHORT_PER_150)
+
+    def test_the_uncomputable_length_gate_is_absent_rather_than_passing(self) -> None:
+        """Most of a page is labels, so a low mean is the shape of the medium and not a defect in the
+        prose. Same convention as `LIST_BLOCKS_MIN` and the formal-channel spoken floor: a gate that
+        cannot be computed on this input reports neither pass nor fail."""
+        stats = rewrite_human.measure(self.page(), "vi")
+        self.assertEqual(stats["markup"], "html")
+        names = {row["gate"] for row in rewrite_human.gates(stats)}
+        self.assertEqual(names & rewrite_human.MARKUP_UNMEASURABLE["html"], set())
+        markdown = rewrite_human.gates(rewrite_human.measure("Một câu. Hai câu. Ba câu nữa ở đây.", "vi"))
+        self.assertIn("mean-length-low", {row["gate"] for row in markdown})
+
+    def test_the_report_names_what_it_dropped(self) -> None:
+        """Naming the filter is the difference between a filter and a silent one: a reader comparing the
+        report against the file will find sentences in the file that are not in the report."""
+        stats = rewrite_human.measure(self.page(), "vi")
+        text = rewrite_human.report(stats, rewrite_human.gates(stats),
+                                    rewrite_human.find_tells(self.page(), "vi"))
+        self.assertIn("Read as a web page", text)
+        for gate in rewrite_human.MARKUP_UNMEASURABLE["html"]:
+            self.assertIn(gate, text)
+
+    def test_the_page_is_detected_as_vietnamese(self) -> None:
+        """Tags and class names are English whatever language the copy is in, so `div`, `href` and
+        `data-published-count` pushed a Vietnamese page toward `en` until the sniff went in first."""
+        self.assertEqual(rewrite_human.detect_language(self.page()), "vi")
+
+    def test_the_reference_declares_the_reader_and_its_limit(self) -> None:
+        text = (SKILL_ROOT / "references" / "rewrite-human.md").read_text(encoding="utf-8")
+        self.assertIn("read as a web page", text.lower())
+        self.assertIn("not a parser", text)
+        self.assertIn("mean-length-low", text)
+
+
 if __name__ == "__main__":
     unittest.main()

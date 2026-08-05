@@ -28,6 +28,7 @@ import re
 import statistics
 import sys
 import unicodedata
+from html import unescape
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -174,6 +175,39 @@ CODE_SPAN = re.compile(r"`{1,2}(?:[^`\n]|\n(?!\s*\n))+?`{1,2}")
 # non-blank and not match LIST_ITEM; the text itself is never measured, only its shape.
 FENCE_STOP = "fenced block removed"
 
+# Deliberately narrow. A Markdown reference in this skill can contain `<pre>` or `<br />` inside a
+# fence without being a web page, and mistaking one for the other would strip a document nobody
+# asked to strip. Only a file that declares itself a document counts.
+HTML_SNIFF = re.compile(r"<!doctype\s+html|<html[\s>]|<body[\s>]|<meta\s+charset", re.IGNORECASE)
+# Dropped whole, contents included. Three different reasons, and only one of them is "not prose":
+# `script` and `style` are machinery; `svg` is drawing; `pre` and `code` are the page *quoting*
+# something. That last one is the same rule `unquoted` already applies to backticks one level down,
+# and it is the reason this function exists - see the docstring below.
+HTML_DROP = re.compile(r"<!--.*?-->|<(script|style|pre|code|svg|template)\b[^>]*>.*?</\1\s*>",
+                       re.IGNORECASE | re.DOTALL)
+# Attribute values a reader actually reads. Everything else in a tag is machinery, and counting
+# `class="button primary copy-button"` as prose is how the mean sentence length on this repository's
+# own landing page came out at 110 syllables. The `data-` pair is house-specific: on `docs/index.html`
+# the brief the visitor copies to their clipboard and the toast they get back both live in attributes,
+# so they are copy by any honest definition and were going unmeasured.
+HTML_ATTR = re.compile(r'\b(alt|title|aria-label|placeholder|content|data-copy|data-toast(?:-en)?)'
+                       r'\s*=\s*"([^"]*)"', re.IGNORECASE)
+HTML_TAG = re.compile(r"<[^>]+>")
+# Absent rather than passing, on the same terms as `LIST_BLOCKS_MIN` and the formal-channel spoken
+# gate: a gate that cannot be computed on this input must not report a result either way.
+#
+# Only one gate is on this list, and the reason is arithmetic rather than opinion. `docs/index.html`
+# measures 497 text nodes with a mean of 7.1 syllables and a median of 4, because most of a web page
+# is labels - `Cài skill`, `Sản phẩm`, `01 / MẺ RANG`. The gate exists to catch body prose that has
+# been chopped up, and the mean over a population that is mostly nav items is not a measurement of
+# body prose. Its own escape hatch does not help: `SHORT_FORM_UNITS` lets a short *document* through,
+# and a page is not short, it is short-nodded.
+#
+# Every other length gate survives the node split and two of them get *better* for it. Landing beats
+# went from 0.04 per 150 to 13.27 once headings stopped being glued to the paragraphs after them,
+# which is the truth: a four-syllable heading is a landing beat. Flat-run still found two real runs.
+MARKUP_UNMEASURABLE = {"html": {"mean-length-low"}}
+
 
 def read_tells(language: str) -> list[dict[str, str]]:
     if not TELLS.exists():
@@ -304,6 +338,64 @@ def outside_fences(text: str, fill: str = "") -> str:
     return "\n".join(kept)
 
 
+def looks_like_html(text: str) -> bool:
+    return bool(HTML_SNIFF.search(text[:4000]))
+
+
+def html_to_prose(text: str) -> str:
+    """A web page reduced to the words a visitor reads, one text node per paragraph.
+
+    This exists because pointing the instrument at `docs/index.html` produced a report that was
+    wrong in both directions at once, and the numbers are worth keeping:
+
+      mean sentence length      110.5 syllables    against a target of 22
+      longest / shortest        996.0              against a target of 3
+      landing beats             0.04 per 150       against a target of 1
+      blocking tells            3, all `high`      `Chúng tôi tự hào`, `một trong những`, `chất lượng cao`
+
+    The cadence half was markup counted as prose. `class="button primary copy-button"` has no full
+    stop, so a tag ran into the next tag and into the one after that until something ended in a
+    period, and the result was a "sentence" of nine hundred tokens. Nothing about the copy produced
+    those numbers and no rewrite could have fixed them.
+
+    The tell half was worse, because it looked right. All three of those phrases really are on the
+    page - inside the `<pre>` block of the before/after demo, which is the deliberately terrible
+    draft the page exists to hold up as terrible. The instrument failed the exhibit for being the
+    exhibit. `unquoted` already carries the argument for why that is wrong, in the same words: a
+    document making a claim and a document quoting one are not the same document. That rule was
+    written for backticks and simply had never been extended to `<pre>`.
+
+    So: `script`, `style`, `svg` and `template` go because they are not prose, `pre` and `code` go
+    because they are quotation, every tag becomes a paragraph break, and the handful of attributes a
+    human being actually reads are kept as their own paragraphs.
+
+    One text node per paragraph is deliberate rather than convenient. A heading carries no full stop
+    and a button label carries no verb, so a punctuation-driven splitter glues `Cài skill` to the
+    sentence after it. Web copy is written in nodes, the reader meets it in nodes, and a four-syllable
+    heading is a landing beat by any reading - which the split now lets the gate see.
+
+    What it does not do is run a parser. There is no HTML tree here, no handling of `<`-in-attribute,
+    and a tag split across two lines by a formatter would be read as text. Fine for the pages in this
+    repository, checked by the test that measures them; not fine as a general-purpose extractor, and
+    the sniff in `looks_like_html` is narrow on purpose so it never claims to be one.
+    """
+    body = HTML_DROP.sub(" ", text)
+    segments: list[str] = []
+    cursor = 0
+    for tag in HTML_TAG.finditer(body):
+        segments.append(body[cursor:tag.start()])
+        segments.extend(value for _, value in HTML_ATTR.findall(tag.group(0)))
+        cursor = tag.end()
+    segments.append(body[cursor:])
+    collapsed = [" ".join(unescape(segment).split()) for segment in segments]
+    # A node with no letter and no digit carries no words. This is not tidying: `docs/index.html`
+    # holds three `<strong data-published-count>—</strong>` slots that script fills with a number at
+    # load, so the em dash never reaches a reader, and counting them put three of the page's thirteen
+    # em dashes on a gate about how Vietnamese is punctuated.
+    return "\n\n".join(segment for segment in collapsed
+                       if any(char.isalnum() for char in segment))
+
+
 def prose_only(text: str) -> str:
     """Drop headings, tables, list markers and fences. What remains is what a reader reads as prose."""
     return "\n".join("" if STRIP_LINES.match(line) else line
@@ -329,7 +421,14 @@ def unquoted(text: str) -> str:
 
 
 def detect_language(text: str) -> str:
-    """Vietnamese diacritics are decisive: no English draft carries combining tone marks."""
+    """Vietnamese diacritics are decisive: no English draft carries combining tone marks.
+
+    Markup has to go first. The share is measured against every letter in the file, and a web page's
+    tags and class names are English whatever language the copy is in, so `div`, `href` and
+    `data-published-count` all push a Vietnamese page toward `en`.
+    """
+    if looks_like_html(text):
+        text = html_to_prose(text)
     decomposed = unicodedata.normalize("NFD", text)
     marks = sum(1 for char in decomposed if unicodedata.combining(char))
     letters = sum(1 for char in decomposed if char.isalpha())
@@ -472,6 +571,14 @@ def list_geometry(text: str) -> dict:
 
 
 def measure(text: str, language: str) -> dict:
+    # Each of the three functions that consume raw text sniffs for itself - here, `find_tells` and
+    # `detect_language`. Converting once in `main` and passing the result down looks tidier and was
+    # the first attempt; it silently broke `MARKUP_UNMEASURABLE`, because by the time `measure` saw
+    # the text there was no doctype left to recognise and the page reported as Markdown. A rule that
+    # every entry point applies has no ordering to get wrong.
+    markup = "html" if looks_like_html(text) else "markdown"
+    if markup == "html":
+        text = html_to_prose(text)
     body = prose_only(text)
     sents = sentences(body)
     decoration = decorations(text)
@@ -480,7 +587,7 @@ def measure(text: str, language: str) -> dict:
         # line is both the commonest form of this defect and a draft with no measurable cadence at
         # all. Returning early without the decoration counts would leave that draft unchecked.
         return {"language": language, "sentences": len(sents), "insufficient": True,
-                "total_units": units(body, language), "decoration": decoration,
+                "markup": markup, "total_units": units(body, language), "decoration": decoration,
                 "lists": list_geometry(text), "spoken": spoken_markers(text, language)}
 
     beat = TARGETS[language]["beat"]
@@ -510,6 +617,7 @@ def measure(text: str, language: str) -> dict:
     return {
         "language": language,
         "insufficient": False,
+        "markup": markup,
         "sentences": len(sents),
         "total_units": total,
         "unit": TARGETS[language]["unit"],
@@ -646,12 +754,15 @@ def gates(stats: dict, channel: str = DEFAULT_CHANNEL) -> list[dict]:
                        "Vietnamese punctuates this with a comma, a colon or a full stop. The em dash arrives with the English draft."))
     rows = [{"gate": name, "pass": bool(passed), "severity": severity,
              "observed": observed, "target": want, "why": why}
-            for name, passed, severity, observed, want, why in checks]
+            for name, passed, severity, observed, want, why in checks
+            if not (name in MARKUP_UNMEASURABLE["html"] and stats.get("markup") == "html")]
     return (rows + structure_gates(stats) + decoration_gates(stats, channel)
             + spoken_gates(stats, channel))
 
 
 def find_tells(text: str, language: str) -> list[dict]:
+    if looks_like_html(text):
+        text = html_to_prose(text)
     body = unquoted(prose_only(text))
     found: list[dict] = []
     for row in read_tells(language):
@@ -749,6 +860,17 @@ def _verdict_section(gate_rows: list[dict], tells: list[dict]) -> list[str]:
 
 def report(stats: dict, gate_rows: list[dict], tells: list[dict], channel: str = DEFAULT_CHANNEL) -> str:
     lines = [f"# rewrite-human check — language {stats['language']}, channel {channel}", ""]
+    if stats.get("markup") == "html":
+        # Said out loud, because a reader comparing this report against the file will find sentences
+        # in the file that are not in the report, and the honest answer is that they were dropped on
+        # purpose. Naming what was dropped is the difference between a filter and a silent one.
+        lines += ["Read as a web page: tags, `script`, `style` and `svg` dropped, `pre` and `code` "
+                  "dropped as quotation, each text node measured as its own paragraph. Copy living "
+                  "in an attribute is measured only for `alt`, `title`, `aria-label`, `placeholder`, "
+                  "`content` and `data-copy`. "
+                  + ", ".join(f"`{gate}`" for gate in sorted(MARKUP_UNMEASURABLE["html"]))
+                  + " is absent rather than passing: a page's node lengths are mostly labels, so a "
+                    "low mean is the shape of the medium.", ""]
     if stats.get("insufficient"):
         # Cadence is unmeasurable here, the icon gates are not. Saying "nothing measurable" over a
         # tick-bulleted list would be the one wrong answer on the commonest bad draft there is.
