@@ -7,7 +7,7 @@ description: Create restaurant, cafe, bar, QR, and menu-board designs from a rea
 
 Turn a menu request into a usable design direction, not a decorative prompt. The output must help a diner orient, compare items, and order quickly while still giving the restaurant a memorable visual point of view.
 
-For a redesign, restaurant identity, or “make this more branded” request, read `references/brand-menu-vision.md` before choosing a visual route. Use it to compare brand systems, define recognition, and avoid palette-only or ornament-only art direction.
+For a redesign, restaurant identity, or â€œmake this more brandedâ€ request, read `references/brand-menu-vision.md` before choosing a visual route. Use it to compare brand systems, define recognition, and avoid palette-only or ornament-only art direction.
 
 ## Production Contract
 
@@ -18,27 +18,53 @@ Capture before styling:
 - brand truth, references, anti-references, print size or viewport, and intended reading distance.
 - business identity: restaurant name, approved mark, address, phone, order URL, social handle, and QR destination.
 
-Never invent a price, ingredient, claim, award, dietary label, opening hour, or provenance. Label unknowns and use `—` until the owner confirms them.
+Never invent a price, ingredient, claim, award, dietary label, opening hour, or provenance. Label unknowns and use `â€”` until the owner confirms them.
 
-Never invent contact details or a functional QR destination. If identity information is missing, either use a clearly labelled fictional concept brand or reserve an identity zone and say what the owner must supply. Image models may create a QR-looking texture but not a trustworthy QR code; a working QR requires a provided URL and deterministic generation, even when the surrounding menu uses `full-ai-artwork`.
+Never invent contact details or a functional QR destination. If identity information is missing, either use a clearly labelled fictional concept brand or reserve an identity zone and say what the owner must supply. Image models may create a QR-looking texture but not a trustworthy QR code; a working QR requires a provided URL and deterministic generation, even when the surrounding menu uses `full-ai-text-exception`.
 
-When the user asks for a complete menu, research public menus before designing. Build a source ledger with URL, source type, access date, observed item name, observed price, and limitations. Prefer first-party restaurant menus; use delivery platforms as behavioural traces and secondary articles only for directional context. Do not create “ten plausible side dishes” from memory.
+When the user asks for a complete menu, research public menus before designing. Build a source ledger with URL, source type, access date, observed item name, observed price, and limitations. Prefer first-party restaurant menus; use delivery platforms as behavioural traces and secondary articles only for directional context. Do not create â€œten plausible side dishesâ€ from memory.
 
 Lock every researched name, description, category, and price in a deterministic data file before styling. Mark the result `benchmark-not-for-sale` until the owner confirms portions, ingredients, allergens, availability, packaging fees, and current prices. A complete menu must contain real item rows; placeholders are acceptable only for facts that remain genuinely unknown.
 
-## Choose The Route
+## Brand-First Gate
 
-Select one route and say why:
+Resolve the system in this order:
 
-1. `full-ai-artwork`: the image model renders a flat, finished menu artwork for direct export/print: food, layout, typography, Vietnamese copy, prices, pattern language, and footer in one image. Use when the user asks for an artistic AI image or says “tạo toàn bộ bằng AI”. Do not convert this route into HTML or a photographed paper mockup.
-2. `full-ai-proof`: the image model renders food, layout, typography, Vietnamese copy, prices, and footer in one image for concept exploration. Use when the user wants to compare directions but has not yet selected the final art route.
-3. `designed-production`: AI generates or edits the food photograph; deterministic typography and layout create the menu. Use only when the user accepts a hybrid production workflow.
-4. `photo-led-minimal`: use one documentary food photograph with a restrained type system and almost no decoration. Use when the food and place are the brand.
+1. business and product truth;
+2. audience, occasion, price position, service speed, and ordering behavior;
+3. brand premise;
+4. segment architecture when the business has real dayparts, audiences, service modes, or product families;
+5. signature device and its functional job;
+6. menu information architecture;
+7. image family and material behavior;
+8. palette roles;
+9. production route and text ownership;
+10. decorative finish.
 
-Do not silently change routes. If the user explicitly asks for one generated image containing the food, words, layout and art direction, use `full-ai-artwork` first. Do not recommend a hybrid companion unless the user asks for production-safe text or the AI route has been rejected after documented iterations.
+Do not select a palette, motif, font mood, image effect, or AI medium before the brand premise, segment logic, and signature device are stated. A brand premise is not a visual adjective; it describes the restaurant's role, product truth, or service behavior in language an employee could explain.
+
+Brand-first does not mean giant-logo-first. On a menu cover or first ordering surface, reserve a clear identity zone for the restaurant name before a generic dish or category title. In the item list, keep identity compact enough that food, item names, portions, and prices still perform their commercial job. Fail `CATEGORY-TEMPLATE` when hiding the logo and colors leaves a layout that could belong to any restaurant in the category.
+
+## Choose Production And Text Ownership
+
+Choose image production and text ownership separately. State both before rendering.
+
+Default route:
+
+1. `ai-art-direction-background`: AI creates the food scene, surface, material, image grammar, palette, motif, and text-safe geometry with no menu copy, price, logo, QR, or invented lettering.
+2. `human-typeset-production`: the restaurant owner, designer, Canva operator, or equivalent layout tool places the approved restaurant name, Vietnamese copy, prices, operational information, and working QR over the approved background.
+
+Use `deterministic-layout` only when the user explicitly requests HTML, SVG, code-based production, automated catalog updates, editable source output, or an exact programmatic render. Do not create HTML or SVG merely because the menu contains text.
+
+Use `full-ai-text-exception` only when the user explicitly requests one generated image containing the artwork and all visible words, or explicitly accepts native-text AI risk. This exception never owns the source inventory: lock and diff every name, price, claim, and diacritic, and reject the bitmap when any value drifts.
+
+`photo-led-minimal` remains an image family, not a text-ownership route. It can use the default human-typeset route or an explicitly requested deterministic route.
+
+Do not silently change routes. Default to text-free AI artwork plus human/Canva typography. Explicit editable-code request means deterministic layout. Explicit one-image-with-text request means `full-ai-text-exception`.
+
+For the default route, build a Canva-native component canvas rather than a food photograph with blank paper around it. Declare the inventory before prompting: restaurant identity field, one image-mask family, one information-module family, category or navigation rail, one bounded signal or price-highlight field, one edge motif, item and price-safe zones, and footer/QR reserve. Use one mask family, one module family, one signal job, and one edge-motif grammar per surface unless the brief gives a functional reason to break the rule. The generated bitmap stays text-free, but it must already feel composed, commercially usable, and extensible to another page before the human adds type.
 
 ## Art Direction Brief
-
 Write five short layers before prompting:
 
 1. **Story:** premise, feeling, restaurant role, diner takeaway.
@@ -47,7 +73,7 @@ Write five short layers before prompting:
 4. **Variants:** what changes for 9:16, 4:5, 1:1, counter distance, delivery thumbnail, and print.
 5. **Standards:** approved example, rejected example, rights/claim constraints, and revision gate.
 
-Avoid adjective-only briefs. Replace “premium modern” with observable instructions such as “ordinary stainless table, 35-degree diner angle, one red accent line, no border, 72px outer margin.”
+Avoid adjective-only briefs. Replace â€œpremium modernâ€ with observable instructions such as â€œordinary stainless table, 35-degree diner angle, one red accent line, no border, 72px outer margin.â€
 
 For brand-led work, research at least four contrasting systems before styling: one mass or value chain, one premium or design-led chain, one story-led independent brand, and one relevant local-market brand. Compare category architecture, signature device, image behavior, material, typography, ordering speed, and touchpoint extension. Record `keep`, `transform`, `reject`, and rights risk; never average the references into a moodboard.
 
@@ -61,19 +87,27 @@ For an artistic menu, define a visual thesis and an ornament grammar before prom
 - source shape: a visible form from the bowl, broth, ingredient, sign, textile, tile or local craft;
 - motif grammar: one primary motif, one secondary micro-pattern, and explicit scale/repetition/edge rules;
 - flat-art requirement: direct-print artwork, not a menu photographed on a table, held in a hand, placed in a mockup, or shown inside a device;
-- palette derivation: no more than four colors, each tied to an observed material or ingredient.
+- palette derivation: for one segment, default to no more than four designed colors, each tied to an observed material or ingredient. For a confirmed multi-segment system, use one core palette plus controlled segment accents and declare the maximum simultaneous colors per surface.
 
 Derive the palette by measuring the reference, not by naming its hues. Run
 `marketing-minthep/scripts/sample_reference.py --image REF --check accent=HEX support=HEX` before
 locking any brand color that will sit on the same surface as the food. It reports each hue arc's share
 of the frame and its chroma, and fails an accent more saturated than the food's own chromatic peak.
 "The bowls are blue, so make the rail blue" keeps the hue and discards the two quantities that made it
-harmonious — how saturated it was and how little of the frame it held. The result reads as a rectangle
+harmonious â€” how saturated it was and how little of the frame it held. The result reads as a rectangle
 drawn on a photograph, which is the visual signature of a template edit and fails `PALETTE-ONLY`.
 
-Reject decorative additions that cannot be traced to the visual thesis. A local reference is not permission to paste lotus, dragon, palace, bamboo, silk, or “Asian” symbols into the design.
+Reject decorative additions that cannot be traced to the visual thesis. A local reference is not permission to paste lotus, dragon, palace, bamboo, silk, or â€œAsianâ€ symbols into the design.
 
 Define motif safe zones. Keep full-strength ornament at edges, image zones, or section transitions; reduce it to background density inside text areas and maintain a clean exclusion zone around every word and price. Decorative marks touching copy fail `ORNAMENT`, even when the motif is sourceable.
+
+## Segment And Palette Architecture
+
+When the brief contains real segments such as breakfast/lunch, dine-in/delivery, value/signature, adult/kids, food/drinks, or distinct product families, map them before styling. Record each segment's audience or occasion, commercial job, category scope, ordering priority, image behavior, tone, palette role, and shared brand anchors.
+
+A multi-segment brief may need a multi-palette architecture, not a rainbow menu. Keep one shared brand anchor and neutral/material family, then give a segment one controlled accent or tonal mode only when it improves navigation or recognition. Do not force every segment into one accent when that erases a real commercial difference. Do not assign a strong color to every category when labels, hierarchy, or image behavior already separate them.
+
+On one surface, one segment must lead. Other segment palettes appear as bounded navigation cues, not equal full-strength color fields. Fail `SEGMENT-BLUR` when meaningful segments collapse into one undifferentiated system, `PALETTE-COLLAPSE` when one accent erases navigation, and `RAINBOW-SEGMENTS` when each category shouts without a shared brand anchor.
 
 ## Layout And Typography
 
@@ -97,15 +131,15 @@ Build a type system, not merely a font choice:
 - descriptor: smaller, lighter, increased line-height, still printable;
 - price: one tabular treatment and one alignment rule across every category.
 
-Reject the default AI combination of giant condensed category labels plus generic body type. Inspect `Ă Â Ê Ô Ơ Ư Đ` and common tone stacks at full size before accepting a font style.
+Reject the default AI combination of giant condensed category labels plus generic body type. Inspect `Ä‚ Ã‚ ÃŠ Ã” Æ  Æ¯ Ä` and common tone stacks at full size before accepting a font style.
 
 Set a type-family budget before generation. Default to one Vietnamese-capable superfamily across identity, title, categories, items, descriptions, and prices; create hierarchy with weight, size, width, case, and tracking. Allow a second family only when the contrast has a named role and both families share compatible proportions. Reject `FONT-SOUP` when the skeleton, terminals, x-height, numeral style, or diacritic construction visibly changes without intent.
 
 For a short menu, use a single-column list or a disciplined asymmetric split. Align prices on a common edge. Keep item rows scannable in under two seconds. Use a maximum of two type families and a restrained palette with one accent.
 
-For a dense menu of more than eight items, treat copy as data rather than decoration. Render names and prices deterministically from the locked inventory, then add food imagery around that structure. Do not ask an image model to typeset a production menu with dozens of names and prices. A native-text full-AI version may accompany the production layout only as an explicitly labelled proof and must never replace the source ledger.
+For a dense menu of more than eight items, treat copy as locked data. By default, give the human/Canva typesetter the exact copy pack, row order, hierarchy, price grammar, safe zones, and measurements. Do not generate deterministic HTML or SVG unless the user requests a code-based, editable, or automated layout. Do not ask an image model to typeset the production menu unless `full-ai-text-exception` is explicitly active.
 
-When the user selects `full-ai-artwork`, the dense-menu rule changes only in route, not in QA: put the complete copy in one quoted block, use a two-panel or poster composition with low-entropy text zones, and require direct-print flat output. Never hide the copy behind a mockup. The image is still rejected if any row, price or diacritic drifts.
+When the user selects `full-ai-text-exception`, the dense-menu rule changes only in route, not in QA: put the complete copy in one quoted block, use a low-entropy composition, and require direct-print flat output. Never hide the copy behind a mockup. Reject the image if any row, price, claim, or diacritic drifts.
 
 Use descriptions to explain why higher-priced variants differ. If ingredient evidence exists, give main items one concise descriptor line instead of forcing diners to ask staff. Compress repeated add-ons only when they share the same price and the grouping does not hide portion differences or modifiers; record the grouped display copy separately from the source ledger.
 
@@ -113,9 +147,29 @@ Audit negative space as a functional resource, not a prestige effect. Every larg
 
 Before rendering, choose exactly one price grammar for the whole page: right-aligned tabular prices, dotted leaders, or inline dash. Mixing price grammars fails `HIERARCHY`.
 
+## Functional Minimalism
+
+Minimalism is a reduction of competing signals, not a reduction of required information, brand recognition, food evidence, or ordering access. A minimal menu must still preserve clear category orientation, exact item and price comparison, one recognizable brand device, enough food truth for the buying decision, operational copy, and extension to another touchpoint.
+
+Every empty region must protect reading, separate decisions, reserve a known operational element, or create controlled image tension. Large blank areas used only to imply luxury fail `EMPTY-MINIMALISM`. Remove redundant containers, shadows, badges, icons, and decorative type before removing useful descriptions, portions, prices, or category cues.
+
+Do not equate minimalism with beige editorial styling, a centered hero dish, tiny copy, oversized margins, or one photograph when the menu requires range. Text-safe does not mean empty canvas: fail a background when one unstructured blank region exceeds the content it is supposed to support.
+
 ## Image Prompt Contract
 
-For dense `full-ai-artwork`, prefer a control-blueprint workflow when image-to-image input is available:
+For the default `ai-art-direction-background` route:
+
+1. build a text-free geometry blueprint with the restaurant-name zone, category boundaries, item-list fields, price edges, footer/QR reserve, image masses, and safe areas;
+2. use blank blocks or registration marks instead of real copy inside the generation reference;
+3. prompt the model for surface, food, material, light, palette roles, signature device, and protected text-safe zones;
+4. require `no letters, no words, no numbers, no prices, no logo, no QR-like marks, no watermark`;
+5. inspect the bitmap for fake glyphs and text-like texture before placing it in Canva;
+6. lock the approved background layer, then typeset identity, Vietnamese copy, prices, allergens, and QR deterministically in Canva or the chosen human layout tool;
+7. test the longest item name, widest price, and densest category before approval.
+
+The default blueprint communicates geometry, not words. It may contain labels outside the intended artwork for the operator, but the generated menu background must remain text-free.
+
+For dense `full-ai-text-exception`, prefer a control-blueprint workflow when image-to-image input is available:
 
 1. render the locked inventory into an exact HTML/SVG blueprint;
 2. rasterize it at the final aspect ratio with correct hierarchy, safe zones, grouped rows, descriptions, and price alignment;
@@ -130,9 +184,9 @@ Probe the provider's actual reference-image schema before promising this route. 
 
 A prompt-only generations endpoint cannot consume an HTML raster merely because its path is mentioned in text. If the provider's documented generation reference field, edits, multimodal Responses, and multimodal Chat all reject image input, record `CAPABILITY` and keep the blueprint ready for another provider; do not claim that prompt-from-zero used the reference.
 
-Treat reference transport and reference success as separate gates. Probe scalar and array forms when the provider schema is ambiguous: some compatible endpoints reject `"image": "..."` but accept `"image": ["..."]`. An HTTP 200 or an SSE progress stream is not proof of image generation. Require a downloadable URL or decodable image payload, open the saved bitmap, and record the accepted request shape. If the stream ends with text or an error such as “did not return an image,” fail `CAPABILITY`; never relabel a prompt-only render as reference-conditioned.
+Treat reference transport and reference success as separate gates. Probe scalar and array forms when the provider schema is ambiguous: some compatible endpoints reject `"image": "..."` but accept `"image": ["..."]`. An HTTP 200 or an SSE progress stream is not proof of image generation. Require a downloadable URL or decodable image payload, open the saved bitmap, and record the accepted request shape. If the stream ends with text or an error such as â€œdid not return an image,â€ fail `CAPABILITY`; never relabel a prompt-only render as reference-conditioned.
 
-Before recording `CAPABILITY`, bisect the prompt. A refusal that streams text deltas and never enters an image-generation stage is a routing decision, not a missing capability, and providers report it with whatever error string they have to hand — including one about billing. Hold the endpoint, key and transport fixed and change one thing at a time. In this repository a six-request bisection found that asking a model to preserve the words that are in the supplied reference reliably produced prose instead of a bitmap, while the same request with that one sentence removed returned a 3 MB PNG. Naming a paid tier in an error message is not evidence about the account; only a request that differs in exactly one field is.
+Before recording `CAPABILITY`, bisect the prompt. A refusal that streams text deltas and never enters an image-generation stage is a routing decision, not a missing capability, and providers report it with whatever error string they have to hand â€” including one about billing. Hold the endpoint, key and transport fixed and change one thing at a time. In this repository a six-request bisection found that asking a model to preserve the words that are in the supplied reference reliably produced prose instead of a bitmap, while the same request with that one sentence removed returned a 3 MB PNG. Naming a paid tier in an error message is not evidence about the account; only a request that differs in exactly one field is.
 
 That is also why step 5 pastes the copy in as strings. Transcribe-the-reference is both the phrasing most likely to be refused and the one that teaches the model nothing about which words matter, and a model that is merely told to stop preserving the copy will invent a brand name and its own prices. The generative pass never owns the price column: diff every row against the locked inventory afterwards and reject the bitmap that disagrees, because a wrong price on a menu is a commercial fact, not a rendering defect.
 
@@ -156,11 +210,11 @@ Reject equal thumbnails, circular portrait sets, card grids, product catalogs, c
 
 Choose one primary image family: continuous table scene, disciplined product modules, ingredient/process atlas, story ephemera, or photo-led restraint. Allow at most one supporting behavior. For a continuous table scene, every dish must share one physical surface, horizon/perspective family, light direction, white balance, and shadow field; isolated cutouts placed on empty paper fail `SCENE-COHERENCE` even when each cutout is individually attractive.
 
-For food photography specify subject truth, camera height/angle, lens behavior, light direction/hardness, surface, contact shadow, crop, and what is intentionally ordinary. Add rejects: no ingredient explosion, duplicated toppings, impossible steam, floating bowl, glossy CGI food, decorative border, fake logo, random text, or luxury cliché.
+For food photography specify subject truth, camera height/angle, lens behavior, light direction/hardness, surface, contact shadow, crop, and what is intentionally ordinary. Add rejects: no ingredient explosion, duplicated toppings, impossible steam, floating bowl, glossy CGI food, decorative border, fake logo, random text, or luxury clichÃ©.
 
 For a cutout composite, prefer extracting the served dish from a real source photograph. If no usable source exists, generate one proof on a removable chroma-key field before scaling. Validate alpha coverage, transparent corners, edge halos, subject completeness, and color contamination. Derive the palette or motif from a visible property of the dish, bowl, or restaurant rather than adding unrelated decoration. Rebuild contact shadow and color response for the destination surface; a clean cutout with no grounding is still a sticker.
 
-For `full-ai-proof`, include exact copy in a quoted block and require:
+For `full-ai-text-exception`, include exact copy in a quoted block and require:
 
 - native Vietnamese diacritics;
 - title under roughly 10% of canvas height and never more than two lines;
@@ -170,21 +224,21 @@ For `full-ai-proof`, include exact copy in a quoted block and require:
 
 Inspect every result at full size. A prompt is not proof of text fidelity.
 
-For `full-ai-artwork`, additionally specify medium and finish: screenprint, risograph, painted sign, woodblock, enamel, collage or another deliberate technique. Name the ink behavior, registration, edge, grain and paper only when they support the thesis. Do not stack five techniques in one image.
+For AI artwork backgrounds and `full-ai-text-exception`, specify one deliberate medium and finish when it supports the thesis: screenprint, risograph, painted sign, woodblock, enamel, collage, documentary photography, or another observable technique. Name ink behavior, registration, edge, grain, light, and material precisely. Do not stack five techniques in one image.
 
 For a researched full menu, also compare the rendered rows against the locked data file: category count, item count, exact spelling, exact price, missing rows, duplicated rows, and source note. Fail the render if any count or value drifts.
 
 ## Art Direction Gate
 
-Before the anti-AI gate, score the image from 0–2 on each axis: visual thesis, motif sourceability, palette discipline, composition tension, food truth, typography fidelity, and direct-print readiness. A concept with a beautiful texture but no thesis is not art direction.
+Before the anti-AI gate, score the image from 0â€“2 on each axis: visual thesis, motif sourceability, palette discipline, composition tension, food truth, typography fidelity, and direct-print readiness. A concept with a beautiful texture but no thesis is not art direction.
 
 Also inspect content geometry: compare text mass, image mass, and negative space by quadrant. Repair imbalance by grouping repeated rows, adding evidence-backed descriptors, moving the food crop, or changing the column structure; do not fill holes with arbitrary ornament.
 
 ## Anti-AI Gate
 
-Reject `GENERIC` when the category alone predicts the visual: black-and-gold luxury, symmetric ornamental border, marble, smoke, random silk, fake vintage grain, giant serif title, centered hero bowl, excessive garnish, or “cinematic” lighting without physical behavior. Also reject second-order defaults such as beige editorial cards or maximalist collage when no brief-driven reason exists.
+Reject `GENERIC` when the category alone predicts the visual: black-and-gold luxury, symmetric ornamental border, marble, smoke, random silk, fake vintage grain, giant serif title, centered hero bowl, excessive garnish, or â€œcinematicâ€ lighting without physical behavior. Also reject second-order defaults such as beige editorial cards or maximalist collage when no brief-driven reason exists.
 
-Record concrete rejection labels: `CAPABILITY`, `GENERIC`, `HIERARCHY`, `FONT-SOUP`, `DISH-IDENTITY`, `SCENE-COHERENCE`, `PALETTE-ONLY`, `MOTIF-ONLY`, `ONE-OFF`, `CROP`, `PHYSICS`, `CLAIM`, `FIDELITY`, `OFF-BRAND`, `ORNAMENT`, `PALETTE`, `MOCKUP`, or `RIGHTS`.
+Record concrete rejection labels: `CAPABILITY`, `GENERIC`, `HIERARCHY`, `FONT-SOUP`, `DISH-IDENTITY`, `SCENE-COHERENCE`, `PALETTE-ONLY`, `MOTIF-ONLY`, `ONE-OFF`, `CROP`, `PHYSICS`, `CLAIM`, `FIDELITY`, `OFF-BRAND`, `ORNAMENT`, `PALETTE`, `MOCKUP`, `RIGHTS`, `ROUTE-MISMATCH`, `TEXT-OWNERSHIP`, `UNREQUESTED-DETERMINISM`, `AI-TEXT`, `BRAND-LAST`, `CATEGORY-TEMPLATE`, `SEGMENT-BLUR`, `PALETTE-COLLAPSE`, `RAINBOW-SEGMENTS`, `EMPTY-MINIMALISM`, or `CONTRAST-OVERDRIVE`.
 
 Run a visible self-improvement loop: generate, inspect at full size, attach concrete rejection labels, change one targeted variable, regenerate, and compare against the previous candidate. Promote a variant only after copy, price, dish identity, hierarchy, motif safe-zone, physics, and direct-print checks pass. Preserve the selected prompt, references, rejected variants, and rejection log so the next run learns from evidence instead of adding more adjectives.
 
@@ -203,4 +257,6 @@ For a real production request, write these artifacts to the workbench and run it
 
 Before delivery, open the real output and record visual QA. Confirm that all menu rows remain above or beside the food image, no title dominates the page, Vietnamese line breaks are intentional, prices share an alignment edge, and the footer identifies benchmark versus for-sale status.
 
-For `full-ai-artwork`, confirm the output is a flat artwork intended for direct export: no browser chrome, device frame, tabletop mockup, hand, envelope, or photographed menu object unless the user explicitly requests that presentation. Record the visual thesis, motif source, palette roles, rejected variants, and the exact final asset path.
+For `ai-art-direction-background`, confirm the output is a flat, text-free background ready to lock in Canva: no letters, numbers, fake glyphs, logo, QR-like texture, browser chrome, device frame, tabletop mockup, hand, envelope, or photographed menu object. Deliver a separate text-placement spec naming the restaurant identity zone, category zones, item field, price edge, footer, and QR reserve.
+
+For `full-ai-text-exception`, confirm the output is a flat artwork intended for direct export and that every locked word, price, claim, and diacritic matches the source inventory. Record the visual thesis, motif source, palette roles, text owner, rejected variants, and exact final asset path.

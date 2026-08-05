@@ -412,7 +412,7 @@ The second-order check catches the escape hatch: having rejected the obvious cat
 ```
 marketing-minthep/
   SKILL.md                  entry point and router
-  references/               68 topic files, each under 150 lines
+  references/               69 topic files, each under 150 lines
     dossiers/               15 deep-craft dossiers + index
   data/                     38 lookup tables: image recipes, palettes, layout
                             dials, slop tells, copy formulas, translation and

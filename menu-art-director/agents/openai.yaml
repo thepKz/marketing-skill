@@ -1,4 +1,4 @@
 interface:
   display_name: "Menu Art Director"
-  short_description: "Distinctive restaurant menus without AI-template styling"
-  default_prompt: "Design a restaurant menu from the brief, choose the right production route, create a proof, and QA it for readability and generic AI styling."
+  short_description: "Text-free menu art direction and production QA"
+  default_prompt: "Use $menu-art-director to design a distinctive text-free menu background, define human/Canva typography zones, and run anti-AI visual QA."

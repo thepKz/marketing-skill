@@ -25,6 +25,38 @@ Use this reference when redesigning a menu, building restaurant recognition, or 
 7. **Story-led brands create an in-world object.** Paper, print method, copy tone, marks, and imperfections all belong to the same fictional or historical logic.
 8. **Modularity beats one-off composition.** A recognisable module should survive more items, another branch, another aspect ratio, and seasonal updates.
 
+## Production finding - 2026-08-05
+
+Public menu systems and the signed-in Canva restaurant-menu library were reviewed to test production routing, segment hierarchy, and palette breadth. These sources are evidence for system behavior, not permission to copy logos, layouts, typefaces, illustration styles, or trade dress.
+
+| Segment/source | Observed ordering behavior | Production lesson |
+|---|---|---|
+| Ultra-value - [Saizeriya Grand Menu](https://www.saizeriya.com.sg/pdf/GrandMenu202603S_single.pdf) | Dense dish and price scanning; identity is present but does not delay the decision | Give food, price, and category enough capacity; a premium amount of empty space is not useful here |
+| Casual value - [Jollibee Vietnam](https://jollibee.com.vn/mon-moi-mon-ngon.html) | Stable brand band plus bestseller, combo, image, and price hierarchy | Brand recognition and fast ordering can coexist when the brand device is bounded |
+| Family/casual - [Pizza 4P's menu](https://pizza4ps.com/menu/) | Repeated category and product modules carry many SKUs without changing the brand world | Use one image and module grammar that can add categories without recomposing the page |
+| Story-led restaurant - [Dishoom all-day menu](https://www.dishoom.com/menu/all-day-main/) | Material, voice, descriptive copy, and image behavior carry identity more than a large logo | Build an in-world system from evidence; do not paste generic heritage ornament |
+| Minimal restaurant - [Le Bernardin dinner menu](https://www.le-bernardin.com/menus/dining-room/dinner) | Course structure, ingredient language, spacing, and precise type do the work | Minimalism removes competing signals, not necessary information |
+| Canva restaurant-menu library - signed-in observation, 15,898 templates visible on 2026-08-05 | Top results repeatedly use black/gold, beige/elegant, food circles, badges, and dense template typography; smaller families use red/white value color and bright retro palettes | Use the library to map palette and density families, not as a default art direction; reject template averaging |
+
+The default production split is now:
+
+- AI owns the text-free background: food scene, material, light, palette roles, signature device, and protected geometry.
+- Human/Canva owns restaurant name, Vietnamese copy, prices, claims, allergens, operational text, and QR.
+- Deterministic HTML/SVG is used only when explicitly requested for code-based, editable, or automated production.
+- Native AI text is an explicit exception with locked inventory and OCR/diff QA.
+
+### Segment hierarchy
+
+| Segment | Primary scan | Identity behavior | Suitable background density |
+|---|---|---|---|
+| Ultra-value | price, dish, category | compact brand zone; strong commercial capacity | high density, bright bounded signals, large price edge |
+| Casual value | combo/hero, price, dish, category | stable brand band without taking the whole page | medium-high density, strong image crop, one navigation device |
+| Family restaurant | category, dish, portion/descriptor, price | calm identity; repeated family-meal system | medium density, continuous table scene, multiple dishes with shared physics |
+| Design-led restaurant | premise/category, dish, descriptor, price | identity carried by material, voice, and image behavior | medium-low density with documentary or process evidence |
+| Functional minimal | category/course, dish, descriptor, price | precise compact identity and one signature device | low competing-signal density, not empty-canvas density |
+
+Do not turn the segment table into five visual templates. Re-run product truth, audience, price position, service behavior, and brand-premise gates for every restaurant.
+
 ## Brand recognition gate
 
 Before layout, define:
