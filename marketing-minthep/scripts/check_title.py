@@ -79,6 +79,22 @@ TITLE_WORDS_MAX = {"vi": 12, "en": 9}
 # medium to high. Same ratio, from the same reasoning.
 TITLE_WORDS_HARD = {"vi": 18, "en": 14}
 
+# The floor, and it exists because the ceiling above was read as a target by the first writer to use
+# this script - me. Twenty-four titles were rewritten down toward nine words until every one of them
+# was a section label: `Mẫu brief.`, `Cài đặt.`, `Campaign system`, `Tác phẩm, không phải ảnh ref.`
+# Each cleared every gate here and each was worse than what it replaced, because a title short enough
+# to hold no subject and no verb has stopped making a claim, and a reader cannot disagree with a
+# label. That is a second way to read as machine-written, symmetric with the first and invisible to
+# every threshold in this file until now.
+#
+# House figures. Six syllables is where Vietnamese can hold a subject, a verb and an object at once -
+# `Số nào lên báo cáo tháng` is six and does; `Chọn việc cần làm` is four and names nobody. Four words
+# is the English equivalent, and it fails `Photoshoot art direction` correctly. Both were checked
+# against the fifteen hand-written route titles on this repository's own page before being written
+# down: every title a person wrote clears the floor, and every title this script talked me into
+# fails it.
+TITLE_WORDS_MIN = {"vi": 6, "en": 4}
+
 # A sentence short enough to be a fragment, two of them side by side, is the clipped-parallel shape.
 # The threshold differs by language and the reason is arithmetic rather than taste: this script counts
 # whitespace tokens, and a Vietnamese token is a syllable where an English one is a word. `Không sao
@@ -112,8 +128,8 @@ HEADING = re.compile(r"<h([1-3])\b[^>]*>(.*?)</h\1>", re.S | re.I)
 ENTITY = {"&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'", "&nbsp;": " ",
           "&rarr;": "→", "&mdash;": "—", "&ldquo;": "“", "&rdquo;": "”"}
 
-# The two things this script refuses to compute, printed on every clean run so that a passing exit
-# code never reads as a finished title. Both need somebody who knows the buyer.
+# The three things this script refuses to compute, printed on every clean run so that a passing exit
+# code never reads as a finished title. All three need somebody who knows the buyer.
 JUDGEMENTS = (
     ("names-a-noun-the-reader-owns",
      "Does the title name something the reader has, wants, sells or is losing? A title whose only "
@@ -122,6 +138,12 @@ JUDGEMENTS = (
     ("the-metaphor-was-earned",
      "If the title is figurative - dấu vân tay, hành trình, DNA - has the page introduced that image "
      "anywhere else? A title has no next paragraph in which to repay it."),
+    ("somebody-would-say-this-out-loud",
+     "Read it aloud to a person. A title can fail by being over-figured, and it can fail the opposite "
+     "way: literal word for word, every noun the plainest available, no rhythm, nothing anybody would "
+     "ever say. That second failure passes every threshold in this script, because a label is short, "
+     "device-free and specific. `Câu bạn dán vào ô chat` is all three and no human has said it. "
+     "Nothing here can hear a sentence, so this is yours."),
 )
 
 
@@ -210,15 +232,26 @@ def title_gates(reading: dict) -> list[dict]:
     language = reading["language"]
     soft = TITLE_WORDS_MAX.get(language, TITLE_WORDS_MAX["en"])
     hard = TITLE_WORDS_HARD.get(language, TITLE_WORDS_HARD["en"])
+    floor = TITLE_WORDS_MIN.get(language, TITLE_WORDS_MIN["en"])
     unit = "syllables" if language == "vi" else "words"
     rows = [{
         "gate": "one-idea-length",
         "pass": reading["words"] <= soft,
         "severity": "medium" if reading["words"] <= hard else "high",
         "observed": f"{reading['words']} {unit}",
-        "target": f"<= {soft}",
+        "target": f"{floor}-{soft}",
         "why": "copy-formulas.csv one-idea-headline. Past this the title is carrying a second idea, "
-               f"and past {hard} it is a sentence standing where a title goes.",
+               f"and past {hard} it is a sentence standing where a title goes. The number is a "
+               "ceiling, not a target: shorter is not better, and see states-a-claim below.",
+    }, {
+        "gate": "states-a-claim",
+        "pass": reading["words"] >= floor,
+        "severity": "high",
+        "observed": f"{reading['words']} {unit}",
+        "target": f">= {floor}",
+        "why": "Too short to carry a subject, a verb and an object, so it is a section label rather "
+               "than a title, and a reader cannot agree or disagree with a label. Say the whole "
+               "thing. There is no prize for coming in under the ceiling.",
     }]
     for hit in reading["devices"]:
         # A device with a budget above zero cannot fail here, and getting this wrong is how a gate
@@ -352,9 +385,9 @@ def report(readings: list[dict], per_title: list[list[dict]], across: list[dict]
     if failed:
         lines += ["Blocking: " + ", ".join(dict.fromkeys(failed)) + ".", ""]
     else:
-        lines += ["Every measurable gate passes. The two judgements above are open, so this exits 3 "
-                  "rather than 0 - a title is not finished until somebody who knows the buyer has "
-                  "read it.", ""]
+        lines += [f"Every measurable gate passes. The {len(JUDGEMENTS)} judgements above are open, so "
+                  "this exits 3 rather than 0 - a title is not finished until somebody who knows the "
+                  "buyer has read it.", ""]
     return "\n".join(lines)
 
 
@@ -469,6 +502,17 @@ def self_check() -> str:
         gate = title_gates(measure_title(" ".join(["từ"] * TITLE_WORDS_MAX[language]),
                                          language, devices))[0]
         check(f"and a {language} title at the limit passes", gate["pass"], gate["observed"])
+
+    # The floor, checked on the label that taught it. Both of these cleared every other gate.
+    for language, label in (("vi", "Mẫu brief."), ("en", "Campaign system")):
+        gate = [row for row in title_gates(measure_title(label, language, devices))
+                if row["gate"] == "states-a-claim"][0]
+        check(f"a {language} section label fails states-a-claim", not gate["pass"], gate["observed"])
+    for language, title in (("vi", "Số nào lên báo cáo tháng"),
+                            ("en", "The same person in the next photo")):
+        gate = [row for row in title_gates(measure_title(title, language, devices))
+                if row["gate"] == "states-a-claim"][0]
+        check(f"and a real {language} title clears the floor", gate["pass"], gate["observed"])
 
     # Heading extraction, including an entity and a nested tag, because both are in the real page.
     got = headings("<h1>A &amp; <em>B</em></h1><h2 class='x'>C</h2><h4>skip</h4>")

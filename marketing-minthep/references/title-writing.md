@@ -69,12 +69,12 @@ time cannot find it.
 
 This repository's own landing page, both versions, through `check_title.py`:
 
-| | HEAD, 16 titles | working copy, 17 titles |
+| | before, 16 titles | after, 17 titles |
 |---|---|---|
-| device-concentration | 0.56 (9/16, clipped-parallel) | 0.12 (2/17, colon-deck) |
-| device-free-share | 0.31 (5/16) | 0.76 (13/17) |
-| workshop-noun | 4 of 16 | 1 of 17 |
-| contrastive-negation | 3 of 16 | 0 of 17 |
+| device-concentration | 0.56 (9/16, clipped-parallel) | 0.06 (1/17, contrastive-negation) |
+| device-free-share | 0.31 (5/16) | 0.94 (16/17) |
+| workshop-noun | 4 of 16 | 0 of 17 |
+| contrastive-negation | 3 of 16 | 1 of 17 |
 
 Every one of those sixteen titles is defensible alone. Read as a page they are a template being
 filled in nine times. That is the measurement no per-line checker can make, and it is the reason
@@ -99,16 +99,42 @@ check_title.py --devices
 ```
 
 Exit 0 clean and judged, 1 usage, 2 a blocking device or a device over its set budget, 3 everything
-measurable passes and the two judgements below are still open. A single title cannot reach exit 0,
+measurable passes and the three judgements below are still open. A single title cannot reach exit 0,
 and that is deliberate.
 
-Two numbers in the script are per-language, and the reason is arithmetic rather than taste. It counts
+The length numbers are per-language, and the reason is arithmetic rather than taste. It counts
 whitespace tokens, so a Vietnamese token is a syllable where an English one is a word. The nine-word
 limit in `copy-formulas.csv` one-idea-headline becomes twelve for Vietnamese; a flat nine would hold
 Vietnamese to two thirds of the length the formula grants, which is not the formula being stricter
 but the formula being mismeasured. The clipped-fragment threshold moved from five to seven for the
 same reason, and it moved because a test caught it: `Không sao chép dấu vân tay` is six tokens and
 three words, so five missed the exact Vietnamese case the row was written for.
+
+## The length number is a ceiling, and the first writer read it as a target
+
+`one-idea-headline` says under nine words. That is a ceiling. The first writer to use this script read
+it as a score to beat and rewrote twenty-four titles downward until every one of them was a section
+label: `Mẫu brief.`, `Cài đặt.`, `Campaign system`, `Tác phẩm, không phải ảnh ref.` Every one cleared
+every gate in the file — a label is short, device-free and specific, so nothing here could object —
+and every one was worse than what it replaced. A title with no subject and no verb has stopped making
+a claim, and a reader cannot agree or disagree with a label.
+
+So machine-written copy fails two ways, not one. Over-figured is the failure the device table was
+built for. Flatly literal is the symmetric failure: every noun the plainest available, no rhythm,
+nothing anybody would say out loud. The table was blind to the second until the floor was added.
+
+`TITLE_WORDS_MIN` is `{"vi": 6, "en": 4}`, house-graded, calibrated against the fifteen hand-written
+route titles on this repository's own page. Six syllables is where Vietnamese can hold a subject, a
+verb and an object at once — `Số nào lên báo cáo tháng` is six and does, `Chọn việc cần làm` is four
+and names nobody. Four words is the English equivalent and it fails `Photoshoot art direction`
+correctly. Every title a person wrote clears the floor; every title the script talked the writer into
+fails it.
+
+The floor is necessary and nowhere near sufficient, and the honest number is the one to write down:
+on the seventeen headings of the landing page it caught **two** — `Chọn việc cần làm.` and
+`Thông tin cần gửi.`, both four syllables. The other fifteen cleared it and still read as labels.
+That is why the flat-literal failure ships as the third declared judgement below rather than as a
+threshold. A checker that could hear a sentence would not need one.
 
 ## Vietnamese: what is actually wrong
 
@@ -138,7 +164,7 @@ one length where it happens most.
 
 ## What this unit cannot decide
 
-Two judgements are printed as open on every clean run, which is why a clean run exits 3.
+Three judgements are printed as open on every clean run, which is why a clean run exits 3.
 
 **Does the title name a noun the reader owns** — something they have, want, sell or are losing. No
 word list can settle it, because the same noun is the reader's in one market and the workshop's in
@@ -147,6 +173,10 @@ another. `brief` is a workshop noun to a shop owner and the product itself to an
 **Was the metaphor earned.** A figurative title borrows against context the reader has not been given.
 In body copy the next paragraph repays it; a title has no next paragraph. Whether the rest of the page
 introduces the image is a judgement about the page, and this script reads one line at a time.
+
+**Would somebody say this out loud.** Read it to a person. This is the flat-literal failure above, and
+it survives every threshold in the file: `Câu bạn dán vào ô chat` is short, device-free and specific,
+and no human has ever said it. Nothing in a word-counter can hear a sentence.
 
 It also cannot tell a device used on purpose from a device used by default. Every threshold here is a
 budget rather than a ban for that reason, and a writer who spends the budget knowingly has used the

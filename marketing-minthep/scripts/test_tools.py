@@ -9299,7 +9299,10 @@ class TitleTests(unittest.TestCase):
         self.assertIn("workshop-noun", rows)
         self.assertTrue(rows["workshop-noun"]["pass"])
         self.assertEqual(rows["workshop-noun"]["severity"], "budgeted")
-        self.assertEqual(check_title.blocking(list(rows.values())), [])
+        # `Mẫu brief.` does block now, on the floor added later - it is two syllables and states
+        # nothing. That is a different gate and its own test; what this one pins is that the device
+        # is not what blocks it.
+        self.assertNotIn("workshop-noun", check_title.blocking(list(rows.values())))
 
     def test_a_zero_budget_device_blocks_one_title(self) -> None:
         """And the converse, or the budget column would carry no weight in either direction. A
@@ -9325,6 +9328,44 @@ class TitleTests(unittest.TestCase):
                     check_title.measure_title(over, language, self.devices()))[0]
                 self.assertFalse(gate["pass"])
                 self.assertEqual(gate["severity"], "high")
+
+    def test_the_length_ceiling_has_a_floor_under_it(self) -> None:
+        """The ceiling above was read as a target by the first writer to use this script, who rewrote
+        twenty-four titles down toward nine words until every one was a section label. `Mẫu brief.`
+        and `Campaign system` cleared every other gate in the file - a label is short, device-free and
+        specific - which is the whole reason the floor had to be a gate of its own rather than advice
+        in a docstring. The failing side is severity high because a label is not a lesser title, it is
+        a different artefact."""
+        for language, label in (("vi", "Mẫu brief."), ("en", "Campaign system")):
+            with self.subTest(label=label):
+                rows = {row["gate"]: row for row in check_title.title_gates(
+                    check_title.measure_title(label, language, self.devices()))}
+                self.assertTrue(rows["one-idea-length"]["pass"], "the ceiling cannot see a label")
+                self.assertFalse(rows["states-a-claim"]["pass"])
+                self.assertEqual(rows["states-a-claim"]["severity"], "high")
+                self.assertIn("states-a-claim", check_title.blocking(list(rows.values())))
+        for language, title in (("vi", "Số nào lên báo cáo tháng"),
+                                ("en", "The same person in the next photo")):
+            with self.subTest(title=title):
+                rows = {row["gate"]: row for row in check_title.title_gates(
+                    check_title.measure_title(title, language, self.devices()))}
+                self.assertTrue(rows["states-a-claim"]["pass"])
+        self.assertGreater(check_title.TITLE_WORDS_MIN["vi"], check_title.TITLE_WORDS_MIN["en"])
+        for language in ("vi", "en"):
+            self.assertLess(check_title.TITLE_WORDS_MIN[language],
+                            check_title.TITLE_WORDS_MAX[language])
+
+    def test_the_landing_page_titles_clear_the_floor_they_taught(self) -> None:
+        """The floor was calibrated on this page and then the page was rewritten against it, so the
+        two have to be checked together or the calibration drifts silently. Both directions matter:
+        no heading may sit under the floor, and the set may not lean on one device."""
+        page = check_title.headings(
+            (REPO_ROOT / "docs" / "index.html").read_text(encoding="utf-8"))
+        readings = [check_title.measure_title(t, "vi", self.devices()) for t in page]
+        under = [r["title"] for r in readings if r["words"] < check_title.TITLE_WORDS_MIN["vi"]]
+        self.assertEqual(under, [], f"{len(under)} heading(s) are section labels, not titles")
+        self.assertEqual(check_title.blocking(
+            check_title.set_gates(readings, self.devices())), [])
 
     def test_the_clipped_threshold_catches_the_case_it_was_written_for(self) -> None:
         """`Không sao chép dấu vân tay` is six tokens and three words. A flat five
@@ -9369,10 +9410,11 @@ class TitleTests(unittest.TestCase):
         self.assertTrue(rows[0]["pass"])
 
     def test_a_clean_single_title_cannot_reach_exit_zero(self) -> None:
-        """Two judgements are not computable here: whether the title names a noun the reader owns,
-        and whether a metaphor was earned. Exit 3 rather than 0 is the declared refusal - a green
-        headline check is exactly the artefact somebody would wave instead of reading the title."""
-        self.assertEqual(len(check_title.JUDGEMENTS), 2)
+        """Three judgements are not computable here: whether the title names a noun the reader owns,
+        whether a metaphor was earned, and whether anybody would say the line out loud. Exit 3 rather
+        than 0 is the declared refusal - a green headline check is exactly the artefact somebody would
+        wave instead of reading the title."""
+        self.assertEqual(len(check_title.JUDGEMENTS), 3)
         with mock.patch.object(sys, "argv", ["check_title.py", "--title", self.CLEAN[0]]), \
                 contextlib.redirect_stdout(io.StringIO()) as out:
             code = check_title.main()
@@ -9406,12 +9448,16 @@ class TitleTests(unittest.TestCase):
                       (SKILL_ROOT / "references" / "copywriting.md").read_text(encoding="utf-8"))
 
     def test_the_reference_states_what_the_unit_cannot_decide(self) -> None:
-        """Both refusals are named in the prose as well as in the code, because the person who has to
-        make those two judgements reads the reference and never opens the script."""
+        """Every refusal is named in the prose as well as in the code, because the person who has to
+        make those judgements reads the reference and never opens the script. The third one arrived
+        after a reader called the rewritten titles `word by word`, so the reference also has to carry
+        why the ceiling was read as a target and what the floor does not catch."""
         text = (SKILL_ROOT / "references" / "title-writing.md").read_text(encoding="utf-8")
         self.assertIn("cannot decide", text)
         self.assertIn("noun the reader owns", text)
         self.assertIn("metaphor", text)
+        self.assertIn("out loud", text)
+        self.assertIn("ceiling", text)
         self.assertIn("Subject ellipsis is native", text)
 
     def test_the_title_devices_are_not_duplicated_into_the_prose_tables(self) -> None:
