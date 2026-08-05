@@ -536,37 +536,53 @@ def _gate_table(gate_rows: list[dict]) -> list[str]:
     return lines
 
 
+def _tell_section(tells: list[dict]) -> list[str]:
+    lines = ["", "## Translation and slop tells", ""]
+    if not tells:
+        lines.append("None of the tells in `data/translation-tells.csv` matched.")
+        return lines
+    lines += ["| Tell | Severity | Hits | Found | Fix |", "|---|---|---|---|---|"]
+    for row in tells:
+        if "error" in row:
+            lines.append(f"| {row['id']} | table error | - | {row['error']} | fix the CSV |")
+            continue
+        samples = "; ".join(sample.strip()[:40] for sample in row["samples"])
+        lines.append(f"| {row['id']} | {row['severity']} | {row['count']} | {samples} | {row['fix']} |")
+    return lines
+
+
+def _verdict_section(gate_rows: list[dict], tells: list[dict]) -> list[str]:
+    blocking = [row["gate"] for row in gate_rows if not row["pass"] and row["severity"] in ("critical", "high")]
+    blocking += [row["id"] for row in tells if row.get("severity") in ("critical", "high")]
+    return ["", "## Verdict", "",
+            "Blocking: " + (", ".join(blocking) if blocking else "none") + ".",
+            "" if blocking else "Cadence and tell gates pass. Truth, claims and rights are checked elsewhere.", ""]
+
+
 def report(stats: dict, gate_rows: list[dict], tells: list[dict], channel: str = DEFAULT_CHANNEL) -> str:
     lines = [f"# rewrite-human check — language {stats['language']}, channel {channel}", ""]
     if stats.get("insufficient"):
         # Cadence is unmeasurable here, the icon gates are not. Saying "nothing measurable" over a
         # tick-bulleted list would be the one wrong answer on the commonest bad draft there is.
-        lines += ["Fewer than two sentences of prose, so no cadence to measure. List shape and "
-                  "decoration still count.",
+        #
+        # The tells and the verdict print here too, and they did not until 2026-08-05. Before that
+        # this branch returned early, so on any input under two sentences - which is every headline,
+        # every button, every badge - a blocking tell set the exit code to 1 while the report said
+        # three decoration gates passed and nothing else. `Không chỉ là một tô bún, mà còn là cả một
+        # câu chuyện` was the case that found it: `khong-chi-ma-con` fired, the run failed, and the
+        # printed report named no reason. A gate that fails silently is worse than no gate, because
+        # the exit code gets ignored once the report stops explaining it.
+        lines += ["Fewer than two sentences of prose, so no cadence to measure. List shape, "
+                  "decoration and the tells still count.",
                   "", "## Structure and decoration gates", ""]
-        return "\n".join(lines + _gate_table(gate_rows) + [""])
+        lines += _gate_table(gate_rows) + _tell_section(tells) + _verdict_section(gate_rows, tells)
+        return "\n".join(lines)
 
     lines += [f"{stats['sentences']} sentences, {stats['total_units']} {stats['unit']}.", "",
               "## Cadence, structure and decoration gates", ""]
     lines += _gate_table(gate_rows)
-
-    lines += ["", "## Translation and slop tells", ""]
-    if not tells:
-        lines.append("None of the tells in `data/translation-tells.csv` matched.")
-    else:
-        lines += ["| Tell | Severity | Hits | Found | Fix |", "|---|---|---|---|---|"]
-        for row in tells:
-            if "error" in row:
-                lines.append(f"| {row['id']} | table error | - | {row['error']} | fix the CSV |")
-                continue
-            samples = "; ".join(sample.strip()[:40] for sample in row["samples"])
-            lines.append(f"| {row['id']} | {row['severity']} | {row['count']} | {samples} | {row['fix']} |")
-
-    blocking = [row["gate"] for row in gate_rows if not row["pass"] and row["severity"] in ("critical", "high")]
-    blocking += [row["id"] for row in tells if row.get("severity") in ("critical", "high")]
-    lines += ["", "## Verdict", "",
-              "Blocking: " + (", ".join(blocking) if blocking else "none") + ".",
-              "" if blocking else "Cadence and tell gates pass. Truth, claims and rights are checked elsewhere.", ""]
+    lines += _tell_section(tells)
+    lines += _verdict_section(gate_rows, tells)
     return "\n".join(lines)
 
 

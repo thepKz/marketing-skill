@@ -412,9 +412,9 @@ Kiểm tra bậc hai bắt cửa thoát: sau khi từ chối cái nhìn hiển n
 ```
 marketing-minthep/
   SKILL.md                  điểm vào và bộ định tuyến
-  references/               67 file chủ đề, mỗi file dưới 150 dòng
+  references/               68 file chủ đề, mỗi file dưới 150 dòng
     dossiers/               15 dossier craft chuyên sâu + index
-  data/                     36 bảng tra: image recipe, palette, layout dial,
+  data/                     37 bảng tra: image recipe, palette, layout dial,
                             slop tell, copy formula, translation tell và
                             ngôi xưng, reference axis, frame ratio,
                             composition grid, chỉ số KPI và trọng số, cổng
@@ -425,7 +425,7 @@ marketing-minthep/
                             thái lead, spec từng vị trí đăng, command
                             artifact, các vai marketer Việt Nam,
                             khổ poster và băng rôn
-  scripts/                  50 công cụ + bộ test
+  scripts/                  51 công cụ + bộ test
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json và khung deliverable

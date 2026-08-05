@@ -13,6 +13,14 @@ Build copy in this order:
 
 Write the clearest true version before creating stylistic variants.
 
+## Titles
+
+The title is not step seven of this list, and writing it last is what produces a title about the work
+instead of about the reader. `title-writing.md` owns it, with `data/title-devices.csv` and
+`scripts/check_title.py`. Run the check across the whole set of headings rather than one line at a
+time: the thing a reader registers as machine-written is repetition across a page, and that is
+invisible when you reread each title on its own.
+
 ## Copy contract
 
 Capture:

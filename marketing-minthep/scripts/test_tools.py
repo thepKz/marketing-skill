@@ -32,6 +32,7 @@ from compile_prompt import compile_provider
 import audit_seo_page
 import build_variance_report
 import check_address_register
+import check_title
 import check_channel_spec
 import check_claims
 import check_evidence_saturation
@@ -1518,6 +1519,7 @@ class DataTableTests(unittest.TestCase):
         "lead-states.csv": (9, 12),
         "channel-specs.csv": (24, 20),
         "poster-formats.csv": (20, 15),
+        "title-devices.csv": (21, 12),
     }
 
     # Most of these tables are keyed by their first column. The weights table is keyed by two, and
@@ -1541,8 +1543,22 @@ class DataTableTests(unittest.TestCase):
     # thirteen roles - answering the inbox, and covering sales - genuinely map to no command, because
     # they produce no artefact. That emptiness is the central finding of the unit, so writing "none"
     # into the cell to satisfy a completeness test would delete the finding to please the test.
+    # `pattern` in the titles table is empty on the rows whose detection is not a regex: two are
+    # structural - counting sentences, counting commas - and one is declared manual. A pattern there
+    # would misstate how the row is checked, and an empty regex is worse than no regex because it
+    # matches every title silently. The pairing is pinned by its own test below rather than trusted
+    # to this exemption.
     MAY_BE_EMPTY = {"command-artifacts.csv": {"also_uses", "also_satisfies"},
-                    "vn-marketer-roles.csv": {"commands"}}
+                    "vn-marketer-roles.csv": {"commands"},
+                    "title-devices.csv": {"pattern"}}
+
+    def test_the_title_pattern_column_is_empty_exactly_where_it_should_be(self) -> None:
+        for row in self.rows("title-devices.csv"):
+            has_pattern = bool(row["pattern"].strip())
+            self.assertEqual(
+                has_pattern, row["detect"] == "regex",
+                f"title-devices.csv: {row['id']} is detect={row['detect']} but "
+                f"{'carries' if has_pattern else 'lacks'} a pattern")
 
     def test_every_cell_is_filled(self) -> None:
         # An empty cell in a lookup table is not a blank, it is a silent omission: the composer
@@ -9221,6 +9237,235 @@ class PosterPlanTests(unittest.TestCase):
                 text = (SKILL_ROOT / path).read_text(encoding="utf-8")
                 self.assertIn("plan_poster.py", text)
         self.assertIn("poster-and-banner.md", (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8"))
+
+
+class TitleTests(unittest.TestCase):
+    """The gate for the one length band the other three copy gates exclude on purpose.
+
+    `rewrite_human.py` sets `SHORT_FORM_UNITS = 120` and stops measuring cadence below two
+    sentences. `check_specificity.py` sets `SPECIFIC_FLOOR_UNITS = 40` with the comment that below
+    it "the piece is a button, a headline or a badge". Each decision is right for the reason given,
+    and together they meant nothing in this skill had ever read a headline. Measured on the repo's
+    own titles on 2026-08-05: a textbook Vietnamese clickbait line - curiosity gap, imperative to a
+    stranger, colon deck and listicle number in twelve words - cleared all three gates at exit 0.
+
+    The defect the unit is really against is a property of a set rather than a line. HEAD's landing
+    page had nine of sixteen titles built from two clipped fragments, and every one of those titles
+    is defensible alone. What a reader hears as machine-written is the ninth repetition, which is
+    why the table carries a `budget_per_set` and why these tests spend more effort on `set_gates`
+    than on any individual pattern."""
+
+    CLEAN = ("Nồi nước dùng bắt đầu từ bốn giờ sáng",
+             "Bốn món trên bảng, không có món phụ",
+             "Rau lấy ở chợ Bà Chiểu mỗi sáng",
+             "Quán mở từ sáu giờ tới mười một giờ")
+
+    def devices(self) -> list[dict]:
+        return check_title.read_devices()
+
+    def test_the_self_check_passes(self) -> None:
+        """The script carries its own detector fixtures, and two of them failed on first run - the
+        Vietnamese clipped-fragment threshold and the general `X nhất` superlative. Running it here
+        means the CSV cannot be edited into a state where a pattern silently stops matching."""
+        text = check_title.self_check()
+        self.assertIn("0 failed", text, text)
+
+    def test_every_pattern_is_executed_rather_than_only_compiled(self) -> None:
+        """A regex that compiles and never matches is the failure mode of a table nobody ran. Each
+        regex row is fired against the shape column it documents, which is the only string in the
+        table written to be an example of the row."""
+        for row in self.devices():
+            if row["detect"] != "regex":
+                continue
+            with self.subTest(device=row["id"]):
+                self.assertTrue(re.compile(row["pattern"]).search(row["shape"]),
+                                f"{row['id']} does not match its own shape column")
+
+    def test_the_manual_row_is_never_reported_as_measured(self) -> None:
+        """`metaphor-unearned` needs the rest of the page. It stays in the table so the writer sees
+        it, and `devices_in` must skip it, or a clean run would claim a check it never made."""
+        manual = [row["id"] for row in self.devices() if row["detect"] == "manual"]
+        self.assertEqual(manual, ["metaphor-unearned"])
+        fired = {hit["id"] for hit in check_title.devices_in(
+            "Hành trình của một tô bún", "vi", self.devices())}
+        self.assertNotIn("metaphor-unearned", fired)
+
+    def test_a_budgeted_device_does_not_block_one_title(self) -> None:
+        """The first real run blocked `Mẫu brief.` on workshop-noun: one hit against a budget of
+        one, reported as a failure. If the table grants a device one use per set, the only place that
+        grant can be checked is the set. Getting this wrong is how a gate loses its reader."""
+        reading = check_title.measure_title("Mẫu brief.", "vi", self.devices())
+        rows = {row["gate"]: row for row in check_title.title_gates(reading)}
+        self.assertIn("workshop-noun", rows)
+        self.assertTrue(rows["workshop-noun"]["pass"])
+        self.assertEqual(rows["workshop-noun"]["severity"], "budgeted")
+        self.assertEqual(check_title.blocking(list(rows.values())), [])
+
+    def test_a_zero_budget_device_blocks_one_title(self) -> None:
+        """And the converse, or the budget column would carry no weight in either direction. A
+        curiosity gap has budget 0, so a single one is enough."""
+        reading = check_title.measure_title(
+            "Bí mật của một tô bún ngon", "vi", self.devices())
+        self.assertIn("curiosity-gap-vi", check_title.blocking(check_title.title_gates(reading)))
+
+    def test_the_length_limit_is_measured_in_the_unit_it_counts(self) -> None:
+        """`copy-formulas.csv` says under nine words. This script counts whitespace tokens, and a
+        Vietnamese token is a syllable. Applying nine to both would hold Vietnamese to two thirds of
+        the length the formula grants, which is not the formula being stricter - it is the formula
+        being mismeasured."""
+        self.assertGreater(check_title.TITLE_WORDS_MAX["vi"], check_title.TITLE_WORDS_MAX["en"])
+        self.assertEqual(check_title.TITLE_WORDS_MAX["en"], 9)
+        for language in ("vi", "en"):
+            with self.subTest(language=language):
+                at = " ".join(["từ"] * check_title.TITLE_WORDS_MAX[language])
+                over = " ".join(["từ"] * (check_title.TITLE_WORDS_HARD[language] + 1))
+                self.assertTrue(check_title.title_gates(
+                    check_title.measure_title(at, language, self.devices()))[0]["pass"])
+                gate = check_title.title_gates(
+                    check_title.measure_title(over, language, self.devices()))[0]
+                self.assertFalse(gate["pass"])
+                self.assertEqual(gate["severity"], "high")
+
+    def test_the_clipped_threshold_catches_the_case_it_was_written_for(self) -> None:
+        """`Không sao chép dấu vân tay` is six tokens and three words. A flat five
+        caught the English shape and missed the exact Vietnamese title the row exists for, which is
+        how this number came to be measured rather than guessed."""
+        hit = check_title.structural_hit(
+            "clipped-parallel",
+            "Lấy cấu trúc. Không sao chép dấu vân tay.", "vi")
+        self.assertTrue(hit, "the Vietnamese clipped-parallel case must fire")
+        self.assertGreater(check_title.CLIPPED_SENTENCE_WORDS["vi"],
+                           check_title.CLIPPED_SENTENCE_WORDS["en"])
+
+    def test_a_clean_set_passes_every_set_gate(self) -> None:
+        """A gate nothing can satisfy gets switched off, so the satisfying case is pinned as hard as
+        the failing one. These four titles carry facts and no listed device."""
+        readings = [check_title.measure_title(t, "vi", self.devices()) for t in self.CLEAN]
+        self.assertEqual(check_title.blocking(check_title.set_gates(readings, self.devices())), [])
+        for reading in readings:
+            with self.subTest(title=reading["title"]):
+                self.assertEqual(reading["devices"], [])
+
+    def test_one_device_across_a_whole_set_fails_on_repetition(self) -> None:
+        """The measurement no per-line checker can make. Four titles, each individually defensible,
+        every one built the same way. The arithmetic is checkable by hand: 4/4 and 0/4."""
+        same = ["Lấy cấu trúc. Không sao chép dấu vân tay.",
+                "Makeup đổi bề mặt. Không đổi con người.",
+                "Đo ảnh trước. Không đoán màu sau.",
+                "Bán tới khi hết nồi. Không hết giờ."]
+        readings = [check_title.measure_title(t, "vi", self.devices()) for t in same]
+        rows = {row["gate"]: row for row in check_title.set_gates(readings, self.devices())}
+        self.assertEqual(rows["device-concentration"]["observed"].split()[0], "1.00")
+        self.assertFalse(rows["device-concentration"]["pass"])
+        self.assertFalse(rows["device-free-share"]["pass"])
+        self.assertIn("budget:contrastive-negation", rows)
+
+    def test_the_set_gates_stand_down_below_three_titles(self) -> None:
+        """A concentration ratio with a denominator of two is theatre. Saying so is the honest
+        output; printing 0.50 against a 0.25 threshold would fail a pair of titles for existing."""
+        readings = [check_title.measure_title(t, "vi", self.devices()) for t in self.CLEAN[:2]]
+        rows = check_title.set_gates(readings, self.devices())
+        self.assertEqual([row["gate"] for row in rows], ["set-size"])
+        self.assertTrue(rows[0]["pass"])
+
+    def test_a_clean_single_title_cannot_reach_exit_zero(self) -> None:
+        """Two judgements are not computable here: whether the title names a noun the reader owns,
+        and whether a metaphor was earned. Exit 3 rather than 0 is the declared refusal - a green
+        headline check is exactly the artefact somebody would wave instead of reading the title."""
+        self.assertEqual(len(check_title.JUDGEMENTS), 2)
+        with mock.patch.object(sys, "argv", ["check_title.py", "--title", self.CLEAN[0]]), \
+                contextlib.redirect_stdout(io.StringIO()) as out:
+            code = check_title.main()
+        self.assertEqual(code, 3)
+        for name, _ in check_title.JUDGEMENTS:
+            self.assertIn(name, out.getvalue())
+
+    def test_headings_come_off_a_real_page(self) -> None:
+        """The set the repetition gates are about is what a visitor scans, which is h1 to h3 in
+        reading order. Entities and nested tags are both in the repo's own page."""
+        got = check_title.headings(
+            "<h1>A &amp; <em>B</em></h1><h2 class='x'>C</h2><h3>D</h3><h4>skip</h4>")
+        self.assertEqual(got, ["A & B", "C", "D"])
+        page = check_title.headings((REPO_ROOT / "docs" / "index.html").read_text(encoding="utf-8"))
+        self.assertGreaterEqual(len(page), check_title.SET_MIN)
+
+    def test_the_unit_is_reachable_from_the_router_and_the_commands(self) -> None:
+        """A reference nothing names is a file, not a unit. Titles get no command of their own - they
+        belong to `write` and `humanise` - so the wiring is the only thing that makes the instrument
+        findable by someone who did not read this test."""
+        router = (SKILL_ROOT / "references" / "marketing-system-router.md").read_text(encoding="utf-8")
+        self.assertIn("title-writing.md", router)
+        self.assertIn("check_title.py", router)
+        rows = {row["command"]: row for row in csv.DictReader(io.StringIO(
+            (SKILL_ROOT / "data" / "command-artifacts.csv").read_text(encoding="utf-8")))}
+        for command in ("write", "humanise"):
+            with self.subTest(command=command):
+                self.assertIn("title-writing.md", rows[command]["machinery"])
+                self.assertIn("check_title.py", rows[command]["machinery"])
+        self.assertIn("title-writing.md",
+                      (SKILL_ROOT / "references" / "copywriting.md").read_text(encoding="utf-8"))
+
+    def test_the_reference_states_what_the_unit_cannot_decide(self) -> None:
+        """Both refusals are named in the prose as well as in the code, because the person who has to
+        make those two judgements reads the reference and never opens the script."""
+        text = (SKILL_ROOT / "references" / "title-writing.md").read_text(encoding="utf-8")
+        self.assertIn("cannot decide", text)
+        self.assertIn("noun the reader owns", text)
+        self.assertIn("metaphor", text)
+        self.assertIn("Subject ellipsis is native", text)
+
+    def test_the_title_devices_are_not_duplicated_into_the_prose_tables(self) -> None:
+        """One defect with two owners is a defect that gets half-fixed twice. `khong-chi-ma-con`
+        stays in `translation-tells.csv` and fires through `rewrite_human.py`; the title table must
+        not carry a second copy of it."""
+        ids = {row["id"] for row in self.devices()}
+        self.assertNotIn("khong-chi-ma-con", ids)
+        self.assertNotIn("not-just-but", ids)
+
+
+class RewriteHumanShortFormTests(unittest.TestCase):
+    """A regression pin on the branch every headline lands in.
+
+    Until 2026-08-05 `rewrite_human.report` returned early inside the `insufficient` branch, before
+    the tells section and before the verdict, while `main` still failed on a blocking tell. So on any
+    input under two sentences - every headline, every button, every badge - a blocking tell set exit 1
+    while the printed report showed three passing decoration gates and named no reason. It was found
+    by running three deliberately AI-shaped titles rather than by trusting the exit code.
+
+    A gate that fails without explaining stops being read, and then its exit code stops being read
+    too. That is why this is pinned separately rather than folded into the cadence tests."""
+
+    TELL = ("Không chỉ là một tô bún, mà còn là "
+            "cả một câu chuyện")
+
+    def build(self) -> str:
+        stats = rewrite_human.measure(self.TELL, "vi")
+        self.assertTrue(stats["insufficient"], "the fixture must land in the short-form branch")
+        return rewrite_human.report(stats, rewrite_human.gates(stats),
+                                   rewrite_human.find_tells(self.TELL, "vi"))
+
+    def test_a_blocking_tell_on_short_input_is_named_in_the_report(self) -> None:
+        text = self.build()
+        self.assertIn("khong-chi-ma-con", text)
+        self.assertIn("## Verdict", text)
+        self.assertIn("Blocking: khong-chi-ma-con", text)
+
+    def test_the_short_form_branch_still_says_why_cadence_is_unmeasured(self) -> None:
+        """The honest half of the old behaviour has to survive the fix. Printing cadence numbers over
+        two fragments would be worse than printing none."""
+        text = self.build()
+        self.assertIn("no cadence to measure", text)
+        self.assertNotIn("burstiness", text)
+
+    def test_a_clean_short_title_says_no_tell_matched_rather_than_nothing(self) -> None:
+        """Silence and a pass are different claims. The empty case has to print the sentence that
+        distinguishes them, or the section reads as missing rather than as clear."""
+        clean = "Nồi nước dùng bắt đầu từ bốn giờ sáng"
+        stats = rewrite_human.measure(clean, "vi")
+        text = rewrite_human.report(stats, rewrite_human.gates(stats),
+                                    rewrite_human.find_tells(clean, "vi"))
+        self.assertIn("None of the tells", text)
+        self.assertIn("Blocking: none", text)
 
 
 if __name__ == "__main__":

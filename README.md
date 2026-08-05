@@ -412,9 +412,9 @@ The second-order check catches the escape hatch: having rejected the obvious cat
 ```
 marketing-minthep/
   SKILL.md                  entry point and router
-  references/               67 topic files, each under 150 lines
+  references/               68 topic files, each under 150 lines
     dossiers/               15 deep-craft dossiers + index
-  data/                     36 lookup tables: image recipes, palettes, layout
+  data/                     37 lookup tables: image recipes, palettes, layout
                             dials, slop tells, copy formulas, translation and
                             address-register tells, reference axes, frame
                             ratios, composition grids, KPI metrics and aspect
@@ -425,7 +425,7 @@ marketing-minthep/
                             duties, lead states, channel specs, command
                             artifacts, VN marketer roles,
                             poster and banner formats
-  scripts/                  50 tools + test suite
+  scripts/                  51 tools + test suite
   assets/
     registries/             pipelines.json, asset-formats.json
     templates/              project-brief.json and deliverable skeletons

@@ -27,7 +27,8 @@
         "vietnam-operating-reality.md",
         "product-category-playbooks.md",
         "menu-engineering.md",
-        "menu-design.md"
+        "menu-design.md",
+        "title-writing.md"
       ],
       "scripts": [
         "start_workbench.py",
@@ -47,6 +48,7 @@
         "score_kpi.py",
         "plan_composition_set.py",
         "render_refsheet.py",
+        "check_title.py",
         "run_status.py"
       ],
       "deliverables": [
@@ -2356,7 +2358,8 @@
         "seo-writing.md",
         "brand-dna.md",
         "anti-ai-quality.md",
-        "claims-proof-ledger.md"
+        "claims-proof-ledger.md",
+        "title-writing.md"
       ],
       "scripts": [
         "rewrite_human.py",
@@ -2365,6 +2368,7 @@
         "check_address_register.py",
         "check_claims.py",
         "audit_seo_page.py",
+        "check_title.py",
         "run_status.py"
       ],
       "deliverables": [

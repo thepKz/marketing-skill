@@ -33,9 +33,9 @@ different containers, and that split is the whole architecture.
 |---|---|---|---|---|
 | Entry point | `SKILL.md`: routing, ten core rules, intake, the run loop. No craft values | under a 210-line ceiling | It absorbs the manual. Every new unit wants four lines here | A line budget with a ceiling *and* a floor, and a written reason beside every raise |
 | Contract | `assets/registries/pipelines.json`: per pipeline, the references, scripts and deliverables it owes | 9 pipelines | A deliverable names a script the pipeline never loads, or one nobody shipped | Every `run:` line is checked against its own pipeline's script list |
-| Prose | `references/`, each under 150 lines, with `references/dossiers/` for depth | 67 + 15 | A reference nothing routes to. Knowledge that never loads reads as depth and ships as nothing | Every reference must be named by the entry point, the router, or the registry |
-| Rows | `data/`: craft values, legal articles, vendor capabilities, one row per decision | 36 lookup tables | The table drifts from the script that reads it, or arrives undeclared | Each table's row and column count is declared in the suite; an undeclared CSV fails |
-| Instruments | `scripts/`: arithmetic and gates, each returning a verdict rather than an opinion | 50 tools | It returns advice. Advice cannot be wrong, so it cannot be fixed | `--self-check` on every tool that computes, verified against known inputs |
+| Prose | `references/`, each under 150 lines, with `references/dossiers/` for depth | 68 + 15 | A reference nothing routes to. Knowledge that never loads reads as depth and ships as nothing | Every reference must be named by the entry point, the router, or the registry |
+| Rows | `data/`: craft values, legal articles, vendor capabilities, one row per decision | 37 lookup tables | The table drifts from the script that reads it, or arrives undeclared | Each table's row and column count is declared in the suite; an undeclared CSV fails |
+| Instruments | `scripts/`: arithmetic and gates, each returning a verdict rather than an opinion | 51 tools | It returns advice. Advice cannot be wrong, so it cannot be fixed | `--self-check` on every tool that computes, verified against known inputs |
 | Gates | The anti-slop layer, the claim and rights checks, `run_status.py --strict` | 3 text instruments + 1 image track | A pass earned by nobody looking | A blank answer fails its gate instead of passing it |
 
 ## The rule that produced all of it
@@ -51,7 +51,7 @@ That is why the tables have columns most reference data does not:
 
 | Column | On | What it is for |
 |---|---|---|
-| `source` / `source_url` / `retrieved` | 21 of 36 tables | The page and the day somebody read it. A spec with no retrieval date is a spec with no expiry |
+| `source` / `source_url` / `retrieved` | 21 of 37 tables | The page and the day somebody read it. A spec with no retrieval date is a spec with no expiry |
 | `evidence_grade` | 12 tables carry a grade | Whether the row is vendor-published, peer-reviewed, or this repo's own house rule. House rules say so |
 | `what_it_does_not_establish` | 12 tables carry a limit | The load-bearing one. A benchmark quoted without its limits is how a plan acquires a number nobody can defend |
 
