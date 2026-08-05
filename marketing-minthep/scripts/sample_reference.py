@@ -81,7 +81,7 @@ ARC_WIDTH = 30
 # a maximum is the least stable statistic there is: it moves with the sampling stride. So the edge
 # was not invented, it was measured. Across the three food references in this repository at strides
 # 1, 2, 4, 6, 8 and 12, the maximum chroma moved by 1.098x, 1.018x and 1.068x, while the 98th
-# percentile moved by 1.009x, 1.001x and 1.009x. `test_tools.py` re-measures those spreads.
+# percentile moved by 1.009x, 1.001x and 1.009x. Re-run this calibration before changing the gate.
 #
 # An accent therefore fails only when it clears the peak by more than the stride alone can move it,
 # and a smaller margin is returned for review rather than judged. Three photographs is a small

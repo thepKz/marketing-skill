@@ -68,7 +68,7 @@ hook, proof, offer, CTA, and variant parent.
 
 Then check the export before it goes anywhere near the upload flow. `channel-spec-registry.md`
 explains the three states a vendor page can be in and why an unpublished figure is not a pass;
-`data/channel-specs.csv` holds the 24 placements with the URL and date each number came off.
+`data/channel-specs.csv` holds the current placement registry with the URL and retrieval date for every published limit. Count the rows at runtime; do not hardcode a total that will drift when a platform is added.
 
 ```
 python scripts/check_channel_spec.py --survey --width 1080 --height 1920 \

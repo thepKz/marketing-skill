@@ -152,9 +152,8 @@ separation a defect. It called an off-white the same hue family as lime on the s
 error. It ruled on a use it could not see. It failed a pair by 0.0004 against a threshold it had
 invented. Ten of the twenty shipped palettes came back broken, and not one of the ten was.
 
-Four tests in `test_tools.py` exist because of those four bugs, which is the more general lesson: a
-gate that fires on a correct palette is worse than no gate, because it teaches the user to skip the
-output.
+Those four bugs are recorded because a gate that fires on a correct palette is worse than no gate:
+it teaches the user to skip the output. Re-run the calibration cases before changing a threshold.
 
 ## Measuring the photograph before choosing the palette
 
@@ -237,8 +236,8 @@ is what remains of a rounding error.
 The floor is where quantisation stops deciding the answer. At chroma 0.03 the 90th-percentile swing
 is 3.3 degrees, so two colours wobbling in opposite directions move 6.6 degrees inside a 30-degree
 window: 22 percent. At 0.02 the same figure is 33 percent, which is too much of the answer. The
-derivation is a comment in `plan_palette.py`, and `test_tools.py` re-runs the sweep and checks the
-comment against it rather than trusting it.
+derivation is a comment in `plan_palette.py`; re-run the sweep and compare it with the comment rather
+than trusting a remembered value.
 
 ## Ramps: arc length is not chord distance
 

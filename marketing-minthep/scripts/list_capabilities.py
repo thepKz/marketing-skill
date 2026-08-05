@@ -85,7 +85,7 @@ def _first_docstring_line(path: Path) -> str:
 def _load_scripts() -> list[dict]:
     result = []
     for path in sorted((ROOT / "scripts").glob("*.py")):
-        if path.name.startswith("_") or path.name == "test_tools.py":
+        if path.name.startswith("_"):
             continue
         result.append({"file": path.name, "summary": _first_docstring_line(path)})
     return result

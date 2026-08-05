@@ -210,13 +210,10 @@ is the same discipline `market-data-collection.md` applies to published numbers,
 claim whose origin nobody recorded cannot be re-checked, and six months later that is the same as a
 claim nobody made.
 
-## Reading the shipped example
+## Reading a small-study result
 
-`assets/examples/customer-evidence-coded.csv` is a real-shaped study: a small Vietnamese serum brand
-asking why first-time buyers do not come back. Eighteen respondents, five sources, sixty-one coded
-rows.
-
-    python scripts/check_evidence_saturation.py --check assets/examples/customer-evidence-coded.csv
+Consider a small Vietnamese serum study asking why first-time buyers do not come back: eighteen
+respondents, five sources, sixty-one coded rows.
 
 It lands on `review`, which is what an honest study looks like. The theme list is closed - the last new
 theme arrived at respondent twelve, and the final three taught nothing. And not one of its eleven

@@ -27,7 +27,7 @@ Spaces used, and why each one is here:
   100%, and in OKLCH they sit at lightness 0.968 and 0.452, which is half the scale apart.
   Against white the yellow contrasts at 1.07:1 and the blue at 8.59:1. So a "harmony" built
   on equal HSV value produces a palette whose members are nowhere near equally light, and one
-  of them cannot be seen. `test_tools.py` re-measures these four numbers.
+  of them cannot be seen. The derivation below records the four numbers for review.
 
 What this script cannot tell you: whether the palette suits the brand, whether the category
 already owns it, whether a colour carries a meaning in the market you are selling into, and
@@ -97,8 +97,7 @@ SAME_HUE_DEGREES = 30.0
 # window - under a quarter of it. 0.03 gives 6.6 degrees of 30, which is 22 percent; 0.02 gives
 # 10.0, which is 33 percent and too much of the answer. Sampling every third value instead of every
 # fifth moves no p90 in this table by more than 0.1 degrees except in the C 0.00 bucket, where the
-# sample is small. `test_tools.py` re-runs the sweep and checks these numbers rather than trusting
-# the table above.
+# sample is small. Re-run the sweep before changing this threshold rather than trusting the table above.
 HUE_NEEDS_CHROMA = 0.03
 # VIBRATION: near-equal lightness plus high chroma plus far-apart hue produces an edge the eye
 # cannot settle on. All three conditions must hold; any one alone is harmless. The effect
@@ -513,7 +512,7 @@ def build_ramp(seed: str, steps: int) -> list[dict]:
 
     So the path is sampled densely, cut at equal fractions of its measured arc length, and then
     relaxed until adjacent swatches sit as close to equidistant as the path permits. Measured over
-    the ten seeds `test_tools.py` holds, at nine steps, the worst step falls from up to 35.1 percent
+    ten recorded calibration seeds, at nine steps, the worst step falls from up to 35.1 percent
     off the mean under linear lightness to 5.5 percent, and every one of the ten improves. `evenness`
     still reports the residual, because on some hues the path genuinely cannot hold the number of
     steps asked for: at twelve steps the worst case is 17.9 percent and the gate fails, which is more

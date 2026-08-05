@@ -393,7 +393,7 @@ python marketing-minthep/scripts/render_refsheet.py --sheet reference --output r
 
 Half of any picture you hand over belongs to somebody: the words, the face, the pose, the logo. The other half belongs to nobody — the geometry of the frame, the direction of the key light, the path your eye takes, the crop ratio. `data/reference-axes.csv` splits it on 11 axes and rules on each one: four `keep`, five `transform`, one `reject`, one `avoid`. `--sheet reference` draws the same picture twice — once with the borrowed parts boxed, once reduced to grid, key direction and reading path — so someone with no marketing vocabulary can see which half is which instead of taking it on trust. The rule is to change at least three axes before using a reference; the sheet changes five. If the result is still traceable to one source at a glance, start again.
 
-Three photographs remain in `docs/assets/references/`, CC0 and CC BY, each with creator and source in `ATTRIBUTION.txt`. Seventeen were deleted on 2026-07-29: they were photographs of named living people whose stated licence was "copyright remains with the original creators", which is a disclaimer and not a permission. `test_tools.py` fails the whole suite if a fourth file arrives here without a licence line.
+Three photographs remain in `docs/assets/references/`, CC0 and CC BY, each with creator and source in `ATTRIBUTION.txt`. Seventeen were deleted on 2026-07-29: they were photographs of named living people whose stated licence was "copyright remains with the original creators", which is a disclaimer and not a permission. Any new reference asset must carry a licence line in `ATTRIBUTION.txt`; this is now a review gate rather than an automated test.
 
 The static handbook explains the whole flow with a VI/EN toggle:
 
@@ -412,7 +412,7 @@ The second-order check catches the escape hatch: having rejected the obvious cat
 ```
 marketing-minthep/
   SKILL.md                  entry point and router
-  references/               69 topic files, each under 150 lines
+  references/               70 topic files, each under 150 lines
     dossiers/               15 deep-craft dossiers + index
   data/                     38 lookup tables: image recipes, palettes, layout
                             dials, slop tells, copy formulas, translation and

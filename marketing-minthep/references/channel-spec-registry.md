@@ -4,18 +4,18 @@ One shoot, exported once, posted everywhere. That is how almost every small-busi
 
 This unit is that set of numbers, read off the vendor pages rather than remembered, plus a script that compares a finished file against them.
 
-- `data/channel-specs.csv` — 24 placements across Meta, TikTok, Google Ads, YouTube and Google Merchant, each row stamped with the URL it came off and the date somebody read it.
-- `scripts/check_channel_spec.py` — one asset against one placement, or against all 24 at once.
+- `data/channel-specs.csv` — 28 placements across Meta, LinkedIn, TikTok, Google Ads, YouTube and Google Merchant, each row stamped with the URL it came off and the date somebody read it.
+- `scripts/check_channel_spec.py` — one asset against one placement, or against every registered placement at once.
 
 ## What the earlier version of this file got wrong
 
 It said things like "commonly recommends 2:3", "guidance includes 1200x627", "video supports multiple ratios". Read that back and you can hear what it was: a memory of specs, dressed as a citation. Every hedge in it marked a number nobody had actually looked up, and hedged numbers are worse than no numbers, because they get used.
 
-It also carried Pinterest, LinkedIn and Amazon. A com tam shop in Bình Thạnh does not advertise on LinkedIn. Those three were in there because ad-spec listicles always list them, which is a reason to be suspicious of a list rather than a reason to keep one.
+It also carried Pinterest, LinkedIn and Amazon, then removed all three with the argument that a small local shop does not advertise on LinkedIn. Pinterest and Amazon remain out of scope until a real route needs them. LinkedIn is back because the skill now serves founders, B2B work, agencies and professional services as well as local commerce; removing a channel from a general marketing system because one example business would not use it was a routing error.
 
 ## Three states, and why an empty cell is not one of them
 
-Reading twenty-eight vendor pages in one sitting turns up something the hedged version had no way to express. A page can tell you three different things about a limit, and they are not interchangeable:
+Reading vendor pages in one sitting turns up something the hedged version had no way to express. A page can tell you three different things about a limit, and they are not interchangeable:
 
 A **number**. Facebook Feed video caps at 4GB. That is a requirement; break it and the upload is refused.
 
@@ -60,11 +60,9 @@ python scripts/check_channel_spec.py --survey \
   --width 1080 --height 1920 --duration 22 --file-size 30MB --format mp4
 ```
 
-Seven placements take that cut as it is. Seventeen will not, and the seventeen are the more useful
-half: five are still surfaces refusing an mp4 on format alone, four YouTube surfaces want 16:9, two
-Google Display formats stop at 150KB and 600KB where no video of any length fits, and Facebook Feed
-documents 4:5 for both its image and its video. Read the list as a posting schedule rather than as a
-score. Also useful:
+Read the resulting pass, fail and review groups as a posting schedule rather than as a score. A new
+platform row changes the counts without changing the decision logic, which is why this reference no
+longer hardcodes a survey total. Also useful:
 
 - `--list-placements` — every key with its ratio, its floors, its ceilings and the date somebody last read the page it came from.
 - `--show KEY` — one row in full, caveat included.

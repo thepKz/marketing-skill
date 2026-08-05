@@ -11,11 +11,35 @@ const titleOverrides = {
   'minthep-serum-packshot': 'Serum packshot',
   'minthep-beauty-campaign': 'Beauty campaign',
   'minthep-serum-key-visual': 'Amber key visual',
+  'minthep-serum-material-study-v2': 'Serum material study',
+  'minthep-serum-shadow-study-v2': 'Serum shadow study',
+  'minthep-serum-lab-detail-v2': 'Serum PDP detail',
+  'minthep-serum-ritual-v2': 'Serum ritual campaign',
+  'minthep-serum-commerce-pair-v3': 'Serum commerce pair',
+  'minthep-serum-carry-ritual-v3': 'Serum carry ritual',
+  'minthep-serum-formula-macro-v3': 'Serum formula macro',
+  'minthep-serum-window-shelf-v3': 'Serum window banner',
+  'minthep-serum-campaign-wide-v4': 'Serum campaign master',
+  'minthep-serum-retail-counter-v4': 'Serum retail counter',
+  'minthep-serum-editorial-print-v4': 'Serum editorial print',
+  'minthep-serum-unboxing-v4': 'Serum unboxing',
+  'minthep-coffee-roastery-wide-v1': 'Coffee roastery campaign',
+  'minthep-coffee-roast-date-detail-v1': 'Coffee roast-date proof',
+  'minthep-coffee-local-delivery-v1': 'Coffee local delivery',
+  'minthep-coffee-sample-tasting-v1': 'Coffee sample tasting',
   'minthep-fashion-look': 'Fashion look',
-  'bun-bo-documentary-table': 'Documentary food table',
-  'bun-bo-isolated-hero': 'Isolated food hero',
-  'bun-bo-photoreal-menu-hero': 'Photoreal menu hero',
-  'bun-bo-multi-food-reference-board': 'Four-dish reference board',
+  'menu-atlas-street-grill': 'Street grill menu system',
+  'menu-atlas-cafe-bakery': 'Cafe and bakery menu system',
+  'menu-atlas-family-table': 'Family table menu system',
+  'menu-atlas-fine-dining': 'Tasting menu system',
+  'menu-atlas-cocktail-bar': 'Cocktail bar menu system',
+  'menu-atlas-tea-dessert': 'Tea and dessert menu system',
+  'menu-atlas-food-court-board': 'Food-court menu board system',
+  'menu-atlas-delivery-mobile': 'Delivery mobile menu system',
+  'menu-atlas-hotel-breakfast': 'Hotel breakfast menu system',
+  'minthep-poster-material-study-v2': 'Material study poster',
+  'minthep-poster-magazine-v3': 'Magazine poster system',
+  'minthep-poster-surface-v1': 'Poster surface canvas',
   'refsheet-dial-margin': 'Margin dial sheet',
   'refsheet-frames': 'Placement frame sheet',
   'refsheet-lighting': 'Lighting setup sheet',
@@ -63,7 +87,6 @@ function statusFor(stem) {
 function titleFor(stem) {
   if (titleOverrides[stem]) return titleOverrides[stem];
   return stem
-    .replace(/^bun-bo-/, '')
     .replace(/^minthep-/, '')
     .split('-')
     .map((word) => word === 'ai' ? 'AI' : word === 'v1' || word === 'v2' || word === 'v3' || word === 'v4' ? word.toUpperCase() : word)
@@ -73,18 +96,18 @@ function titleFor(stem) {
 
 function selectedRank(stem) {
   const selected = [
-    'minthep-beauty-campaign',
-    'minthep-serum-packshot',
-    'minthep-serum-key-visual',
-    'minthep-fashion-look',
-    'bun-bo-documentary-table',
-    'refsheet-reference',
+    'minthep-serum-campaign-wide-v4',
+    'minthep-coffee-roastery-wide-v1',
   ];
   const index = selected.indexOf(stem);
   return index === -1 ? 100 : index;
 }
 
-const files = (await readdir(generatedDir)).filter((file) => extensions.has(path.extname(file).toLowerCase()));
+const files = (await readdir(generatedDir)).filter((file) => {
+  const extension = path.extname(file).toLowerCase();
+  const stem = path.basename(file, extension);
+  return extensions.has(extension) && !stem.startsWith('bun-bo-');
+});
 const assets = await Promise.all(files.map(async (file) => {
   const extension = path.extname(file).toLowerCase();
   const stem = path.basename(file, extension);

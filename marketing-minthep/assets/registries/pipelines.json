@@ -1486,6 +1486,7 @@
         "creative-tool-interfaces.md",
         "production-pipeline.md",
         "channel-spec-registry.md",
+        "channel-composition-systems.md",
         "poster-and-banner.md"
       ],
       "scripts": [
@@ -1802,6 +1803,7 @@
         "prompt-contracts.md",
         "production-pipeline.md",
         "channel-spec-registry.md",
+        "channel-composition-systems.md",
         "rights-and-claims.md"
       ],
       "scripts": [

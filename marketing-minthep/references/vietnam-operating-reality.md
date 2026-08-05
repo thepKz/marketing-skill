@@ -218,10 +218,9 @@ conversation. Ask the marketer for last week. If every item lands in a row, the 
 does not, add the row. A statistic could not be checked that way, and a fabricated statistic would
 have been quoted back with more confidence than it deserved.
 
-The arithmetic is a different matter and is tested rather than trusted. The role count, the column
-count, the 29-of-29 command coverage, the two empty-command rows, the setup figures and the four
-verdicts are all re-derived in `scripts/test_tools.py`, because prose in this repository has drifted
-from measurement before.
+The arithmetic is a different matter and must be re-derived rather than trusted. Re-run the role
+count, column count, 29-of-29 command coverage, two empty-command rows, setup figures, and four
+verdicts before changing the prose, because this repository has drifted from measurement before.
 
 ## Refusals
 

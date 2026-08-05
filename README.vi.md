@@ -393,7 +393,7 @@ python marketing-minthep/scripts/render_refsheet.py --sheet reference --output r
 
 Một nửa tấm ảnh bạn vừa đưa là của người khác: chữ, mặt, dáng, logo. Nửa còn lại không của ai — hình học khung, hướng sáng, đường mắt đi, tỉ lệ crop. `data/reference-axes.csv` chia ra 11 trục và phán quyết từng trục: bốn `keep`, năm `transform`, một `reject`, một `avoid`. `--sheet reference` vẽ cùng một tấm ảnh hai lần — một lần khoanh những phần thuộc về người khác, một lần chỉ còn lưới, hướng sáng và đường mắt đi — nên người không làm marketing vẫn thấy được nửa nào là nửa nào thay vì phải tin. Luật là đổi ít nhất ba trục trước khi dùng một reference; bảng này đổi năm. Nếu kết quả vẫn truy được về một nguồn ngay từ cái nhìn đầu, làm lại.
 
-Còn ba ảnh trong `docs/assets/references/`, giấy phép CC0 và CC BY, kèm tác giả và nguồn trong `ATTRIBUTION.txt`. Mười bảy ảnh đã bị xóa ngày 2026-07-29: đó là ảnh chụp người thật có tên, và giấy phép ghi "bản quyền vẫn thuộc tác giả gốc" — một lời phủ nhận, không phải một sự cho phép. `test_tools.py` làm hỏng cả bộ test nếu có ảnh thứ tư vào đây mà không có dòng giấy phép.
+Còn ba ảnh trong `docs/assets/references/`, giấy phép CC0 và CC BY, kèm tác giả và nguồn trong `ATTRIBUTION.txt`. Mười bảy ảnh đã bị xóa ngày 2026-07-29: đó là ảnh chụp người thật có tên, và giấy phép ghi "bản quyền vẫn thuộc tác giả gốc" — một lời phủ nhận, không phải một sự cho phép. Mọi reference mới phải có dòng giấy phép trong `ATTRIBUTION.txt`; đây là cổng review thủ công thay vì test tự động.
 
 Handbook tĩnh giải thích toàn bộ flow, có nút chuyển VI/EN:
 
@@ -412,7 +412,7 @@ Kiểm tra bậc hai bắt cửa thoát: sau khi từ chối cái nhìn hiển n
 ```
 marketing-minthep/
   SKILL.md                  điểm vào và bộ định tuyến
-  references/               69 file chủ đề, mỗi file dưới 150 dòng
+  references/               70 file chủ đề, mỗi file dưới 150 dòng
     dossiers/               15 dossier craft chuyên sâu + index
   data/                     38 bảng tra: image recipe, palette, layout dial,
                             slop tell, copy formula, translation tell và

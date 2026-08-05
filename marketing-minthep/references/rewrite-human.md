@@ -40,10 +40,6 @@ Claims, numbers, prices, and offers must match exactly. Rhythm, sentence count, 
 8. **In Vietnamese, check the register.** `python scripts/check_address_register.py --check draft.md --channel social`. Do it after the cadence work, because splitting and merging sentences is where an address form gets dropped or a second one gets introduced. [address-register.md](address-register.md) explains the verdicts.
 9. **Gate.** `scripts/rewrite_human.py` exits non-zero while any critical or high gate fails. Do not ship past it, and do not lower the target to pass.
 
-`assets/examples/rewrite-human/` runs this procedure on one draft: the failing original, the
-Vietnamese rewrite, and the English built from the same facts. Read it before your first rewrite;
-the numbers in its README are the ones the script actually prints.
-
 ## Decoration: the emoji is not the defect
 
 A rocket opening every bullet is the single most recognisable sign that nobody edited the output. But the defect is not the pictograph. It is that the pictograph arrived in a slot nobody chose.

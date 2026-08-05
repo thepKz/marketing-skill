@@ -87,6 +87,22 @@ jobs:
           test ! -e docs/assets/references/winter-mirror-makeup.jpg
           test ! -e docs/assets/references/karina-fullbody-negative-space.jpg
           test -f docs/assets/generated/minthep-serum-packshot.png
+          test -f docs/assets/generated/minthep-serum-ritual-v2.png
+          test -f docs/assets/generated/minthep-serum-material-study-v2.png
+          test -f docs/assets/generated/minthep-serum-shadow-study-v2.png
+          test -f docs/assets/generated/minthep-serum-lab-detail-v2.png
+          test -f docs/assets/generated/minthep-serum-carry-ritual-v3.png
+          test -f docs/assets/generated/minthep-serum-commerce-pair-v3.png
+          test -f docs/assets/generated/minthep-serum-formula-macro-v3.png
+          test -f docs/assets/generated/minthep-serum-window-shelf-v3.png
+          test -f docs/assets/generated/minthep-serum-campaign-wide-v4.png
+          test -f docs/assets/generated/minthep-serum-retail-counter-v4.png
+          test -f docs/assets/generated/minthep-serum-editorial-print-v4.png
+          test -f docs/assets/generated/minthep-serum-unboxing-v4.png
+          test -f docs/assets/generated/minthep-coffee-roastery-wide-v1.png
+          test -f docs/assets/generated/minthep-coffee-roast-date-detail-v1.png
+          test -f docs/assets/generated/minthep-coffee-local-delivery-v1.png
+          test -f docs/assets/generated/minthep-coffee-sample-tasting-v1.png
           test -f docs/assets/generated/minthep-beauty-campaign.png
           test -f docs/assets/generated/minthep-serum-key-visual.png
           test -f docs/assets/generated/minthep-fashion-look.png

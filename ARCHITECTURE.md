@@ -33,7 +33,7 @@ different containers, and that split is the whole architecture.
 |---|---|---|---|---|
 | Entry point | `SKILL.md`: routing, ten core rules, intake, the run loop. No craft values | under a 210-line ceiling | It absorbs the manual. Every new unit wants four lines here | A line budget with a ceiling *and* a floor, and a written reason beside every raise |
 | Contract | `assets/registries/pipelines.json`: per pipeline, the references, scripts and deliverables it owes | 9 pipelines | A deliverable names a script the pipeline never loads, or one nobody shipped | Every `run:` line is checked against its own pipeline's script list |
-| Prose | `references/`, each under 150 lines, with `references/dossiers/` for depth | 69 + 15 | A reference nothing routes to. Knowledge that never loads reads as depth and ships as nothing | Every reference must be named by the entry point, the router, or the registry |
+| Prose | `references/`, each under 150 lines, with `references/dossiers/` for depth | 70 + 15 | A reference nothing routes to. Knowledge that never loads reads as depth and ships as nothing | Every reference must be named by the entry point, the router, or the registry |
 | Rows | `data/`: craft values, legal articles, vendor capabilities, one row per decision | 38 lookup tables | The table drifts from the script that reads it, or arrives undeclared | Each table's row and column count is declared in the suite; an undeclared CSV fails |
 | Instruments | `scripts/`: arithmetic and gates, each returning a verdict rather than an opinion | 51 tools | It returns advice. Advice cannot be wrong, so it cannot be fixed | `--self-check` on every tool that computes, verified against known inputs |
 | Gates | The anti-slop layer, the claim and rights checks, `run_status.py --strict` | 3 text instruments + 1 image track | A pass earned by nobody looking | A blank answer fails its gate instead of passing it |
@@ -151,9 +151,9 @@ Seven steps, in this order. Skipping any of them ships a unit that works and can
    them, and extend the deliverable's `run:` line so the command reaches an operator.
 5. **Route it.** One overlay row in `SKILL.md` and one bullet in `marketing-system-router.md`,
    written in the words a non-marketer would use.
-6. **Test it.** A class in `test_tools.py`, the table's shape in `DataTableTests.TABLES`, and a pin
-   on any refusal — the tidy edit is always to fill a declared gap with a plausible number.
-7. **Update the counts.** Both READMEs and this file. The suite will tell you which.
+6. **Review it.** Run the relevant script on a representative input, inspect its real output, and pin
+   any refusal — the tidy edit is always to fill a declared gap with a plausible number.
+7. **Update the counts.** Keep both READMEs and this file aligned with the filesystem.
 
 ## What the architecture refuses
 

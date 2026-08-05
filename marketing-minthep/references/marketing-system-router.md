@@ -78,10 +78,15 @@ Load only when relevant:
   concession costs is `pricing-and-offers.md`.
 - Claims and proof: `claims-proof-ledger.md` plus `data/claim-evidence.csv` and
   `scripts/check_claims.py`.
+- Current channel composition: `channel-composition-systems.md` plus `data/channel-composition.csv`.
+  Load this before adapting a master across Facebook, Instagram, LinkedIn, TikTok or YouTube; it
+  separates message, composition and export contracts so a correct crop is not mistaken for a good
+  channel adaptation.
 - Current placements/specs: `channel-spec-registry.md` plus `data/channel-specs.csv` and
   `scripts/check_channel_spec.py --survey`, which answers the question people actually have — one
-  file already exported, which of the 24 placements will take it untouched. Twenty-four rows read off
-  the vendor pages on 2026-07-31, each with its URL and date. Where a page publishes nothing the
+  file already exported, which of the 28 placements will take it untouched. The registry now includes
+  LinkedIn single-image and vertical-video rows alongside Meta, TikTok, Google and YouTube. Each row
+  carries its vendor URL and retrieval date. Where a page publishes nothing the
   answer is `review` and never `passed`, because four Meta placements carry no technical block at all
   and silence is not permission.
 - Product/human/virtual imagery: relevant image references.

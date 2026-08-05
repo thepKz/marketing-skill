@@ -59,6 +59,27 @@ Keep categories distinct through spacing and type hierarchy. Do not use boxes, p
 
 For each direction deliver: rationale, wireframe, type hierarchy, palette roles, photo plan, component rules, print/digital specs, and a prompt contract. Do not present style adjectives without these decisions.
 
+## Service-model atlas
+
+Do not demonstrate menu capability with one cuisine or one visual style. Select the system from the ordering model first, then art-direct it for the brand.
+
+| Ordering model | Primary design job |
+|---|---|
+| Street food or quick service | Make the main dish, price, combo, and ordering path readable before the customer reaches the counter. |
+| Cafe and bakery | Separate drinks, food, pastry, size, add-ons, and seasonal items without turning every item into a card. |
+| Family or shared-table dining | Help a group assemble a complete meal across mains, vegetables, soup, rice, drinks, and shared portions. |
+| Tasting or fine dining | Sequence courses, provenance, dietary information, and optional pairings while preserving atmosphere. |
+| Cocktail bar or nightlife | Navigate by flavour, base spirit, intensity, signature status, and low-light legibility. |
+| Tea, dessert, or kiosk | Support size, sugar/ice, toppings, bundles, and fast modular updates without sticker clutter. |
+| Food-court or drive-through board | Reduce groups, enlarge decision cues, align prices, and test from the real viewing distance. |
+| Delivery marketplace or mobile ordering | Prioritise dish recognition, bundles, modifiers, availability, delivery conditions, and thumb-scroll order. |
+| Hotel breakfast or room service | Distinguish included items, paid extras, service hours, room ordering, language, and dietary needs. |
+| Heritage or destination restaurant | Make ingredient, place, craft, and story support the choice without turning culture into ornamental filler. |
+| Late-night dining | Control contrast for low light, fast scanning, limited availability, drinks, and after-hours ordering. |
+| QR or Canva-editable operations | Lock geometry, component rules, text capacity, and safe zones while leaving names, prices, claims, contact and QR human-editable. |
+
+When the brief asks for options, show at least three genuinely different systems chosen from different ordering models or direction families. Do not create twelve surface variations of the same menu. State what changes in hierarchy, content density, image count, price treatment, material, and ordering behaviour. For a showcase or atlas, cover enough models to prove generalisation beyond the supplied cuisine.
+
 ## Food image plan
 
 For a dish such as bun bo, offer a coherent set rather than one generic hero:

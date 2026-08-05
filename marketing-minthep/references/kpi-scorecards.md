@@ -170,7 +170,7 @@ Every row in `data/kpi-metrics.csv` carries a `trap` column. The expensive mista
 
 ## Worked example
 
-`assets/examples/bsc-2024/` holds the real 2024 company card in two files. `assets/examples/bsc-2024/card-as-shipped.json` refuses to score and names its faults; `assets/examples/bsc-2024/card-repaired.json` differs only by those repairs.
+A repaired 2024 company card illustrates the failure: the shipped version refuses to score because two opposite errors happen to cancel, while the repaired version changes only those faults.
 
 Four totals are involved, and the relationship between them is the lesson:
 
@@ -189,7 +189,7 @@ The rank happens not to move: A2 either way. The gap is 4.32 points and the rank
 
 ## Faults catalogued in the source workbook
 
-Kept as a list because each one is a test in `scripts/test_tools.py`, and because a reviewer reading this file should expect to find these in any workbook of this kind.
+Kept as a review list because a reviewer should expect to find and inspect these faults in any workbook of this kind.
 
 1. A KPI with no actual scored at 100%, carrying 10% of the card.
 2. A stated cap never applied; one row scored at 143.20%.

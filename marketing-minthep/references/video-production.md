@@ -44,11 +44,10 @@ python scripts/plan_video_sequence.py --input sequence.json --format report   # 
 python scripts/plan_video_sequence.py --input sequence.json --format csv      # 04-shot-list.csv
 ```
 
-`assets/examples/bun-bo/video-sequence.json` is a working five-shot spec. The script carries the
-state in the next section forward automatically, emits one continuity lock byte-identical into
-every shot, and derives each shot's reject list from what that shot locked. Hand-written shot
-prompts describe the world afresh each time, and two descriptions of the same bowl are two
-different bowls: that is why unenforced shot lists came back not joining up.
+The script carries the state in the next section forward automatically, emits one continuity lock
+byte-identical into every shot, and derives each shot's reject list from what that shot locked.
+Hand-written shot prompts describe the world afresh each time, and two descriptions of the same
+subject become two different subjects: that is why unenforced shot lists come back not joining up.
 
 Keep movement motivated:
 
