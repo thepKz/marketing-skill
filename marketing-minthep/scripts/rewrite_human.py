@@ -35,6 +35,59 @@ from _emit import emit, emit_json, use_utf8_stdout  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 TELLS = ROOT / "data" / "translation-tells.csv"
+MARKERS = ROOT / "data" / "spoken-markers.csv"
+
+# Everything above this line in this file is subtractive, and so is every table it reads. Delete
+# `Hơn nữa`, delete the em dash, delete the icon, break the flat run. That is a complete description
+# of what the unit could do until 2026-08-05, and it has a hole in the middle of it: a draft can pass
+# every gate here, match no tell in either table, and still be clean flat translationese, because
+# nothing in the skill had ever asked what a Vietnamese sentence *has* when a Vietnamese person wrote
+# it. The failure was found by a reader on this repository's own copy, in three words - `word by
+# word` - after the subtractive gates had all gone green.
+#
+# `data/spoken-markers.csv` is the positive side, Vietnamese first: final particles, topic-comment
+# fronting with `thì`, classifier plus demonstrative, direction verbs glued to the main verb, `bị`
+# with the affected party as subject. Each row carries what it makes the sentence carry and what
+# arrives in its place when the sentence was translated instead of written.
+#
+# Two limits, both load-bearing, both stated in references/rewrite-human.md at more length.
+# There is no human-written conversational Vietnamese corpus in this repository, so these markers
+# are graded as descriptions of the grammar and are NOT frequency-calibrated. And formal human
+# Vietnamese - the ND87 text in `data/vn-advertising-law.csv` is the case to hand - scores near zero
+# on this table while being entirely human, which is why the floor below is per-channel and absent
+# rather than passing on the channels where a particle would be wrong.
+#
+# The floor is a count of distinct markers and not a rate per 150 units, and it is worth saying why,
+# because the first version of this gate was a rate and the rate was backwards. Measured on
+# 2026-08-05, distinct markers per 150 syllables:
+#
+#   ND87 legal Vietnamese      0.00   formal, human, written by a ministry
+#   references/rewrite-human   0.00   this unit's own English-language reference prose
+#   README.vi.md               0.15   hand-written Vietnamese, 5986 syllables
+#   docs/index.html            0.17   hand-written Vietnamese, 2635 syllables
+#   a flat translationese ad   0.97   the thing this gate exists to catch, 154 syllables
+#
+# The rate ranked the translationese six times above the hand-written page, because the numerator is
+# capped - there are eleven matchable Vietnamese rows and a document cannot exceed them - while the
+# denominator grows without limit. Any per-length normalisation of a bounded count does this. So the
+# measurement is a count over the whole document, which separates the same five samples cleanly:
+# 0, 0, 6, 3 against 1 for the translationese and 1 for the sprinkled cheat below.
+#
+# Two distinct markers, and one on anything short enough that two would be unreasonable. The margin
+# is thin and stating it is part of the calibration: the landing page clears the floor with three.
+SPOKEN_DISTINCT_MIN = 2
+SPOKEN_DISTINCT_MIN_SHORT = 1
+SPOKEN_SHORT_UNITS = 60
+# The anti-gaming half, and the reason it exists is that the floor above is cheatable: put `nhé` on
+# the end of five sentences and one marker carries the whole document. Past this share of the hits,
+# one marker is being sprinkled rather than a person speaking.
+SPOKEN_TOP_SHARE_MAX = 0.5
+SPOKEN_VARIETY_MIN_HITS = 4
+# Channels where a reader is being spoken to, and so where the absence of every spoken marker is a
+# finding. On `deliverable`, `pr` and `sales-deck` the measurement still prints - a writer should see
+# a zero - but no gate is emitted, because a spec and a press release are formal on purpose and a
+# gate that fails them is a gate that gets switched off in week one.
+SPOKEN_CHANNELS = {"social", "chat", "email", "web", "marketplace"}
 
 # From references/dossiers/copywriting-deep.md section 6.2. Craft calibration targets, not measured
 # findings: they exist because machine prose defaults to uniform length, and uniformity is the tell.
@@ -128,6 +181,101 @@ def read_tells(language: str) -> list[dict[str, str]]:
     with TELLS.open(encoding="utf-8", newline="") as handle:
         rows = list(csv.DictReader(handle))
     return [row for row in rows if row["language"] in (language, "any")]
+
+
+def read_markers(language: str) -> list[dict[str, str]]:
+    if not MARKERS.exists():
+        raise SystemExit(f"missing data table: {MARKERS}")
+    with MARKERS.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    return [row for row in rows if row["language"] == language]
+
+
+def spoken_markers(text: str, language: str) -> dict:
+    """Which positive markers of somebody speaking this language are present, and how varied.
+
+    Same reading rules as `find_tells`: prose only, code spans stripped. A marker named inside
+    backticks in a table of markers is not a marker being used, and this file's own reference is
+    full of them.
+
+    `manual` rows are counted separately and never reported as measured. Three of them exist because
+    the shape genuinely has no regex - a serial verb chain, a benefactive `cho`, a concrete measure
+    standing where a degree adjective would go - and a table that pretended otherwise would claim a
+    check it never made. Same convention as the manual row in `data/title-devices.csv`.
+    """
+    body = unquoted(prose_only(text))
+    rows = read_markers(language)
+    hits: list[dict] = []
+    for row in rows:
+        if row["detect"] != "regex":
+            continue
+        try:
+            pattern = re.compile(row["detect_regex"], re.MULTILINE)
+        except re.error as error:  # a broken row must be visible, not silently absent
+            hits.append({"id": row["id"], "count": 0, "error": f"bad regex: {error}"})
+            continue
+        found = [match.group(0).strip() for match in pattern.finditer(body)]
+        if found:
+            hits.append({"id": row["id"], "layer": row["layer"], "count": len(found),
+                         "samples": found[:3], "carries": row["what_it_carries"]})
+    total = sum(hit["count"] for hit in hits if "error" not in hit)
+    top = max((hit["count"] for hit in hits if "error" not in hit), default=0)
+    return {
+        "hits": sorted(hits, key=lambda hit: -hit["count"]),
+        "distinct": len([hit for hit in hits if "error" not in hit]),
+        "total": total,
+        "top_share": round(top / total, 2) if total else 0.0,
+        "top_id": next((hit["id"] for hit in hits if hit.get("count") == top and top), ""),
+        "measurable_rows": sum(1 for row in rows if row["detect"] == "regex"),
+        "manual_rows": [row["id"] for row in rows if row["detect"] != "regex"],
+    }
+
+
+def spoken_gates(stats: dict, channel: str) -> list[dict]:
+    """The positive gates, and the only ones in this file that fail a draft for what it lacks.
+
+    Absent rather than passing on a formal channel, and that scoping was measured rather than
+    assumed. The ND87 advertising-law text in `data/vn-advertising-law.csv` is human Vietnamese
+    written by a ministry and scores exactly zero distinct markers across 2925 syllables. A universal
+    floor would call the one unambiguously institutional Vietnamese in this repository
+    machine-written, so the floor stops at the channels where somebody is being spoken to.
+    """
+    found = stats.get("spoken") or {}
+    if channel not in SPOKEN_CHANNELS or not found:
+        return []
+    total_units = stats.get("total_units", 0)
+    short = total_units < SPOKEN_SHORT_UNITS
+    floor = SPOKEN_DISTINCT_MIN_SHORT if short else SPOKEN_DISTINCT_MIN
+    shown = ", ".join(f"{hit['id']}x{hit['count']}" for hit in found["hits"][:4]) or "none"
+    rows = [{
+        "gate": "spoken-register-present",
+        "pass": found["distinct"] >= floor,
+        "severity": "high",
+        "observed": f"{found['distinct']} distinct of {found['measurable_rows']} matchable "
+                    f"({found['total']} hits: {shown})",
+        "target": f">= {floor} distinct"
+                  + (f", relaxed under {SPOKEN_SHORT_UNITS} units" if short else ""),
+        "why": "Every other gate in this file measures what to delete, so a draft can pass all of "
+               "them and still be flat translationese. This one asks what the sentence has: a final "
+               "particle, a topic fronted before its comment, a classifier pointing at one real "
+               "thing. A count and not a rate, because a rate ranked a flat translated ad above this "
+               "repository's hand-written Vietnamese - see the table above the constant. "
+               "`data/spoken-markers.csv` carries the rows and the repair each one implies.",
+    }]
+    if found["total"] >= SPOKEN_VARIETY_MIN_HITS:
+        rows.append({
+            "gate": "spoken-register-variety",
+            "pass": found["top_share"] <= SPOKEN_TOP_SHARE_MAX,
+            "severity": "medium",
+            "observed": f"{found['top_share']} of {found['total']} hits are {found['top_id']}",
+            "target": f"<= {SPOKEN_TOP_SHARE_MAX}, once there are {SPOKEN_VARIETY_MIN_HITS} hits",
+            "why": "The gate above is cheatable by putting `nhé` on the end of five sentences, and "
+                   "this is what catches the draft that then adds a second marker to clear the "
+                   "count. One marker carrying most of the hits is a texture pass applied on top of "
+                   "flat prose, not a person talking. references/rewrite-human.md says not to "
+                   "rewrite by adding texture; this is that instruction made measurable.",
+        })
+    return rows
 
 
 def outside_fences(text: str, fill: str = "") -> str:
@@ -333,7 +481,7 @@ def measure(text: str, language: str) -> dict:
         # all. Returning early without the decoration counts would leave that draft unchecked.
         return {"language": language, "sentences": len(sents), "insufficient": True,
                 "total_units": units(body, language), "decoration": decoration,
-                "lists": list_geometry(text)}
+                "lists": list_geometry(text), "spoken": spoken_markers(text, language)}
 
     beat = TARGETS[language]["beat"]
     lengths = [units(sentence, language) for sentence in sents]
@@ -382,6 +530,7 @@ def measure(text: str, language: str) -> dict:
         "single_sentence_paragraphs": sum(1 for block in paragraphs(body) if len(block) == 1),
         "decoration": decoration,
         "lists": list_geometry(text),
+        "spoken": spoken_markers(text, language),
     }
 
 
@@ -450,7 +599,8 @@ def structure_gates(stats: dict) -> list[dict]:
 
 def gates(stats: dict, channel: str = DEFAULT_CHANNEL) -> list[dict]:
     if stats.get("insufficient"):
-        return structure_gates(stats) + decoration_gates(stats, channel)
+        return (structure_gates(stats) + decoration_gates(stats, channel)
+                + spoken_gates(stats, channel))
     target = TARGETS[stats["language"]]
     unit = target["unit"]
     checks = [
@@ -497,7 +647,8 @@ def gates(stats: dict, channel: str = DEFAULT_CHANNEL) -> list[dict]:
     rows = [{"gate": name, "pass": bool(passed), "severity": severity,
              "observed": observed, "target": want, "why": why}
             for name, passed, severity, observed, want, why in checks]
-    return rows + structure_gates(stats) + decoration_gates(stats, channel)
+    return (rows + structure_gates(stats) + decoration_gates(stats, channel)
+            + spoken_gates(stats, channel))
 
 
 def find_tells(text: str, language: str) -> list[dict]:
@@ -551,6 +702,43 @@ def _tell_section(tells: list[dict]) -> list[str]:
     return lines
 
 
+def _spoken_section(stats: dict, channel: str) -> list[str]:
+    """Prints on every channel, including the ones that emit no gate.
+
+    A writer working on a `deliverable` should still see the zero. The gate is scoped because a spec
+    is formal on purpose; the measurement is not scoped, because a formal document that happens to
+    carry a topic-comment fronting is not thereby wrong and the writer deserves to know it is there.
+    """
+    found = stats.get("spoken") or {}
+    if not found:
+        return []
+    lines = ["", "## Spoken register", ""]
+    scoped = channel in SPOKEN_CHANNELS
+    if not found["hits"]:
+        lines.append(f"None of the {found['measurable_rows']} matchable markers in "
+                     "`data/spoken-markers.csv` are present. Every other section of this report "
+                     "measures what to delete, so a draft can clear all of them and still read as a "
+                     "translation of something. This section is the only one that reads what the "
+                     "sentence has.")
+    else:
+        lines += ["| Marker | Hits | Found | What it carries |", "|---|---|---|---|"]
+        for hit in found["hits"]:
+            if "error" in hit:
+                lines.append(f"| {hit['id']} | table error | {hit['error']} | fix the CSV |")
+                continue
+            samples = "; ".join(sample[:40] for sample in hit["samples"])
+            lines.append(f"| {hit['id']} | {hit['count']} | {samples} | {hit['carries']} |")
+    if found["manual_rows"]:
+        lines += ["", "Not machine-checked, because the shape has no regex: "
+                  + ", ".join(f"`{name}`" for name in found["manual_rows"])
+                  + ". Read the rows and decide by eye."]
+    if not scoped:
+        lines += ["", f"No gate on channel `{channel}`. The floor applies where a reader is being "
+                  "spoken to (" + ", ".join(sorted(SPOKEN_CHANNELS)) + "). Formal human Vietnamese "
+                  "scores near zero on this table and is still human."]
+    return lines
+
+
 def _verdict_section(gate_rows: list[dict], tells: list[dict]) -> list[str]:
     blocking = [row["gate"] for row in gate_rows if not row["pass"] and row["severity"] in ("critical", "high")]
     blocking += [row["id"] for row in tells if row.get("severity") in ("critical", "high")]
@@ -575,13 +763,15 @@ def report(stats: dict, gate_rows: list[dict], tells: list[dict], channel: str =
         lines += ["Fewer than two sentences of prose, so no cadence to measure. List shape, "
                   "decoration and the tells still count.",
                   "", "## Structure and decoration gates", ""]
-        lines += _gate_table(gate_rows) + _tell_section(tells) + _verdict_section(gate_rows, tells)
+        lines += (_gate_table(gate_rows) + _tell_section(tells)
+                  + _spoken_section(stats, channel) + _verdict_section(gate_rows, tells))
         return "\n".join(lines)
 
     lines += [f"{stats['sentences']} sentences, {stats['total_units']} {stats['unit']}.", "",
               "## Cadence, structure and decoration gates", ""]
     lines += _gate_table(gate_rows)
     lines += _tell_section(tells)
+    lines += _spoken_section(stats, channel)
     lines += _verdict_section(gate_rows, tells)
     return "\n".join(lines)
 
@@ -621,6 +811,23 @@ def print_targets() -> str:
         cap = "unbounded" if budget["structural"] is None else f"<= {budget['structural']}"
         lines.append(f"| {name} | {cap} | <= {budget['per_150']} per 150 |")
     lines += ["", f"Same icon opening consecutive lines: <= {DECORATION_RUN_MAX}, on every channel.", ""]
+    lines += ["# Spoken register", "",
+              "The only positive floor in this file. Everything above says what to delete; a draft can",
+              "clear all of it and still be a translation of something nobody said. `data/spoken-markers.csv`",
+              "carries the markers - Vietnamese final particles, topic-comment fronting with `thì`, a",
+              "classifier plus a demonstrative, direction verbs glued to the main verb, `bị` with the",
+              "affected party as subject - with the flat form that arrives in each one's place.", "",
+              "| Measure | Floor |", "|---|---|",
+              f"| Distinct markers present | >= {SPOKEN_DISTINCT_MIN} |",
+              f"| Distinct markers, under {SPOKEN_SHORT_UNITS} units | >= {SPOKEN_DISTINCT_MIN_SHORT} |",
+              f"| Share of hits held by one marker | <= {SPOKEN_TOP_SHARE_MAX}, once there are "
+              f"{SPOKEN_VARIETY_MIN_HITS} hits |",
+              f"| Channels gated | {', '.join(sorted(SPOKEN_CHANNELS))} |", "",
+              "Two limits, both declared. There is no human-written conversational Vietnamese corpus in",
+              "this repository, so the markers are graded as descriptions of the grammar and are not",
+              "frequency-calibrated. And the gate is scoped by channel because formal human Vietnamese",
+              "scores zero: the ND87 advertising-law text measures 0 distinct markers over 2925",
+              "syllables and is entirely human. A floor that fails a ministry is a floor nobody keeps.", ""]
     return "\n".join(lines)
 
 
@@ -690,6 +897,42 @@ def self_check() -> str:
     mid = {row["id"] for row in find_tells(
         "Quán mở từ 2015. Hơn nữa, việc phục vụ luôn được chú trọng. Hãy tưởng tượng bạn ngồi đây.", "vi")}
     assert {"hon-nua-stack", "su-viec-nominal", "hay-tuong-tuong"} <= mid, mid
+
+    # The positive side. Every regex in the table must fire on its own human example and on neither
+    # translated one, which is the only thing separating a marker from a coincidence.
+    for language in ("vi", "en"):
+        for row in read_markers(language):
+            if row["detect"] != "regex":
+                assert not row["detect_regex"], row["id"]
+                continue
+            pattern = re.compile(row["detect_regex"])
+            assert pattern.search(row["example_human"]), ("misses its own example", row["id"])
+            assert not pattern.search(row["example_translated"]), ("fires on the flat side", row["id"])
+
+    # A human chat line must clear the floor and a flat translated one must not, on the same channel.
+    spoken_pass = measure("Để mình gói riêng phần đá nha. Tiền vận chuyển thì shop chịu. "
+                          "Ba giờ chiều là hết rồi. Cái tô đó nặng hơn tô thường. "
+                          "Bạn lấy size lớn không?", "vi")
+    assert spoken_pass["spoken"]["distinct"] >= SPOKEN_DISTINCT_MIN, spoken_pass["spoken"]
+    assert all(row["pass"] for row in spoken_gates(spoken_pass, "chat")), spoken_gates(spoken_pass, "chat")
+
+    flat_vi = measure(
+        "Chúng tôi tự hào giới thiệu sản phẩm serum mới nhất của thương hiệu. Sản phẩm được sản xuất "
+        "theo tiêu chuẩn cao nhất, với các thành phần được tuyển chọn kỹ lưỡng. Quy trình kiểm định "
+        "chất lượng được thực hiện tại phòng thí nghiệm độc lập trước khi sản phẩm được đưa ra thị "
+        "trường. Sự hài lòng của khách hàng là ưu tiên hàng đầu của toàn bộ đội ngũ.", "vi")
+    assert not [row for row in spoken_gates(flat_vi, "social")
+                if row["gate"] == "spoken-register-present" and row["pass"]], flat_vi["spoken"]
+    # And the same text on a formal channel emits no gate at all, rather than a passing one. This is
+    # the ND87 finding: institutional Vietnamese scores zero here and is still human.
+    assert spoken_gates(flat_vi, "deliverable") == []
+    assert spoken_gates(flat_vi, "pr") == []
+
+    # The cheat: one particle on every sentence end. Must fail variety, not slip through on count.
+    cheat = measure("Hàng về rồi nhé. Bên mình gói cẩn thận nhé. Giao trong ngày nhé. "
+                    "Bạn nhớ kiểm tra trước khi nhận nhé. Có gì cứ nhắn nhé.", "vi")
+    variety = [row for row in spoken_gates(cheat, "chat") if row["gate"] == "spoken-register-variety"]
+    assert variety and not variety[0]["pass"], cheat["spoken"]
 
     # A heading tell has to read the raw text, because prose_only() removes headings.
     assert "about-us-heading" in {row["id"] for row in find_tells("## About us\n\nOne. Two words now.", "en")}

@@ -2439,6 +2439,11 @@
               "write": "Which rows of data/translation-tells.csv fired, with the fix each one specifies."
             },
             {
+              "en": "Spoken register",
+              "vi": "Chất giọng nói",
+              "write": "Which markers from data/spoken-markers.csv the rewrite now carries, and which sentence each one came from. A zero here on a channel where somebody is being spoken to means the draft was rearranged rather than rewritten. Do not add a particle to satisfy this - name the sentence whose decision was translated."
+            },
+            {
               "en": "Not a cadence problem",
               "vi": "Không phải lỗi nhịp",
               "write": "Anything wrong with the truth, claim, offer, or audience fit. Say plainly if the real problem is that the copy has nothing to say."

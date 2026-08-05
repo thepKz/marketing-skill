@@ -35,9 +35,10 @@ Claims, numbers, prices, and offers must match exactly. Rhythm, sentence count, 
 3. **Repair calques first.** Each row in `data/translation-tells.csv` carries the specific fix. Do them before touching rhythm, because deleting `Trong thế giới ngày nay` and `Hơn nữa` changes every length measurement downstream. Repairing cadence first means measuring it twice.
 4. **Rebuild rhythm deliberately.** Not by adding variety at random. Decide where each claim lands, and put a short sentence there. Long sentences carry mechanism, because mechanism has subordinate parts. Short sentences carry consequence. A four-word sentence after a twenty-four-word one is where the reader believes you.
 5. **Read three sentences aloud, in order.** The fastest tell in copy is rhythm, faster than vocabulary. If the same shape repeats, the ear catches it before any script does.
-6. **Measure again, and check the facts survived.** Compare the fact list from step 1 against the rewrite. A rewrite that reads better and lost the address is a worse deliverable. Rhythm work quietly deletes specifics, because specifics are the awkward part of a sentence.
-7. **In Vietnamese, check the register.** `python scripts/check_address_register.py --check draft.md --channel social`. Do it after the cadence work, because splitting and merging sentences is where an address form gets dropped or a second one gets introduced. [address-register.md](address-register.md) explains the verdicts.
-8. **Gate.** `scripts/rewrite_human.py` exits non-zero while any critical or high gate fails. Do not ship past it, and do not lower the target to pass.
+6. **Check what the sentences now have, not only what they lost.** The report's spoken-register section is the only one that reads for presence. On a channel where somebody is being spoken to, zero markers means step 4 rearranged a translation instead of replacing it.
+7. **Measure again, and check the facts survived.** Compare the fact list from step 1 against the rewrite. A rewrite that reads better and lost the address is a worse deliverable. Rhythm work quietly deletes specifics, because specifics are the awkward part of a sentence.
+8. **In Vietnamese, check the register.** `python scripts/check_address_register.py --check draft.md --channel social`. Do it after the cadence work, because splitting and merging sentences is where an address form gets dropped or a second one gets introduced. [address-register.md](address-register.md) explains the verdicts.
+9. **Gate.** `scripts/rewrite_human.py` exits non-zero while any critical or high gate fails. Do not ship past it, and do not lower the target to pass.
 
 `assets/examples/rewrite-human/` runs this procedure on one draft: the failing original, the
 Vietnamese rewrite, and the English built from the same facts. Read it before your first rewrite;
@@ -114,6 +115,78 @@ paragraph in a fence hides it from every gate - that is a hole, and the only def
 obvious in review. And the cadence gates ignore all of this: a code span occupies its slot in a
 sentence and the reader's eye lands on it, so length and rhythm are measured with it in place.
 
+## Every gate above this line is subtractive
+
+Delete `Hơn nữa`. Delete the em dash. Delete the icon. Break the flat run. That was a complete
+description of this unit until 2026-08-05, and it has a hole in the middle of it.
+
+A draft can pass every gate above, match no row in either tell table, and still be clean flat
+translationese — because nothing here had ever asked what a Vietnamese sentence *has* when a
+Vietnamese person wrote it. The hole was found by a reader on this repository's own landing page,
+after the subtractive gates had all gone green, in three words: `word by word`.
+
+`data/spoken-markers.csv` is the positive side, Vietnamese first. Twenty rows, fourteen Vietnamese and
+six English, each carrying what it makes the sentence carry and the flat form that arrives in its
+place when the sentence was translated instead of written.
+
+| Marker | Human | Translated instead |
+|---|---|---|
+| final particle `nhé/nha` | `Để mình gói riêng phần đá nha.` | `Vui lòng giữ phần đá riêng biệt.` |
+| topic fronted with `thì` | `Tiền vận chuyển thì shop chịu.` | `Shop sẽ chịu chi phí vận chuyển.` |
+| aspect closing on `rồi` | `Ba giờ chiều là hết rồi.` | `Sản phẩm đã được bán hết vào lúc 15 giờ.` |
+| `bị` with the affected party as subject | `Có hai đơn bị trễ, cả hai đều gọi trước.` | `Hai đơn hàng đã được giao trễ bởi đơn vị vận chuyển.` |
+
+The right-hand column is grammatical. That is the point: none of those sentences is an error, and no
+subtractive gate can object to any of them.
+
+Three rows carry no regex — a serial verb chain, a benefactive `cho`, a concrete measure standing
+where a degree adjective would go. The shape genuinely has none, and an empty pattern matches
+everything silently, so those rows are marked `detect: manual` and the report says so rather than
+claiming a check it never made.
+
+### The floor is a count, because the rate was backwards
+
+The first version of this gate measured distinct markers per 150 units. Measured on 2026-08-05:
+
+| Text | Distinct per 150 | Distinct, whole document |
+|---|---|---|
+| ND87 advertising law, 2925 syllables | 0.00 | 0 |
+| this file, its own English prose | 0.00 | 0 |
+| `README.vi.md`, 5986 syllables | 0.15 | 6 |
+| `docs/index.html`, 2635 syllables | 0.17 | 3 |
+| a flat translated ad, 154 syllables | **0.97** | 1 |
+
+The rate ranked the translationese six times above the hand-written page. It had to: the numerator is
+capped at eleven matchable Vietnamese rows while the denominator grows without limit, so any
+per-length normalisation of a bounded count inverts on long text. The count separates the same five
+samples cleanly. The floor is two distinct markers, one under 60 units, and the margin is thin enough
+to state — the landing page clears it with three.
+
+### Two limits, both declared
+
+**Not frequency-calibrated.** There is no human-written conversational Vietnamese corpus in this
+repository. The markers are graded `grammar-descriptive` and `native-usage-sample`, which asserts
+that each is a real structure of the language and asserts nothing about how often it should appear.
+Nobody should read `>= 2 distinct` as a linguistic finding. It is a house floor that separates the
+samples above and will move when there is something better to measure against.
+
+**Formal human Vietnamese scores zero.** The ND87 text is written by a ministry, is unambiguously
+human, and carries not one marker in 2925 syllables. So the gate is scoped to the channels where
+somebody is being spoken to — `social`, `chat`, `email`, `web`, `marketplace`. On `deliverable`, `pr`
+and `sales-deck` the measurement still prints, because a writer should see a zero, but no gate is
+emitted. A floor that fails a ministry is a floor somebody switches off in week one.
+
+### This does not license a texture pass
+
+The last section of this file says not to rewrite by adding texture, and a floor on spoken markers is
+exactly the instruction a lazy reader would break it with: put `nhé` on the end of five sentences and
+the count is satisfied. So the second gate holds variety — past half the hits on one marker, once
+there are four, something is being sprinkled rather than said. That gate exists to enforce the last
+section of this file, not to contradict it.
+
+The repair is never to add a particle. It is to find the sentence whose decision was translated, and
+make that decision again in Vietnamese. The marker shows up because the decision did.
+
 ## What the script does not check
 
 It measures cadence and matches known tells. It cannot tell you whether the copy is true, whether the claim is provable, whether the offer is legal in Vietnam, or whether the reader cares. Those stay with `claims-proof-ledger.md`, `rights-and-claims.md`, and the message architecture. A draft can pass every gate here and still be unpublishable.
@@ -135,6 +208,8 @@ It also cannot tell you the copy is any *good*. All a pass means is that the cop
 | Trust-adjective stack | Each adjective replaced by one verifiable thing, or deleted. Four adjectives rarely become four facts; usually two facts and a shorter paragraph. |
 | Em dash in Vietnamese | Comma, colon, or full stop. The em dash arrived with the English draft. |
 | Icon opening every bullet | Delete all of them, then ask whether any single line earns one back. Usually none does, and the list reads faster without. |
+| No spoken markers at all | The copy was translated rather than written, and no single edit fixes it. Take the three sentences carrying the most weight and ask what decision each one made, then make that decision again in Vietnamese. Front the topic before its comment with `thì`. Point at one real thing with a classifier and a demonstrative — `cái tô đó`, not `sản phẩm này`. Close a clause on `rồi` where the English closed on a past tense. Do not add a particle to the sentences you left flat. |
+| One marker holds most of the hits | A texture pass, not a rewrite. Delete every instance of that marker, then redo the paragraph from step 4 of the procedure. What comes back will be varied because the content chose it. |
 | Same icon three lines running | Not a variety problem. The list is generated; rewrite the lines so they differ in content, and the icons stop being the only thing distinguishing them. |
 
 ## The one thing to avoid

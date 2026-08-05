@@ -33,7 +33,7 @@ For requests that must become files on disk, use `scripts/start_workbench.py`. I
 | `design-render` | Menu, poster, layout, wireframe, one-pager, or other designed artifact | Options, recommendation, information architecture, wireframe, copy, render/spec, QA |
 | `video-campaign` | Video concept, storyboard, short ad, demo, or AI-video prompt pack | Script, beats, shots, continuity, audio/captions, cutdowns, delivery QA |
 | `optimize-iterate` | Existing work has evidence or performance to diagnose | Metric tree, hypotheses, one-variable tests, guardrails, decision log |
-| `rewrite-human` | A draft reads machine-written or machine-translated, or approved copy must move between Vietnamese and English | `specificity.md` and `scripts/check_specificity.py` first, then `rewrite-human.md` and `scripts/rewrite_human.py` gates, `data/translation-tells.csv` repairs, `scripts/check_address_register.py` on Vietnamese, `title-writing.md` and `scripts/check_title.py --page` for the headings, which the prose gates exclude by design, re-measurement |
+| `rewrite-human` | A draft reads machine-written or machine-translated, or approved copy must move between Vietnamese and English | `specificity.md` and `scripts/check_specificity.py` first, then `rewrite-human.md` and `scripts/rewrite_human.py` gates, `data/translation-tells.csv` repairs, `data/spoken-markers.csv` for what the rewritten sentences must now *have* rather than lack, `scripts/check_address_register.py` on Vietnamese, `title-writing.md` and `scripts/check_title.py --page` for the headings, which the prose gates exclude by design, re-measurement |
 
 When the user is a non-marketer, do not return a menu of disconnected marketing disciplines. Recommend the smallest coherent pipeline. Explain why in plain language, then create the connected artifact pack. Copywriting is mandatory inside `plan-from-zero`; it is not an optional follow-up.
 
@@ -109,6 +109,14 @@ Load only when relevant:
   `hedge` layers of `data/translation-tells.csv`. Load this before rewriting any draft for cadence,
   because rhythm work deletes specifics - a specific is the awkward part of a sentence - and a draft
   with fewer than three has a content problem that reads worse after it has been made to flow.
+- Whether a Vietnamese sentence has what a Vietnamese sentence has, which is a different
+  question from whether it has anything wrong with it: `rewrite-human.md` plus
+  `data/spoken-markers.csv`, measured by `scripts/rewrite_human.py`. Load this whenever copy
+  was drafted in one language and delivered in another, and whenever a draft passes every other
+  gate and still reads translated. Every other table in this layer names something to delete;
+  this is the only one that names something to be present, and the gate is scoped to the
+  channels where a reader is being spoken to because formal Vietnamese scores zero on it and is
+  still human.
 - Who a Vietnamese draft is talking to, and whether it holds that decision to the last line:
   `address-register.md` plus `data/address-registers.csv` and `scripts/check_address_register.py`.
   Load this before writing or localising any Vietnamese copy. Vietnamese has no neutral second

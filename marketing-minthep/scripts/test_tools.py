@@ -1520,6 +1520,7 @@ class DataTableTests(unittest.TestCase):
         "channel-specs.csv": (24, 20),
         "poster-formats.csv": (20, 15),
         "title-devices.csv": (21, 12),
+        "spoken-markers.csv": (20, 14),
     }
 
     # Most of these tables are keyed by their first column. The weights table is keyed by two, and
@@ -1548,9 +1549,14 @@ class DataTableTests(unittest.TestCase):
     # would misstate how the row is checked, and an empty regex is worse than no regex because it
     # matches every title silently. The pairing is pinned by its own test below rather than trusted
     # to this exemption.
+    # `detect_regex` in the spoken-markers table is empty for the same reason and pinned by the same
+    # kind of paired test: three rows describe a shape with no regex - a serial verb chain, a
+    # benefactive `cho`, a concrete measure standing where a degree adjective would - and they are
+    # marked `detect: manual` so the report can say it did not check them.
     MAY_BE_EMPTY = {"command-artifacts.csv": {"also_uses", "also_satisfies"},
                     "vn-marketer-roles.csv": {"commands"},
-                    "title-devices.csv": {"pattern"}}
+                    "title-devices.csv": {"pattern"},
+                    "spoken-markers.csv": {"detect_regex"}}
 
     def test_the_title_pattern_column_is_empty_exactly_where_it_should_be(self) -> None:
         for row in self.rows("title-devices.csv"):
@@ -1559,6 +1565,14 @@ class DataTableTests(unittest.TestCase):
                 has_pattern, row["detect"] == "regex",
                 f"title-devices.csv: {row['id']} is detect={row['detect']} but "
                 f"{'carries' if has_pattern else 'lacks'} a pattern")
+
+    def test_the_spoken_marker_pattern_column_is_empty_exactly_where_it_should_be(self) -> None:
+        for row in self.rows("spoken-markers.csv"):
+            has_pattern = bool(row["detect_regex"].strip())
+            self.assertEqual(
+                has_pattern, row["detect"] == "regex",
+                f"spoken-markers.csv: {row['id']} is detect={row['detect']} but "
+                f"{'carries' if has_pattern else 'lacks'} a regex")
 
     def test_every_cell_is_filled(self) -> None:
         # An empty cell in a lookup table is not a blank, it is a silent omission: the composer
@@ -9512,6 +9526,158 @@ class RewriteHumanShortFormTests(unittest.TestCase):
                                     rewrite_human.find_tells(clean, "vi"))
         self.assertIn("None of the tells", text)
         self.assertIn("Blocking: none", text)
+
+
+class SpokenRegisterTests(unittest.TestCase):
+    """The positive side of the human-writing unit, added 2026-08-05.
+
+    Every other gate in `rewrite_human.py` is subtractive - it names something to delete. So a draft
+    could pass all of them, match no row in either tell table, and still be clean flat translationese,
+    because nothing had ever asked what a Vietnamese sentence *has* when a Vietnamese person wrote it.
+    The hole was found by a reader on this repository's own landing page, in three words, after the
+    subtractive gates had gone green. `data/spoken-markers.csv` is the answer and this class pins it."""
+
+    HUMAN = ("Để mình gói riêng phần đá nha. Tiền vận chuyển thì shop chịu. "
+             "Ba giờ chiều là hết rồi. Cái tô đó nặng hơn tô thường. Bạn lấy size lớn không?")
+    FLAT = ("Chúng tôi tự hào giới thiệu sản phẩm serum mới nhất của thương hiệu. Sản phẩm được sản "
+            "xuất theo tiêu chuẩn cao nhất, với các thành phần được tuyển chọn kỹ lưỡng. Quy trình "
+            "kiểm định chất lượng được thực hiện tại phòng thí nghiệm độc lập trước khi sản phẩm "
+            "được đưa ra thị trường. Sự hài lòng của khách hàng là ưu tiên hàng đầu của đội ngũ.")
+    CHEAT = ("Hàng về rồi nhé. Bên mình gói cẩn thận nhé. Giao trong ngày nhé. "
+             "Bạn nhớ kiểm tra trước khi nhận nhé. Có gì cứ nhắn nhé.")
+
+    @staticmethod
+    def gate(text: str, channel: str, name: str) -> dict | None:
+        rows = rewrite_human.spoken_gates(rewrite_human.measure(text, "vi"), channel)
+        return next((row for row in rows if row["gate"] == name), None)
+
+    def test_every_regex_fires_on_its_human_example_and_not_on_the_flat_one(self) -> None:
+        """The only thing separating a marker from a coincidence. A pattern that misses its own
+        example is broken; a pattern that also matches the translated line measures nothing, because
+        both columns of the row would score the same."""
+        checked = 0
+        for row in DataTableTests.rows("spoken-markers.csv"):
+            if row["detect"] != "regex":
+                continue
+            pattern = re.compile(row["detect_regex"])
+            self.assertTrue(pattern.search(row["example_human"]),
+                            f"{row['id']} misses its own example_human")
+            self.assertIsNone(pattern.search(row["example_translated"]),
+                              f"{row['id']} fires on its own example_translated")
+            checked += 1
+        self.assertGreaterEqual(checked, 15)
+
+    def test_vietnamese_is_the_larger_half_of_the_table(self) -> None:
+        """The ask was Vietnamese first. A table that drifted to an English majority would still pass
+        every other test here while answering a different question."""
+        rows = DataTableTests.rows("spoken-markers.csv")
+        languages = [row["language"] for row in rows]
+        self.assertGreater(languages.count("vi"), languages.count("en"))
+        self.assertEqual(set(languages), {"vi", "en"})
+
+    def test_the_evidence_grades_admit_there_is_no_corpus(self) -> None:
+        """No human-written conversational Vietnamese corpus exists in this repository, so no row may
+        claim frequency. `grammar-descriptive` asserts the structure is real and asserts nothing about
+        how often it should appear, which is the honest thing available."""
+        grades = {row["evidence_grade"] for row in DataTableTests.rows("spoken-markers.csv")}
+        self.assertLessEqual(grades, {"grammar-descriptive", "native-usage-sample", "craft-heuristic"})
+        self.assertIn("grammar-descriptive", grades)
+
+    def test_every_fits_channel_token_is_a_real_channel(self) -> None:
+        allowed = set(rewrite_human.DECORATION_BUDGET) | {"any"}
+        for row in DataTableTests.rows("spoken-markers.csv"):
+            for token in row["fits_channel"].split(";"):
+                self.assertIn(token.strip(), allowed, f"{row['id']}: unknown channel {token!r}")
+
+    def test_a_human_chat_line_clears_the_floor_and_a_translated_one_does_not(self) -> None:
+        passed = self.gate(self.HUMAN, "chat", "spoken-register-present")
+        failed = self.gate(self.FLAT, "social", "spoken-register-present")
+        self.assertTrue(passed["pass"], passed["observed"])
+        self.assertFalse(failed["pass"], failed["observed"])
+        self.assertEqual(failed["severity"], "high")
+
+    def test_the_floor_is_a_count_and_not_a_rate(self) -> None:
+        """Measured 2026-08-05, and the reason the first version of this gate was wrong. Distinct
+        markers per 150 syllables scored the flat ad at 0.97 and this repository's hand-written
+        Vietnamese at 0.15, because the numerator is capped by the table's row count while the
+        denominator grows with the document. Any per-length normalisation of a bounded count inverts.
+        The count separates the same two samples the right way round."""
+        human = rewrite_human.measure(self.HUMAN, "vi")["spoken"]
+        flat = rewrite_human.measure(self.FLAT, "vi")["spoken"]
+        self.assertGreater(human["distinct"], flat["distinct"])
+        # And the rate would have said the opposite, on these very two samples.
+        rate = lambda stats, text: stats["distinct"] / (rewrite_human.units(text, "vi") / 150)
+        self.assertGreater(rate(flat, self.FLAT), 0.0)
+        self.assertIsInstance(rewrite_human.SPOKEN_DISTINCT_MIN, int)
+        self.assertLess(rewrite_human.SPOKEN_DISTINCT_MIN_SHORT, rewrite_human.SPOKEN_DISTINCT_MIN)
+
+    def test_the_sprinkled_particle_fails_variety(self) -> None:
+        """The gate that keeps the floor from being a texture pass. Five sentences ending in `nhé` is
+        the cheapest way to satisfy a presence check and it makes the copy worse, which is exactly what
+        references/rewrite-human.md tells a writer not to do."""
+        variety = self.gate(self.CHEAT, "chat", "spoken-register-variety")
+        self.assertIsNotNone(variety)
+        self.assertFalse(variety["pass"], variety["observed"])
+        self.assertTrue(self.gate(self.HUMAN, "chat", "spoken-register-variety")["pass"])
+
+    def test_the_gate_is_absent_rather_than_passing_on_a_formal_channel(self) -> None:
+        """The ND87 finding, pinned. Institutional Vietnamese written by a ministry scores zero
+        distinct markers over 2925 syllables and is entirely human, so a universal floor would call
+        the one unambiguously non-machine Vietnamese in this repository machine-written. Absent, not
+        passing: a gate that claims a pass it never evaluated teaches misplaced trust."""
+        for channel in ("deliverable", "pr", "sales-deck"):
+            rows = rewrite_human.spoken_gates(rewrite_human.measure(self.FLAT, "vi"), channel)
+            self.assertEqual(rows, [], channel)
+        for channel in sorted(rewrite_human.SPOKEN_CHANNELS):
+            self.assertIsNotNone(self.gate(self.FLAT, channel, "spoken-register-present"), channel)
+
+    def test_the_ministry_text_really_does_score_zero(self) -> None:
+        """The claim the scoping rests on, measured rather than asserted. If this ever goes green with
+        a non-zero count, the channel list and the docstrings above it are wrong, not this test."""
+        legal = " ".join(row["what_it_actually_says"]
+                         for row in DataTableTests.rows("vn-advertising-law.csv"))
+        stats = rewrite_human.measure(legal, "vi")
+        self.assertGreater(stats["total_units"], 2000, "the fixture must be long enough to matter")
+        self.assertEqual(stats["spoken"]["distinct"], 0, stats["spoken"]["hits"])
+
+    def test_the_measurement_prints_on_every_channel_including_the_ungated_ones(self) -> None:
+        """A writer working on a deliverable should still see the zero. Scoping the gate is a decision
+        about failing a draft, not about hiding a number."""
+        stats = rewrite_human.measure(self.FLAT, "vi")
+        for channel in ("deliverable", "social"):
+            text = rewrite_human.report(stats, rewrite_human.gates(stats, channel),
+                                        rewrite_human.find_tells(self.FLAT, "vi"), channel)
+            self.assertIn("## Spoken register", text)
+        formal = rewrite_human.report(stats, rewrite_human.gates(stats, "deliverable"),
+                                      rewrite_human.find_tells(self.FLAT, "vi"), "deliverable")
+        self.assertIn("No gate on channel `deliverable`", formal)
+
+    def test_the_manual_rows_are_reported_as_unchecked(self) -> None:
+        """Three rows have no regex because the shape has none. A report that stayed silent about them
+        would claim a check it never made."""
+        stats = rewrite_human.measure(self.HUMAN, "vi")
+        self.assertEqual(len(stats["spoken"]["manual_rows"]), 3, stats["spoken"]["manual_rows"])
+        text = rewrite_human.report(stats, rewrite_human.gates(stats, "chat"),
+                                    rewrite_human.find_tells(self.HUMAN, "vi"), "chat")
+        self.assertIn("Not machine-checked", text)
+        for name in stats["spoken"]["manual_rows"]:
+            self.assertIn(name, text)
+
+    def test_the_reference_states_both_limits_and_the_texture_warning(self) -> None:
+        text = (SKILL_ROOT / "references" / "rewrite-human.md").read_text(encoding="utf-8")
+        self.assertIn("subtractive", text)
+        self.assertIn("spoken-markers.csv", text)
+        self.assertIn("not frequency-calibrated", text.lower())
+        self.assertIn("ND87", text)
+        # The floor must be reconciled with the instruction it looks like a licence to break.
+        self.assertIn("texture pass", text)
+
+    def test_a_backticked_marker_is_not_a_marker_being_used(self) -> None:
+        """Same trap that caught every replacement table in this skill: a file naming `nhé` in a table
+        of markers is not speaking. `unquoted()` has to apply here as it does to the word tells, or the
+        new table passes its own gate for documenting itself."""
+        named = rewrite_human.measure("Đặt `nhé` ở cuối câu. Dùng `rồi` để đóng mệnh đề.", "vi")
+        self.assertEqual(named["spoken"]["total"], 0, named["spoken"]["hits"])
 
 
 if __name__ == "__main__":

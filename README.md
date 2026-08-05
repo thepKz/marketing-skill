@@ -414,7 +414,7 @@ marketing-minthep/
   SKILL.md                  entry point and router
   references/               68 topic files, each under 150 lines
     dossiers/               15 deep-craft dossiers + index
-  data/                     37 lookup tables: image recipes, palettes, layout
+  data/                     38 lookup tables: image recipes, palettes, layout
                             dials, slop tells, copy formulas, translation and
                             address-register tells, reference axes, frame
                             ratios, composition grids, KPI metrics and aspect

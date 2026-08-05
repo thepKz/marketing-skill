@@ -414,7 +414,7 @@ marketing-minthep/
   SKILL.md                  điểm vào và bộ định tuyến
   references/               68 file chủ đề, mỗi file dưới 150 dòng
     dossiers/               15 dossier craft chuyên sâu + index
-  data/                     37 bảng tra: image recipe, palette, layout dial,
+  data/                     38 bảng tra: image recipe, palette, layout dial,
                             slop tell, copy formula, translation tell và
                             ngôi xưng, reference axis, frame ratio,
                             composition grid, chỉ số KPI và trọng số, cổng

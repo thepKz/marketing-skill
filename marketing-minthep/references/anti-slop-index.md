@@ -12,25 +12,32 @@ No published Vietnamese tell catalogue was found on the retrieval date. The Viet
 skill's tables are therefore its own observation, graded house-rule, and not citations to a
 literature that does not exist yet.
 
-## The three instruments, in the only order that works
+## The four instruments, in the only order that works
 
 | Stage | Question | Instrument | Reads | Explained in |
 |---|---|---|---|---|
 | 1. Content | Does it say anything a competitor could not copy? | `scripts/check_specificity.py` | the `evidence` and `hedge` layers of `data/translation-tells.csv` | `specificity.md` |
 | 2. Cadence | Does it read machine-made or machine-translated? | `scripts/rewrite_human.py` | all of `data/translation-tells.csv` | `rewrite-human.md` |
-| 3. Register | Who does it address, and does it hold that choice? | `scripts/check_address_register.py` | `data/address-registers.csv` | `address-register.md` |
+| 3. Presence | Does the sentence have what a sentence written in this language has? | `scripts/rewrite_human.py` | `data/spoken-markers.csv` | `rewrite-human.md` |
+| 4. Register | Who does it address, and does it hold that choice? | `scripts/check_address_register.py` | `data/address-registers.csv` | `address-register.md` |
+
+Stage 3 is the only one of the four that reads for presence, and it was added on 2026-08-05 because
+the other three could all pass a draft that was still flat translationese. Every table above it names
+something to delete; none of them had ever asked what a Vietnamese sentence carries when a Vietnamese
+person wrote it. A subtractive index is not an anti-slop index, it is a de-slopping index, and the
+difference shows up as copy that offends nobody and sounds like nobody.
 
 The order is load-bearing, not stylistic. Rhythm work deletes specifics, because a specific is the
 awkward part of a sentence: `Giao trong 2 giờ ở Gò Vấp` flows worse than `Giao hàng nhanh chóng,
 tận tâm`, and a cadence gate run first will reward the empty one. Register runs last because it is
 Vietnamese-only and because fixing content and rhythm rewrites the sentences it would have graded.
 
-Images run on a fourth track. `data/slop-tells.csv` holds 33 tells across prompt, image, copy,
+Images run on a separate track. `data/slop-tells.csv` holds 33 tells across prompt, image, copy,
 layout and campaign, and `scripts/find_recipe.py --checklist RECIPE_ID` filters them to the tells
 that can occur in one specific frame, ordered by severity. Look at the render against the list.
 Rereading the prompt proves nothing.
 
-Truth sits upstream of all four. A fabricated delivery time passes every gate here and fails core
+Truth sits upstream of every one of them. A fabricated delivery time passes every gate here and fails core
 rule 1, which outranks them. `check_claims.py` and `claims-proof-ledger.md` answer whether a claim
 may be made at all; this layer only answers whether the sentence carrying it reads like a person.
 
@@ -68,6 +75,10 @@ The durable tells are statistical, and they are the ones the instruments here me
 | Low information density | Superficial competence is the definition of slop | `check_specificity.py`: fact floor, brand-swap share |
 | Significance inflation | Regression to the mean smooths specifics into importance claims | `translation-tells.csv` evidence layer; `empty-adjective` gate |
 | Register drift | Translated Vietnamese re-decides who the reader is per sentence | `check_address_register.py` |
+| No spoken markers | A model translates the sentence rather than making its decision again, so the grammar of the target language never gets used | `rewrite_human.py`: distinct markers from `spoken-markers.csv` |
+
+The last row is the only positive entry in the table and the newest. It is also the one a word list
+could never have caught, because the defect is an absence — nothing is present to match.
 
 This is also why the word layers live in CSV rows that carry their own severity and scope rather
 than in script constants. A tell that stops discriminating gets edited in the table, with the
