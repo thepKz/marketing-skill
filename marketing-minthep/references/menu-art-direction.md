@@ -1,13 +1,8 @@
----
-name: menu-art-director
-description: Create restaurant, cafe, bar, QR, and menu-board designs from a real brief. Use for menu art direction, food photography, typography, layout, native-text AI proofs, or anti-AI visual QA.
----
-
-# Menu Art Director
+# Menu Art Direction
 
 Turn a menu request into a usable design direction, not a decorative prompt. The output must help a diner orient, compare items, and order quickly while still giving the restaurant a memorable visual point of view.
 
-For a redesign, restaurant identity, or â€œmake this more brandedâ€ request, read `references/brand-menu-vision.md` before choosing a visual route. Use it to compare brand systems, define recognition, and avoid palette-only or ornament-only art direction.
+For a redesign, restaurant identity, or "make this more branded" request, read `menu-brand-vision.md` before choosing a visual route. Use it to compare brand systems, define recognition, and avoid palette-only or ornament-only art direction.
 
 ## Production Contract
 
@@ -18,11 +13,11 @@ Capture before styling:
 - brand truth, references, anti-references, print size or viewport, and intended reading distance.
 - business identity: restaurant name, approved mark, address, phone, order URL, social handle, and QR destination.
 
-Never invent a price, ingredient, claim, award, dietary label, opening hour, or provenance. Label unknowns and use `â€”` until the owner confirms them.
+Never invent a price, ingredient, claim, award, dietary label, opening hour, or provenance. Label unknowns and use `-` until the owner confirms them.
 
 Never invent contact details or a functional QR destination. If identity information is missing, either use a clearly labelled fictional concept brand or reserve an identity zone and say what the owner must supply. Image models may create a QR-looking texture but not a trustworthy QR code; a working QR requires a provided URL and deterministic generation, even when the surrounding menu uses `full-ai-text-exception`.
 
-When the user asks for a complete menu, research public menus before designing. Build a source ledger with URL, source type, access date, observed item name, observed price, and limitations. Prefer first-party restaurant menus; use delivery platforms as behavioural traces and secondary articles only for directional context. Do not create â€œten plausible side dishesâ€ from memory.
+When the user asks for a complete menu, research public menus before designing. Build a source ledger with URL, source type, access date, observed item name, observed price, and limitations. Prefer first-party restaurant menus; use delivery platforms as behavioural traces and secondary articles only for directional context. Do not create "ten plausible side dishes" from memory.
 
 Lock every researched name, description, category, and price in a deterministic data file before styling. Mark the result `benchmark-not-for-sale` until the owner confirms portions, ingredients, allergens, availability, packaging fees, and current prices. A complete menu must contain real item rows; placeholders are acceptable only for facts that remain genuinely unknown.
 
@@ -73,7 +68,7 @@ Write five short layers before prompting:
 4. **Variants:** what changes for 9:16, 4:5, 1:1, counter distance, delivery thumbnail, and print.
 5. **Standards:** approved example, rejected example, rights/claim constraints, and revision gate.
 
-Avoid adjective-only briefs. Replace â€œpremium modernâ€ with observable instructions such as â€œordinary stainless table, 35-degree diner angle, one red accent line, no border, 72px outer margin.â€
+Avoid adjective-only briefs. Replace "premium modern" with observable instructions such as "ordinary stainless table, 35-degree diner angle, one red accent line, no border, 72px outer margin."
 
 For brand-led work, research at least four contrasting systems before styling: one mass or value chain, one premium or design-led chain, one story-led independent brand, and one relevant local-market brand. Compare category architecture, signature device, image behavior, material, typography, ordering speed, and touchpoint extension. Record `keep`, `transform`, `reject`, and rights risk; never average the references into a moodboard.
 
@@ -90,14 +85,14 @@ For an artistic menu, define a visual thesis and an ornament grammar before prom
 - palette derivation: for one segment, default to no more than four designed colors, each tied to an observed material or ingredient. For a confirmed multi-segment system, use one core palette plus controlled segment accents and declare the maximum simultaneous colors per surface.
 
 Derive the palette by measuring the reference, not by naming its hues. Run
-`marketing-minthep/scripts/sample_reference.py --image REF --check accent=HEX support=HEX` before
+`scripts/sample_reference.py --image REF --check accent=HEX support=HEX` before
 locking any brand color that will sit on the same surface as the food. It reports each hue arc's share
 of the frame and its chroma, and fails an accent more saturated than the food's own chromatic peak.
 "The bowls are blue, so make the rail blue" keeps the hue and discards the two quantities that made it
-harmonious â€” how saturated it was and how little of the frame it held. The result reads as a rectangle
+harmonious - how saturated it was and how little of the frame it held. The result reads as a rectangle
 drawn on a photograph, which is the visual signature of a template edit and fails `PALETTE-ONLY`.
 
-Reject decorative additions that cannot be traced to the visual thesis. A local reference is not permission to paste lotus, dragon, palace, bamboo, silk, or â€œAsianâ€ symbols into the design.
+Reject decorative additions that cannot be traced to the visual thesis. A local reference is not permission to paste lotus, dragon, palace, bamboo, silk, or "Asian" symbols into the design.
 
 Define motif safe zones. Keep full-strength ornament at edges, image zones, or section transitions; reduce it to background density inside text areas and maintain a clean exclusion zone around every word and price. Decorative marks touching copy fail `ORNAMENT`, even when the motif is sourceable.
 
@@ -184,9 +179,9 @@ Probe the provider's actual reference-image schema before promising this route. 
 
 A prompt-only generations endpoint cannot consume an HTML raster merely because its path is mentioned in text. If the provider's documented generation reference field, edits, multimodal Responses, and multimodal Chat all reject image input, record `CAPABILITY` and keep the blueprint ready for another provider; do not claim that prompt-from-zero used the reference.
 
-Treat reference transport and reference success as separate gates. Probe scalar and array forms when the provider schema is ambiguous: some compatible endpoints reject `"image": "..."` but accept `"image": ["..."]`. An HTTP 200 or an SSE progress stream is not proof of image generation. Require a downloadable URL or decodable image payload, open the saved bitmap, and record the accepted request shape. If the stream ends with text or an error such as â€œdid not return an image,â€ fail `CAPABILITY`; never relabel a prompt-only render as reference-conditioned.
+Treat reference transport and reference success as separate gates. Probe scalar and array forms when the provider schema is ambiguous: some compatible endpoints reject `"image": "..."` but accept `"image": ["..."]`. An HTTP 200 or an SSE progress stream is not proof of image generation. Require a downloadable URL or decodable image payload, open the saved bitmap, and record the accepted request shape. If the stream ends with text or an error such as "did not return an image," fail `CAPABILITY`; never relabel a prompt-only render as reference-conditioned.
 
-Before recording `CAPABILITY`, bisect the prompt. A refusal that streams text deltas and never enters an image-generation stage is a routing decision, not a missing capability, and providers report it with whatever error string they have to hand â€” including one about billing. Hold the endpoint, key and transport fixed and change one thing at a time. In this repository a six-request bisection found that asking a model to preserve the words that are in the supplied reference reliably produced prose instead of a bitmap, while the same request with that one sentence removed returned a 3 MB PNG. Naming a paid tier in an error message is not evidence about the account; only a request that differs in exactly one field is.
+Before recording `CAPABILITY`, bisect the prompt. A refusal that streams text deltas and never enters an image-generation stage is a routing decision, not a missing capability, and providers report it with whatever error string they have to hand - including one about billing. Hold the endpoint, key and transport fixed and change one thing at a time. In this repository a six-request bisection found that asking a model to preserve the words that are in the supplied reference reliably produced prose instead of a bitmap, while the same request with that one sentence removed returned a 3 MB PNG. Naming a paid tier in an error message is not evidence about the account; only a request that differs in exactly one field is.
 
 That is also why step 5 pastes the copy in as strings. Transcribe-the-reference is both the phrasing most likely to be refused and the one that teaches the model nothing about which words matter, and a model that is merely told to stop preserving the copy will invent a brand name and its own prices. The generative pass never owns the price column: diff every row against the locked inventory afterwards and reject the bitmap that disagrees, because a wrong price on a menu is a commercial fact, not a rendering defect.
 
@@ -230,13 +225,13 @@ For a researched full menu, also compare the rendered rows against the locked da
 
 ## Art Direction Gate
 
-Before the anti-AI gate, score the image from 0â€“2 on each axis: visual thesis, motif sourceability, palette discipline, composition tension, food truth, typography fidelity, and direct-print readiness. A concept with a beautiful texture but no thesis is not art direction.
+Before the anti-AI gate, score the image from 0-2 on each axis: visual thesis, motif sourceability, palette discipline, composition tension, food truth, typography fidelity, and direct-print readiness. A concept with a beautiful texture but no thesis is not art direction.
 
 Also inspect content geometry: compare text mass, image mass, and negative space by quadrant. Repair imbalance by grouping repeated rows, adding evidence-backed descriptors, moving the food crop, or changing the column structure; do not fill holes with arbitrary ornament.
 
 ## Anti-AI Gate
 
-Reject `GENERIC` when the category alone predicts the visual: black-and-gold luxury, symmetric ornamental border, marble, smoke, random silk, fake vintage grain, giant serif title, centered hero bowl, excessive garnish, or â€œcinematicâ€ lighting without physical behavior. Also reject second-order defaults such as beige editorial cards or maximalist collage when no brief-driven reason exists.
+Reject `GENERIC` when the category alone predicts the visual: black-and-gold luxury, symmetric ornamental border, marble, smoke, random silk, fake vintage grain, giant serif title, centered hero bowl, excessive garnish, or "cinematic" lighting without physical behavior. Also reject second-order defaults such as beige editorial cards or maximalist collage when no brief-driven reason exists.
 
 Record concrete rejection labels: `CAPABILITY`, `GENERIC`, `HIERARCHY`, `FONT-SOUP`, `DISH-IDENTITY`, `SCENE-COHERENCE`, `PALETTE-ONLY`, `MOTIF-ONLY`, `ONE-OFF`, `CROP`, `PHYSICS`, `CLAIM`, `FIDELITY`, `OFF-BRAND`, `ORNAMENT`, `PALETTE`, `MOCKUP`, `RIGHTS`, `ROUTE-MISMATCH`, `TEXT-OWNERSHIP`, `UNREQUESTED-DETERMINISM`, `AI-TEXT`, `BRAND-LAST`, `CATEGORY-TEMPLATE`, `SEGMENT-BLUR`, `PALETTE-COLLAPSE`, `RAINBOW-SEGMENTS`, `EMPTY-MINIMALISM`, or `CONTRAST-OVERDRIVE`.
 

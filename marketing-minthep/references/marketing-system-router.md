@@ -44,6 +44,8 @@ Load only when relevant:
 - Product/business model: `product-category-playbooks.md`.
 - Campaign architecture and lanes: `campaign-systems.md`.
 - Content engine, pillars, editorial calendar: `content-system.md`.
+- Menu and F&B brand production: `menu-engineering.md`, `menu-design.md`,
+  `menu-art-direction.md`, and `menu-brand-vision.md`.
 - Commerce: `commerce-merchandising.md`.
 - Paid media: `paid-media-creative.md`.
 - PR: `pr-communications.md`.

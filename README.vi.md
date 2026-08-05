@@ -412,7 +412,7 @@ Kiểm tra bậc hai bắt cửa thoát: sau khi từ chối cái nhìn hiển n
 ```
 marketing-minthep/
   SKILL.md                  điểm vào và bộ định tuyến
-  references/               70 file chủ đề, mỗi file dưới 150 dòng
+  references/               73 file chủ đề, dossier giữ phần chuyên sâu
     dossiers/               15 dossier craft chuyên sâu + index
   data/                     38 bảng tra: image recipe, palette, layout dial,
                             slop tell, copy formula, translation tell và

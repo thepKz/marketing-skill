@@ -28,6 +28,8 @@
         "product-category-playbooks.md",
         "menu-engineering.md",
         "menu-design.md",
+        "menu-art-direction.md",
+        "menu-brand-vision.md",
         "title-writing.md"
       ],
       "scripts": [
@@ -1480,6 +1482,8 @@
       "references": [
         "menu-engineering.md",
         "menu-design.md",
+        "menu-art-direction.md",
+        "menu-brand-vision.md",
         "visual-craft.md",
         "colour-combination.md",
         "copywriting.md",

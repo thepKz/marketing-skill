@@ -83,19 +83,3 @@ Choose one family deliberately:
 5. **Photo-led restraint:** one exceptional image plus precise type. Best when the signature dish alone can carry memory.
 
 Do not mix all five. Pick one primary family and at most one supporting behavior.
-
-## Application: Bếp Hương Giang concept
-
-Treat this as a worked case, not a reusable restaurant formula. Never transfer its premise, rail, numbering, palette, or image family to another brand merely because the category is Vietnamese food. Re-run the research and recognition gate from that brand's product truth; copying this solution fails `GENERIC` and `ONE-OFF`.
-
-Replace the previous floating-food and cobalt-contour direction with **MÂM GỌI MÓN**:
-
-- **Premise:** a fast, generous Hue meal organised with the care of a kitchen order ledger.
-- **Signature device:** one cobalt ordering rail with annatto-red numbered tabs `01–04`; it groups categories and becomes the repeated brand asset on menu, takeaway seal, QR header, and social crops.
-- **Image family:** one continuous warm table scene; the bowl is dominant, two cakes overlap the same surface as supporting dishes, and peach tea is a narrow vertical accent. No isolated circles or floating cutouts.
-- **Typography:** one Vietnamese humanist grotesk; identity uses a compact customised lockup from the same skeleton, not a decorative second font.
-- **Material:** warm uncoated service paper with precise rules and occasional ink gain, not fake antique texture.
-- **Color roles:** cobalt = navigation rail; annatto = order number and selected item; cream = working surface; brown-black = all copy. Food supplies every other color.
-- **Commercial logic:** four bowl variants explain their ingredient differences; repeated add-ons remain grouped; prices share one edge; food never interrupts scanning.
-
-Reject decorative noodles, generic ceramic waves, large empty fields, isolated photo islands, equal food cards, fake heritage stamps, invented dates, palace/dragon/lotus imagery, and arbitrary “premium” serif styling.
