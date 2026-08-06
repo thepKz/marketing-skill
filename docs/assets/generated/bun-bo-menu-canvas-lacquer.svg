@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-labelledby="title desc">
+  <title id="title">Bếp Hương Giang - menu đêm</title>
+  <desc id="desc">Menu bún bò Huế nền sơn mài với bốn nhóm món và ảnh món ăn</desc>
+  <defs>
+    <linearGradient id="veil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#190b0b" stop-opacity=".22"/>
+      <stop offset=".48" stop-color="#190b0b" stop-opacity=".7"/>
+      <stop offset="1" stop-color="#190b0b" stop-opacity=".98"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#2b0d0f"/>
+      <stop offset="1" stop-color="#12090a"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity=".42"/>
+    </filter>
+    <clipPath id="photo"><path d="M0 0H1080V595C870 520 676 555 510 630C332 710 164 704 0 628Z"/></clipPath>
+  </defs>
+  <rect width="1080" height="1350" fill="url(#panel)"/>
+  <image href="bun-bo-lacquer-table.png" width="1080" height="720" preserveAspectRatio="xMidYMid slice" clip-path="url(#photo)"/>
+  <rect width="1080" height="720" fill="url(#veil)" clip-path="url(#photo)"/>
+  <path d="M0 615C190 705 342 704 523 626C699 550 874 525 1080 602V678C862 602 706 626 544 699C345 789 171 778 0 691Z" fill="#c9432c" opacity=".9"/>
+  <path d="M0 640C190 730 350 727 532 650C703 578 876 552 1080 626" fill="none" stroke="#f0b35b" stroke-width="3" opacity=".9"/>
+
+  <g font-family="'Be Vietnam Pro','Segoe UI',Arial,sans-serif" fill="#fff5df">
+    <text x="64" y="72" font-size="17" font-weight="700" letter-spacing="4">BẾP HƯƠNG GIANG / BUỔI TỐI</text>
+    <text x="64" y="178" font-size="76" font-weight="800" letter-spacing="-3">BÚN BÒ HUẾ</text>
+    <text x="68" y="222" font-size="22" fill="#f0c694">Nóng, đậm, gọi món theo bốn nhóm.</text>
+  </g>
+
+  <g transform="translate(62 706)" font-family="'Be Vietnam Pro','Segoe UI',Arial,sans-serif">
+    <g>
+      <text y="0" font-size="16" font-weight="800" letter-spacing="2" fill="#f0b35b">01 / TÔ BÚN</text>
+      <text y="52" font-size="24" font-weight="700" fill="#fff5df">Bát Đặc Biệt</text><text x="425" y="52" text-anchor="end" font-size="22" font-weight="700" fill="#f0b35b">68.000đ</text>
+      <text y="82" font-size="14" fill="#cbbeb1">bò tái · bò chín · móng giò · chả cua · bò viên · tiết</text>
+      <text y="132" font-size="22" font-weight="650" fill="#fff5df">Bát Đậm Đà</text><text x="425" y="132" text-anchor="end" font-size="20" font-weight="700" fill="#f0b35b">58.000đ</text>
+      <text y="177" font-size="22" font-weight="650" fill="#fff5df">Bát Truyền Thống</text><text x="425" y="177" text-anchor="end" font-size="20" font-weight="700" fill="#f0b35b">48.000đ</text>
+      <text y="222" font-size="22" font-weight="650" fill="#fff5df">Bát Trẻ Em</text><text x="425" y="222" text-anchor="end" font-size="20" font-weight="700" fill="#f0b35b">30.000đ</text>
+    </g>
+    <g transform="translate(535 0)">
+      <text y="0" font-size="16" font-weight="800" letter-spacing="2" fill="#f0b35b">03 / ĐỒ UỐNG</text>
+      <text y="52" font-size="21" font-weight="650" fill="#fff5df">Trà Đào</text><text x="420" y="52" text-anchor="end" font-size="20" font-weight="700" fill="#f0b35b">20.000đ</text>
+      <text y="94" font-size="21" font-weight="650" fill="#fff5df">Trà Chanh</text><text x="420" y="94" text-anchor="end" font-size="20" font-weight="700" fill="#f0b35b">20.000đ</text>
+      <text y="136" font-size="21" font-weight="650" fill="#fff5df">Trà Tắc</text><text x="420" y="136" text-anchor="end" font-size="20" font-weight="700" fill="#f0b35b">20.000đ</text>
+      <text y="178" font-size="21" font-weight="650" fill="#fff5df">Sữa Đậu Nành</text><text x="420" y="178" text-anchor="end" font-size="20" font-weight="700" fill="#f0b35b">20.000đ</text>
+      <text y="220" font-size="21" font-weight="650" fill="#fff5df">Trà Đá / Nước Suối</text><text x="420" y="220" text-anchor="end" font-size="20" font-weight="700" fill="#f0b35b">5 / 15.000đ</text>
+    </g>
+    <line y1="260" x2="956" y2="260" stroke="#f0b35b" stroke-opacity=".45"/>
+    <g transform="translate(0 310)">
+      <text y="0" font-size="16" font-weight="800" letter-spacing="2" fill="#f0b35b">02 / GỌI THÊM</text>
+      <text y="48" font-size="20" font-weight="650" fill="#fff5df">Quẩy · 2 chiếc</text><text x="425" y="48" text-anchor="end" font-size="19" font-weight="700" fill="#f0b35b">5.000đ</text>
+      <text y="91" font-size="20" font-weight="650" fill="#fff5df">Bò viên · Chả cua · Giò tai</text><text x="425" y="91" text-anchor="end" font-size="19" font-weight="700" fill="#f0b35b">6.000đ</text>
+      <text y="134" font-size="20" font-weight="650" fill="#fff5df">Bún thêm · Tiết thêm</text><text x="425" y="134" text-anchor="end" font-size="19" font-weight="700" fill="#f0b35b">6.000đ</text>
+      <text y="177" font-size="20" font-weight="650" fill="#fff5df">Móng giò / Bắp bò chín</text><text x="425" y="177" text-anchor="end" font-size="19" font-weight="700" fill="#f0b35b">20 / 50.000đ</text>
+    </g>
+    <g transform="translate(535 310)">
+      <text y="0" font-size="16" font-weight="800" letter-spacing="2" fill="#f0b35b">04 / BÁNH HUẾ</text>
+      <text y="48" font-size="21" font-weight="650" fill="#fff5df">Bánh Bột Lọc · 5 cái</text><text x="420" y="48" text-anchor="end" font-size="19" font-weight="700" fill="#f0b35b">35.000đ</text>
+      <text y="96" font-size="21" font-weight="650" fill="#fff5df">Bánh Ram Ít · 5 cái</text><text x="420" y="96" text-anchor="end" font-size="19" font-weight="700" fill="#f0b35b">40.000đ</text>
+      <rect y="132" width="420" height="64" rx="2" fill="#f0b35b"/>
+      <text x="20" y="173" font-size="15" font-weight="800" letter-spacing="1" fill="#2b0d0f">TÔ · MÓN THÊM · BÁNH · NƯỚC</text>
+    </g>
+  </g>
+  <text x="62" y="1312" font-family="'Be Vietnam Pro','Segoe UI',Arial,sans-serif" font-size="13" font-weight="600" letter-spacing="1.4" fill="#aa9588">BẾP HƯƠNG GIANG · GIÁ THAM KHẢO, XÁC NHẬN TẠI QUẦY</text>
+</svg>

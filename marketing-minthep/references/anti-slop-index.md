@@ -12,25 +12,34 @@ No published Vietnamese tell catalogue was found on the retrieval date. The Viet
 skill's tables are therefore its own observation, graded house-rule, and not citations to a
 literature that does not exist yet.
 
-## The four instruments, in the only order that works
+## The five instruments, in the only order that works
 
 | Stage | Question | Instrument | Reads | Explained in |
 |---|---|---|---|---|
 | 1. Content | Does it say anything a competitor could not copy? | `scripts/check_specificity.py` | the `evidence` and `hedge` layers of `data/translation-tells.csv` | `specificity.md` |
-| 2. Cadence | Does it read machine-made or machine-translated? | `scripts/rewrite_human.py` | all of `data/translation-tells.csv` | `rewrite-human.md` |
-| 3. Presence | Does the sentence have what a sentence written in this language has? | `scripts/rewrite_human.py` | `data/spoken-markers.csv` | `rewrite-human.md` |
-| 4. Register | Who does it address, and does it hold that choice? | `scripts/check_address_register.py` | `data/address-registers.csv` | `address-register.md` |
+| 2. Shape | Is the document shaped like an answer or like a model's essay? | `scripts/check_output_shape.py` | its own pattern set (announced openings, bold-led grids, generic headers, recap closes) | `output-contract.md` |
+| 3. Cadence | Does it read machine-made or machine-translated? | `scripts/rewrite_human.py` | all of `data/translation-tells.csv` | `rewrite-human.md` |
+| 4. Presence | Does the sentence have what a sentence written in this language has? | `scripts/rewrite_human.py` | `data/spoken-markers.csv` | `rewrite-human.md` |
+| 5. Register | Who does it address, and does it hold that choice? | `scripts/check_address_register.py` | `data/address-registers.csv` | `address-register.md` |
 
-Stage 3 is the only one of the four that reads for presence, and it was added on 2026-08-05 because
-the other three could all pass a draft that was still flat translationese. Every table above it names
+Stage 4 is the only one of the five that reads for presence, and it was added on 2026-08-05 because
+the others could all pass a draft that was still flat translationese. Every table above it names
 something to delete; none of them had ever asked what a Vietnamese sentence carries when a Vietnamese
 person wrote it. A subtractive index is not an anti-slop index, it is a de-slopping index, and the
 difference shows up as copy that offends nobody and sounds like nobody.
 
+Stage 2 was added on 2026-08-06 because a document can pass every sentence gate and still be
+recognised as machine-written from its silhouette alone — the announced opening, the three
+symmetric sections of three bold bullets, the recap close. The tell had moved up a level, so an
+instrument moved up with it. Its positive spec, calibrated on the answer-first format Perplexity
+made normal, is `output-contract.md`.
+
 The order is load-bearing, not stylistic. Rhythm work deletes specifics, because a specific is the
 awkward part of a sentence: `Giao trong 2 giờ ở Gò Vấp` flows worse than `Giao hàng nhanh chóng,
-tận tâm`, and a cadence gate run first will reward the empty one. Register runs last because it is
-Vietnamese-only and because fixing content and rhythm rewrites the sentences it would have graded.
+tận tâm`, and a cadence gate run first will reward the empty one. Shape runs before cadence
+because restructuring a document rewrites its sentences, so cadence measured first is a wasted
+pass. Register runs last because it is Vietnamese-only and because fixing content, shape and
+rhythm rewrites the sentences it would have graded.
 
 Images run on a separate track. `data/slop-tells.csv` holds 33 tells across prompt, image, copy,
 layout and campaign, and `scripts/find_recipe.py --checklist RECIPE_ID` filters them to the tells
@@ -102,13 +111,14 @@ satisfy a detector manufactures a second kind of slop:
 - Quoted material. A verbatim quote is evidence; rewriting it to flow is falsifying it.
 
 And the rule the production-side literature converges on: never add a fact to sound human. A
-fabricated number passes stage 1, reads beautifully at stage 2, and is the one defect this whole
+fabricated number passes stage 1, reads beautifully at stage 3, and is the one defect this whole
 layer cannot detect. It is caught upstream by the truth map, or by a customer.
 
 ## Running the layer
 
 ```
 python scripts/check_specificity.py --check draft.md
+python scripts/check_output_shape.py --check draft.md
 python scripts/rewrite_human.py --check draft.md --lang vi --channel deliverable
 python scripts/check_address_register.py --check draft.md --channel deliverable
 python scripts/find_recipe.py --checklist RECIPE_ID
@@ -119,8 +129,9 @@ Stage 1 runs first.
 
 ## What this does not establish
 
-An index maps; it does not grade. Passing all four instruments means the draft is specific, reads
-like a person, holds one register and avoids the frame's known failure modes. It does not mean the
+An index maps; it does not grade. Passing all five instruments means the draft is specific,
+shaped like an answer, reads like a person, holds one register and avoids the frame's known
+failure modes. It does not mean the
 copy is true, legal, on-strategy, or about the right thing. And the sources above describe the
 output of English-language models as of their publication dates: the tell population moves with
 every model generation, which is the argument for measuring distributions and re-dating the word

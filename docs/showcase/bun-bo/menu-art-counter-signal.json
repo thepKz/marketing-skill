@@ -1,0 +1,17 @@
+{
+  "theme": "art-counter-signal",
+  "width": 1080,
+  "height": 1350,
+  "kicker": "BÚN BÒ / GỌI MÓN",
+  "title": "Bún bò",
+  "subtitle": "Chọn số. Nhận tô.",
+  "category": "MÓN CHÍNH",
+  "hero_image": "bun-bo-counter.png",
+  "items": [
+    {"name": "Bún bò giò heo", "description": "", "price": "65.000đ"},
+    {"name": "Bún bò đặc biệt", "description": "", "price": "79.000đ"},
+    {"name": "Chả cua chiên", "description": "", "price": "25.000đ"},
+    {"name": "Trà đá / trà chanh", "description": "", "price": "10.000đ"}
+  ],
+  "footer": "CONCEPT MENU / Giá và món cần quán duyệt trước khi in"
+}

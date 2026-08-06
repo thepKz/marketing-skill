@@ -71,7 +71,7 @@ When another provider is selected, load its current official documentation rathe
 
 ## Composition, color, output, menu, and video research
 
-These sources support `composition-light-color.md`, `menu-design.md`, `image-output-and-sharpening.md`, and `video-production.md`. Platform and provider specifications must still be checked live.
+These sources support `composition-light-color.md`, `menu.md`, `image-output-and-sharpening.md`, and `video-production.md`. Platform and provider specifications must still be checked live.
 
 | Source | URL | Use it for | Caution |
 |---|---|---|---|

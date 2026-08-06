@@ -20,16 +20,14 @@
         "brand-dna.md",
         "claims-proof-ledger.md",
         "copywriting.md",
+        "output-contract.md",
         "seo-writing.md",
         "channel-deliverables.md",
         "affiliate-commerce.md",
         "learning-loop.md",
         "vietnam-operating-reality.md",
         "product-category-playbooks.md",
-        "menu-engineering.md",
-        "menu-design.md",
-        "menu-art-direction.md",
-        "menu-brand-vision.md",
+        "menu.md",
         "title-writing.md"
       ],
       "scripts": [
@@ -43,6 +41,7 @@
         "model_affiliate.py",
         "find_recipe.py",
         "check_specificity.py",
+        "check_output_shape.py",
         "rewrite_human.py",
         "check_address_register.py",
         "check_claims.py",
@@ -459,7 +458,7 @@
               "en": "CTA set",
               "vi": "Bộ CTA",
               "write": "One primary action per surface, with the friction-reducing microcopy underneath.",
-              "run": "python scripts/check_specificity.py --check <file> first, then scripts/rewrite_human.py --check <file> --channel <where it goes>, then scripts/check_address_register.py on any Vietnamese copy. In that order: rhythm work deletes specifics, so counting facts has to come before measuring cadence."
+              "run": "python scripts/check_specificity.py --check <file> first, then scripts/check_output_shape.py --check <file>, then scripts/rewrite_human.py --check <file> --channel <where it goes>, then scripts/check_address_register.py on any Vietnamese copy. In that order: rhythm work deletes specifics and restructuring rewrites sentences, so facts come before shape and shape before cadence."
             }
           ]
         },
@@ -1477,13 +1476,11 @@
     "design-render": {
       "title": "Design and render",
       "title_vi": "Thiết kế và dựng bản",
-      "default_mode": "system",
+      "default_mode": "focused",
       "use_when": "User needs a designed artefact: menu, wireframe, landing page layout, poster, packaging layout, one-pager, key visual with type. Produces option cards, a spec, and real rendered SVG or HTML output.",
       "references": [
-        "menu-engineering.md",
-        "menu-design.md",
-        "menu-art-direction.md",
-        "menu-brand-vision.md",
+        "design-direction.md",
+        "menu.md",
         "visual-craft.md",
         "colour-combination.md",
         "copywriting.md",
@@ -1491,7 +1488,7 @@
         "production-pipeline.md",
         "channel-spec-registry.md",
         "channel-composition-systems.md",
-        "poster-and-banner.md"
+        "poster.md"
       ],
       "scripts": [
         "start_workbench.py",
@@ -2360,6 +2357,7 @@
       "use_when": "A draft already exists and reads machine-written or machine-translated. Includes any request to make copy sound human, to fix word-by-word translation between Vietnamese and English, or to transcreate an approved text into the other language.",
       "references": [
         "rewrite-human.md",
+        "output-contract.md",
         "copywriting.md",
         "seo-writing.md",
         "brand-dna.md",
@@ -2371,6 +2369,7 @@
         "rewrite_human.py",
         "find_recipe.py",
         "check_specificity.py",
+        "check_output_shape.py",
         "check_address_register.py",
         "check_claims.py",
         "audit_seo_page.py",
@@ -2432,7 +2431,7 @@
               "en": "Measured before",
               "vi": "Đo bản gốc",
               "write": "Paste the gate table and tell table from `python scripts/rewrite_human.py --check <draft>`.",
-              "run": "python scripts/check_specificity.py --check <file> before scripts/rewrite_human.py --check <file>. Under three checkable facts the draft has a content problem, and every rhythm edit from there makes it read better while still saying nothing."
+              "run": "python scripts/check_specificity.py --check <file>, then scripts/check_output_shape.py --check <file>, before scripts/rewrite_human.py --check <file>. Under three checkable facts the draft has a content problem, and a document shaped like a model's essay needs restructuring before any sentence is worth measuring."
             },
             {
               "en": "Cadence failures",

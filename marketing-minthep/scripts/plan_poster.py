@@ -39,7 +39,7 @@ solved with a tighter font. There is no font. The arithmetic says so before anyb
 What it will not do: judge whether the headline is any good (`check_specificity.py`), decide whether
 the claim is legal (`check_claims.py`), pick the colours (`plan_palette.py`, and
 `sample_reference.py` when the type sits on a photograph), or tell you whether you may hang the thing
-in the street. That last one is a researched gap and `references/poster-and-banner.md` says so.
+in the street. That last one is a researched gap and `references/poster.md` says so.
 
 Everything is stdlib. No key, no network, no image provider.
 """

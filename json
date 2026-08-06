@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "run_id": "2026-08-04-tiep-tuc-nang-cap-website-demo-marketing",
+  "created": "2026-08-04",
+  "project": "Tiếp tục nâng cấp website demo Marketing-Minthep: tạo bộ ảnh campaign deployment mới từ packshot serum, thay phần trình bày nhiều chữ bằng image-led channel proof, viết lại copy, tích hợp manifest và QA desktop mobile",
+  "pipeline": "optimize-iterate",
+  "pipeline_title": "Optimize and iterate",
+  "mode": "production",
+  "languages": [
+    "vi",
+    "en"
+  ],
+  "routing": {
+    "pipeline": "optimize-iterate",
+    "scores": {},
+    "reason": "explicitly requested"
+  },
+  "signals": {
+    "horizon": {
+      "weeks": 13,
+      "days": 90,
+      "stated": false,
+      "evidence": "",
+      "label": "inferred"
+    },
+    "budget": {
+      "tier": "unstated",
+      "stated": false,
+      "evidence": "",
+      "label": "unknown"
+    },
+    "product_family": {
+      "family": "beauty",
+      "stated": true,
+      "evidence": [
+        "serum"
+      ],
+      "label": "inferred"
+    },
+    "market": {
+      "market": "unstated",
+      "places": [],
+      "single_location": false,
+      "label": "unknown"
+    }
+  },
+  "supporting_pipelines": [],
+  "references_to_load": [
+    "learning-loop.md",
+    "creative-evaluation.md",
+    "production-pipeline.md",
+    "claims-proof-ledger.md",
+    "measurement-plan.md",
+    "lead-handling.md"
+  ],
+  "scripts": [
+    "start_workbench.py",
+    "check_tracking_plan.py",
+    "new_run.py",
+    "analyze_performance.py",
+    "plan_lead_flow.py",
+    "score_creative.py",
+    "check_test_readout.py",
+    "run_status.py"
+  ],
+  "deliverables": [
+    {
+      "id": "01-intake",
+      "kind": "md",
+      "bilingual": false,
+      "title": "Intake",
+      "title_vi": "Tiếp nhận",
+      "gate": "The symptom is stated as an observation with numbers, not as an interpretation.",
+      "paths": [
+        "01-intake.md"
+      ],
+      "status": "empty"
+    },
+    {
+      "id": "02-data-audit",
+      "kind": "md",
+      "bilingual": true,
+      "title": "Data audit",
+      "title_vi": "Kiểm toán dữ liệu",
+      "gate": "Small samples are flagged before any conclusion is drawn from them.",
+      "paths": [
+        "02-data-audit.vi.md",
+        "02-data-audit.en.md"
+      ],
+      "status": "empty"
+    },
+    {
+      "id": "03-diagnosis",
+      "kind": "md",
+      "bilingual": true,
+      "title": "Diagnosis",
+      "title_vi": "Chẩn đoán",
+      "gate": "Causes are ranked by evidence strength. Correlation is never written as causation.",
+      "paths": [
+        "03-diagnosis.vi.md",
+        "03-diagnosis.en.md"
+      ],
+      "status": "empty"
+    },
+    {
+      "id": "04-hypotheses",
+      "kind": "md",
+      "bilingual": true,
+      "title": "Hypotheses",
+      "title_vi": "Giả thuyết",
+      "gate": "Each hypothesis is falsifiable and names the metric that would move.",
+      "paths": [
+        "04-hypotheses.vi.md",
+        "04-hypotheses.en.md"
+      ],
+      "status": "empty"
+    },
+    {
+      "id": "05-test-plan",
+      "kind": "md",
+      "bilingual": true,
+      "title": "Test plan",
+      "title_vi": "Kế hoạch thử nghiệm",
+      "gate": "One variable per test. Required sample is calculated. If it is unreachable, an honest alternative is proposed.",
+      "paths": [
+        "05-test-plan.vi.md",
+        "05-test-plan.en.md"
+      ],
+      "status": "empty"
+    },
+    {
+      "id": "06-next-creative",
+      "kind": "md",
+      "bilingual": true,
+      "title": "Next creative brief",
+      "title_vi": "Brief sáng tạo tiếp theo",
+      "gate": "The brief changes exactly one named axis from the current creative and states what is preserved.",
+      "paths": [
+        "06-next-creative.vi.md",
+        "06-next-creative.en.md"
+      ],
+      "status": "empty"
+    },
+    {
+      "id": "99-decision-log",
+      "kind": "md",
+      "bilingual": false,
+      "title": "Decision log",
+      "title_vi": "Sổ quyết định",
+      "gate": "Each entry records what was believed, what was done, and what actually happened.",
+      "paths": [
+        "99-decision-log.md"
+      ],
+      "status": "empty"
+    }
+  ],
+  "truth_gate": [
+    "Label every fact confirmed, observed, inferred, or unknown. An unknown may never become public copy.",
+    "Cite a URL and a retrieval date for anything time-sensitive, priced, versioned, or platform-specific.",
+    "Never claim research, rendering, publication, outreach, or performance that did not happen."
+  ],
+  "next_actions": [
+    "Read the references listed for optimize-iterate, then fill 01-intake before anything else.",
+    "Replace every `> WRITE:` line with real content and update the status marker in the file header.",
+    "Run scripts/run_status.py --run <path> to confirm no deliverable is still empty."
+  ],
+  "run_dir": "C:\\Users\\Admin\\Desktop\\GITHUB\\Marketing_Product\\runs\\runs\\2026-08-04-tiep-tuc-nang-cap-website-demo-marketing",
+  "files_written": [
+    "01-intake.md",
+    "02-data-audit.vi.md",
+    "02-data-audit.en.md",
+    "03-diagnosis.vi.md",
+    "03-diagnosis.en.md",
+    "04-hypotheses.vi.md",
+    "04-hypotheses.en.md",
+    "05-test-plan.vi.md",
+    "05-test-plan.en.md",
+    "06-next-creative.vi.md",
+    "06-next-creative.en.md",
+    "99-decision-log.md",
+    "run.json",
+    "README.md"
+  ],
+  "seeded_files": [
+    "_meta/request.json",
+    "_meta/seed-manifest.json"
+  ],
+  "supporting_runs": []
+}

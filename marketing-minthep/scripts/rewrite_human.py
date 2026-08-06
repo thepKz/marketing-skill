@@ -90,7 +90,7 @@ SPOKEN_VARIETY_MIN_HITS = 4
 # gate that fails them is a gate that gets switched off in week one.
 SPOKEN_CHANNELS = {"social", "chat", "email", "web", "marketplace"}
 
-# From references/dossiers/copywriting-deep.md section 6.2. Craft calibration targets, not measured
+# From references/copywriting.md (deep dossier section) section 6.2. Craft calibration targets, not measured
 # findings: they exist because machine prose defaults to uniform length, and uniformity is the tell.
 # Vietnamese is measured in syllables because a Vietnamese "word" is written as separate syllables,
 # so a word count says nothing comparable.
@@ -905,7 +905,7 @@ def blocking_count(gate_rows: list[dict], tells: list[dict]) -> int:
 
 def print_targets() -> str:
     lines = ["# Human-cadence targets", "",
-             "Source: references/dossiers/copywriting-deep.md section 6.2. Calibration targets, not measured findings.", "",
+             "Source: references/copywriting.md (deep dossier section) section 6.2. Calibration targets, not measured findings.", "",
              "| Metric | Target |", "|---|---|",
              f"| Mean sentence length | {TARGETS['en']['mean_low']}-{TARGETS['en']['mean_high']} words (EN); "
              f"{TARGETS['vi']['mean_low']}-{TARGETS['vi']['mean_high']} syllables (VI) |",
@@ -1013,6 +1013,23 @@ def self_check() -> str:
     for language in ("vi", "en"):
         for row in read_tells(language):
             re.compile(row["detect_regex"])
+
+    # The meta layer: process language typeset onto the artifact surface. The case that forced it
+    # was a shipped landing page whose footer read "Prototype nhận diện và luồng nạp game. Thông tin
+    # thương mại đang chờ Blackhole Games xác nhận." with "/ CONCEPT" in the copyright line — the
+    # run's own truth labels rendered as customer copy.
+    leak_vi = {row["id"] for row in find_tells(
+        "Thông tin thương mại đang chờ Blackhole Games xác nhận. Hình ảnh chỉ mang tính chất minh "
+        "họa. Đây là bản demo nhận diện thương hiệu.", "vi")}
+    assert {"meta-disclaimer-vi", "meta-illustration-only", "meta-process-words"} <= leak_vi, leak_vi
+    leak_en = {row["id"] for row in find_tells(
+        "Commercial details pending confirmation. © 2026 BLACKHOLE GAMES / CONCEPT.", "en")}
+    assert {"meta-pending-en", "meta-process-words"} <= leak_en, leak_en
+    # And clean customer copy must not fire it: a concept store is a shop, and a confirmation
+    # promise addressed to the buyer is service copy, not a leaked run note.
+    assert not {row["id"] for row in find_tells(
+        "Ghé concept store của quán ở Gò Vấp. Bếp xác nhận đơn trong 5 phút.", "vi")
+        if row.get("layer") == "meta"}
 
     # Tells must fire mid-paragraph, not only at line start. This regression cost four missed
     # tells on the first real draft the script was pointed at.

@@ -1,0 +1,17 @@
+{
+  "theme": "modern-street",
+  "width": 1080,
+  "height": 1080,
+  "kicker": "BÚN BÒ / SIGNATURE MENU",
+  "title": "Bún bò mỗi ngày",
+  "subtitle": "Quán và giá là ví dụ hư cấu — minh họa bố cục thật",
+  "category": "MÓN CHÍNH",
+  "hero_image": "bun-bo-photoreal-menu-hero.png",
+  "items": [
+    {"name": "Bún bò giò heo", "description": "Chân giò hầm mềm, nêm sả và mắm ruốc theo lối Huế", "price": "65.000đ"},
+    {"name": "Bún bò đặc biệt", "description": "Đủ giò, chả cua, huyết, thịt bò tái", "price": "79.000đ"},
+    {"name": "Chả cua chiên", "description": "Món thêm, giòn ngoài mềm trong", "price": "25.000đ"},
+    {"name": "Trà đá / trà chanh", "description": "Đi kèm mọi phần chính, giải nhiệt", "price": "10.000đ"}
+  ],
+  "footer": "CONCEPT MENU / Quán, món và giá đều hư cấu — minh họa bố cục"
+}

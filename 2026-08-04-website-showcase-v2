@@ -1,0 +1,246 @@
+{
+  "schema_version": 1,
+  "run_id": "2026-08-04-nang-cap-website-demo-marketing-minthep-tao",
+  "created": "2026-08-04",
+  "project": "Nâng cấp website demo Marketing-Minthep: tạo thêm bộ ảnh AI mới đồng bộ, thay ảnh yếu, viết lại nội dung và thiết kế lại bố cục image-led để chứng minh rõ đầu vào thành campaign, copy và visual outputs.",
+  "pipeline": "image-from-reference",
+  "pipeline_title": "Image from reference",
+  "mode": "production",
+  "languages": [
+    "vi",
+    "en"
+  ],
+  "routing": {
+    "pipeline": "image-from-reference",
+    "scores": {},
+    "reason": "explicitly requested"
+  },
+  "signals": {
+    "horizon": {
+      "weeks": 13,
+      "days": 90,
+      "stated": false,
+      "evidence": "",
+      "label": "inferred"
+    },
+    "budget": {
+      "tier": "unstated",
+      "stated": false,
+      "evidence": "",
+      "label": "unknown"
+    },
+    "product_family": {
+      "family": "service",
+      "stated": true,
+      "evidence": [
+        "sửa"
+      ],
+      "label": "inferred"
+    },
+    "market": {
+      "market": "unstated",
+      "places": [],
+      "single_location": false,
+      "label": "unknown"
+    }
+  },
+  "supporting_pipelines": [],
+  "references_to_load": [
+    "reference-first-image-flow.md",
+    "reference-analysis.md",
+    "makeup-art-direction.md",
+    "visual-craft.md",
+    "composition-light-color.md",
+    "image-output-and-sharpening.md",
+    "product-imagery.md",
+    "image-editing.md",
+    "prompt-contracts.md",
+    "provider-compilers.md",
+    "creative-evaluation.md",
+    "anti-ai-quality.md"
+  ],
+  "scripts": [
+    "start_workbench.py",
+    "new_run.py",
+    "read_makeup.py",
+    "plan_design_options.py",
+    "compile_prompt.py",
+    "plan_image_generation.py",
+    "build_asset_manifest.py",
+    "score_creative.py",
+    "find_recipe.py",
+    "check_prompt_grammar.py",
+    "run_status.py"
+  ],
+  "deliverables": [
+    {
+      "id": "01-intake",
+      "kind": "md",
+      "bilingual": false,
+      "title": "Intake and rights",
+      "title_vi": "Tiếp nhận và quyền sử dụng",
+      "gate": "Rights to every reference image are stated. If a real person appears, authorisation is recorded or the work stops.",
+      "paths": [
+        "01-intake.md"
+      ],
+      "status": "empty"
+    },
+    {
+      "id": "02-reference-map",
+      "kind": "json",
+      "bilingual": false,
+      "title": "Reference role map",
+      "title_vi": "Bản đồ vai trò ảnh tham chiếu",
+      "gate": "Every reference is assigned exactly one primary role. Unassigned references are removed, not passed through.",
+      "paths": [
+        "02-reference-map.json"
+      ],
+      "status": "empty"
+    },
+    {
+      "id": "03-visual-strategy",
+      "kind": "md",
+      "bilingual": true,
+      "title": "Visual strategy",
+      "title_vi": "Chiến lược thị giác",
+      "gate": "The direction is traceable to product mechanism and audience, not to a trend reference.",
+      "paths": [
+        "03-visual-strategy.vi.md",
+        "03-visual-strategy.en.md"
+      ],
+      "status": "empty"
+    },
+    {
+      "id": "04-craft-spec",
+      "kind": "md",
+      "bilingual": true,
+      "title": "Craft specification",
+      "title_vi": "Đặc tả kỹ thuật hình ảnh",
+      "gate": "Every craft field is a specific value or range, never an adjective. Lighting is specified geometrically.",
+      "paths": [
+        "04-craft-spec.vi.md",
+        "04-craft-spec.en.md"
+      ],
+      "status": "empty"
+    },
+    {
+      "id": "05-option-cards",
+      "kind": "md",
+      "bilingual": true,
+      "title": "Direction option cards",
+      "title_vi": "Thẻ lựa chọn định hướng",
+      "gate": "Three to five coded options. Each differs on a named axis, not on adjectives. A non-expert can choose by reading only the cards.",
+      "paths": [
+        "05-option-cards.vi.md",
+        "05-option-cards.en.md"
+      ],
+      "status": "empty"
+    },
+    {
+      "id": "06-shot-list",
+      "kind": "csv",
+      "bilingual": false,
+      "title": "Shot list",
+      "title_vi": "Danh sách cảnh",
+      "gate": "Every row has a defined job, channel, ratio, and acceptance gate.",
+      "paths": [
+        "06-shot-list.csv"
+      ],
+      "status": "empty"
+    },
+    {
+      "id": "07-prompts",
+      "kind": "dir",
+      "bilingual": false,
+      "title": "Provider prompts",
+      "title_vi": "Prompt cho nhà cung cấp",
+      "gate": "One file per variant. Each names its provider, its single changed axis, and its locks. Producing a prompt is not rendering an image; never report otherwise.",
+      "paths": [
+        "07-prompts/README.md"
+      ],
+      "status": "empty",
+      "run": "python scripts/compile_prompt.py to adapt the brief, then scripts/check_prompt_grammar.py --prompt-file <file> --provider <provider> on what it emits. Five of the nine families document no negative-prompt field, and sending exclusions to them puts the excluded thing into the prompt."
+    },
+    {
+      "id": "08-qa",
+      "kind": "md",
+      "bilingual": true,
+      "title": "QA and scoring",
+      "title_vi": "Kiểm tra và chấm điểm",
+      "gate": "Critical failures reject outright regardless of score. Scores are recorded per variant with the rejection label.",
+      "paths": [
+        "08-qa-and-scoring.vi.md",
+        "08-qa-and-scoring.en.md"
+      ],
+      "status": "empty"
+    },
+    {
+      "id": "09-export",
+      "kind": "md",
+      "bilingual": true,
+      "title": "Export and handoff",
+      "title_vi": "Xuất file và chuyển giao",
+      "gate": "Every destination has verified live platform specs cited with a retrieval date.",
+      "paths": [
+        "09-export-spec.vi.md",
+        "09-export-spec.en.md"
+      ],
+      "status": "empty"
+    },
+    {
+      "id": "manifest",
+      "kind": "csv",
+      "bilingual": false,
+      "title": "Asset manifest",
+      "title_vi": "Danh mục tài sản",
+      "gate": "Generated by scripts/build_asset_manifest.py so filenames and the shot list cannot diverge.",
+      "paths": [
+        "manifest.csv"
+      ],
+      "status": "empty"
+    }
+  ],
+  "truth_gate": [
+    "Label every fact confirmed, observed, inferred, or unknown. An unknown may never become public copy.",
+    "Cite a URL and a retrieval date for anything time-sensitive, priced, versioned, or platform-specific.",
+    "Never claim research, rendering, publication, outreach, or performance that did not happen."
+  ],
+  "next_actions": [
+    "Read the references listed for image-from-reference, then fill 01-intake before anything else.",
+    "Replace every `> WRITE:` line with real content and update the status marker in the file header.",
+    "Run scripts/run_status.py --run <path> to confirm no deliverable is still empty."
+  ],
+  "run_dir": "C:\\Users\\Admin\\Desktop\\GITHUB\\Marketing_Product\\runs\\runs\\2026-08-04-nang-cap-website-demo-marketing-minthep-tao",
+  "files_written": [
+    "01-intake.md",
+    "02-reference-map.json",
+    "03-visual-strategy.vi.md",
+    "03-visual-strategy.en.md",
+    "04-craft-spec.vi.md",
+    "04-craft-spec.en.md",
+    "05-option-cards.vi.md",
+    "05-option-cards.en.md",
+    "06-shot-list.csv",
+    "07-prompts/README.md",
+    "08-qa-and-scoring.vi.md",
+    "08-qa-and-scoring.en.md",
+    "09-export-spec.vi.md",
+    "09-export-spec.en.md",
+    "manifest.csv",
+    "run.json",
+    "README.md"
+  ],
+  "seeded_files": [
+    "_meta/request.json",
+    "_meta/design-options.json",
+    "_meta/image-provider-plan.json",
+    "_meta/render-capability.json",
+    "production-files/source/README.md",
+    "production-files/generations/README.md",
+    "production-files/edits/README.md",
+    "production-files/exports/README.md",
+    "production-files/review/README.md",
+    "_meta/seed-manifest.json"
+  ],
+  "supporting_runs": []
+}

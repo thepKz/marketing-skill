@@ -1,0 +1,101 @@
+{
+  "title": "Bún bò — 15s vertical hook / Bún bò — hook dọc 15 giây",
+  "duration_s": 15,
+  "aspect_ratio": "9:16",
+  "production_mode": "generative",
+  "world": {
+    "product": "One bowl of bún bò Huế: round white ceramic bowl with a plain rim, clear red-orange broth, round rice noodles, two slices of shank, one slice of pork knuckle, spring onion and raw onion on top",
+    "person": "One fictional adult vendor, hands and forearms only, no face in frame",
+    "location": "A small pavement shop: stainless counter, one steel stock pot camera-left, stacked bowls camera-right, morning street out of focus behind",
+    "palette": "Warm broth red-orange against cool grey steel; herb green as the only accent",
+    "lens_family": "35mm equivalent for the wide shots, 60mm equivalent macro for the detail shots, no zoom inside a shot"
+  },
+  "shots": [
+    {
+      "id": "S1",
+      "job": "hook",
+      "duration_s": 3.0,
+      "action": "A ladle lifts out of the pot and pours broth into the waiting bowl; steam climbs and bends away from the pour",
+      "framing": "Macro on the pour, bowl rim across the lower third",
+      "camera": "Slow push in, 10cm over the shot",
+      "set": {
+        "screen_direction": "left-to-right",
+        "gaze": "no face in frame; the action holds the eye",
+        "hand": "right hand holds the ladle, left hand steadies the bowl",
+        "light_direction": "soft key 45 degrees camera-left, from the street doorway",
+        "time_of_day": "07:30 morning, cool daylight around 5600K",
+        "prop_placement": "stock pot camera-left, stacked bowls camera-right, chopstick jar behind the bowl",
+        "material_state": "steam rising continuously and dispersing upward; broth filling to two thirds",
+        "wardrobe": "rolled navy sleeves, plain apron, no watch or ring"
+      },
+      "text": "",
+      "audio": "Production sound: broth hitting ceramic, pot lid, street behind"
+    },
+    {
+      "id": "S2",
+      "job": "recognition",
+      "duration_s": 3.0,
+      "action": "The finished bowl sits on the counter and reads as one complete dish; hands withdraw from frame",
+      "framing": "Three-quarter top-down on the whole bowl, full silhouette visible",
+      "camera": "Locked",
+      "transition": "hard cut",
+      "set": {
+        "hand": "both hands leave frame to the right",
+        "material_state": "steam thinner and slower now that the pour has stopped; broth level settled at two thirds"
+      },
+      "text": "",
+      "audio": "Room tone, street behind"
+    },
+    {
+      "id": "S3",
+      "job": "proof",
+      "duration_s": 3.5,
+      "action": "Chopsticks lift noodles clear of the broth; the strands separate and broth runs off them back into the bowl",
+      "framing": "Macro, lift crossing the upper two thirds",
+      "camera": "Slow lateral move right, following the lift",
+      "transition": "hard cut on the same action axis",
+      "set": {
+        "hand": "right hand holds the chopsticks, left hand steadies the bowl rim"
+      },
+      "text": "",
+      "audio": "Production sound: broth dripping, noodles separating"
+    },
+    {
+      "id": "S4",
+      "job": "process proof",
+      "duration_s": 3.0,
+      "action": "Shank and pork knuckle rest in the open stock pot, the surface moving at a low simmer",
+      "framing": "Macro into the pot, surface across the middle third",
+      "camera": "Locked",
+      "transition": "cutaway to the pot",
+      "reason": "The pot is what the broth claim rests on; it is a different subject, so the cut is a cutaway rather than a continuation",
+      "cutaway": true,
+      "set": {
+        "screen_direction": "static",
+        "hand": "no hands in frame",
+        "prop_placement": "pot centred, bowl out of frame, chopstick jar out of frame",
+        "material_state": "low simmer with slow surface movement, steam rising continuously"
+      },
+      "text": "",
+      "audio": "Production sound: simmer"
+    },
+    {
+      "id": "S5",
+      "job": "cta",
+      "duration_s": 2.5,
+      "action": "The complete bowl again, held still with room above it for type",
+      "framing": "Three-quarter top-down, bowl in the lower two thirds, upper third empty for copy",
+      "camera": "Locked",
+      "transition": "hard cut back to the bowl",
+      "reason": "Return to the recognition framing so the last frame is the dish, not the kitchen",
+      "cutaway": true,
+      "set": {
+        "screen_direction": "static",
+        "prop_placement": "bowl centred, stacked bowls camera-right, pot out of frame",
+        "material_state": "steam thin and slow; broth level unchanged"
+      },
+      "text": "{{shop_name}} · {{street_address}} · {{opening_hours}}",
+      "audio": "Music tail only, no voiceover"
+    }
+  ]
+}
