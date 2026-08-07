@@ -5,19 +5,19 @@ marketing copy". Every sentence is grammatical. The paragraph says nothing a buy
 
 ## Run it
 
+The three texts sit verbatim at the bottom of this file. Copy any one into its own file and gate it:
+
 ```bash
-python ../../../scripts/rewrite_human.py --check 01-draft-vi.md
-python ../../../scripts/rewrite_human.py --check 02-rewrite-vi.md
-python ../../../scripts/rewrite_human.py --check 03-transcreation-en.md
+python scripts/rewrite_human.py --check draft.md
 ```
 
-The first exits non-zero and names six blocking failures. The other two exit zero.
+The draft exits non-zero and names six blocking failures. The rewrite and the transcreation exit zero.
 
-| File | What it is |
+| Section | What it is |
 |---|---|
-| `01-draft-vi.md` | The draft as received. Four sentences, no checkable fact |
-| `02-rewrite-vi.md` | The rewrite. Same product, facts supplied from the shop |
-| `03-transcreation-en.md` | English built from the same facts, not translated from the Vietnamese |
+| `01 — Draft (VI)` | The draft as received. Four sentences, no checkable fact |
+| `02 — Rewrite (VI)` | The rewrite. Same product, facts supplied from the shop |
+| `03 — Transcreation (EN)` | English built from the same facts, not translated from the Vietnamese |
 
 ## What the numbers showed
 

@@ -140,4 +140,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    from _emit import run_gate
+    run_gate(main)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Work out what an affiliate commission rate actually pays, and when the cash arrives.
 
-`creator-ugc.md` had one sentence about affiliates - the word appears once, in a list of relationship
+`affiliate-commerce.md` had one sentence about affiliates - the word appears once, in a list of relationship
 types - and the skill could plan a creator campaign without ever asking what the creator gets paid.
 That gap matters more in Vietnam than anywhere else in this repo, because affiliate is not a side
 channel here: it is how a large share of marketplace demand is generated, and the numbers governing it

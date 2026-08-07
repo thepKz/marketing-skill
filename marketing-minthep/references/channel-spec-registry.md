@@ -114,3 +114,183 @@ Keep the load-bearing content out of the interface. Product, face, logo, subtitl
 Check it at the size people see. Thumbnail, real display size, dark mode where it applies, and on a slow connection. In email, check it with images blocked, because a meaningful share of recipients will see it that way whether they chose to or not.
 
 Keep the master and note every derivative against it. The reason is dull and it is the one that bites: six weeks later something needs a 4:5 and nobody can find the file that was not already 9:16.
+
+## Channel deliverables
+
+Platform specifications change. Verify current platform documentation before final export. Use ratios and safe-zone behavior as durable planning constraints; do not treat these notes as a substitute for live upload requirements.
+
+### Universal master set
+
+Design the composition independently for each master ratio:
+
+- `9:16` vertical: short-form video, stories, reels.
+- `4:5` portrait: feed-first product and human ads.
+- `1:1` square: flexible feed, catalog, and testing assets.
+- `16:9` landscape: video, web hero, presentation, and display contexts.
+- Wide web hero: create a dedicated crop with protected copy space; do not stretch a social asset.
+
+Keep logos, faces, product labels, and CTA copy away from UI overlays and crop edges. Preview at thumbnail size and on a narrow phone viewport.
+
+### Meta
+
+Use Meta Ads Library and the current Meta Ads Guide during research. Plan:
+
+- A feed master with fast product recognition.
+- A vertical story/reel master with the hook visible before sound or narration matters.
+- A proof-led retargeting variant.
+- A catalog-friendly product frame when ecommerce is relevant.
+
+Avoid treating a static feed poster as a vertical video. Re-stage the composition for vertical depth and sequence.
+
+### TikTok
+
+Use TikTok Creative Center and TikTok Ads Library. Plan:
+
+- A first-frame interruption tied to audience behavior, not random motion.
+- Native pacing, readable captions, and a visible product mechanism.
+- Creator or human variants that remain believable rather than over-scripted.
+- A direct-response ending that does not invalidate the native tone.
+
+Raw does not mean careless. Preserve clean audio, deliberate framing, and a clear edit rhythm.
+
+### Google
+
+Use the Google Ads Transparency Center and current Google Ads asset guidance. Build modular assets that retain meaning when recombined:
+
+- Product-only visual.
+- Product-in-use visual.
+- Benefit-led visual.
+- Brand or proof visual.
+- Short, medium, and long message variants without contradictory claims.
+
+Do not place essential copy only inside the image when the ad system may crop or combine assets.
+
+### LinkedIn
+
+Prioritize professional proof and decision context:
+
+- Single-image insight or proof.
+- Document or carousel narrative.
+- Executive, customer, or operator viewpoint.
+- Clear business outcome and next step.
+
+Avoid generic office stock, staged handshakes, and decorative dashboards without a real claim.
+
+### Pinterest
+
+Use Pinterest Trends to understand query language, seasonality, and visual intent. Favor:
+
+- Vertical discovery compositions.
+- Useful, saveable structure.
+- Clear product relationship to a desired future state.
+- Search-aware titles and descriptions.
+
+Do not copy a trending visual literally; translate the underlying intent into the brand's own materials and composition.
+
+### Website and landing page
+
+Deliver:
+
+- Desktop and mobile hero direction.
+- Full-page narrative order.
+- Product and human image crop map.
+- Loading, responsive, accessibility, and reduced-motion behavior.
+- Social-to-page message continuity.
+
+The ad promise and landing-page first viewport must agree. If the campaign uses a distinctive visual device, carry it into the page without repeating the same asset everywhere.
+
+## Channel composition systems
+
+Use this reference before resizing campaign work for Facebook, Instagram, LinkedIn, TikTok, YouTube, or another social placement. Vendor specifications decide whether a file uploads. This reference decides whether the message still works after it uploads.
+
+### Separate three contracts
+
+1. **Message contract:** audience state, tension, promise, proof, CTA, disclosure.
+2. **Composition contract:** first attention, image role, copy density, reading order, sequence, interface-safe geometry.
+3. **Export contract:** ratio, dimensions, duration, file type, file size, character recommendations, vendor freshness.
+
+Do not substitute one contract for another. A correct 4:5 export can still be a poor Instagram post, and an attractive LinkedIn document can still fail because its PDF pages use mixed sizes.
+
+Read `data/channel-composition.csv` for the default house rules and `data/channel-specs.csv` for vendor-published limits. House rules are labelled as house rules; never present them as platform requirements.
+
+### Platform defaults
+
+#### Facebook Feed
+
+- Use when the reader may know little about the product and the post needs context, an offer, or a direct response.
+- Reading order: recognisable subject or situation -> plain promise -> proof or offer -> action.
+- Let the caption carry explanation. Keep the image to one decision and one proof cue.
+- A Feed still and Feed video can share a campaign idea, but not necessarily the same composition or text field.
+
+#### Facebook Reels and Stories
+
+- Build for vertical interruption and continuation: first frame -> visible mechanism or situation -> proof -> action.
+- Keep critical copy away from the platform interface. When the official source publishes no numeric safe zone, mark it `undocumented`; do not invent a universal margin.
+- Rebuild from the master. Never crop a Feed still into 9:16 and call it adapted.
+
+#### Instagram Feed
+
+- Let the image establish taste, product recognition, or a save-worthy idea before copy explains it.
+- Prefer a low-entropy image field, one compact text role, and a caption that adds meaning rather than repeating the image.
+- For carousels, make each slide answer one question. Slide 1 earns the swipe; middle slides prove or teach; the last slide resolves the action.
+
+#### Instagram Reels and Stories
+
+- Use a native 9:16 composition with subtitles or on-screen copy designed around the subject, not placed over it afterwards.
+- Establish the subject and tension immediately. Do not spend the opening on a logo animation.
+- Story frames need one action each. If the story requires three decisions, use three frames.
+
+#### LinkedIn Single Image
+
+- Lead with a professional consequence, mechanism, market observation, or evidence-backed point of view.
+- Compose for feed scanning: one claim, one proof object, one clear next step. Avoid consumer-ad slogans with no business context.
+- LinkedIn officially recommends 1:1 and 4:5 templates and also documents a 1.91:1 landscape option. Choose by message shape, not habit.
+
+#### LinkedIn Document
+
+- Treat the document as a proof sequence: tension -> framework -> evidence/example -> implication -> action.
+- The cover earns the open; it does not carry the whole argument. Use one thought per page and keep page size consistent.
+- PDF, PPT/PPTX, DOC/DOCX are supported in the cited advertising specification; lead-generation document ads require PDF. Flatten layered PDFs before delivery.
+
+#### LinkedIn Video
+
+- Lead with the useful point, not with brand ceremony. LinkedIn's official guidance says to show the most impactful content in the first 10 seconds.
+- Prefer 4:5 for a feed-dominant vertical frame when the subject permits it; use 9:16 only when the visual or distribution plan needs the taller canvas.
+- Captions are a delivery requirement, not decoration. Export the caption file separately when the platform requires SRT.
+
+#### TikTok and short-form vertical
+
+- Build around action, demonstration, transformation, or a human observation that is visibly connected to the product.
+- First frame identifies the situation; the next frames pay off the hook. A hook unrelated to the product is a continuity failure.
+- Keep captions readable over motion and re-check against the current platform overlay rather than a memorised safe-zone number.
+
+### Cross-channel adaptation packet
+
+For every selected channel, deliver:
+
+1. placement and objective;
+2. audience state and the one belief/action to change;
+3. channel-specific headline or hook;
+4. frame blueprint with reading order and protected UI zones;
+5. caption/body copy and CTA;
+6. carousel page plan or video beat sheet when applicable;
+7. export row from `data/channel-specs.csv` or an explicit `unverified` state;
+8. alt text, disclosure, owner, approval state, and metric.
+
+### Headline and typography gate
+
+- Let titles wrap naturally. Do not insert `<br>` or manual line breaks to manufacture a graphic shape.
+- Default to one or two lines in feed graphics and one compact thought per carousel/document page.
+- When the title does not fit, shorten it, widen its field, reduce size, then alter the composition.
+- Keep the product, person, proof object, and title from competing at equal strength. One leads; the others support.
+
+### Rejection labels
+
+- `BLIND-CROP`: same layout trimmed into another ratio.
+- `CHANNEL-SWAP`: same copy and hierarchy pasted across platforms.
+- `UI-COLLISION`: subject, title, disclosure, subtitle, or CTA sits under platform controls.
+- `TEXT-WALL`: image or first slide carries caption-length copy.
+- `EMPTY-HOOK`: hook attracts attention but has no product or argument continuity.
+- `DOCUMENT-AS-CAROUSEL`: LinkedIn document has decorative slides but no proof sequence.
+- `FORCED-BREAK`: manual headline breaks create unnecessary lines or oversized type.
+- `SPEC-AS-STRATEGY`: passing technical limits is presented as evidence the creative works.

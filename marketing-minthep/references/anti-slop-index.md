@@ -16,7 +16,7 @@ literature that does not exist yet.
 
 | Stage | Question | Instrument | Reads | Explained in |
 |---|---|---|---|---|
-| 1. Content | Does it say anything a competitor could not copy? | `scripts/check_specificity.py` | the `evidence` and `hedge` layers of `data/translation-tells.csv` | `specificity.md` |
+| 1. Content | Does it say anything a competitor could not copy? | `scripts/check_specificity.py` | the `evidence` and `hedge` layers of `data/translation-tells.csv` | `copywriting.md` |
 | 2. Shape | Is the document shaped like an answer or like a model's essay? | `scripts/check_output_shape.py` | its own pattern set (announced openings, bold-led grids, generic headers, recap closes) | `output-contract.md` |
 | 3. Cadence | Does it read machine-made or machine-translated? | `scripts/rewrite_human.py` | all of `data/translation-tells.csv` | `rewrite-human.md` |
 | 4. Presence | Does the sentence have what a sentence written in this language has? | `scripts/rewrite_human.py` | `data/spoken-markers.csv` | `rewrite-human.md` |
@@ -65,7 +65,7 @@ may be made at all; this layer only answers whether the sentence carrying it rea
 
 Rows in `translation-tells.csv` and `slop-tells.csv` that match this literature match it at the
 category level. The per-row wording, the Vietnamese member of each pair, and every threshold are
-this repo's own, on the same terms as `specificity.md`: house rules, open to argument, and not
+this repo's own, on the same terms as `copywriting.md`: house rules, open to argument, and not
 dressed up with a citation they do not have.
 
 ## Word lists decay. Distributions do not.

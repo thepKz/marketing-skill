@@ -74,6 +74,23 @@ TABLES = {
     "evidence": ("evidence-sources.csv", "source_id",
                  ("what_it_is", "who_it_over_represents", "what_it_cannot_see",
                   "strongest_claim_it_supports")),
+    # Searched the same way makeup is: by what shows in the photo, not by the style's name. The
+    # person knows the hair is "xoăn nhẹ chấm vai", not that the family is called a lob.
+    "hair": ("hairstyles.csv", "style_id",
+             ("name_vi", "name_en", "family", "signature_tell", "discriminator", "use_when")),
+    # Searched by the mood the frame needs — "ấm", "sang", "tươi" — because the harmony's job is to
+    # carry a signal, and failure_mode is in the search set so "vì sao nó bị chói" also lands here.
+    "harmonies": ("colour-harmonies.csv", "harmony_id",
+                  ("name_vi", "name_en", "mood_signal", "use_when", "failure_mode")),
+    # Searched by the user's own words — "làm poster", "sao không ai mua" — because the row's job is
+    # to name the need underneath the ask and what a good output must contain before anything is made.
+    "asks": ("ask-diagnosis.csv", "ask_id",
+             ("they_say_vi", "they_say_en", "real_job", "good_output_is")),
+    # Searched by the word someone met in a comment section and by the meaning they want to express,
+    # both directions — "khum nghĩa là gì" and "từ nào khen đồ ăn ngon". register is in the search
+    # set because the real question is usually whether the brand is allowed to say it at all.
+    "genz": ("genz-lexicon.csv", "term_id",
+             ("term", "meaning_vi", "meaning_en", "register", "use_when")),
 }
 
 # The fields of a brief that no lookup table can supply, with the reason each one has to come from

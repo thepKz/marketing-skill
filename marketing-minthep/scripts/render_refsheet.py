@@ -651,7 +651,7 @@ def sheet_reference() -> str:
 
     Prose cannot make that split legible, because the split is spatial. So the same frame is drawn
     twice: once as the beginner reads it, once as a brief reads it. Then every axis from
-    `references/reference-analysis.md` gets a verdict from `data/reference-axes.csv`, which is why
+    `references/reference-reading.md` gets a verdict from `data/reference-axes.csv`, which is why
     the sheet cannot drift away from the doctrine it illustrates.
     """
     rows = _table("reference-axes.csv")
@@ -740,7 +740,7 @@ def sheet_reference() -> str:
     closing, cursor = _block(
         margin,
         cursor + 24,
-        "Three axes say transform, and reference-analysis.md asks you to move at least three before "
+        "Three axes say transform, and reference-reading.md asks you to move at least three before "
         "using a pattern at all. That is not a coincidence: hook, material and copy behaviour are "
         "the three that carry the most recognition, so moving them is what stops a reference being "
         "traceable at a glance. If the result can still be traced to one source, start again.",

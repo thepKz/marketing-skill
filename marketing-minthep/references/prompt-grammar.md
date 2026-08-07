@@ -181,7 +181,7 @@ and separately prohibits impersonating an individual living or dead without disc
 deceive. The word biometrics is doing real work there: a face is biometric data, so a real-face
 reference is a consent question before it is a craft question. None of these is a substitute for the
 publicity and personality rights that apply locally, and several jurisdictions are stricter than the
-policies. `rights-and-claims.md` is where that question is answered.
+policies. `claims-proof-ledger.md` is where that question is answered.
 
 Two provider-side controls are worth setting deliberately rather than inheriting. Imagen's
 `PERSON_SETTING` defaults differ by model - `allow_all` including minors on Imagen 4 generation

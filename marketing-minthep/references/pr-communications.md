@@ -154,7 +154,7 @@ the front-page prohibition are the outlet's problem as much as yours.
 
 Treat an advertorial as advertising. Mark it. Argue the other way only on a lawyer's letter.
 
-The disclosure duty itself is not restated here. It is in `creator-ugc.md` for a creator's post, and in
+The disclosure duty itself is not restated here. It is in `affiliate-commerce.md` for a creator's post, and in
 `claims-proof-ledger.md` for what a claim inside that post has to be backed by. No instrument
 prescribes the wording.
 

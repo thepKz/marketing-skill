@@ -1253,3 +1253,53 @@ Close these before making decisions that cost money. Each line names the specifi
 Every number in this document marked [illustrative] — the 45.000 ₫ price, the 1-in-4 generation accept
 rate, the shoot time budget, the 1.6s average clip length — is invented for arithmetic and must be
 replaced with your own before it appears in anything anyone else reads.
+
+## Live commerce
+
+A livestream is a shift, not a video. Everything above this section produces an artifact that gets
+edited before anyone sees it; a live sells in real time, unedited, to a room that churns completely
+every few minutes — and that churn is the design constraint everything else follows from.
+`vietnam-operating-reality.md` carries the market arithmetic (order values, platform mechanics,
+double-day calendar); this section is how to run the two hours.
+
+### The run-of-show is a loop, not a script
+
+Because the median viewer lands mid-stream and stays minutes, the show is built from **blocks of
+roughly ten to fifteen minutes, each one complete in itself**: hook (what is about to be shown and
+what it costs), demonstration (the product doing the thing, never the host reading the spec),
+price reveal against an anchor ("giá tại shop 180k, trong live còn..."), basket call (the pinned
+item number, said out loud), then proof (reading a buyer's comment or order count). A viewer who
+sees only one block has met the whole offer. Write the run-of-show as a table — block start time,
+product, anchor price, live price, stock cap, which basket slot — and mirror the same order in the
+pinned basket, because a viewer who has to scroll the basket hunting for the item the host is
+holding is a lost order.
+
+The offer ladder shapes the sequence: open with the entry item (low price, capped units — its job
+is first baskets and algorithmic proof of a selling room, not margin), return to the anchor product
+every second or third block, and hold one flash deal for announced times so leaving has a cost.
+A live with one price event is a two-hour video with a long middle.
+
+### Roles, register, and the comment stream
+
+Two people is the working minimum: a **host** who sells and an **operator** who pins products,
+posts the price comment, and triages the stream. One person doing both stops selling every time the
+basket needs touching. The host's register is one-to-one, not broadcast: nói với một người —
+answer commenters by name, repeat the question before answering it (the room heard the answer, not
+the question), and demonstrate rather than recite. Dead air while reading the stream is fine;
+silence reads as authentic, while ignoring the stream reads as a recording. Seed the first fifteen
+minutes yourself — own community notified, first flash deal early — because platforms distribute
+to rooms that already show activity, and the slowest quarter of every live is the first one.
+
+### What a live must refuse
+
+- **No live without the run-of-show table and stock counts.** "Lên live nói chuyện với khách" is a
+  community activity, priced accordingly; calling it selling produces two hours at near-zero orders.
+- **A claim spoken on live is a published claim.** "Cam kết hàng chính hãng", "giảm cân", "trị" —
+  the whole `claims-proof-ledger.md` apparatus applies to speech, with no edit pass to catch it, so
+  banned-category claims are struck from the run-of-show, not improvised around.
+- **A booked host is a creator under the law.** Disclosure duties and deal mechanics live in
+  `affiliate-commerce.md`, and they apply to the person on camera whether or not anything was signed.
+- **The score is orders per session against the session's all-in cost** — host, operator, deals,
+  prep. At Vietnamese video-commerce order values (`how-companies-market.md` carries the figure), a
+  session that cannot clear its own cost in orders is a rehearsal; run it as one deliberately or not
+  at all.

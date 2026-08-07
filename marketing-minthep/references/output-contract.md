@@ -97,3 +97,129 @@ Shape is necessary, not sufficient: a document can open with a verdict that is w
 headers over fabricated numbers, and pass this gate while failing core rule 1. Truth stays
 upstream. And the gate reads markdown and plain text only — an HTML artifact's shape is judged
 by looking at the render, which no regex replaces.
+
+## The marketing project on disk
+
+A single run produces a deliverable; a business produces months of them. The project folder is
+the layer that keeps month three from re-deriving month one, and it is the first thing to look
+for on a return visit:
+
+```text
+marketing/
+  BRAND.md                 brand truth — offer, audience, voice, approved claims; contract in identity-design.md
+  plan.md                  the standing plan; shape and cadence below
+  learnings.md             dated lines, one per result that changed a decision
+  campaigns/
+    2026-09-khai-truong/   one folder per campaign — asset lineage per Production pipeline below
+  assets/                  evergreen: logo masters, palettes, templates
+```
+
+A plan that lives in chat dies in chat. `plan.md` is a standing file with five parts, none
+optional: one objective with a number and a date; the quarter's arc in three lines, what each
+month must prove; the weekly slots, each naming its job; the budget line the plan spends, money
+or hours; and the refuse list — what this business will not do this quarter, and why. Ten to
+thirty lines total. A plan longer than a page is a document nobody reopens. `how-companies-market.md`
+(Direction by scale) sets which shape of plan the business can actually run; write the plan for
+the level the business is at, not the level it aspires to.
+
+Knowledge accrues in exactly two files. `BRAND.md` holds what is settled — a result is promoted
+into it only under the conditions in `performance-direction.md`, never because one post did well
+once. `learnings.md` holds what was observed: one dated line per result that changed a decision —
+*"9/2026: đăng 12h thua 20h về reach ba lần liên tiếp — chuyển hẳn khung tối"* — a
+decision-change log, not a diary. A learning that changed no decision is not recorded.
+
+Evaluation runs at three levels, and they do not substitute for each other. The gates in
+`scripts/` judge an artifact before it ships. The weekly look is two questions against `plan.md`
+— did the slots ship, did the number move — five minutes, no report. The monthly read is
+`kpi-scorecards.md` plus `build_variance_report.py` against the plan's number, ending in one
+decision per `report-notation.md`. The quarterly read reopens the plan itself: every line gets
+kill, hold, or scale, and the refuse list is rewritten. The artifact gate never answers the plan
+question — a month of clean gates with a flat number is a failing month.
+
+## Production pipeline
+
+### Asset lineage
+
+Preserve this hierarchy:
+
+```text
+campaign-id/
+  lane-id/
+    asset-id/
+      source/
+      prompts/
+      generations/
+      edits/
+      exports/
+      review/
+```
+
+Do not replace approved masters silently. Create versioned siblings.
+
+### Naming contract
+
+Use:
+
+```text
+{campaign}-{lane}-{channel}-{asset}-{ratio}-{variant}-v{number}.{ext}
+```
+
+Example:
+
+```text
+barrier-reset-signature-tiktok-hero-9x16-proof-v03.mp4
+```
+
+Avoid spaces, vague names such as `final-final`, and provider-generated random filenames in handoff.
+
+### Prompt record
+
+Store:
+
+- Prompt ID, campaign, lane, asset, channel, ratio, and hypothesis.
+- Provider and model/version when known.
+- Input reference paths and roles.
+- Product, identity, text, and claim locks.
+- Master prompt and provider-compiled prompt.
+- Generation settings available from the provider.
+- Selected result, rejected results, and rejection labels.
+- Edit passes and exact change scope.
+- Approval owner, date, and export status.
+
+### Review states
+
+Use a small state machine:
+
+`draft -> generated -> selected -> editing -> qa -> approved -> exported -> measured`
+
+Allow `rejected` from every state before `approved`. Never label an asset approved when only the prompt was reviewed.
+
+### Export package
+
+Include:
+
+- Approved master.
+- Channel-specific exports.
+- Copy file and legal copy.
+- Prompt record and source references.
+- Asset manifest CSV or JSON.
+- Rights, consent, usage, and expiration notes.
+- QA score and unresolved limitations.
+
+### Channel crop process
+
+1. Start from the selected composition.
+2. Recompose for each ratio when hierarchy changes.
+3. Protect logo, face, product label, CTA, and UI safe zones.
+4. Inspect at actual delivery size and thumbnail size.
+5. Add typography after generation when exact text matters.
+
+### Handoff safeguards
+
+- Keep source and export color profiles explicit.
+- Preserve full-resolution masters.
+- Do not upscale a broken asset and call it production-ready.
+- Do not export fake text, temporary labels, watermarks, or debug overlays.
+- Record what could not be verified.
+
+Use `scripts/build_asset_manifest.py` and templates under `assets/templates/`.

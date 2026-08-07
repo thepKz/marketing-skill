@@ -100,7 +100,7 @@ The published ceiling on native text comes from Google's own Imagen prompt guide
 
 For Vietnamese the ceiling is effectively lower, and the reason is in `data/slop-tells.csv` under `diacritic-drift`: script-level degradation is measurable in every model tested, the marks specific to Vietnamese are what break first, and an English-reading review passes it because an English-reading eye never looks at the marks. Ten poster and banner tells sit in that table with a ten-second eye check each — `diacritic-drift`, `font-melt`, `wordmark-invention`, `hierarchy-collapse`, `rag-chaos`, `edge-bleed`, `decor-noise`, `faux-depth-furniture`, `palette-divorce`, `qr-fiction`. `invented-text` and `centered-everything` were already there and already cover fabricated signage and the dead-centre layout.
 
-The working division: **generate the plate, composite the words.** A brand mark is never generated, a QR code is never generated, and a price is never generated.
+The working division: **generate the plate, composite the words** — with the venue name as the one default passenger in the plate, since a short name fits under both ceilings and gains from sharing the scene's light (conditions in Production split below). A brand mark is never generated, a QR code is never generated, and a price is never generated.
 
 ## The researched gap
 
@@ -251,13 +251,34 @@ Use the content to choose geometry:
 
 Do not automatically center the subject, use a giant title, apply a Swiss grid, add a decorative border, or reserve a fixed percentage of empty space. Negative space must create figure-ground meaning, protect reading, or build scale tension; otherwise it is `EMPTY-PRESTIGE`.
 
+## Committed geometry
+
+The focal mechanism decides what the poster is; this skeleton decides where things land before
+taste starts. Every number is a declared craft value, not a citation — the same grade the format
+table uses — and the skeleton exists for the same reason menu geometry does: a run that reinvents
+the frame each time ships a different poster each time. Deviate for the focal mechanism, on
+purpose and named in the brief; never by drift.
+
+| Surface | Outer margin | Identity zone | Headline | Image field | Information strip |
+|---|---|---|---|---|---|
+| A-series print, A3–A0 | 4% of the short side, all edges | ≤10% of page height, one edge only | Enters in the top third, on one committed left edge, ≤2 lines | ≥55% of page area | ≤12% of page height at the base, sustained-band type |
+| Social 4:5 (1080×1350) | 72 px | One corner, ≤120 px tall | Within the top 40%, ≤2 lines | ≥50% of canvas | One badge or price lockup, never both stacked |
+| Story 9:16 (1080×1920) | 64 px sides | Below the top reserve | Reserve the top 250 px and bottom 340 px for platform UI; the message lives in the middle 60% | Full-bleed behind the reserves | CTA sits just above the bottom reserve |
+| Banner letterbox ≥2.5:1 | 4% of height | Left block, ≤20% of width | Centre field, ≥55% of width, one line | Behind or right of the message | Right block, ≤25% of width |
+
+Three rules ride every surface: at most three type sizes, because three roles is all a poster
+carries; headline-to-support cap-height ratio at least 3:1, or the hierarchy reads as two
+paragraphs; and exactly one deliberate grid break, because one break is emphasis and two is noise.
+The skeleton is where layout starts, and `EQUAL-SIGNALS` is what shipping it unbroken and unloved
+looks like — commit the frame, then spend the taste on the one place it bends.
+
 ## Production split
 
 Default to `AI plate -> real/reference imagery in controlled masks -> human/Canva type`.
 
-AI may own surface, light, material, symbolic device, image treatment, mask geometry, and text-safe zones. Prefer a real packshot or source photograph when product identity matters; asking a model to redraw a product is a fidelity risk, not a premium workflow. Human/Canva owns final copy, Vietnamese diacritics, logo, price, date, address, contact details, legal text, and QR.
+AI may own surface, light, material, symbolic device, image treatment, mask geometry, text-safe zones — and, by default, the brand or venue **name** as display lettering, because a name drawn in the plate's own light and material reads as belonging where a pasted name reads as a sticker. The name exception has three conditions: it is the name only, never the logo mark; it fits the 25-character native-text ceiling; and every Vietnamese diacritic is proofed against `diacritic-drift` — two broken renders and the name moves to the composite layer. Prefer a real packshot or source photograph when product identity matters; asking a model to redraw a product is a fidelity risk, not a premium workflow. Human/Canva owns final copy, Vietnamese diacritics in running text, logo, price, date, address, contact details, legal text, and QR.
 
-Native AI text is allowed only when explicitly requested and short enough for provider QA. A generated plate containing fake letters fails even when the letters look decorative.
+Native AI text beyond the name is allowed only when explicitly requested and short enough for provider QA. A generated plate containing fake letters fails even when the letters look decorative.
 
 ## External-skill findings
 

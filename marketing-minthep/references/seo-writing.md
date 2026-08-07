@@ -192,7 +192,7 @@ you, in the city that matters.
 Whether the page is indexable. Robots directives, canonical tags, hreflang, status codes and render
 behaviour all live on the server, and a draft cannot tell you about any of them.
 
-Whether the claims are true or permitted. That is `claims-proof-ledger.md` and `rights-and-claims.md`,
+Whether the claims are true or permitted. That is `claims-proof-ledger.md` and `claims-proof-ledger.md`,
 and no structural gate substitutes for either.
 
 Whether the writing is any good. A pass means the page is structurally capable of answering

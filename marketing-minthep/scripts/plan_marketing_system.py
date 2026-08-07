@@ -35,16 +35,16 @@ ROOT = Path(__file__).resolve().parents[1]
 FORMAT_REGISTRY = ROOT / "assets" / "registries" / "asset-formats.json"
 
 JOB_MODULES = {
-    "strategy-offer": ["marketing-foundation.md", "brand-dna.md", "rights-and-claims.md"],
-    "campaign-launch": ["campaign-systems.md", "paid-media-creative.md", "channel-deliverables.md"],
-    "content-distribution": ["content-system.md", "copywriting.md", "channel-deliverables.md"],
-    "commerce-merchandising": ["commerce-merchandising.md", "product-category-playbooks.md", "product-imagery.md"],
-    "pr-communications": ["pr-communications.md", "rights-and-claims.md", "source-map.md"],
-    "sales-enablement": ["sales-enablement.md", "copywriting.md", "rights-and-claims.md"],
-    "creator-ugc": ["creator-ugc.md", "channel-deliverables.md", "rights-and-claims.md"],
-    "lifecycle-retention": ["lifecycle-retention.md", "copywriting.md", "learning-loop.md"],
-    "creative-production": ["reference-first-image-flow.md", "product-imagery.md", "realistic-studio-imagery.md"],
-    "measurement-optimization": ["learning-loop.md", "creative-evaluation.md", "production-pipeline.md"],
+    "strategy-offer": ["marketing-canon.md", "identity-design.md", "claims-proof-ledger.md"],
+    "campaign-launch": ["campaign-systems.md", "campaign-systems.md", "channel-spec-registry.md"],
+    "content-distribution": ["copywriting.md", "copywriting.md", "channel-spec-registry.md"],
+    "commerce-merchandising": ["product-category-playbooks.md", "product-category-playbooks.md", "product-imagery.md"],
+    "pr-communications": ["pr-communications.md", "claims-proof-ledger.md", "source-map.md"],
+    "sales-enablement": ["lead-handling.md", "copywriting.md", "claims-proof-ledger.md"],
+    "creator-ugc": ["affiliate-commerce.md", "channel-spec-registry.md", "claims-proof-ledger.md"],
+    "lifecycle-retention": ["lifecycle-retention.md", "copywriting.md", "performance-direction.md"],
+    "creative-production": ["reference-reading.md", "product-imagery.md", "realistic-studio-imagery.md"],
+    "measurement-optimization": ["performance-direction.md", "evaluation-suite.md", "output-contract.md"],
 }
 
 JOB_FAMILIES = {
@@ -214,7 +214,7 @@ def plan_marketing_system(request: dict) -> dict:
     if any(word in text for word in ("virtual person", "ai model", "người ảo")):
         overlays.extend(["virtual-person-system.md", "makeup-art-direction.md"])
     if request.get("reference_assets") or request.get("art_direction"):
-        overlays.extend(["reference-first-image-flow.md", "prompt-contracts.md"])
+        overlays.extend(["reference-reading.md", "prompt-contracts.md"])
 
     return {
         "primary_job": job,

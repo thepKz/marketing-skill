@@ -13,7 +13,7 @@
 - A near-neutral has no hue to share
 - Ramps: arc length is not chord distance
 - What a scheme is, and what it is not
-- Reading the twenty shipped palettes
+- Reading the shipped palettes
 - The evidence that exists
 - The two statistics that do not
 - Colour in Vietnam
@@ -266,11 +266,15 @@ decision, made against contrast, not against the wheel.
 
 Never present a wheel scheme as a result. It is a shortlist that has passed a first check.
 
-## Reading the twenty shipped palettes
+## Reading the shipped palettes
 
-`data/palettes.csv` holds twenty palettes with four roles each — `bg`, `ink`, `accent`, `support` —
-plus what each is for, what it is wrong for, and the measured ratios. All twenty clear every gate.
-Six carry a review, and the reviews are the instructive part:
+`data/palettes.csv` holds thirty-six palettes with four roles each — `bg`, `ink`, `accent`,
+`support` — plus what each is for, what it is wrong for, and the measured ratios. The original
+twenty editorial palettes were joined by four food/VN rows and twelve mood rows (black-gold luxe,
+Korean pastel, seventies retro, tropical, tech dark, neon nightlife, terracotta, navy monochrome,
+two-ink riso, milk tea, herbal spa, Tết red-gold), every ratio computed, every accent carrying its
+honest restriction in `accent_use`. Of the original twenty, six carry a review, and the reviews are
+the instructive part:
 
 | Palette | Reviewed for |
 |---|---|
@@ -648,6 +652,16 @@ measurements — I am labelling them as such rather than dressing them as scienc
 | **Triadic** | Three hues at ~120° | All three at full chroma = children's-toy palette; nothing recedes | Keep one at full C, drop the other two below C≈0.08 |
 | **Tetradic / double-complementary** | Two complementary pairs | Four fighting hues; almost always ends up as visual noise | Demote two of the four to near-neutral tints; treat as a two-colour scheme with two accents |
 | **Achromatic + single accent** | Neutrals plus one hue | Accent has to do all the work; if the accent fails contrast the whole system fails | Verify accent-on-neutral and neutral-on-accent contrast both pass before committing |
+
+The wheel schemes above are the classical seven. The working catalogue is wider:
+`data/colour-harmonies.csv` holds eighteen combination methods as numeric recipes — the seven
+wheel schemes plus the methods designers actually reach for (60-30-10 proportion, warm field with
+one cool cut and its mirror, two-ink riso duotone, pastel field with dark ink, jewel-on-dark,
+earth-plus-pop, black-white-and-one, high-key, low-key, and sampling the palette from the hero
+photograph). Each row states its OKLCH structure, area ratio, contrast rule, mood signal, failure
+mode, fix, and a shipped palette that demonstrates it. Pick the method by what the surface must
+signal, then pull or build the palette to match; the method row is the argument, the palette row is
+the numbers.
 
 ## 3.1 The three failure modes that actually cost money
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Decide whether a marketing test is readable yet, and refuse the winner when it is not.
 
-`learning-loop.md` already carries the rule: never compare percentages without reporting sample size,
+`performance-direction.md` already carries the rule: never compare percentages without reporting sample size,
 and never declare a winner from tiny or materially unequal delivery. That rule was unenforceable as
 written, because nobody reading it could work out what tiny means for their own conversion rate. Tiny
 is not a number somebody chooses; it falls out of the baseline rate and the size of the difference
@@ -40,7 +40,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _emit import emit, emit_json, use_utf8_stdout  # noqa: E402
 
-# Delivery this uneven is the case learning-loop.md names separately from sample size, because the
+# Delivery this uneven is the case performance-direction.md names separately from sample size, because the
 # arms stop being comparable for reasons that have nothing to do with the creative: the platform has
 # decided one of them is better and is spending accordingly, so the split is now an outcome.
 DELIVERY_SKEW_LIMIT = 1.20
@@ -434,4 +434,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    from _emit import run_gate
+    run_gate(main)

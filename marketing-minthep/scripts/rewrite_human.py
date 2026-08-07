@@ -684,7 +684,7 @@ def structure_gates(stats: dict) -> list[dict]:
     `data/translation-tells.csv` carries `tricolon-default`, whose `tell_en` is the same sentence
     word for word, but whose regex is `scope: prose` and matches three comma-separated phrases
     inside one sentence. Those are different defects. The regex fires on "physics, claim, or rights
-    failure" in `anti-ai-quality.md`, which is a correct English triple, and cannot fire on eight
+    failure" in `rewrite-human.md`, which is a correct English triple, and cannot fire on eight
     identical three-item lists, because list lines are stripped before it looks. This gate is the
     half that was named but never built.
     """

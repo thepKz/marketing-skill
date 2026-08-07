@@ -200,7 +200,7 @@ in a quarter is a distribution question, not a market question.
 
 ## The handoff
 
-A completed assessment hands three things forward: the addressable range to `marketing-foundation.md`,
+A completed assessment hands three things forward: the addressable range to `marketing-canon.md`,
 the dominant uncertainty to whoever owns the next research hour, and the threshold verdict to whoever
 asked. An unresolved verdict gets handed over in exactly those words. Not as a number.
 

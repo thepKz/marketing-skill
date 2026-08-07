@@ -74,17 +74,17 @@ The exception scored 0.80, and reading it confirmed the number instead of excusi
 
 One more thing to know before you read the tell tables. `data/translation-tells.csv` and `data/slop-tells.csv` carry the same sentence, *everything arrives in threes*, as two separate rows. They are two different defects.
 
-`tricolon-default` is `scope: prose`, and its regex matches three comma-separated phrases inside one sentence. That is a cadence habit and often correct: it fires on "physics, claim, or rights failure" in `anti-ai-quality.md`, which is a writer counting three real things. `tricolon-everywhere` counts list lengths across the whole document, which is a structural habit and rarely correct. The regex cannot reach it, because the list lines are gone before it looks, so the second row named a measurement for a long time before anything performed it.
+`tricolon-default` is `scope: prose`, and its regex matches three comma-separated phrases inside one sentence. That is a cadence habit and often correct: it fires on "physics, claim, or rights failure" in the `Anti-AI quality gate` section below, which is a writer counting three real things. `tricolon-everywhere` counts list lengths across the whole document, which is a structural habit and rarely correct. The regex cannot reach it, because the list lines are gone before it looks, so the second row named a measurement for a long time before anything performed it.
 
 ### Measured, then deliberately not shipped
 
 Written down because the next person here will have the same two ideas, and they cost a morning each.
 
-**Uniformity inside a single list.** Three or more items, length CV at or below 0.25, every item opening on a bold label. It tripped twenty-five blocks across twenty reference files, and every one of them was correct writing: the nine rejection codes in `anti-ai-quality.md`, the verdict vocabularies, the channel budget tables.
+**Uniformity inside a single list.** Three or more items, length CV at or below 0.25, every item opening on a bold label. It tripped twenty-five blocks across twenty reference files, and every one of them was correct writing: the nine rejection codes in the `Anti-AI quality gate` section below, the verdict vocabularies, the channel budget tables.
 
 A glossary is uniform because it is a specification, and so is a rejection-code list. Gate that and your first twenty-five findings are wrong. Nobody runs that gate twice.
 
-**A shared opening word across a list** tripped `human-imagery.md`, where six consecutive lines begin `No ` on purpose. Deliberate anaphora and generated filler are the same shape from outside. No regex separates them, so the ear keeps that one.
+**A shared opening word across a list** tripped `virtual-person-system.md`, where six consecutive lines begin `No ` on purpose. Deliberate anaphora and generated filler are the same shape from outside. No regex separates them, so the ear keeps that one.
 
 **Paragraph-length CV**, as a companion to sentence CV, went for a duller reason. On three realistic generated samples it added nothing at all: each already failed four sentence-level cadence gates. A signal that only ever fires next to signals you already have is noise in the report.
 
@@ -222,7 +222,7 @@ make that decision again in Vietnamese. The marker shows up because the decision
 
 ## What the script does not check
 
-It measures cadence and matches known tells. It cannot tell you whether the copy is true, whether the claim is provable, whether the offer is legal in Vietnam, or whether the reader cares. Those stay with `claims-proof-ledger.md`, `rights-and-claims.md`, and the message architecture. A draft can pass every gate here and still be unpublishable.
+It measures cadence and matches known tells. It cannot tell you whether the copy is true, whether the claim is provable, whether the offer is legal in Vietnam, or whether the reader cares. Those stay with `claims-proof-ledger.md`, `claims-proof-ledger.md`, and the message architecture. A draft can pass every gate here and still be unpublishable.
 
 It also cannot tell you the copy is any *good*. All a pass means is that the copy does not read machine-written, which is a floor and not a standard. The tension ladder in `data/copy-formulas.csv` is what raises it.
 
@@ -250,3 +250,100 @@ It also cannot tell you the copy is any *good*. All a pass means is that the cop
 Do not rewrite by adding texture. Inserting a fragment, an aside, a rhetorical question, and a contraction into flat prose produces prose that reads machine-written and *fussy*. The variation has to come from the content deciding where it needs a beat, not from a texture pass applied on top.
 
 If a rewrite makes the copy longer, it probably failed. Human cadence is mostly a matter of what got cut.
+
+## Anti-AI quality gate
+
+Run this gate before final delivery. A result fails when it looks like a category default, a prompt collage, or a technically polished image without a specific campaign idea.
+
+### First-order reflex check
+
+Ask: could someone predict the palette, model, props, lighting, and layout from the product category alone?
+
+Examples of saturated reflexes:
+
+- AI software: dark navy, purple glow, glass cards, floating nodes.
+- Beauty: airbrushed face, water splash, flower petals, perfect pastel pedestal.
+- Corporate: blue gradient, glass office, handshake, fake charts.
+- Luxury: black background, gold trim, marble, smoke, random silk.
+- Wellness: beige room, green leaf, sunlight stripe, serene generic model.
+
+If yes, replace the category cue with a product mechanism, audience behavior, or physical material unique to the brief.
+
+### Second-order reflex check
+
+Ask: after rejecting the obvious category look, did the work land in another fashionable default such as generic editorial restraint, brutalist utility, or maximalist acid graphics without a brief-driven reason?
+
+Name the visual lane and explain why the product requires it. If the explanation is only aesthetic preference, develop another route.
+
+### Image checks
+
+#### Product
+
+- Shape, logo, label, closure, color, and material match the reference.
+- Product rests with believable weight and contact shadow.
+- Reflection direction, surface response, and perspective agree.
+- Props have a narrative reason and correct scale.
+- No floating, melting, duplicated, or hybridized parts.
+- No fake readable copy, certification, ingredient, or claim.
+- The product remains recognizable at thumbnail size.
+
+#### Human
+
+- Anatomy, hands, joints, teeth, ears, eyes, and accessories are plausible.
+- Skin retains pores, tonal variation, and realistic highlight behavior.
+- Hair has strand logic and believable contact with face and clothing.
+- Expression and pose fit the social context rather than a generic influencer performance.
+- Camera behavior, background sharpness, motion, and exposure are coherent.
+- No automatic beauty-filter face, extreme body distortion, or cloned background people.
+
+#### Composite and edit
+
+- Mask edges, flyaway hair, transparency, and occlusion hold at full size.
+- Added elements inherit light, grain, depth, color spill, and perspective.
+- Locked regions have not drifted.
+- Local edits do not create repeated texture or reconstruction smears.
+
+### Composition checks
+
+- One dominant subject and one clear communication priority.
+- Copy-safe space is intentional, not leftover emptiness.
+- Asymmetry has balance; symmetry has a product or brand reason.
+- Crop variants are recomposed rather than blindly resized.
+- Visual density supports the channel and viewing distance.
+- The unusual move remains readable and tied to the campaign idea.
+
+### Interface and campaign-page checks
+
+- No generic AI color scheme or component library look without brand evidence.
+- No repeated identical cards, nested cards, decorative glass, gradient text, or random orbs.
+- Typography has deliberate voice, readable contrast, and mobile-safe scale.
+- Real imagery is present when the brief is image-led.
+- Motion clarifies hierarchy or narrative and includes reduced-motion behavior.
+- The first viewport agrees with the campaign promise and action.
+- Empty, loading, error, rejected, retry, and export states are designed.
+
+### Authenticity test
+
+Write three sentences:
+
+1. The specific human or product truth visible in the work.
+2. The decision that a generic generator would probably not make.
+3. The proof that the visual choice supports campaign performance or brand memory.
+
+If these sentences cannot be written concretely, the result needs another art-direction pass.
+
+### Rejection labels
+
+Use explicit rejection reasons during selection:
+
+- `FIDELITY`: product or identity drift.
+- `ANATOMY`: implausible human detail.
+- `PHYSICS`: light, shadow, material, scale, or perspective failure.
+- `HIERARCHY`: unclear message or thumbnail failure.
+- `CROP`: unsafe or unusable channel composition.
+- `CLAIM`: invented or unsupported copy.
+- `GENERIC`: category reflex or AI-template look.
+- `OFF-BRAND`: conflicts with existing identity.
+- `RIGHTS`: unclear source, consent, or imitation risk.
+
+Do not approve a result with a critical fidelity, anatomy, physics, claim, or rights failure.

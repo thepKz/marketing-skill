@@ -203,8 +203,8 @@ Choose image production and text ownership separately. State both before renderi
 
 Default route:
 
-1. `ai-art-direction-background`: AI creates the food scene, surface, material, image grammar, palette, motif, and text-safe geometry with no menu copy, price, logo, QR, or invented lettering.
-2. `human-typeset-production`: the restaurant owner, designer, Canva operator, or equivalent layout tool places the approved restaurant name, Vietnamese copy, prices, operational information, and working QR over the approved background.
+1. `ai-art-direction-background`: AI creates the food scene, surface, material, image grammar, palette, motif, and text-safe geometry with no menu copy, price, logo, QR, or invented lettering — with one deliberate exception. The restaurant's **name** may be generated into the plate by default, as display lettering only, because a name drawn in the scene's own light and material sits more convincingly than a name pasted over it. The name is not the logo (a brand mark file is never redrawn), it obeys the native-text ceiling of 25 characters, and every Vietnamese diacritic is proofed against `diacritic-drift` before approval — if the marks break on two consecutive renders, the name drops out of the plate and joins the typeset layer. A user who says "chỉ nền thôi" gets a fully text-free plate.
+2. `human-typeset-production`: the restaurant owner, designer, Canva operator, or equivalent layout tool places the Vietnamese copy, item names, prices, operational information, and working QR over the approved background — and the restaurant name too, whenever the generated name failed its proof or was declined.
 
 Use `deterministic-layout` only when the user explicitly requests HTML, SVG, code-based production, automated catalog updates, editable source output, or an exact programmatic render. Do not create HTML or SVG merely because the menu contains text.
 
@@ -212,7 +212,7 @@ Use `full-ai-text-exception` only when the user explicitly requests one generate
 
 `photo-led-minimal` remains an image family, not a text-ownership route. It can use the default human-typeset route or an explicitly requested deterministic route.
 
-Do not silently change routes. Default to text-free AI artwork plus human/Canva typography. Explicit editable-code request means deterministic layout. Explicit one-image-with-text request means `full-ai-text-exception`.
+Do not silently change routes. Default to AI artwork carrying at most the proofed restaurant name, plus human/Canva typography for everything that must be read. Explicit editable-code request means deterministic layout. Explicit one-image-with-text request means `full-ai-text-exception`.
 
 For the default route, build a Canva-native component canvas rather than a food photograph with blank paper around it. Declare the inventory before prompting: restaurant identity field, one image-mask family, one information-module family, category or navigation rail, one bounded signal or price-highlight field, one edge motif, item and price-safe zones, and footer/QR reserve. Use one mask family, one module family, one signal job, and one edge-motif grammar per surface unless the brief gives a functional reason to break the rule. The generated bitmap stays text-free, but it must already feel composed, commercially usable, and extensible to another page before the human adds type.
 
@@ -298,6 +298,32 @@ Use descriptions to explain why higher-priced variants differ. If ingredient evi
 Audit negative space as a functional resource, not a prestige effect. Every large empty region must protect reading, separate a category, reserve a known operational element, or create deliberate image tension. Fail `HIERARCHY` when text ends high on the page and an unstructured blank band appears before the food; close the gap by moving the shared scene, regrouping content, or changing the page ratio, never by adding arbitrary ornament.
 
 Before rendering, choose exactly one price grammar for the whole page: right-aligned tabular prices, dotted leaders, or inline dash. Mixing price grammars fails `HIERARCHY`.
+
+## Committed Geometry
+
+The sections above say what a menu must do; this one says where things go, in numbers, so that two
+runs of the same brief produce the same skeleton. These are craft-heuristic starting values, not
+law — move one when the direction demands it, and record the move in the layout brief. What is not
+allowed is starting from nothing, because a blueprint invented fresh each run is the instability
+itself.
+
+| Surface | Margins | Column plan | Type floor |
+|---|---|---|---|
+| A4 dine-in (210×297mm) | 18mm sides, 20mm top, 16mm bottom | 1 column to 12 items; 2 columns of 83mm with 8mm gutter from 13 | Item 10.5–12pt, descriptor 8.5–9.5pt at 1.35 line-height, nothing under 9.5pt |
+| A5 counter card (148×210mm) | 12mm all round | 1 column, 8 items maximum | Item 9.5–11pt, identity 20–24pt |
+| Digital board 1080×1920 | 64px safe margin | 1 column, 10 rows visible maximum | Item 36–44px, category 28–32px, nothing under 34px |
+
+The vertical system: one item row takes at least 7mm of print height (name, price, and breathing),
+a category break takes three item-gaps, and the identity block at the top takes no more than 18% of
+page height unless the brief is poster-led. Reserve the price column at the widest confirmed price
+plus 6mm, measured with tabular figures — `189.000đ` is the sizing string for a six-digit menu, not
+`99.000đ`. Food imagery holds at most 35% of page area on a dine-in menu; past that the artifact is
+a poster with prices, which is sometimes the right call but must be chosen, not drifted into.
+
+Dish count sets the plan before taste enters: eight or fewer items get one generous column; nine to
+fourteen stay single-column and tighten row height before shrinking type; fifteen to twenty-four go
+two-column; past twenty-four the menu becomes sections or pages. Type never drops below the floor
+to make space — the page grows, the count splits, or the descriptors go, in that order.
 
 ## Functional Minimalism
 

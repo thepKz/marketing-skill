@@ -16,15 +16,15 @@
         "research-protocol.md",
         "market-assessment.md",
         "customer-evidence.md",
-        "marketing-foundation.md",
-        "brand-dna.md",
+        "marketing-canon.md",
+        "identity-design.md",
         "claims-proof-ledger.md",
         "copywriting.md",
         "output-contract.md",
         "seo-writing.md",
-        "channel-deliverables.md",
+        "channel-spec-registry.md",
         "affiliate-commerce.md",
-        "learning-loop.md",
+        "performance-direction.md",
         "vietnam-operating-reality.md",
         "product-category-playbooks.md",
         "menu.md",
@@ -1146,18 +1146,18 @@
       "default_mode": "system",
       "use_when": "User supplies photo A (product, dish, person, packaging, space) and wants branding imagery, product shots, or artistic key visuals derived from it.",
       "references": [
-        "reference-first-image-flow.md",
-        "reference-analysis.md",
+        "reference-reading.md",
+        "reference-reading.md",
         "makeup-art-direction.md",
         "visual-craft.md",
         "composition-light-color.md",
         "image-output-and-sharpening.md",
         "product-imagery.md",
-        "image-editing.md",
+        "image-output-and-sharpening.md",
         "prompt-contracts.md",
         "provider-compilers.md",
-        "creative-evaluation.md",
-        "anti-ai-quality.md"
+        "evaluation-suite.md",
+        "rewrite-human.md"
       ],
       "scripts": [
         "start_workbench.py",
@@ -1484,10 +1484,10 @@
         "visual-craft.md",
         "colour-combination.md",
         "copywriting.md",
-        "creative-tool-interfaces.md",
-        "production-pipeline.md",
+        "design-direction.md",
+        "output-contract.md",
         "channel-spec-registry.md",
-        "channel-composition-systems.md",
+        "channel-spec-registry.md",
         "poster.md"
       ],
       "scripts": [
@@ -1802,10 +1802,10 @@
         "copywriting.md",
         "visual-craft.md",
         "prompt-contracts.md",
-        "production-pipeline.md",
+        "output-contract.md",
         "channel-spec-registry.md",
-        "channel-composition-systems.md",
-        "rights-and-claims.md"
+        "channel-spec-registry.md",
+        "claims-proof-ledger.md"
       ],
       "scripts": [
         "start_workbench.py",
@@ -2092,9 +2092,9 @@
       "default_mode": "focused",
       "use_when": "Something is already running and results are known, weak, or confusing. Diagnose, form hypotheses, and change one variable at a time.",
       "references": [
-        "learning-loop.md",
-        "creative-evaluation.md",
-        "production-pipeline.md",
+        "performance-direction.md",
+        "evaluation-suite.md",
+        "output-contract.md",
         "claims-proof-ledger.md",
         "measurement-plan.md",
         "lead-handling.md"
@@ -2360,8 +2360,8 @@
         "output-contract.md",
         "copywriting.md",
         "seo-writing.md",
-        "brand-dna.md",
-        "anti-ai-quality.md",
+        "identity-design.md",
+        "rewrite-human.md",
         "claims-proof-ledger.md",
         "title-writing.md"
       ],
@@ -2528,7 +2528,7 @@
         "kpi-scorecards.md",
         "report-notation.md",
         "claims-proof-ledger.md",
-        "anti-ai-quality.md",
+        "rewrite-human.md",
         "measurement-plan.md"
       ],
       "scripts": [
@@ -2704,14 +2704,14 @@
       "use_when": "A recurring fictional presenter, brand ambassador, or AI model is needed across many looks and campaigns, with outfits or products dressed onto one consistent identity rather than photographed on a real person.",
       "references": [
         "virtual-person-system.md",
-        "human-imagery.md",
+        "virtual-person-system.md",
         "makeup-art-direction.md",
-        "image-editing.md",
+        "image-output-and-sharpening.md",
         "prompt-contracts.md",
         "provider-compilers.md",
         "api-image-orchestration.md",
-        "rights-and-claims.md",
-        "anti-ai-quality.md"
+        "claims-proof-ledger.md",
+        "rewrite-human.md"
       ],
       "scripts": [
         "start_workbench.py",
@@ -2818,7 +2818,7 @@
           ],
           "title": "Wardrobe looks",
           "title_vi": "Các bộ trang phục",
-          "gate": "Every look states Change, Lock, Match, and Reject per image-editing.md's wardrobe contract. Face, identity, hair, body proportions, pose, hands, camera, crop, light, and background are locked unless the request names one as a variable.",
+          "gate": "Every look states Change, Lock, Match, and Reject per image-output-and-sharpening.md's wardrobe contract. Face, identity, hair, body proportions, pose, hands, camera, crop, light, and background are locked unless the request names one as a variable.",
           "sections": [
             {
               "en": "Look brief",
@@ -2864,7 +2864,7 @@
           ],
           "title": "Consistency QA",
           "title_vi": "Kiểm tra tính nhất quán",
-          "gate": "Every rejection criterion from virtual-person-system.md and every stop condition from rights-and-claims.md is checked. A consistency break between looks is a fail, not a style note.",
+          "gate": "Every rejection criterion from virtual-person-system.md and every stop condition from claims-proof-ledger.md is checked. A consistency break between looks is a fail, not a style note.",
           "sections": [
             {
               "en": "Identity consistency",

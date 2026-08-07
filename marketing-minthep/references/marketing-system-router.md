@@ -4,6 +4,46 @@
 
 Route by the business job first, then apply product/category, channel, visual, and market overlays. Do not load every module or produce every artifact.
 
+## Read the ask first
+
+The artifact a user names is a hypothesis about what they need, and the hypothesis is wrong often
+enough that routing on it directly is the router's most common failure. "Làm cái poster" from a shop
+with no stated offer is an offer problem wearing a poster costume; "viết content đi" is a
+what-do-we-promise problem; "chạy ads được không" is unit-economics arithmetic before it is a media
+question. `data/ask-diagnosis.csv` holds the twenty-four asks that arrive most often, each mapped to
+the job underneath, what a good output must contain, and the failure shape that results from taking
+the ask literally — searchable by the user's own words:
+
+```
+python scripts/find_recipe.py --table asks --query "sao không ai mua"
+```
+
+Three disciplines keep this from becoming interrogation, because core rule 3 caps questions and core
+rule 11 bans option menus:
+
+1. **Diagnose silently.** The gap between ask and need is filled from available truth — the shop's
+   own posts, the supplied brief, the category playbook — and the filled parts ship labelled
+   `inferred`. The user corrects a label in one word; they should never have to answer a
+   questionnaire to get a poster.
+2. **Deliver the named artifact, built on the real job.** The user who asked for a poster receives a
+   poster — carrying the offer the diagnosis surfaced, not a note explaining why posters need
+   offers. The diagnosis is visible only in the artifact being right.
+3. **Define good before producing.** The `good_output_is` cell is the acceptance test, written down
+   before generation starts. An output that cannot state what would make it good is not ready to be
+   made; producing it anyway is how a run ships something polished and useless.
+
+When the ask matches no row, the fallback is the same move by hand: name the business job, name what
+a good output must contain, then route by the tables below.
+
+**The negative boundary.** Diagnosis triggers on an unresolved marketing decision, not on effort or
+size. "Sửa lại caption này", "resize poster qua khổ story", "dịch câu này sang tiếng Anh" contain
+judgment but no open decision about offer, audience, message, or channel — they are execution, and
+the right response is the executed thing, immediately. The test is not "is this simple?" — hard
+asks can be mechanical, and tiny asks can hide a broken offer. The test is: is there a marketing
+decision in here that nobody has made yet? No decision, no diagnosis, no pipeline. Running a small
+favour through the full machine costs the user time and teaches them not to ask for small favours —
+the opposite of being useful.
+
 ## Primary workbenches
 
 | Workbench | Use when | Default output pack |
@@ -33,7 +73,7 @@ For requests that must become files on disk, use `scripts/start_workbench.py`. I
 | `design-render` | Menu, poster, layout, wireframe, one-pager, or other designed artifact | Options, recommendation, information architecture, wireframe, copy, render/spec, QA |
 | `video-campaign` | Video concept, storyboard, short ad, demo, or AI-video prompt pack | Script, beats, shots, continuity, audio/captions, cutdowns, delivery QA |
 | `optimize-iterate` | Existing work has evidence or performance to diagnose | Metric tree, hypotheses, one-variable tests, guardrails, decision log |
-| `rewrite-human` | A draft reads machine-written or machine-translated, or approved copy must move between Vietnamese and English | `specificity.md` and `scripts/check_specificity.py` first, then `rewrite-human.md` and `scripts/rewrite_human.py` gates, `data/translation-tells.csv` repairs, `data/spoken-markers.csv` for what the rewritten sentences must now *have* rather than lack, `scripts/check_address_register.py` on Vietnamese, `title-writing.md` and `scripts/check_title.py --page` for the headings, which the prose gates exclude by design, re-measurement |
+| `rewrite-human` | A draft reads machine-written or machine-translated, or approved copy must move between Vietnamese and English | `copywriting.md` and `scripts/check_specificity.py` first, then `rewrite-human.md` and `scripts/rewrite_human.py` gates, `data/translation-tells.csv` repairs, `data/spoken-markers.csv` for what the rewritten sentences must now *have* rather than lack, `scripts/check_address_register.py` on Vietnamese, `title-writing.md` and `scripts/check_title.py --page` for the headings, which the prose gates exclude by design, re-measurement |
 
 When the user is a non-marketer, do not return a menu of disconnected marketing disciplines. Recommend the smallest coherent pipeline. Explain why in plain language, then create the connected artifact pack. Copywriting is mandatory inside `plan-from-zero`; it is not an optional follow-up.
 
@@ -43,13 +83,12 @@ Load only when relevant:
 
 - Product/business model: `product-category-playbooks.md`.
 - Campaign architecture and lanes: `campaign-systems.md`.
-- Content engine, pillars, editorial calendar: `content-system.md`.
-- Menu and F&B brand production: `menu.md`, `menu.md`,
-  `menu.md`, and `menu.md`.
-- Commerce: `commerce-merchandising.md`.
-- Paid media: `paid-media-creative.md`.
+- Content engine, pillars, editorial calendar: `copywriting.md`.
+- Menu and F&B brand production: `menu.md`.
+- Commerce: `product-category-playbooks.md`.
+- Paid media: `campaign-systems.md`.
 - PR: `pr-communications.md`.
-- Sales: `sales-enablement.md`. Craft only, and it says so: no Vietnamese instrument in this corpus
+- Sales: `lead-handling.md`. Craft only, and it says so: no Vietnamese instrument in this corpus
   attaches a duty to a one-pager, a deck or a proposal, so there is no table and inventing one would
   be the failure. Two things still follow the artefact. Substantiation attaches to the assertion
   rather than to the buyer, so a figure on a slide runs through `check_claims.py` like a figure in an
@@ -58,7 +97,7 @@ Load only when relevant:
   approval from the signatory rather than a verbal yes from the champion. Whether a business buyer is
   a người tiêu dùng at all turns on the purpose of the purchase under Điều 3.1, not on company size,
   and this corpus does not settle it - do not assert it either way in a proposal.
-- Creator/UGC: `creator-ugc.md`.
+- Creator/UGC: `affiliate-commerce.md`.
 - What a welcome, cart, renewal or win-back flow is allowed to send, and when:
   `lifecycle-retention.md` plus `data/lifecycle-duties.csv` and `scripts/plan_lifecycle.py`. Load this
   before designing any flow, and before writing the capture popup that feeds it. A flow is the one
@@ -80,7 +119,7 @@ Load only when relevant:
   concession costs is `pricing-and-offers.md`.
 - Claims and proof: `claims-proof-ledger.md` plus `data/claim-evidence.csv` and
   `scripts/check_claims.py`.
-- Current channel composition: `channel-composition-systems.md` plus `data/channel-composition.csv`.
+- Current channel composition: `channel-spec-registry.md` plus `data/channel-composition.csv`.
   Load this before adapting a master across Facebook, Instagram, LinkedIn, TikTok or YouTube; it
   separates message, composition and export contracts so a correct crop is not mistaken for a good
   channel adaptation.
@@ -103,7 +142,7 @@ Load only when relevant:
 - Reading a live reference into pose, light, palette and makeup observations without storing the image:
   `reference-reading.md` plus `data/reference-observations.csv`.
 - What professional output actually measures, and which of this skill's own craft rules survived being
-  measured: `reference-set-calibration.md` plus `data/reference-set-calibration.csv`. Load this before
+  measured: `reference-reading.md` plus `data/reference-set-calibration.csv`. Load this before
   quoting "two hues plus skin", before offering 1:1 for a feed post, and before treating a chroma-budget
   pass on a photograph as meaningful.
 - How many frames one existing product photograph can actually produce, which need a second exposure,
@@ -112,7 +151,7 @@ Load only when relevant:
   `scripts/plan_composition_set.py`. Load this before answering "can AI make the rest of my photos",
   and before promising a full listing set from one file.
 - How many checkable facts a draft actually carries, and which of its sentences a competitor could
-  publish unchanged: `specificity.md` plus `scripts/check_specificity.py` and the `evidence` and
+  publish unchanged: `copywriting.md` plus `scripts/check_specificity.py` and the `evidence` and
   `hedge` layers of `data/translation-tells.csv`. Load this before rewriting any draft for cadence,
   because rhythm work deletes specifics - a specific is the awkward part of a sentence - and a draft
   with fewer than three has a content problem that reads worse after it has been made to flow.

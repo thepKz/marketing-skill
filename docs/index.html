@@ -1,450 +1,90 @@
 <!doctype html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Marketing-Minthep biến dữ liệu sản phẩm và ảnh tham chiếu thành research, copy, campaign, hình ảnh và file bàn giao có thể dùng." />
-    <meta name="theme-color" content="#f1eee6" />
-    <title>Marketing-Minthep — Research, copy & art direction</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,500&display=swap&subset=vietnamese" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=20260805-4" />
-    <script src="./vendor/gsap/gsap.min.js?v=3.13.0" defer></script>
-    <script src="./vendor/gsap/ScrollTrigger.min.js?v=3.13.0" defer></script>
-    <script src="./gallery-manifest.js?v=20260805-2" defer></script>
-    <script src="./app.js?v=20260805-4" defer></script>
-  </head>
-  <body>
-    <a class="skip-link" href="#main">Bỏ qua điều hướng</a>
-    <div class="scroll-progress" aria-hidden="true"></div>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marketing-Minthep — skill marketing đo được cho Claude Code</title>
+<meta name="description" content="Gõ câu một chủ quán sẽ gõ; skill tìm quyết định marketing trong câu chữ, quyết nó, và giao deliverable với dữ kiện gắn nhãn. Không bịa giá, review, số liệu.">
+<meta name="theme-color" content="#FAFAF7">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
 
-    <header class="site-header" data-header>
-      <a class="brand" href="#top" aria-label="Marketing-Minthep, về đầu trang">
-        <span class="brand-mark">M</span>
-        <span>Marketing-Minthep</span>
-      </a>
-      <nav aria-label="Điều hướng chính">
-        <a href="#work">Công việc</a>
-        <a href="#creative">Năng lực</a>
-        <a href="#menu-atlas">Menu atlas</a>
-        <a href="#channels">Kênh</a>
-        <a href="#archive">Kho ảnh</a>
-      </nav>
-      <button class="header-action copy-button" type="button" data-copy="$marketing-minthep">Copy skill</button>
-    </header>
+<header>
+  <p class="wordmark">MARKETING-MINTHEP</p>
+  <h1>Gõ đúng câu một chủ quán sẽ gõ.<br>Nhận về một quyết định, không phải một bài văn.</h1>
+  <p class="sub">A marketing skill for Claude Code &amp; Codex. It finds the decision hiding
+  inside the ask, makes it, and ships one deliverable with every fact labelled
+  <code>confirmed / observed / inferred / unknown</code>. It never invents a price, a review,
+  or a statistic.</p>
+</header>
 
-    <main id="main">
-      <section class="hero" id="top">
-        <div class="hero-copy">
-          <p class="eyebrow">Research / Copy / Art direction / Delivery</p>
-          <h1>Anh mang sản phẩm. <em>Skill lo phần marketing.</em></h1>
-          <p class="hero-deck">Gửi mục tiêu, dữ liệu đang có và ảnh tham chiếu. Nhận lại một hệ thống có research, định vị, nội dung, hình ảnh và file bàn giao — không phải một xấp ý tưởng chung chung.</p>
-          <div class="hero-actions">
-            <button class="button button-primary copy-button" type="button" data-copy="Dùng $marketing-minthep. Hãy đọc sản phẩm và ảnh ref tôi gửi, nghiên cứu phần còn thiếu, rồi xây một hệ marketing hoàn chỉnh gồm định vị, copy, campaign, hình ảnh, file bàn giao và QA.">Bắt đầu với sản phẩm</button>
-            <a class="text-link" href="#work">Xem công việc thật <span aria-hidden="true">↘</span></a>
-          </div>
-          <dl class="hero-facts">
-            <div><dt data-published-count>67</dt><dd>output công khai</dd></div>
-            <div><dt data-reference-count>244</dt><dd>reference đã lập chỉ mục</dd></div>
-            <div><dt>01</dt><dd>brief xuyên suốt mọi đầu ra</dd></div>
-          </dl>
-        </div>
+<section class="strip" aria-label="Output samples">
+  <a href="assets/generated/minthep-serum-packshot.png"><img src="assets/generated/minthep-serum-packshot.png" alt="Serum packshot, concept packaging" loading="lazy"></a>
+  <a href="assets/generated/minthep-serum-key-visual.png"><img src="assets/generated/minthep-serum-key-visual.png" alt="Serum key visual" loading="lazy"></a>
+  <a href="assets/generated/bun-bo-menu-quiet-editorial.svg"><img src="assets/generated/bun-bo-menu-quiet-editorial.svg" alt="Menu drawn by code, quiet editorial direction" loading="lazy"></a>
+  <a href="assets/generated/refsheet-palettes.svg"><img src="assets/generated/refsheet-palettes.svg" alt="Palette sheet with measured contrast ratios" loading="lazy"></a>
+</section>
+<p class="caption">Hai ảnh từ pipeline ảnh; menu và bảng palette do script vẽ, và mọi con số
+tương phản in trên đó là số đo thật, không phải style.</p>
 
-        <div class="hero-gallery" aria-label="Một số đầu ra của skill">
-          <button class="hero-frame hero-frame-main image-trigger" type="button" data-image="./assets/generated/minthep-serum-campaign-wide-v4.png" data-caption="Campaign master — serum launch">
-            <img src="./assets/generated/minthep-serum-campaign-wide-v4.png" alt="Key visual campaign serum với chất liệu hổ phách" />
-            <span>Campaign master / 01</span>
-          </button>
-          <button class="hero-frame hero-frame-tall image-trigger" type="button" data-image="./assets/generated/minthep-coffee-local-delivery-v1.png" data-caption="Local delivery — coffee roastery">
-            <img src="./assets/generated/minthep-coffee-local-delivery-v1.png" alt="Ảnh campaign giao cà phê địa phương" />
-            <span>Local campaign / 02</span>
-          </button>
-          <button class="hero-frame hero-frame-small image-trigger" type="button" data-image="./assets/generated/minthep-serum-formula-macro-v3.png" data-caption="Formula macro — product proof">
-            <img src="./assets/generated/minthep-serum-formula-macro-v3.png" alt="Ảnh macro chất serum và công thức" />
-            <span>Product proof / 03</span>
-          </button>
-        </div>
-      </section>
+<section>
+  <h2>Đo được, không phải khen được</h2>
+  <p>Cùng một đoạn giới thiệu quán: bản nháp và bản viết lại qua skill. Cả hai đoạn nằm nguyên
+  văn trong repo, và self-check của chính script đo chạy trong CI trước mỗi lần deploy.</p>
+  <table>
+    <thead><tr><th>Số đo</th><th>Nháp</th><th>Viết lại</th><th>Chuẩn</th></tr></thead>
+    <tbody>
+      <tr><td>Dữ kiện kiểm chứng được</td><td>1</td><td>8</td><td>≥ 3</td></tr>
+      <tr><td>Câu đối thủ đăng lại được nguyên văn</td><td>3/4</td><td>2/8</td><td>≤ 50%</td></tr>
+      <tr><td>Dao động độ dài câu (CV)</td><td>0,10</td><td>0,85</td><td>≥ 0,45</td></tr>
+      <tr><td>Tính từ rỗng / 150 âm tiết</td><td>1,55</td><td>0,0</td><td>≤ 1,0</td></tr>
+      <tr><td>Dấu vết dịch máy tiếng Việt</td><td>4</td><td>0</td><td>0</td></tr>
+      <tr class="verdict"><td>Kết luận</td><td>trượt, 6 lỗi chặn</td><td>đậu</td><td></td></tr>
+    </tbody>
+  </table>
+  <p>Mọi con số do script in ra, chạy được trên chính bản nháp của bạn. Dữ kiện đến từ quán,
+  không phải từ model. Đó là toàn bộ khác biệt.</p>
+</section>
 
-      <section class="workbench" aria-label="Quy trình làm việc">
-        <p>Không cần biết gọi skill nào.</p>
-        <ol>
-          <li><span>01</span>Đọc brief</li>
-          <li><span>02</span>Research phần thiếu</li>
-          <li><span>03</span>Chốt hướng</li>
-          <li><span>04</span>Sản xuất</li>
-          <li><span>05</span>Kiểm tra & bàn giao</li>
-        </ol>
-      </section>
+<section>
+  <h2>Hai run đầy đủ, giữ nguyên văn</h2>
+  <p><a href="https://github.com/thepKz/marketing-skill/blob/main/marketing-minthep/assets/examples/simulated-run-khai-truong-poster.md">“làm cái poster khai trương”</a>:
+  câu hỏi không chứa ưu đãi nào, nên skill dựng ưu đãi trước (đồng giá 19K, trần 200 ly,
+  có ngày) và poster chỉ còn 4 dòng. Nháp đầu trượt brand-swap ở 76%; bản cuối đậu 6/6 gate.</p>
+  <p><a href="https://github.com/thepKz/marketing-skill/blob/main/marketing-minthep/assets/examples/simulated-run-sao-khong-ai-mua.md">“sao không ai mua”</a>:
+  2.100 lượt vào, 3 đơn. Chẩn đoán phễu gọi tên <em>trust</em> là chỗ rò kèm phép tính, xếp
+  một việc sửa 0đ trước mọi đồng quảng cáo. Nháp đầu để 2 con số đứng không nguồn; gate bắt cả hai.</p>
+</section>
 
-      <section class="system-delta section-shell" aria-labelledby="system-delta-title">
-        <header class="system-delta-heading reveal">
-          <p class="eyebrow">Trước / sau khi dùng skill</p>
-          <h2 id="system-delta-title">Từ tài liệu rời thành một hệ có thể bàn giao.</h2>
-          <p>Khác biệt không nằm ở việc tạo thêm nhiều file. Nó nằm ở chỗ mọi quyết định, câu chữ, hình ảnh và kênh cùng đi từ một sự thật sản phẩm.</p>
-        </header>
-        <div class="system-delta-grid reveal">
-          <article class="delta-before">
-            <span>Trước</span>
-            <ul>
-              <li>Brief, ảnh ref và ý tưởng nằm riêng lẻ</li>
-              <li>Copy chung chung, có thể đổi tên cho thương hiệu khác</li>
-              <li>Mỗi hình một phong cách, không có quy tắc giữ brand</li>
-              <li>Một layout bị crop sang mọi nền tảng</li>
-              <li>Không rõ file nào đã duyệt và đo kết quả bằng gì</li>
-            </ul>
-          </article>
-          <div class="delta-spine" aria-hidden="true"><span>Marketing-Minthep</span></div>
-          <article class="delta-after">
-            <span>Sau</span>
-            <ul>
-              <li>Research, định vị và offer được nối thành quyết định</li>
-              <li>Copy có bằng chứng, đúng người đọc và đúng hành động</li>
-              <li>Key visual mở rộng thành poster, social, retail và vật phẩm</li>
-              <li>Facebook, Instagram, LinkedIn có bố cục và nhịp đọc riêng</li>
-              <li>File, nguồn, QA, trạng thái duyệt và metric được bàn giao cùng nhau</li>
-            </ul>
-          </article>
-        </div>
-      </section>
+<section>
+  <h2>Bên trong</h2>
+  <p>Một router 12 luật đọc câu hỏi trước khi đụng tool nào. 52 file doctrine nạp theo việc.
+  43 bảng tra: palette, công thức copy, dấu hiệu slop, bảng 25 kiểu ask. 53 script trong đó
+  11 gate chỉ đo; kết luận thuộc về model. 21 self-check, bài eval routing và hai run mô phỏng
+  chạy lại trong CI trước mỗi lần deploy — số nào trôi là build trượt.</p>
+</section>
 
-      <section class="work section-shell" id="work">
-        <header class="section-heading reveal">
-          <p class="eyebrow">Selected work</p>
-          <h2>Không bán lời hứa. Xem những gì đã làm.</h2>
-          <p>Mỗi case bắt đầu từ một đầu vào chưa hoàn chỉnh. Phần còn lại được nối thành một hệ, để hình ảnh, nội dung và kênh không nói ba câu chuyện khác nhau.</p>
-        </header>
+<section>
+  <h2>Cài đặt</h2>
+  <pre><code>git clone https://github.com/thepKz/marketing-skill.git
+python marketing-skill/marketing-minthep/scripts/install_global.py</code></pre>
+  <p>Cài cho cả Claude Code và Codex. Gate bản nháp bất kỳ bằng
+  <code>python scripts/check_specificity.py --check draft.md</code>: thoát 0 sạch, 2 trượt,
+  3 chưa ngã ngũ, 4 không chạy được. Crash không bao giờ là kết luận.</p>
+</section>
 
-        <article class="case-study case-serum reveal">
-          <div class="case-copy">
-            <p class="case-number">01 / Product launch</p>
-            <h3>Một chai serum, không phải mười sản phẩm khác nhau.</h3>
-            <p>Khoá nhãn, tỷ lệ chai và vật liệu trước. Sau đó mới mở rộng sang campaign, PDP, social, retail và editorial.</p>
-            <ul class="case-tags" aria-label="Phạm vi công việc">
-              <li>Reference map</li><li>Copy direction</li><li>Image system</li><li>QA locks</li>
-            </ul>
-          </div>
-          <div class="case-media serum-media">
-            <button class="media-wide image-trigger" type="button" data-image="./assets/generated/minthep-serum-campaign-wide-v4.png" data-caption="Campaign master">
-              <img src="./assets/generated/minthep-serum-campaign-wide-v4.png" alt="Campaign master serum" />
-            </button>
-            <button class="media-square image-trigger" type="button" data-image="./assets/generated/minthep-serum-commerce-pair-v3.png" data-caption="Commerce pair">
-              <img src="./assets/generated/minthep-serum-commerce-pair-v3.png" alt="Hai chai serum cho trang thương mại" />
-            </button>
-            <button class="media-square image-trigger" type="button" data-image="./assets/generated/minthep-serum-editorial-print-v4.png" data-caption="Editorial print">
-              <img src="./assets/generated/minthep-serum-editorial-print-v4.png" alt="Ảnh serum cho bài editorial" />
-            </button>
-            <button class="media-square image-trigger" type="button" data-image="./assets/generated/minthep-serum-retail-counter-v4.png" data-caption="Retail counter">
-              <img src="./assets/generated/minthep-serum-retail-counter-v4.png" alt="Ảnh serum tại quầy bán lẻ" />
-            </button>
-          </div>
-        </article>
+<footer>
+  <p>
+    <a href="https://github.com/thepKz/marketing-skill">GitHub</a> ·
+    <a href="https://github.com/thepKz/marketing-skill/blob/main/README.md">README (EN)</a> ·
+    <a href="https://github.com/thepKz/marketing-skill/blob/main/README.vi.md">README (VI)</a> ·
+    <a href="https://github.com/thepKz/marketing-skill/blob/main/ARCHITECTURE.md">Architecture</a> ·
+    <a href="https://github.com/thepKz/marketing-skill/tree/main/docs/showcase/bun-bo">Case study: bún bò</a>
+  </p>
+  <p class="fine">Skill từ chối: bịa claim, sao chép nhận diện người thật, sửa body trong ảnh,
+  gọi prompt là ảnh. Đăng bài, mua quảng cáo vẫn là việc của bạn.</p>
+</footer>
 
-        <article class="case-study case-coffee reveal">
-          <div class="coffee-image-stack">
-            <button class="coffee-main image-trigger" type="button" data-image="./assets/generated/minthep-coffee-roastery-wide-v1.png" data-caption="Roastery campaign master">
-              <img src="./assets/generated/minthep-coffee-roastery-wide-v1.png" alt="Campaign chính cho xưởng rang cà phê" />
-            </button>
-            <button class="coffee-detail image-trigger" type="button" data-image="./assets/generated/minthep-coffee-roast-date-detail-v1.png" data-caption="Roast-date proof">
-              <img src="./assets/generated/minthep-coffee-roast-date-detail-v1.png" alt="Chi tiết ngày rang trên bao bì cà phê" />
-            </button>
-            <button class="coffee-detail image-trigger" type="button" data-image="./assets/generated/minthep-coffee-sample-tasting-v1.png" data-caption="Sample tasting">
-              <img src="./assets/generated/minthep-coffee-sample-tasting-v1.png" alt="Bộ thử cà phê mẫu" />
-            </button>
-          </div>
-          <div class="case-copy">
-            <p class="case-number">02 / Local growth</p>
-            <h3>Bán cà phê bằng bằng chứng, không bằng chữ “premium”.</h3>
-            <p>Ngày rang, vùng giao, cách thử mẫu và nhịp uống hằng ngày trở thành nội dung. Hình ảnh chỉ làm chúng dễ tin và dễ nhớ hơn.</p>
-            <ul class="case-tags" aria-label="Phạm vi công việc">
-              <li>Offer</li><li>Local delivery</li><li>Product proof</li><li>Content set</li>
-            </ul>
-          </div>
-        </article>
-      </section>
-
-      <section class="creative-range" id="creative">
-        <div class="creative-range-inner">
-          <header class="creative-heading reveal">
-            <p class="eyebrow">One brief / many artefacts</p>
-            <h2>Một campaign không dừng ở một tấm ảnh.</h2>
-            <p>Skill nối chiến lược, copy và art direction thành một họ tài sản: poster, social, PDP, quầy bán lẻ, bao bì, vật phẩm và file bàn giao cùng nói một câu chuyện.</p>
-          </header>
-
-          <div class="creative-wall">
-            <figure class="creative-piece creative-poster reveal">
-              <button class="image-trigger" type="button" data-image="./assets/generated/minthep-poster-material-study-v2.png" data-caption="Poster system — material study">
-                <img src="./assets/generated/minthep-poster-material-study-v2.png" alt="Poster dọc cho chiến dịch serum với nghiên cứu vật liệu" />
-              </button>
-              <figcaption><span>Poster / OOH</span><strong>Một focal mechanism đủ mạnh để đi từ màn hình tới bản in.</strong></figcaption>
-            </figure>
-
-            <figure class="creative-piece creative-magazine reveal">
-              <button class="image-trigger" type="button" data-image="./assets/generated/minthep-poster-magazine-v3.png" data-caption="Magazine poster — editable typography">
-                <img src="./assets/generated/minthep-poster-magazine-v3.png" alt="Poster dạng tạp chí với hệ chữ và ảnh sản phẩm" />
-              </button>
-              <figcaption><span>Editorial / Content</span><strong>Ảnh tạo thế giới. Human giữ chữ, claim và nhịp đọc.</strong></figcaption>
-            </figure>
-
-            <div class="touchpoint-grid reveal">
-              <button class="image-trigger" type="button" data-image="./assets/generated/minthep-serum-window-shelf-v3.png" data-caption="Retail window">
-                <img src="./assets/generated/minthep-serum-window-shelf-v3.png" alt="Ứng dụng campaign serum trên kệ cửa sổ" />
-                <span>Retail window</span>
-              </button>
-              <button class="image-trigger" type="button" data-image="./assets/generated/minthep-serum-retail-counter-v4.png" data-caption="Counter display">
-                <img src="./assets/generated/minthep-serum-retail-counter-v4.png" alt="Ứng dụng campaign serum tại quầy" />
-                <span>Counter display</span>
-              </button>
-              <button class="image-trigger" type="button" data-image="./assets/generated/minthep-serum-unboxing-v4.png" data-caption="Unboxing system">
-                <img src="./assets/generated/minthep-serum-unboxing-v4.png" alt="Bộ hình ảnh mở hộp serum" />
-                <span>Unboxing</span>
-              </button>
-              <button class="image-trigger" type="button" data-image="./assets/generated/minthep-serum-formula-macro-v3.png" data-caption="Product proof macro">
-                <img src="./assets/generated/minthep-serum-formula-macro-v3.png" alt="Hình ảnh macro làm bằng chứng sản phẩm" />
-                <span>Product proof</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="capability-ledger reveal" aria-label="Các nhóm năng lực chính">
-            <article><span>01</span><h3>Research & strategy</h3><p>Thị trường, khách hàng, đối thủ, định vị, offer, kế hoạch và measurement.</p></article>
-            <article><span>02</span><h3>Copy & content</h3><p>Website, campaign, social, carousel, email, sales material và human rewrite.</p></article>
-            <article><span>03</span><h3>Image & design</h3><p>Ảnh sản phẩm, key visual, poster, menu, Canva background, vật phẩm và edit ảnh.</p></article>
-            <article><span>04</span><h3>Activation & learning</h3><p>Channel adaptation, manifest, QA, tracking, read-out và vòng cải thiện tiếp theo.</p></article>
-          </div>
-        </div>
-      </section>
-
-      <section class="menu-atlas" id="menu-atlas">
-        <div class="menu-atlas-inner">
-          <header class="menu-heading reveal">
-            <p class="eyebrow">Menu art direction / 09 systems</p>
-            <h2>Không có một kiểu menu dùng cho mọi quán.</h2>
-            <p>Từ quầy gọi nhanh tới tasting menu, delivery, khách sạn và quán đặc sản: mỗi mô hình có khoảng cách đọc, số món, nhịp chọn và cách giữ thương hiệu khác nhau.</p>
-          </header>
-
-          <aside class="menu-index" aria-label="Các loại hình menu">
-            <button type="button" class="is-active" data-menu-target="menu-street"><span>01</span>Gọi nhanh</button>
-            <button type="button" data-menu-target="menu-cafe"><span>02</span>Café & bakery</button>
-            <button type="button" data-menu-target="menu-family"><span>03</span>Bàn gia đình</button>
-            <button type="button" data-menu-target="menu-fine"><span>04</span>Tasting menu</button>
-            <button type="button" data-menu-target="menu-bar"><span>05</span>Cocktail bar</button>
-            <button type="button" data-menu-target="menu-tea"><span>06</span>Tea & dessert</button>
-            <button type="button" data-menu-target="menu-board"><span>07</span>Food-court board</button>
-            <button type="button" data-menu-target="menu-delivery"><span>08</span>Delivery mobile</button>
-            <button type="button" data-menu-target="menu-hotel"><span>09</span>Hotel breakfast</button>
-          </aside>
-
-          <div class="menu-gallery">
-            <figure class="menu-work menu-work-lead reveal" id="menu-street">
-              <button class="image-trigger" type="button" data-image="./assets/generated/menu-atlas-street-grill.png" data-caption="Quán gọi nhanh — enamel counter system">
-                <img src="./assets/generated/menu-atlas-street-grill.png" alt="Nền menu quán cơm nướng gọi nhanh, màu kem đỏ xanh" />
-              </button>
-              <figcaption><span>01 / Gọi nhanh</span><strong>Giá và món chính phải đọc được trước khi khách tới quầy.</strong><small>Enamel cream / oxide red / bottle green</small></figcaption>
-            </figure>
-
-            <figure class="menu-work reveal" id="menu-cafe">
-              <button class="image-trigger" type="button" data-image="./assets/generated/menu-atlas-cafe-bakery.png" data-caption="Café & bakery — morning label system">
-                <img src="./assets/generated/menu-atlas-cafe-bakery.png" alt="Nền menu café bakery với croissant và cà phê" />
-              </button>
-              <figcaption><span>02 / Café & bakery</span><strong>Tách đồ uống, bánh và món theo mùa mà không biến thành card grid.</strong><small>Oat / espresso / butter</small></figcaption>
-            </figure>
-
-            <figure class="menu-work reveal" id="menu-family">
-              <button class="image-trigger" type="button" data-image="./assets/generated/menu-atlas-family-table.png" data-caption="Family dining — shared table system">
-                <img src="./assets/generated/menu-atlas-family-table.png" alt="Nền menu bàn gia đình với nhiều món ăn dùng chung" />
-              </button>
-              <figcaption><span>03 / Bàn gia đình</span><strong>Cho khách thấy một mâm hoàn chỉnh, không phải các món bị cắt thành sticker.</strong><small>Teak / jade / rice paper</small></figcaption>
-            </figure>
-
-            <figure class="menu-work reveal" id="menu-fine">
-              <button class="image-trigger" type="button" data-image="./assets/generated/menu-atlas-fine-dining.png" data-caption="Tasting menu — course sequence system">
-                <img src="./assets/generated/menu-atlas-fine-dining.png" alt="Nền tasting menu tối giản với món cá và nhịp course" />
-              </button>
-              <figcaption><span>04 / Tasting menu</span><strong>Ảnh giữ không khí; nhịp course và nguồn nguyên liệu giữ quyết định.</strong><small>Mineral / jade / burnt clay</small></figcaption>
-            </figure>
-
-            <figure class="menu-work menu-work-wide reveal" id="menu-bar">
-              <button class="image-trigger" type="button" data-image="./assets/generated/menu-atlas-cocktail-bar.png" data-caption="Cocktail bar — flavor navigation system">
-                <img src="./assets/generated/menu-atlas-cocktail-bar.png" alt="Nền cocktail menu đỏ đậm và đen với nhiều loại ly" />
-              </button>
-              <figcaption><span>05 / Cocktail bar</span><strong>Dùng vị, độ mạnh và signature để dẫn đường trong ánh sáng thấp.</strong><small>Oxblood / graphite / apricot</small></figcaption>
-            </figure>
-
-            <figure class="menu-work reveal" id="menu-tea">
-              <button class="image-trigger" type="button" data-image="./assets/generated/menu-atlas-tea-dessert.png" data-caption="Tea and dessert — modular kiosk system">
-                <img src="./assets/generated/menu-atlas-tea-dessert.png" alt="Nền menu trà và món ngọt với ba nhóm sản phẩm" />
-              </button>
-              <figcaption><span>06 / Tea & dessert</span><strong>Trẻ nhưng không biến thành sticker, bong bóng và bảng màu cầu vồng.</strong><small>Mineral / tea brown / peach / pandan</small></figcaption>
-            </figure>
-
-            <figure class="menu-work menu-board-work reveal" id="menu-board">
-              <button class="image-trigger" type="button" data-image="./assets/generated/menu-atlas-food-court-board.png" data-caption="Food-court board — distance-reading system">
-                <img src="./assets/generated/menu-atlas-food-court-board.png" alt="Nền bảng menu ngang cho quầy food court" />
-              </button>
-              <figcaption><span>07 / Food-court board</span><strong>Ít nhóm, món lớn, giá thẳng hàng — đọc được trước khi khách đứng tới quầy.</strong><small>Charcoal / aluminium / safety orange</small></figcaption>
-            </figure>
-
-            <figure class="menu-work reveal" id="menu-delivery">
-              <button class="image-trigger" type="button" data-image="./assets/generated/menu-atlas-delivery-mobile.png" data-caption="Delivery mobile — commerce menu system">
-                <img src="./assets/generated/menu-atlas-delivery-mobile.png" alt="Nền menu giao hàng tối ưu cho màn hình điện thoại" />
-              </button>
-              <figcaption><span>08 / Delivery mobile</span><strong>Ảnh món, combo, add-on và điều kiện giao được xếp theo hành vi cuộn bằng ngón cái.</strong><small>Light grey / cobalt / coral</small></figcaption>
-            </figure>
-
-            <figure class="menu-work reveal" id="menu-hotel">
-              <button class="image-trigger" type="button" data-image="./assets/generated/menu-atlas-hotel-breakfast.png" data-caption="Hotel breakfast — room-service ledger">
-                <img src="./assets/generated/menu-atlas-hotel-breakfast.png" alt="Nền menu bữa sáng khách sạn với nhiều món và vùng room service" />
-              </button>
-              <figcaption><span>09 / Hotel breakfast</span><strong>Phân biệt suất bao gồm, món thêm và room service mà vẫn giữ cảm giác hiếu khách.</strong><small>Limestone / indigo / coffee</small></figcaption>
-            </figure>
-
-          </div>
-
-          <div class="menu-production-note reveal">
-            <span>AI làm art direction & background</span>
-            <i aria-hidden="true">→</i>
-            <span>Human/Canva đặt tên quán, món, giá & QR</span>
-            <i aria-hidden="true">→</i>
-            <span>QA bản in và bản mobile</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="copy-proof section-shell" id="copy">
-        <header class="section-heading compact reveal">
-          <p class="eyebrow">Copywriting gate</p>
-          <h2>Viết lại để rõ hơn, không để nghe “AI” hơn.</h2>
-        </header>
-        <div class="copy-comparison reveal">
-          <article class="copy-before">
-            <p class="comparison-label">Bản nháp</p>
-            <blockquote>Chúng tôi luôn nỗ lực mang đến những giải pháp chất lượng cao, sáng tạo và phù hợp với mọi khách hàng.</blockquote>
-            <p class="comparison-note">Câu đúng, nhưng thương hiệu nào cũng có thể dùng.</p>
-          </article>
-          <div class="comparison-arrow" aria-hidden="true"><span>→</span></div>
-          <article class="copy-after">
-            <p class="comparison-label">Sau gate</p>
-            <blockquote>Anh gửi sản phẩm, mục tiêu và ảnh ref. Skill nghiên cứu phần còn thiếu, rồi bàn giao nội dung và hình ảnh theo một hướng thống nhất.</blockquote>
-            <dl class="comparison-proof">
-              <div><dt>Đầu vào</dt><dd>Sản phẩm · mục tiêu · ảnh ref</dd></div>
-              <div><dt>Công việc</dt><dd>Research phần còn thiếu</dd></div>
-              <div><dt>Đầu ra</dt><dd>Copy và hình ảnh cùng một hướng</dd></div>
-            </dl>
-          </article>
-        </div>
-
-        <div class="content-adaptation reveal">
-          <header>
-            <p class="eyebrow">One source / three native versions</p>
-            <h3>Không copy-paste một caption cho ba nền tảng.</h3>
-          </header>
-          <div class="content-versions">
-            <article><span>Facebook</span><strong>Cho người chưa biết sản phẩm đủ ngữ cảnh để quyết định.</strong><p>Gọi tên tình huống, offer hoặc bằng chứng trước. Phần giải thích nằm trong caption, không nhồi hết lên ảnh.</p></article>
-            <article><span>Instagram</span><strong>Để hình ảnh làm người ta dừng; caption làm họ hiểu thêm.</strong><p>Một visual anchor, một ý chính, rồi mở rộng bằng carousel hoặc caption có nhịp.</p></article>
-            <article><span>LinkedIn</span><strong>Bắt đầu từ hệ quả nghề nghiệp, cơ chế hoặc bằng chứng.</strong><p>Không đổi logo trên quảng cáo consumer. Biến nội dung thành point of view, case hoặc document proof.</p></article>
-          </div>
-        </div>
-      </section>
-
-      <section class="channel-system" id="channels">
-        <div class="channel-system-inner">
-          <header class="channel-heading reveal">
-            <p class="eyebrow">Channel composition / verified specs</p>
-            <h2>Một ý tưởng, ba cách đọc khác nhau.</h2>
-            <p>Thông số chỉ quyết định file có upload được hay không. Bố cục phải đổi theo trạng thái người xem, hành vi lướt và loại bằng chứng mỗi nền tảng cần.</p>
-          </header>
-
-          <div class="channel-gallery">
-            <article class="channel-case channel-facebook reveal">
-              <div class="channel-label"><span>Facebook</span><small>Feed image / 4:5</small></div>
-              <button class="channel-frame image-trigger" type="button" data-image="./assets/generated/minthep-coffee-local-delivery-v1.png" data-caption="Facebook — context and offer composition">
-                <img src="./assets/generated/minthep-coffee-local-delivery-v1.png" alt="Ảnh cà phê giao địa phương trong khung Facebook 4:5" />
-              </button>
-              <dl><div><dt>Mở đầu</dt><dd>Tình huống hoặc offer</dd></div><div><dt>Ảnh làm gì</dt><dd>Nhận diện sản phẩm nhanh</dd></div><div><dt>Caption</dt><dd>Cho đủ ngữ cảnh quyết định</dd></div></dl>
-            </article>
-
-            <article class="channel-case channel-instagram reveal">
-              <div class="channel-label"><span>Instagram</span><small>Feed / 4:5 · Reels / 9:16</small></div>
-              <button class="channel-frame image-trigger" type="button" data-image="./assets/generated/minthep-serum-carry-ritual-v3.png" data-caption="Instagram — visual-first composition">
-                <img src="./assets/generated/minthep-serum-carry-ritual-v3.png" alt="Ảnh lifestyle serum trong khung Instagram" />
-              </button>
-              <dl><div><dt>Mở đầu</dt><dd>Visual anchor</dd></div><div><dt>Ảnh làm gì</dt><dd>Tạo taste và khả năng lưu</dd></div><div><dt>Caption</dt><dd>Thêm nghĩa, không lặp ảnh</dd></div></dl>
-            </article>
-
-            <article class="channel-case channel-linkedin reveal">
-              <div class="channel-label"><span>LinkedIn</span><small>Document / consistent pages</small></div>
-              <button class="channel-frame image-trigger" type="button" data-image="./assets/generated/minthep-poster-magazine-v3.png" data-caption="LinkedIn — proof sequence and point of view">
-                <img src="./assets/generated/minthep-poster-magazine-v3.png" alt="Trang nội dung proof-led dành cho LinkedIn document" />
-              </button>
-              <dl><div><dt>Mở đầu</dt><dd>Hệ quả hoặc point of view</dd></div><div><dt>Ảnh làm gì</dt><dd>Chứa framework và evidence</dd></div><div><dt>Chuỗi trang</dt><dd>Tension → proof → implication</dd></div></dl>
-            </article>
-          </div>
-
-          <div class="channel-spec-line reveal">
-            <span><b>28</b> placement có nguồn</span>
-            <span><b>Meta</b> Feed / Reels / Stories</span>
-            <span><b>LinkedIn</b> Image / Video / Document</span>
-            <span><b>Không blind crop</b> master được tái bố cục</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="archive" id="archive">
-        <div class="archive-head section-shell reveal">
-          <div>
-            <p class="eyebrow">Public archive</p>
-            <h2>Kho đầu ra, không phải moodboard.</h2>
-          </div>
-          <p><strong data-published-count>67</strong> file được công khai. <strong data-reference-count>244</strong> ảnh tham chiếu chỉ dùng để research, không giả làm sản phẩm đã tạo.</p>
-        </div>
-        <div class="archive-tools section-shell">
-          <div class="archive-filters" role="group" aria-label="Lọc kho ảnh">
-            <button type="button" class="is-active" data-filter="all">Tất cả</button>
-            <button type="button" data-filter="campaign">Campaign</button>
-            <button type="button" data-filter="artwork">Artwork</button>
-            <button type="button" data-filter="photography">Photography</button>
-            <button type="button" data-filter="systems">System sheets</button>
-          </div>
-          <span data-archive-status aria-live="polite"></span>
-        </div>
-        <div class="archive-grid section-shell" data-archive-grid></div>
-        <div class="archive-more-wrap">
-          <button class="button button-secondary" type="button" data-archive-more>Xem thêm output</button>
-        </div>
-      </section>
-
-      <section class="install" id="install">
-        <div class="install-inner reveal">
-          <p class="eyebrow">Bắt đầu từ brief thật</p>
-          <h2>Không cần học marketing trước khi dùng.</h2>
-          <p>Nói bằng ngôn ngữ bình thường: anh đang bán gì, muốn đạt điều gì, đang có dữ liệu và hình ảnh nào. Skill tự chọn research, copywriting, image, menu hay channel plan cần thiết.</p>
-          <div class="install-command">
-            <code>$marketing-minthep</code>
-            <button class="copy-button" type="button" data-copy="$marketing-minthep">Copy</button>
-          </div>
-          <button class="button button-primary copy-button" type="button" data-copy="Dùng $marketing-minthep. Đây là sản phẩm, mục tiêu và dữ liệu tôi đang có. Hãy chỉ ra phần còn thiếu trước, sau đó research và bàn giao một hệ marketing có thể triển khai.">Copy brief khởi động</button>
-        </div>
-      </section>
-    </main>
-
-    <footer class="site-footer">
-      <a class="brand" href="#top"><span class="brand-mark">M</span><span>Marketing-Minthep</span></a>
-      <p>Research trước. Quyết định sau. Bàn giao file thật.</p>
-      <a href="#top">Về đầu trang ↑</a>
-    </footer>
-
-    <dialog class="lightbox" aria-label="Xem ảnh lớn">
-      <button class="lightbox-close" type="button" aria-label="Đóng ảnh">Đóng</button>
-      <button class="lightbox-nav lightbox-prev" type="button" aria-label="Ảnh trước">←</button>
-      <figure>
-        <img src="" alt="" />
-        <figcaption></figcaption>
-      </figure>
-      <button class="lightbox-nav lightbox-next" type="button" aria-label="Ảnh tiếp theo">→</button>
-    </dialog>
-
-    <div class="toast" role="status" aria-live="polite">Đã copy.</div>
-  </body>
+</body>
 </html>

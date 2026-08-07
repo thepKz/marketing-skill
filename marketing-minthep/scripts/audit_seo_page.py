@@ -5,7 +5,7 @@ This exists because SEO advice is the most folklore-heavy material this skill to
 none of the folklore is checkable. Keyword volume, difficulty, ranking position and competitor
 strength are all live SERP facts: they change weekly, they differ by device and city, and no
 offline script can know them. Anything here that claimed to score "SEO strength" would be
-inventing numbers, which is the exact failure `references/anti-ai-quality.md` and the anti-
+inventing numbers, which is the exact failure `references/rewrite-human.md` and the anti-
 fabrication protocol exist to stop.
 
 So the split is deliberate. What is measurable from the draft alone gets measured: whether the
@@ -412,7 +412,7 @@ def unknowns(stats: dict) -> list[str]:
         "Whether the page is indexable: robots, canonical, hreflang, status codes and render "
         "behaviour live on the server, not in the draft.",
         "Whether the claims are true or legal. That is `claims-proof-ledger.md` and "
-        "`rights-and-claims.md`, and no cadence or structure gate substitutes for it.",
+        "`claims-proof-ledger.md`, and no cadence or structure gate substitutes for it.",
     ]
     if not stats["head_terms"]:
         missing.insert(0, "No query was given, so every query-placement gate was skipped rather "

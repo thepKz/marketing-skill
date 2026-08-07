@@ -31,11 +31,11 @@ different containers, and that split is the whole architecture.
 
 | Layer | What it holds | Now | How it fails | What stops that |
 |---|---|---|---|---|
-| Entry point | `SKILL.md`: routing, ten core rules, intake, the run loop. No craft values | under a 210-line ceiling | It absorbs the manual. Every new unit wants four lines here | A line budget with a ceiling *and* a floor, and a written reason beside every raise |
+| Entry point | `SKILL.md`: routing, twelve core rules, intake, the run loop. No craft values | 301 lines | It absorbs the manual. Every new unit wants four lines here | Rules stay one line each; craft is exiled to `references/`; a new unit earns one routing row, not a section |
 | Contract | `assets/registries/pipelines.json`: per pipeline, the references, scripts and deliverables it owes | 9 pipelines | A deliverable names a script the pipeline never loads, or one nobody shipped | Every `run:` line is checked against its own pipeline's script list |
-| Prose | `references/`, with `references/dossiers/` for depth | 73 + 15 | A reference nothing routes to. Knowledge that never loads reads as depth and ships as nothing | Every reference must be named by the entry point, the router, or the registry |
-| Rows | `data/`: craft values, legal articles, vendor capabilities, one row per decision | 38 lookup tables | The table drifts from the script that reads it, or arrives undeclared | Each table's row and column count is declared in the suite; an undeclared CSV fails |
-| Instruments | `scripts/`: arithmetic and gates, each returning a verdict rather than an opinion | 51 tools | It returns advice. Advice cannot be wrong, so it cannot be fixed | `--self-check` on every tool that computes, verified against known inputs |
+| Prose | `references/`, one flat level, no satellite trees | 52 files | A reference nothing routes to. Knowledge that never loads reads as depth and ships as nothing | Every reference must be named by the entry point, the router, or the registry |
+| Rows | `data/`: craft values, legal articles, vendor capabilities, one row per decision | 43 lookup tables | The table drifts from the script that reads it | The scripts that read a table load it inside their `--self-check`, so a renamed column or a regex that stops compiling fails in CI |
+| Instruments | `scripts/`: arithmetic and gates, each returning a verdict rather than an opinion | 53 tools | It returns advice. Advice cannot be wrong, so it cannot be fixed | `--self-check` on every tool that computes, verified against known inputs |
 | Gates | The anti-slop layer, the claim and rights checks, `run_status.py --strict` | 3 text instruments + 1 image track | A pass earned by nobody looking | A blank answer fails its gate instead of passing it |
 
 ## The rule that produced all of it
@@ -51,9 +51,9 @@ That is why the tables have columns most reference data does not:
 
 | Column | On | What it is for |
 |---|---|---|
-| `source` / `source_url` / `retrieved` | 21 of 38 tables | The page and the day somebody read it. A spec with no retrieval date is a spec with no expiry |
-| `evidence_grade` | 13 tables carry a grade | Whether the row is vendor-published, peer-reviewed, or this repo's own house rule. House rules say so |
-| `what_it_does_not_establish` | 12 tables carry a limit | The load-bearing one. A benchmark quoted without its limits is how a plan acquires a number nobody can defend |
+| `source` / `source_url` / `retrieved` | 20 of 43 tables | The page and the day somebody read it. A spec with no retrieval date is a spec with no expiry |
+| `evidence_grade` | 16 tables carry a grade | Whether the row is vendor-published, peer-reviewed, or this repo's own house rule. House rules say so |
+| `what_it_does_not_establish` | 7 tables carry a limit | The load-bearing one. A benchmark quoted without its limits is how a plan acquires a number nobody can defend |
 
 The third column is the unusual one, and it is the reason a table beats a paragraph here. `39%
 open rate` is a fact about one vendor's sample on one date in one industry. The row that carries it
@@ -75,11 +75,11 @@ to print the figure without it.
          ├──▶ references/ + data/                craft as prose, values as rows
          │
          ▼
-  runs/<name>/                34 files. 01-intake quotes the request verbatim above
+  runs/<name>/                29 files for this request. 01-intake quotes it verbatim above
          │                    a table of every inference and the phrase behind it
          ▼
   > WRITE: markers            what only the operator knows
-  > RUN: <command>            what a script settles — 24 of them name the command
+  > RUN: <command>            what a script settles — 23 of them name the command
          │
          ▼
   scripts/check_specificity.py    does it say anything?          exit 2 if not
@@ -98,14 +98,15 @@ worse than `Giao hàng nhanh chóng, tận tâm`, so a cadence gate run first re
 
 ## The exit-code contract
 
-Every tool in `scripts/` uses the same four codes.
+Every tool in `scripts/` uses the same five codes.
 
 | Code | Means | Why it is separate |
 |---|---|---|
 | 0 | Clean | Nothing mechanical is left. Not the same as approved |
-| 1 | Usage error | The tool could not run. Never confused with a bad answer |
+| 1 | Usage error | The arguments were wrong. Never confused with a bad answer |
 | 2 | A gate failed | Something measurable is wrong, and the report names the row |
 | 3 | Computable but unsettled | The arithmetic ran and the answer is not available |
+| 4 | The gate could not run | The instrument itself crashed; `run_gate` in `_emit.py` converts the traceback, so a crash is never scored as a verdict |
 
 Code 3 is the one worth arguing about, and it is the reason the skill can be trusted on the
 questions it cannot answer. Four Meta placements publish a recommended size and then no file
@@ -117,25 +118,25 @@ seed, when a variance table has a hole in a column that is full everywhere else.
 A pass against silence is the single most expensive defect available to a tool like this, because it
 looks exactly like a pass.
 
-## The invariants, and the test that holds each
+## The invariants, and what holds each
 
-The architecture is not a description. It is more than 600 tests, and these are the ones that hold the shape
-rather than the arithmetic.
+The architecture is not a description. Every load-bearing claim above is re-checked before a
+deploy, by the CI workflow in `.github/workflows/deploy-pages.yml` and by the scripts' own
+`--self-check` modes — 21 of them, one per measuring instrument, each asserting on inputs that
+once broke that instrument.
 
-| Invariant | Test |
+| Invariant | Held by |
 |---|---|
-| The entry point stays a router | `test_skill_md_stays_within_the_progressive_disclosure_budget` |
-| No reference is unreachable from the router | `test_no_reference_is_unreachable_from_the_router` |
-| Every table on disk is declared, with its shape | `test_every_table_on_disk_is_declared_above` |
-| A deliverable never names a script its pipeline does not load | `test_every_script_named_in_a_run_line_is_in_that_pipelines_script_list` |
-| Every file path cited anywhere resolves | `test_every_cited_file_exists_somewhere_the_skill_can_reach` |
-| Every published image has a creator, a licence and a source URL | `test_every_reference_image_has_a_licence_line` |
-| No copy example ships a printable price or percentage | `test_copy_examples_carry_no_printable_number` |
-| The worked example still fails and still passes | `test_the_worked_example_still_demonstrates_what_its_readme_claims` |
-| Every count on the front page matches the filesystem | `test_the_stated_library_counts_match_the_filesystem` |
-| Every count on this page matches the filesystem | `test_the_architecture_counts_match_the_filesystem` |
+| The router and every reference it depends on exist on disk | file-existence checks in the deploy workflow |
+| The dossier tree and the handbook JavaScript stay deleted | inverted `test ! -e` checks in the same workflow |
+| Each gate still fires on known-bad input and stays quiet on clean input | that script's `--self-check`; all 21 run in CI |
+| Routing still sends each ask to the pipeline its row names | `evaluate_workbench.py`, replayed in CI |
+| The two simulated runs still earn the readouts printed inside them | both files re-gated by `check_output_shape.py` and `check_specificity.py` in CI |
+| A planner manifest and a scaffolded run still build from scratch | smoke tests in the same workflow |
+| Every script still compiles on a clean checkout | `python -m compileall` in CI |
 
-The last two exist because a README is the first thing to rot and the last thing anybody rereads.
+The worked examples are re-gated rather than trusted because a README readout is the first thing
+to rot and the last thing anybody rereads.
 
 ## Adding a unit
 
@@ -145,7 +146,7 @@ Seven steps, in this order. Skipping any of them ships a unit that works and can
    states what the unit does not establish.
 2. **Write the table.** `data/<topic>.csv`, one row per decision, with the source and caveat columns
    the row's kind needs. A value that belongs in a script constant belongs here instead.
-3. **Write the script.** `scripts/<verb>_<noun>.py`, with `--self-check`, the four exit codes, and a
+3. **Write the script.** `scripts/<verb>_<noun>.py`, with `--self-check`, the five exit codes, and a
    docstring that records why any number is *absent*.
 4. **Register it.** Add the reference and the script to the pipelines in `pipelines.json` that need
    them, and extend the deliverable's `run:` line so the command reaches an operator.

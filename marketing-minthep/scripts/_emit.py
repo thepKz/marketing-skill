@@ -35,3 +35,19 @@ def emit(content: str, output: str | Path | None = None) -> None:
 
 def emit_json(payload: object, output: str | Path | None = None) -> None:
     emit(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", output)
+
+
+def run_gate(main) -> None:
+    """Exit-code discipline for gate scripts.
+
+    0 clean, 2 fail, 3 unsettled are verdicts about the artifact. A gate that cannot run —
+    input missing, unreadable, undecodable — has no verdict and must not look like one, so
+    that failure exits 4 and says so. A crash scored as a defect (or as a pass) steers the
+    run on evidence that does not exist.
+    """
+    use_utf8_stdout()
+    try:
+        sys.exit(main())
+    except (OSError, UnicodeDecodeError) as exc:
+        print(f"verdict: no-verdict (gate could not run: {exc})", file=sys.stderr)
+        sys.exit(4)

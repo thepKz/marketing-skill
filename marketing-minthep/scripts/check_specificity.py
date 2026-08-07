@@ -13,7 +13,7 @@ does badly on their own draft.
 
 So this counts four classes of token that a competitor cannot copy without lying: a number carrying a
 unit or a currency, a date, a proper name, and a way to reach somebody. Then it reports the share of
-sentences holding none of them. That share is the brand-swap test from `copywriting-deep.md` made
+sentences holding none of them. That share is the brand-swap test from `copywriting.md` made
 arithmetic: cover the brand name, and if a rival could ship the line unchanged, the line says nothing.
 
 The gate that matters most is not the count, though. It is `empty-adjective`, and it is the reason
@@ -668,4 +668,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    from _emit import run_gate
+    run_gate(main)

@@ -11,6 +11,7 @@
 - Viet Nam: the channel the reports omit
 - Benchmarks, and why one is never enough
 - The laws, and the honest size of what they claim
+- Direction by scale: the four operating levels
 - Applying this to a brief
 
 ## What this unit is for
@@ -262,6 +263,120 @@ routinely overstated by people quoting it. Hold each claim to what its own sourc
 
 The pattern across all six: the argument is usually free and the evidence is usually paid. Quote the
 argument, and either buy the evidence or measure your own.
+
+## Direction by scale: the four operating levels
+
+Everything above describes what companies disclose. This section decides what a given company should
+*do*, and the deciding variable is not headcount. Classify by three questions: is there a marketing
+budget line, is this anyone's entire job, and which runs out first — money or time? Those answers sort
+every organisation into one of four levels, and each level has a different correct direction, a
+different characteristic failure, and the same three things that never change.
+
+What never changes, at any level, because the evidence in this file says so: growth comes from
+**penetration** before loyalty (double jeopardy, above), from **mental availability** (a distinctive
+asset that gets noticed in buying situations — salience, not awareness) and **physical availability**
+(easy to find, easy to buy, in stock). Every playbook below is a different answer to the same question:
+given this level's constraint, what is the cheapest reliable way to buy penetration, salience, and
+availability? `marketing-canon.md` owns the doctrine; this section applies it per level.
+
+### Level 1 — one person doing everything
+
+The reality the org charts above never describe, and the most common client of this skill: the same
+person is the designer, copywriter, photographer, media buyer, KPI owner — and also runs the actual
+business. **Time binds, not money**, so the direction is built on refusing work, not adding it.
+`vietnam-operating-reality.md` carries the full operating load model and `scripts/plan_operating_load.py`
+prices any plan in hours; this is the doctrine those tools serve.
+
+Order of investment, fixed: **offer → distribution → content → ads.** A confused offer makes every
+downstream hour worthless, and ads are last because they are the only line that spends money *and* time.
+The distinctive asset at this level is not a brand book: it is one colour, one visual habit, and one
+name lockup, applied to every surface in a single afternoon and never varied. Repetition a competitor
+would be embarrassed by is exactly the point — salience is bought by consistency, and consistency is the
+one asset a one-person shop can afford.
+
+The operating rhythm is a **weekly batch**: one production day turns one photo session into the week's
+content (`product-composition-set.md` counts how many frames one photograph yields), two fifteen-minute
+reply windows a day serve the comment sections, and one number — orders or messages, never reach — gets
+written down once a week. That is the whole KPI system, and it is complete, not a compromise:
+attribution is unsolved at firms scoring 4.4 out of 7 with full martech stacks, so a clean weekly count
+of orders beats a dashboard nobody reconciles.
+
+The refuse list, held as policy: awareness campaigns, rebrands, daily trend-chasing, dashboards, a third
+channel, and any tactic costing more than a dollar of work per order at video-commerce order values
+(the 6 USD arithmetic above). Characteristic failure: **acting like a media company** — volume without
+an offer, measuring reach because reach is the number that moves. First three moves: fix the offer and
+its price display; claim the distinctive asset everywhere in one afternoon; set the batch day and the
+one-number scoreboard.
+
+### Level 2 — small company, large capital
+
+A funded startup, a gold-shop or property owner diversifying into F&B, a small firm with high-margin
+assets: money does not bind, but nothing else exists — no tracking, no baseline, no person whose job
+this is. This level is the most dangerous of the four, because capital removes the constraint that
+forces good decisions at level 1, and every vendor in the market can smell it.
+
+The trap has a shape: **corporation-level spend through a level-1 measurement apparatus.** The launch
+campaign, the billboard, the celebrity KOL — spend that peers see and buyers don't, poured into a funnel
+nobody instrumented, evaluated afterwards by whether it "felt like it worked". The direction is one
+sentence: **measurement before media.** The first money goes to `measurement-plan.md` — tracking events,
+unit economics per order, a CAC arithmetic that can be wrong in a visible way — and the media budget
+stays capped until the funnel reports. Rent specialists for spike work (production, media buying) rather
+than hiring a department; keep the brand decision and the numbers in-house, because agencies optimise
+what they are paid on.
+
+What capital genuinely buys at this level, in order of compounding: **distribution** (locations,
+listings, shelf, partnerships — physical availability is purchasable and durable), **production
+quality** (real photography of the real product outperforms rented stock at every level), and **speed of
+testing** (running four offers in the time a level-1 shop runs one). What it cannot buy is skipped
+learning. Characteristic failure: the big launch into an unmeasured funnel. First three moves: write the
+measurement plan and per-order economics; cap media until CAC is a number with a source; spend the
+surplus on the distribution moat, which compounds, rather than on reach, which doesn't.
+
+### Level 3 — the big company
+
+Marketing has a budget line, a team, and now a coordination problem: many hands produce assets, two
+factions optimise different metrics, and the org chart starts doing the strategy's job. The direction
+comes from the filings above. Copy P&G's move, not P&G's budget: separate **market knowledge,
+communications, and design as three named crafts under one accountability** — a structure a ten-person
+marketing team can run. Creative stops being one-off assets and becomes a system: templates, roles,
+and a component inventory, because consistency across many hands is a design-ops problem
+(`design-direction.md`), not a talent problem.
+
+Govern the budget with the machinery in `performance-direction.md`: one driver tree the whole function
+shares, a grow-hold-fix-kill review of activities, and **three bets** per period with declared kill
+criteria. The brand-versus-performance split is settled by declaration, not war: a stated ratio, on a
+stated revisit date, tied to the driver tree — the acquisition-over-retention gap of 26% while 43.7% of
+the same firms *say* retention is the priority (above) is what an undeclared ratio looks like from
+outside. Characteristic failure: **the metric civil war** — brand and performance each winning their own
+scoreboard while the driver tree owns neither; reorganising instead of deciding; each team buying its
+own attribution tool. First three moves: one shared driver tree; an explicit brand/activation ratio with
+a revisit date; a creative system with named craft owners.
+
+### Level 4 — the conglomerate
+
+The question changes kind: not "how do we market" but **"what is central, and what is a brand?"** Brand
+architecture first — branded house (one masterbrand lends equity to everything, one reputational risk
+shared by everything) or house of brands (portfolio insulation, multiplied media cost) — written down on
+one page, because every acquisition and launch reopens it. Then the Coca-Cola test from its own 10-K:
+what stayed central there was **category strategy and analytics infrastructure**, while execution stayed
+local. That is the right default: central owns the brand architecture, measurement standards, negotiated
+rates, and category strategy; the units own execution, because they own the customer.
+
+Allocate marketing money as a portfolio, not a peanut-butter spread: grow-hold-fix-kill applied at brand
+level, with the same three-bets governance one level down inside each unit. Characteristic failure: the
+**shared-services trap** — centralising execution until every unit's marketing is uniform, slow, and
+signed off three floors from the customer; and the masterbrand vanity campaign, which spends the units'
+penetration budget on the holding company's reflection. First three moves: the one-page brand
+architecture; a declared central-versus-local split that passes the Coca-Cola test; a portfolio review
+cadence with kill authority.
+
+### Moving between levels
+
+Levels are diagnosed, not aspired to. The expensive mistakes are all impersonation: a level-1 shop
+running a level-3 dashboard, a level-2 owner spending level-4 money, a level-3 function reorganising
+into a level-4 bureaucracy. Promotion happens when the *constraint* changes — when time stops binding
+because a hire exists, when measurement exists so capital can deploy safely — and the first act at each
+new level is the same: re-run the three classification questions and adopt that level's refuse list.
 
 ## Applying this to a brief
 

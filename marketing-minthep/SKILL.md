@@ -1,6 +1,6 @@
 ---
 name: marketing-minthep
-description: "All-in-one marketing for marketers and non-marketers. Use for market research, competitor and audience analysis, positioning, offers and pricing, brand voice, copywriting, campaign and launch plans, content calendars, paid creative, SEO, PR, sales decks, creator briefs, lifecycle flows, product photography, key visuals, image editing, virtual people, colour systems, Canva-ready component systems for social graphics, carousels, infographics, posters and menu backgrounds, SVG/HTML layouts when explicitly requested, video sequencing, image-model prompts, creative QA and experiment read-outs. Vietnamese too: quảng cáo, chiến dịch, thương hiệu, định vị, viết content, thiết kế menu, thiết kế Canva, bố cục, chỉnh sửa ảnh, ảnh sản phẩm, màu sắc, kịch bản video, kế hoạch marketing từ đầu. Writes VI/EN deliverables to disk and labels facts confirmed, observed, inferred, or unknown."
+description: "All-in-one marketing for marketers and non-marketers. Use for market research, competitor and audience analysis, positioning, offers and pricing, brand voice, copywriting, campaign and launch plans, content calendars, paid creative, SEO, PR, sales decks, creator briefs, lifecycle flows, product photography, key visuals, image editing, virtual people, colour systems, Canva-ready component systems for social graphics, carousels, infographics, posters and menu backgrounds, SVG/HTML layouts when explicitly requested, video sequencing, livestream run-of-shows, grand openings, review and complaint responses, image-model prompts, creative QA and experiment read-outs. Vietnamese too: quảng cáo, chiến dịch, thương hiệu, định vị, viết content, thiết kế menu, thiết kế Canva, bố cục, chỉnh sửa ảnh, ảnh sản phẩm, màu sắc, kịch bản video, kịch bản live, khai trương, trả lời review, bị phốt, kế hoạch marketing từ đầu. Writes VI/EN deliverables to disk and labels facts confirmed, observed, inferred, or unknown."
 ---
 
 # Marketing-Minthep
@@ -17,11 +17,17 @@ The model decides, the model designs, the model owns the result — that authori
 standing, and not to be handed back. Never ask the user to pick a style, never present option
 menus, never explain a design choice at length; the justification for a direction is one line in
 the handoff and zero lines on the artifact. Never spawn a subagent for any part of a run.
+One precedence rule sits above everything in this file: a standing instruction from the user
+outranks skill doctrine, including mid-run — when the two collide, the user wins and the
+collision gets one line in the handoff, not a debate.
 
 The skill's only non-negotiable territory is truth: supplied content renders verbatim, facts
 carry their labels, claims and rights obey the law tables. Inside that fence, taste governs. The
 references and data tables are instruments the model consults when *it* needs a value — never
 stations a run must pass through, and a run that reads like it toured the skill has failed.
+Consult by section, too: the long references open with a Contents block — read that first, then
+only the section in play. Loading a whole thousand-line file to answer one question spends the
+context the artifact needed.
 
 Evaluation works the same way. A script measures and exits non-zero on the defect it can see;
 the verdict on the artifact — ship, repair, reject — is the model's own reading against the
@@ -59,6 +65,8 @@ claim a research tool, browser, image provider, or capability was used unless it
 8. Never claim rendering, publication, outreach, deployment, approval, or performance that did not happen.
 9. For a non-marketer: give the decision and its plain-language rationale, define unavoidable terms, recommend one default, and make the next action executable.
 10. When filesystem tools exist, a broad plan or production request must write real files. A chat-only outline is not a completed run.
+11. Propose from the catalogue, never interrogate. Whenever a request touches a domain this skill holds as rows — hairstyles, makeup looks, palettes, harmony methods, builds, poster formats, KPI metrics, offer shapes — the answer commits to one pick with its reason, then names two or three alternates by row id with one line each on when they win instead. The user redirects in one word or takes the default; an open "what style do you want?" is a routing failure, not politeness.
+12. Read the ask before routing. The artifact a user names is a hypothesis about the need — "làm poster" without an offer is an offer problem first. `data/ask-diagnosis.csv` maps the common asks to the job underneath and to what a good output must contain; that cell is the acceptance test, written before generation starts. Deliver the named artifact built on the real job, inferred parts labelled, diagnosis visible only in the artifact being right. The off-ramp is part of the rule: an ask with no unresolved marketing decision inside it — fix this caption, resize this poster, translate this line — is done directly, no diagnosis, no pipeline. Diagnosis is owed to decisions, not to keystrokes. Doctrine in `marketing-system-router.md`.
 
 ## The shape of a run
 
@@ -66,7 +74,7 @@ claim a research tool, browser, image provider, or capability was used unless it
 request ─▶ scripts/start_workbench.py           picks one pipeline, writes the run to disk
              assets/registries/pipelines.json   that pipeline's contract: references, scripts, deliverables
              references/ + data/                craft as prose, values as rows — look up, never recall
-             scripts/*.py                       measure the draft; a failed gate exits non-zero and names the row
+             scripts/*.py                       measure the draft; 2 fail, 3 unsettled, 4 gate-could-not-run (no verdict — fix the input or read by hand, never score it)
 result ◀─ scripts/run_status.py --strict        refuses empty or indefensible deliverables
 ```
 
@@ -102,42 +110,54 @@ Load only what the decision needs.
 
 | Need | Load |
 |---|---|
+| A vague ask — "làm poster", "viết content", "sao không ai mua" — before taking it literally | `data/ask-diagnosis.csv` via `find_recipe.py --table asks`: the job underneath, what good output contains, the failure of the literal reading; doctrine in `marketing-system-router.md` |
+| A strategy call the schools contest — growth lever, positioning angle, offer before copy, price psychology | `marketing-canon.md`: fourteen graded decision rules, each with its failure condition, then its `Marketing foundation` working checklist |
+| A standing marketing project — plan file, folder layout, learnings, weekly/monthly/quarterly review | `output-contract.md` (its `The marketing project on disk` section: `plan.md` shape, `BRAND.md` + `learnings.md`, three-level evaluation cadence); `how-companies-market.md` sets the plan's scale |
 | Product or business-model guidance | `product-category-playbooks.md` |
 | Current placement or export specs | `channel-spec-registry.md`, `data/channel-specs.csv`, `scripts/check_channel_spec.py` |
-| Social composition across Facebook, Instagram, LinkedIn, TikTok | `channel-composition-systems.md` first, then `channel-spec-registry.md` for vendor limits |
-| Reference images of a product or person | `reference-first-image-flow.md`, `reference-analysis.md`, `prompt-contracts.md` |
+| Social composition across Facebook, Instagram, LinkedIn, TikTok | `channel-spec-registry.md`: composition contracts first, vendor limits in the same file |
+| Reference images of a product or person | `reference-reading.md` (reading, role map, calibration in one file), `prompt-contracts.md` |
 | Studio and product photography | `realistic-studio-imagery.md`, `product-imagery.md` |
 | Composition, light, shadow, colour, resolution, sharpening | `visual-craft.md`, `composition-light-color.md`, `image-output-and-sharpening.md` |
-| Human, beauty, makeup, pose, figure | `human-imagery.md`, `makeup-art-direction.md`, `figure-and-pose.md` |
+| Human, beauty, makeup, pose, figure | `virtual-person-system.md`, `makeup-art-direction.md`, `figure-and-pose.md` |
+| A named look — tóc hime, ABG, hush cut — or a build like "ốm như người mẫu" | `data/hairstyles.csv`, `data/makeup-looks.csv`, and the named-build presets in `virtual-person-system.md` |
 | Discount, price, offer shape, what a customer may cost | `pricing-and-offers.md`, `scripts/price_offer.py` |
 | A commission deal from either side | `affiliate-commerce.md`, `data/affiliate-mechanics.csv`, `data/vn-advertising-law.csv`, `scripts/model_affiliate.py` |
-| Recurring virtual brand person | `virtual-person-system.md`, `rights-and-claims.md` |
-| Image edit or composite | `image-editing.md`, `prompt-contracts.md` |
+| Recurring virtual brand person | `virtual-person-system.md`, `claims-proof-ledger.md` |
+| Image edit or composite | `image-output-and-sharpening.md`, `prompt-contracts.md` |
 | Provider execution, and what a provider actually honours | `api-image-orchestration.md`, `provider-compilers.md`, `prompt-grammar.md`, `data/prompt-grammar.csv` |
 | Any designed artefact, before any craft table is opened | `design-direction.md`: content locked first, then one committed visual direction, art-directed inside. Tables measure the result; they never generate it |
 | Food, restaurant, dish, menu, or Canva-ready graphic | `menu.md`, plus `product-imagery.md` and `canva-native-ai-design.md`; expand "Canva-like" into component inventory, mask family, contrast roles, layer ownership, text-safe geometry before prompting |
-| Website, landing, wireframe, or type-led layout | `design-direction.md` (its layout/typography dossier), then `creative-evaluation.md`; set the real headline before styling |
+| Website, landing, wireframe, or type-led layout | `design-direction.md` (its layout/typography dossier), then `evaluation-suite.md`; set the real headline before styling |
 | Poster, banner, standee, billboard — anything read from a distance | `poster.md`, `data/poster-formats.csv`, `scripts/plan_poster.py` |
-| Visual QA and export | `anti-ai-quality.md`, `creative-evaluation.md`, `production-pipeline.md` |
-| Published claims, and whether Vietnamese law allows them | `claims-proof-ledger.md`, `data/claim-evidence.csv`, `scripts/check_claims.py`, then `rights-and-claims.md` |
+| Visual QA and export | `rewrite-human.md`, `evaluation-suite.md`, `output-contract.md` |
+| Published claims, and whether Vietnamese law allows them | `claims-proof-ledger.md` (its `Rights and claims` section covers people, references, packaging), `data/claim-evidence.csv`, `scripts/check_claims.py` |
 | Welcome, cart, renewal, win-back flow, capture popup, consent | `lifecycle-retention.md`, `data/lifecycle-duties.csv`, `scripts/plan_lifecycle.py` |
 | What happens after somebody messages | `lead-handling.md`, `data/lead-states.csv`, `scripts/plan_lead_flow.py` |
+| A one-star review, a phốt, a public complaint thread | `lead-handling.md` (its `When the conversation is public` section); `pr-communications.md` crisis guardrails once it spreads |
+| Preparing a livestream — run-of-show, offer ladder, host register | `video-production.md` (its `Live commerce` section), `vietnam-operating-reality.md` for platform mechanics |
+| Khai trương, soft open, opening week | `campaign-systems.md` (its `Grand opening` section); date checked against the occasion calendar first |
+| A campaign pegged to Tết, 8/3, Trung thu, ngày đôi 11.11 | `vietnam-operating-reality.md` (its §7 occasion calendar — dates, lead times, ghost month), then `campaign-systems.md` |
 | Any prose deliverable a person will read | `output-contract.md` plus `scripts/check_output_shape.py`: first sentence answers, headers assert, evidence rides the claim; announced openings, bold-led bullet grids, recap closes are blocking gates |
-| Copy that reads machine-written or translated word for word | `specificity.md` first, then `rewrite-human.md`, `copywriting.md` |
+| Copy that reads machine-written or translated word for word | `copywriting.md` first (its specificity gates), then `rewrite-human.md` |
+| Gen Z slang: what a term means, whether the brand may say it | `copywriting.md` (its `Gen Z voice` section — register and permission tiers), `data/genz-lexicon.csv` via `find_recipe.py --table genz` |
 | A page written to be found | `seo-writing.md`, `data/seo-intents.csv`, `scripts/audit_seo_page.py` |
+| Which KPI, what target, how the period went, what next quarter does | `performance-direction.md`: driver tree, target arithmetic, grow-hold-fix-kill, three bets |
 | Targets, weights, achievement rates, scorecards | `kpi-scorecards.md`, then `report-notation.md` for the period table |
 | Whether a number can be measured at all | `measurement-plan.md`, `data/tracking-events.csv`, `data/attribution-windows.csv`, `scripts/check_tracking_plan.py` |
 | Naming a colour, pairing two, colour-psychology claims | `colour-combination.md`, `data/colour-gates.csv` |
+| A combination method — 60-30-10, duotone, pastel+ink, jewel-on-dark — or a ready palette | `data/colour-harmonies.csv` for the method recipe, `data/palettes.csv` for measured palettes; the method argues, the palette carries the numbers |
 | A brand colour on the same surface as a photograph | `scripts/sample_reference.py --image REF --check accent=HEX` first — the accent is measured from the scene, not named after it |
 | One person holding every marketing role | `vietnam-operating-reality.md`, `scripts/plan_operating_load.py` |
 | How many frames one photograph can produce | `product-composition-set.md`, `scripts/plan_composition_set.py` |
 | Any Vietnamese copy: who it addresses | `address-register.md`, `data/address-registers.csv`, `scripts/check_address_register.py` |
 | Where a number came from; how real companies market | `market-data-collection.md`, `how-companies-market.md` |
+| Direction by company scale — one person doing everything, small-but-rich, big company, conglomerate | `how-companies-market.md` (its `Direction by scale` section), then `vietnam-operating-reality.md` for the one-person load |
 | Market size, and whether research has answered the decision | `market-assessment.md`, `scripts/size_market.py`, then `research-protocol.md` |
 
 ## Instruments, not authority
 
-`data/` holds 38 tables queryable through `scripts/find_recipe.py`. Query them instead of
+`data/` holds 43 tables queryable through `scripts/find_recipe.py`. Query them instead of
 writing craft values from memory: a remembered lighting setup is a guess, a table row is a
 decision somebody made and wrote down why. Every evidence table carries a
 `what_it_does_not_establish` (or equivalent) column — never quote a benchmark, law row, or
@@ -167,7 +187,7 @@ The measuring scripts, and the one question each settles:
 
 | Script | Settles | Method in |
 |---|---|---|
-| `check_specificity.py` | Does the draft say anything a competitor could not copy | `specificity.md` |
+| `check_specificity.py` | Does the draft say anything a competitor could not copy | `copywriting.md` |
 | `check_output_shape.py` | Is the document shaped like an answer or a model's essay | `output-contract.md` |
 | `rewrite_human.py` | Does it read machine-made: cadence, landing beats, presence markers | `rewrite-human.md` |
 | `check_address_register.py` | Who the Vietnamese copy addresses, and whether it holds | `address-register.md` |
@@ -176,7 +196,7 @@ The measuring scripts, and the one question each settles:
 | `plan_lifecycle.py` | The duties Vietnamese law attaches to a flow | `lifecycle-retention.md` |
 | `plan_lead_flow.py` | Whether enquiry handling can be handed to somebody else | `lead-handling.md` |
 | `check_prompt_grammar.py` | What the provider actually documents about the prompt | `prompt-grammar.md` |
-| `check_test_readout.py` | Whether a test is readable before anybody acts on it | `learning-loop.md` |
+| `check_test_readout.py` | Whether a test is readable before anybody acts on it | `performance-direction.md` |
 | `score_kpi.py`, `build_variance_report.py` | Achievement arithmetic; the period table a reader trusts | `kpi-scorecards.md`, `report-notation.md` |
 | `price_offer.py` | Contribution after every per-unit cost; what a discount really removes; break-even ROAS | `pricing-and-offers.md` |
 | `model_affiliate.py` | What a commission deal pays after fees, withholding, returns | `affiliate-commerce.md` |
@@ -251,9 +271,9 @@ copywriting ladder for copy that was handed over, no step narrated to the user.
 3. **Research.** Mandatory for plans, market assessments, competitor or customer claims, pricing, regulation, and feasibility whenever live tools exist. Follow `research-protocol.md`; without live tools, produce the research plan and label every conclusion unverified. Do the research in the main run — never delegate it to subagents.
 4. **Artifact pack.** Follow the pipeline's deliverable contract and `assets/registries/asset-formats.json`; select the minimum useful set, never a Cartesian product of formats. Include a format only when its audience state, owner, channel, CTA, acceptance gate, and metric are defined.
 5. **Creative and images.** Resolve the visual direction first (`design-direction.md`, one committed direction, one line of justification), then open craft tables — a recipe applied before the direction is a template; a direction applied after the layout is decoration. Start at `scripts/find_recipe.py`; map every reference by role (identity, product, pose, composition, lighting, styling, makeup, color-grade, texture) and separate locks, freedoms, rejects. Branch variants from identical inputs, changing one named axis. For edits ("sửa ảnh"): inspect the source, build the lock map, invoke a real edit capability, compare against the locks — or return an executable edit prompt with exact mask instructions. For Canva-ready work default to AI flat composition -> human/Canva typography: AI owns surface, masks, palette roles, text-safe geometry; human owns brand name, Vietnamese copy, prices, claims, contact, logo, QR. HTML/SVG only on an explicit coded or editable-source request.
-6. **Content first: count the facts.** `scripts/check_specificity.py --check <file>` before any style work. Under three checkable facts, stop — the draft has a content problem, and every rhythm edit from here makes it read better while saying nothing. The repair for an empty adjective is to put the fact back, not delete the adjective. Follow `specificity.md`.
+6. **Content first: count the facts.** `scripts/check_specificity.py --check <file>` before any style work. Under three checkable facts, stop — the draft has a content problem, and every rhythm edit from here makes it read better while saying nothing. The repair for an empty adjective is to put the fact back, not delete the adjective. Follow `copywriting.md`.
 7. **Shape, cadence, decoration, register.** In that order, because restructuring rewrites sentences and rhythm work deletes specifics: `check_output_shape.py`, then `rewrite_human.py --check --channel <where it goes>`, then on Vietnamese copy `check_address_register.py`. The whole layer, its order, and its sources are indexed in `anti-slop-index.md`. Do not lower a target to pass; do not add texture to flat prose — variation comes from the content deciding where it needs a beat.
-8. **Channel.** Recompose message, proof, image behavior, and reading sequence per placement (`channel-composition-systems.md`); a Story is laid out again, not cropped. Verify the live spec before export; preserve masters, safe zones, captions, disclosures, naming, approval state.
+8. **Channel.** Recompose message, proof, image behavior, and reading sequence per placement (`channel-spec-registry.md`); a Story is laid out again, not cropped. Verify the live spec before export; preserve masters, safe zones, captions, disclosures, naming, approval state.
 9. **QA and decide.** Reject critical failures in product or identity fidelity, anatomy, physics, claims, disclosure, consent, rights, channel compliance, or message continuity. The verdict is a judgment against the brief, not a gate tally. Never call a causal winner from CTR alone or mixed conditions (`scripts/check_test_readout.py`).
 10. **Learn.** Record asset, audience, placement, proof, offer, CTA, spend, result, rejection reason, next action. Feed objections, returns, and sales feedback into the next brief.
 

@@ -826,5 +826,5 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    use_utf8_stdout()
-    sys.exit(main())
+    from _emit import run_gate
+    run_gate(main)

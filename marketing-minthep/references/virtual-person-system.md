@@ -6,13 +6,16 @@
 - Why the option menu was deleted
 - The parameter sheet
 - Locked identity against campaign styling
+- Named builds
 - Reproducing the same person
 - Using a real face as a reference
 - Makeup
+- Hair
 - Douyin as a capture grammar
 - Identity bible
 - Generation sequence
 - QA
+- Human imagery
 
 ## What the job actually is
 
@@ -106,6 +109,30 @@ centimetres above the left jaw, a right brow sitting marginally lower. A perfect
 strongest single tell of generated imagery, and it is also unownable, because it is the average of the
 training set. It belongs to nobody and resembles everybody.
 
+## Named builds
+
+"Ốm như người mẫu" is a real request and an unusable prompt, so it gets numbers. A preset is a
+starting sheet for the build axes only — the face still has to be set, and a preset never overrides
+the QA floor: no emaciation, no protruding bones, no implausible waist, and never a claim that one
+build is more attractive.
+
+| Axis | editorial-runway | commercial-fresh | petite-idol | athletic |
+|---|---|---|---|---|
+| `stature-head-units` | 7.9 | 7.5 | 7.0 | 7.6 |
+| `shoulder-width-head-units` | 2.2 | 2.0 | 1.9 | 2.4 |
+| `shoulder-to-waist` | 1.45 | 1.30 | 1.35 | 1.50 |
+| `shoulder-to-hip` | 1.02 | 1.00 | 1.00 | 1.10 |
+| `leg-share-of-stature` | 51 | 49 | 47 | 49 |
+| `neck-length` | 0.45 | 0.40 | 0.38 | 0.40 |
+
+`editorial-runway` is the fashion-model read: tall in head units, long-legged, long-necked, waist
+defined by ratio rather than by thinness — every value inside the accepted domain, nothing that
+renders as unhealthy. `commercial-fresh` is the approachable mainstream cast. `petite-idol` reads
+younger-adult and small-framed while staying unambiguously adult; pair it with an age-presentation
+check, not a hope. `athletic` carries visible shoulder width and structure. Apply a preset with
+`--set`, then adjust at most two axes toward the brand; a preset changed everywhere was never a
+preset.
+
 ## Reproducing the same person
 
 The locked block is canonicalised, sorted and hashed to a `person_id` and a derived seed. Same locked
@@ -155,12 +182,21 @@ What to do instead: read the reference the way `reference-reading.md` says to re
 frame, do not keep the file - and turn what you measured into axis values. Ratios are not protectable;
 a specific person's face is. `reference-observations.csv` is where the measurement lands.
 
+Split the reference in two before measuring, because the two halves have different rules. The
+styling half — the makeup, the cut, the pose, the capture grammar — is not likeness and transfers
+whole: name it as a `look_id` from `makeup-looks.csv` and a `style_id` from `hairstyles.csv` and it
+is reproducible next month by construction. The identity half — the face and build — is measured
+into axis values and then deliberately moved: shift at least three locked axes away from the
+measured values and add an original distinguishing mark, so the result is informed by the
+reference, not derived from it. Most of what a client loves about a reference photo turns out to
+live in the styling half, which is the half they may keep.
+
 Never build a face by averaging named public figures. Translate references into separate
 non-identifying values and add at least one original distinguishing mark.
 
 ## Makeup
 
-Makeup is not re-specified here. `data/makeup-looks.csv` carries 47 looks across thirteen families,
+Makeup is not re-specified here. `data/makeup-looks.csv` carries 48 looks across thirteen families,
 each with a `discriminator` column separating it from the look it gets confused with, and
 `makeup-art-direction.md` carries the contract. `--makeup` takes a `look_id` from that table and is
 validated against it.
@@ -171,6 +207,31 @@ apart indefinitely and nothing would notice.
 
 Treat makeup as surface styling only. It sits on the anatomy the locked axes define and never changes
 it.
+
+## Hair
+
+`data/hairstyles.csv` carries 48 cuts across the same family structure — each with geometry (the
+silhouette, where the ends land, the fringe line), a `prompt_phrasing` cell that goes into the
+prompt verbatim, a `confused_with`/`discriminator` pair, and where the style photographs well and
+badly. "Tóc hime" is `jp-hime`; the ABG pairing is `us-abg` makeup over `us-abg-straight` hair.
+Coverage spans feminine, masculine and unisex presentation: the K-men grammar (`kr-two-block`,
+`kr-comma`, `kr-mid-part-perm`), the Vietnamese barbershop staples (`vn-undercut`), natural
+texture (`af-afro-round`, `af-box-braids`, `us-curly-bob`), occasion work (`vn-soft-updo`,
+`us-hollywood-waves`) and statement geometry (`jp-jellyfish`, `us-modern-mullet`). A casting
+request that names no cut gets a committed pick from the brief's family plus two named
+alternates from the same table, never an open question.
+
+The `lock_class` column decides what hair is allowed to do to identity. A `styling` row — buns,
+ponytails, waves, wet looks — is the same person on a different day and may change per campaign. A
+`signature-capable` row is a cut that can be promoted into the identity itself: a recurring model
+whose hime cut or French bob is part of how she is recognised records that `style_id` in the
+identity bible, and then a campaign may restyle *within* the cut (the hime tiers pinned up for one
+shot) but not replace it silently. The anatomy row `hairline-height` stays locked either way — the
+cut sits on the head the sheet defines.
+
+Pick hair the way makeup is picked: by the brief's family and the `photographs_as` column, never by
+scrolling for pretty. A cut whose geometry fights the campaign's motion brief (`jp-hime` in wind,
+`ed-glass-sleek` outdoors) is a rejection at selection time, not a retouch job later.
 
 ## Douyin as a capture grammar
 
@@ -193,7 +254,9 @@ lashes, poreless skin, a pinched nose, an extreme V-line jaw, or childlike age p
    carrying lens distortion into the anatomy.
 4. Expression sheet: neutral, small smile, focused, surprised, campaign-specific.
 5. A makeup-off baseline, when makeup will vary across campaigns.
-6. The lock list, the freedom list and the reject list - which the `lock_class` column already is.
+6. The signature hairstyle's `style_id` from `data/hairstyles.csv`, when the cut is part of the
+   identity rather than per-campaign styling.
+7. The lock list, the freedom list and the reject list - which the `lock_class` column already is.
 
 Camera angle and wardrobe change apparent proportions. Do not write lens distortion into the locked
 axes; that is what `focal-length` and `subject-distance` are for, and they are styling.
@@ -223,3 +286,83 @@ Reject when:
 - The person is attractive only through pore erasure, extreme symmetry, or generic beauty-filter traits.
 - The subject is anything other than a fictional adult. The script refuses a minor before it parses
   anything else.
+
+## Human imagery
+
+### Choose casting and capture mode
+
+Derive casting from four named inputs, in this order: who actually buys the product, what the
+product does to or for a body, the market the image runs in, and the channel's viewing distance.
+Write the answer to each before describing a face. "Women 25–34 in TP.HCM who commute by motorbike,
+buying a sunscreen, seen at arm's length on a phone" already rules out a studio-lit fashion beauty
+shot and points at real skin in real daylight.
+
+Left unanchored, image models converge on one narrow look — young, symmetrical, light-skinned,
+glass-skinned K-pop beauty — regardless of who the product is for. That default is not neutral: it
+is a claim about who the brand is speaking to, made by accident. Name the four inputs and it stops
+being the fallback.
+
+When the brief is incomplete:
+
+- Use a fictional adult, approximately 21 or older.
+- Use plausible healthy anatomy and a natural posture.
+- Preserve visible skin structure, asymmetry, flyaway hair, fabric pressure, and contact shadows.
+- Choose one capture mode from `realistic-studio-imagery.md` and state it.
+- Ask only when casting or identity would materially change product meaning or rights risk.
+
+### Casting contract
+
+Specify only relevant traits:
+
+- Adult age range and presentation.
+- Market or cultural context without stereotyping.
+- Face, hair, makeup, wardrobe, and grooming direction.
+- Body presentation required by the action or product, never an automatic ideal.
+- Social role, action, relationship to camera, and emotional subtext.
+- Identity or product references and exact locks.
+
+Do not directly imitate a named living celebrity. Translate requested qualities into an original, non-identifying direction unless an authorized reference and applicable tool policy allow the edit.
+
+### Beauty direction
+
+Select a specific production lane:
+
+1. **Studio-natural**: controlled soft light, visible skin texture, precise color, editorial cleanup only.
+2. **Beauty campaign**: stronger styling and makeup with physically coherent highlights and retained skin structure.
+3. **Backstage candid**: dressing-room or corridor source, intimate crop, lived-in styling, credible social action.
+4. **Street or arrival**: environmental light, purposeful outfit, flash or mixed light, real background behavior.
+5. **Creator-native**: phone camera distance, native framing, believable posture, direct product interaction.
+
+Korean, Japanese, K-pop, J-beauty, idol, subculture, or other regional aesthetics must be explicitly requested or supported by the brief. Describe concrete makeup, hair, wardrobe, light, and composition decisions rather than using the label alone.
+
+For makeup-led work, load `makeup-art-direction.md`. Specify the complete makeup contract rather than treating makeup as one adjective. Keep pose, identity, hair, makeup, lighting, and grade as separate reference roles so a celebrity mood reference never becomes an identity instruction.
+
+### Human prompt structure
+
+1. Asset job and single idea.
+2. Fictional adult casting or supplied identity locks.
+3. Action, gaze, hand task, and emotional subtext.
+4. Makeup contract, hair, wardrobe, accessories, and product interaction.
+5. Location or studio set and social context.
+6. Composition, camera distance, height, angle, lens behavior, and focus target.
+7. Light geometry, exposure behavior, white balance, and background separation.
+8. Skin, hair, fabric, anatomy, and retouching level.
+9. Copy-safe region, target ratio, and crop locks.
+10. Short rejection list specific to the likely failures.
+
+### Negative constraints
+
+Use only relevant negatives:
+
+- No plastic, waxy, airbrushed, poreless, or beauty-filter skin.
+- No doll-like face, enlarged eyes, extreme jaw distortion, or impossible proportions.
+- No extra fingers, fused hands, duplicate limbs, broken joints, or floating accessories.
+- No painted-on hair, cloned poses, repeated background faces, or generic influencer expression.
+- No synthetic bokeh, excessive HDR, fake film damage, random noise, or glamour retouching unless requested.
+- No identity, age, skin-tone, body, or facial drift in edits.
+
+### Editing real people
+
+Preserve identity, age presentation, skin tone, facial proportions, body, and distinctive features unless the user explicitly authorizes a specific change. Use localized edits when possible. Ask for confirmation when intent around identity or body modification is materially ambiguous.
+
+For makeup or outfit edits, load `image-output-and-sharpening.md` and use its identity-preserving contract. Makeup is a surface treatment, not permission to beautify or rebuild facial anatomy. A more polished output that changes eye spacing, nose geometry, jawline, lip shape, asymmetry, expression, or perceived person is a failed edit.
