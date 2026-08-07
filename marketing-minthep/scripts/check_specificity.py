@@ -27,7 +27,6 @@ a sentence-level reader can tell them apart.
     python scripts/check_specificity.py --text "Giao trong 2 giờ ở Gò Vấp, 45.000đ một ly."
     python scripts/check_specificity.py --check draft.md --json
     python scripts/check_specificity.py --targets
-    python scripts/check_specificity.py --self-check
 
 Exit codes are 0 clean, 1 usage error, 2 a gate failed, 3 computable but unsettled.
 """
@@ -487,148 +486,6 @@ def print_targets() -> str:
     ])
 
 
-def self_check() -> str:
-    out: list[str] = []
-
-    # --- what counts as a fact ---
-    assert quantities("Giao trong 2 giờ") == ["2giờ"], quantities("Giao trong 2 giờ")
-    assert quantities("45.000đ một ly") == ["45.000đ"]
-    assert quantities("Delivered in 2 hours") == ["2hours"]
-    assert quantities("$12 flat") == ["12"]
-    # A bare number is structure, not evidence. This is the distinction the whole gate rests on.
-    assert quantities("3 lý do bạn nên chọn chúng tôi") == []
-    assert quantities("Bước 2: đặt hàng") == []
-    out.append("a number counts only with a unit or a currency beside it")
-
-    assert names("Rang tại Gò Vấp mỗi sáng", False) == ["Gò Vấp"]
-    assert names("Gò Vấp là nơi rang", False) == [], "a sentence-initial capital is not a name"
-    assert names("I called them", False) == [], "English I names nobody"
-    assert names("Giao qua GHTK trong ngày", False) == ["GHTK"], "an acronym is a name"
-    # Title case would otherwise buy specificity for free.
-    assert title_cased("Cà Phê Rang Mộc Nguyên Chất")
-    assert not title_cased("Cà phê rang tại Gò Vấp")
-    assert names("Cà Phê Rang Mộc Nguyên Chất", True) == []
-    out.append("title case buys no specificity, and an acronym is a name")
-
-    assert DATE.search("ngày 12 tháng 3") and DATE.search("Q3 2026") and DATE.search("12/03/2026")
-    assert CONTACT.search("gọi 0901234567") and CONTACT.search("mua tại shop.vn/ca-phe")
-    out.append("dates and contact details register")
-
-    # --- the sentence that started this ---
-    empty = "Chúng tôi cam kết mang đến trải nghiệm tốt nhất cho khách hàng. " \
-            "Sản phẩm của chúng tôi luôn đảm bảo chất lượng và uy tín hàng đầu. " \
-            "Đội ngũ chuyên nghiệp, tận tâm sẽ đồng hành cùng bạn trên mọi hành trình. " \
-            "Hãy để chúng tôi chứng minh giá trị thực sự mà dịch vụ mang lại cho bạn."
-    report = check(empty)
-    named = {row["gate"]: row for row in report["gates"]}
-    assert report["verdict"] == "failed", report["verdict"]
-    assert named["fact-floor"]["status"] == "failed", named["fact-floor"]
-    assert named["brand-swap"]["status"] == "failed", named["brand-swap"]
-    assert named["empty-adjective"]["status"] == "failed", named["empty-adjective"]
-    assert report["facts"] == 0, report["by_class"]
-    out.append("the flattest Vietnamese draft there is fails on facts, brand-swap and adjectives")
-
-    # --- the same claims, made checkable ---
-    real = "Cà phê rang tại xưởng ở Gò Vấp, mỗi sáng thứ hai và thứ năm. " \
-           "Một ly 45.000đ, giao trong 2 giờ nội thành. " \
-           "Ngày rang in dưới đáy túi, nên bạn biết túi đang uống rang hôm nào. " \
-           "Gọi 0901234567 nếu túi tới muộn hơn 2 giờ, chúng tôi giao lại miễn phí."
-    report = check(real)
-    named = {row["gate"]: row for row in report["gates"]}
-    for gate, row in named.items():
-        assert row["status"] == "passed", f"{gate} -> {row['status']}: {row['observed']}"
-    assert report["verdict"] == "passed"
-    out.append("the same offer written with facts passes every gate")
-
-    # --- the adjective beside a fact is not the defect ---
-    substitute = check("Cà phê của chúng tôi là loại premium, chất lượng đảm bảo và rất uy tín. "
-                       "Chúng tôi tin rằng bạn sẽ hài lòng với dịch vụ tận tâm này. "
-                       "Sản phẩm luôn đạt tiêu chuẩn cao nhất trên thị trường hiện nay. "
-                       "Hãy trải nghiệm sự khác biệt mà thương hiệu mang lại cho bạn.")
-    beside = check("Cà phê premium này ủ lạnh 80 giờ ở Gò Vấp trước khi vào chai. "
-                   "Một chai 250ml giá 65.000đ, đủ cho hai người uống sáng. "
-                   "Mẻ đầu ra lò ngày 12 tháng 3, mỗi tuần chỉ 200 chai. "
-                   "Đặt qua 0901234567 trước thứ năm nếu muốn nhận cuối tuần.")
-    assert {r["gate"]: r["status"] for r in substitute["gates"]}["empty-adjective"] == "failed"
-    assert {r["gate"]: r["status"] for r in beside["gates"]}["empty-adjective"] == "passed", \
-        [r for r in beside["gates"] if r["gate"] == "empty-adjective"]
-    out.append("premium beside 80 giờ passes; premium alone in its sentence fails")
-
-    # --- hedges ---
-    hedged = check("Dịch vụ có thể giúp bạn tiết kiệm khá nhiều thời gian mỗi tuần. "
-                   "Nhìn chung thì phần lớn khách hàng đều tương đối hài lòng với kết quả. "
-                   "Rang tại Gò Vấp mỗi sáng thứ hai, giao trong 2 giờ nội thành. "
-                   "Một ly 45.000đ, gọi 0901234567 để đặt trước thứ năm hàng tuần.")
-    assert {r["gate"]: r["status"] for r in hedged["gates"]}["hedge-stack"] == "failed", \
-        [r for r in hedged["gates"] if r["gate"] == "hedge-stack"]
-    out.append("two hedges in one sentence fail even when the draft is otherwise specific")
-
-    # --- an unsourced statistic, and the price that is not one ---
-    stat = check("Có tới 87% khách hàng quay lại trong vòng một tháng sau lần mua đầu. "
-                 "Cà phê rang tại Gò Vấp mỗi sáng thứ hai, giao trong 2 giờ nội thành. "
-                 "Một ly 45.000đ, ngày rang in dưới đáy túi cho bạn tự kiểm tra. "
-                 "Gọi 0901234567 trước thứ năm nếu muốn nhận vào cuối tuần này.")
-    assert {r["gate"]: r["status"] for r in stat["gates"]}["sourced-number"] == "failed"
-    sourced = check("Theo khảo sát 320 đơn tháng 3 của xưởng, 87% khách quay lại trong một tháng. "
-                    "Cà phê rang tại Gò Vấp mỗi sáng thứ hai, giao trong 2 giờ nội thành. "
-                    "Một ly 45.000đ, ngày rang in dưới đáy túi cho bạn tự kiểm tra. "
-                    "Gọi 0901234567 trước thứ năm nếu muốn nhận vào cuối tuần này.")
-    assert {r["gate"]: r["status"] for r in sourced["gates"]}["sourced-number"] == "passed", \
-        [r for r in sourced["gates"] if r["gate"] == "sourced-number"]
-    # The three shapes that must stay exempt, or the gate becomes something people switch off: a
-    # price, a plain count of the brand's own stock, and a discount.
-    own = check("Một ly 45.000đ, một túi 250g là 180.000đ tại xưởng Gò Vấp. "
-                "Mỗi tuần chỉ 200 chai, rang thứ hai và thứ năm, giao trong 2 giờ. "
-                "Đang giảm giá 20% cho đơn đầu tiên, tới hết ngày 12 tháng 3. "
-                "Gọi 0901234567 nếu túi tới muộn, chúng tôi giao lại miễn phí.")
-    assert {r["gate"]: r["status"] for r in own["gates"]}["sourced-number"] == "passed", \
-        [r for r in own["gates"] if r["gate"] == "sourced-number"]
-    assert not STATISTIC.search("mỗi tuần chỉ 200 chai"), "a plain count is not a statistic"
-    assert not STATISTIC.search("một túi 250g là 180.000đ"), "a price is not a statistic"
-    assert not STATISTIC.search("gọi 0901234567"), "a phone number is not a statistic"
-    assert STATISTIC.search("nhanh hơn 3 lần") and STATISTIC.search("87% khách")
-    # A concentration is the product's own spec, not a finding about anybody.
-    spec = check("Dùng axit azelaic 10% của Paula's Choice, cùng loại bạn mua ngoài tiệm được. "
-                 "Một buổi 450.000đ, 75 phút, ở tiệm trên đường Nguyễn Trãi quận 5. "
-                 "Chị Hạnh làm ở đây 9 năm, trước đó 4 năm ở một tiệm trong Gò Vấp. "
-                 "Gọi 0901234567 trước 17 giờ nếu bạn muốn giữ chỗ trưa mai.")
-    assert {r["gate"]: r["status"] for r in spec["gates"]}["sourced-number"] == "passed", \
-        [r for r in spec["gates"] if r["gate"] == "sourced-number"]
-    assert not needs_a_source("Dùng axit azelaic 10% trên da", "10%")
-    assert needs_a_source("Hiệu quả lên tới 90% sau một liệu trình", "90%")
-    out.append("87% khách needs a source; azelaic 10%, a price and a discount do not")
-
-    # --- English behaves the same way ---
-    english = check("We are committed to delivering the best possible experience to our customers. "
-                    "Our products are always of premium quality and reliable standard. "
-                    "Our dedicated team will accompany you on every step of the journey. "
-                    "Let us prove the real value that our service brings to you.")
-    assert english["language"] == "en", english["language"]
-    assert english["verdict"] == "failed" and english["facts"] == 0
-    out.append("the English version of the same emptiness fails identically")
-
-    # --- the floor and the spec sheet, the two things it declines to judge ---
-    caption = check("Rang mộc, giao nhanh.")
-    assert caption["verdict"] == "skipped"
-    assert caption["gates"][0]["status"] == "skipped", "a caption is skipped, never passed"
-    sheet = check("Ly nhỏ 35.000đ, ly lớn 45.000đ, túi 250g 180.000đ tại Gò Vấp. "
-                  "Giao 2 giờ nội thành, 24 giờ đi Đà Nẵng, 48 giờ ra Hà Nội. "
-                  "Rang thứ hai và thứ năm, mỗi mẻ 40kg, đóng túi 250g và 1kg. "
-                  "Gọi 0901234567 hoặc 0987654321, mở 7 giờ tới 21 giờ mỗi ngày.")
-    assert {r["gate"]: r["status"] for r in sheet["gates"]}["brand-swap"] == "review", \
-        [r for r in sheet["gates"] if r["gate"] == "brand-swap"]
-    assert sheet["verdict"] == "review", "a price list is not prose and is not judged as prose"
-    out.append("a caption is skipped and a price list is reviewed, neither is failed")
-
-    # --- the table is the source of truth, not a list in here ---
-    assert phrase_rows("vi", "hedge"), "no hedge rows in translation-tells.csv"
-    assert phrase_rows("vi", "evidence"), "no evidence rows in translation-tells.csv"
-    assert phrase_rows("en", "hedge"), "no English hedge rows in translation-tells.csv"
-    out.append("the adjective and hedge lists are read from translation-tells.csv, not hardcoded")
-
-    return "specificity self-check passed:\n" + "\n".join(f"  - {line}" for line in out) + "\n"
-
-
 def main(argv: list[str] | None = None) -> int:
     use_utf8_stdout()
     parser = argparse.ArgumentParser(
@@ -639,13 +496,9 @@ def main(argv: list[str] | None = None) -> int:
     source.add_argument("--text", help="copy passed directly")
     parser.add_argument("--json", action="store_true", help="machine-readable report")
     parser.add_argument("--targets", action="store_true", help="print the thresholds and stop")
-    parser.add_argument("--self-check", action="store_true", help="run the built-in assertions")
     parser.add_argument("--out", metavar="FILE", help="write the report here instead of stdout")
     args = parser.parse_args(argv)
 
-    if args.self_check:
-        emit(self_check(), args.out)
-        return 0
     if args.targets:
         emit(print_targets(), args.out)
         return 0

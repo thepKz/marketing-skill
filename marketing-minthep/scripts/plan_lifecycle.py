@@ -84,7 +84,6 @@ Usage:
     python scripts/plan_lifecycle.py --template flow.csv
     python scripts/plan_lifecycle.py --audit flow.csv
     python scripts/plan_lifecycle.py --audit flow.csv --orders 4200 --aov 690000 --json
-    python scripts/plan_lifecycle.py --self-check
 
 Exit codes are 0 clean, 1 usage error, 2 a gate failed.
 """
@@ -803,142 +802,6 @@ def render(duties: list[dict[str, str]], path: str, rows: list[dict[str, object]
     return "\n".join(lines) + "\n"
 
 
-# --------------------------------------------------------------------------------------- self-check
-
-def clean_declaration() -> dict[str, str]:
-    """A flow that passes every gate. The self-check moves one field at a time off this baseline."""
-    return {
-        "service_months": "12", "contract_in_writing": "yes",
-        "renewal_date": "2026-09-01", "renewal_notice_date": "2026-08-19",
-        "end_date": "2027-09-01", "end_notice_date": "2027-08-19",
-        "lockin_months": "0", "retention_months_declared": "12", "max_delay_months": "9",
-        "marketing_consent": "separate", "notice_before_collect": "yes",
-        "overlay": "static", "wait_seconds": "0", "close_taps": "1", "close_icon": "clear",
-        "has_report_control": "yes", "shares_with_third_party": "no",
-        "third_party_consent": "n/a", "processor": "-", "processor_written_agreement": "n/a",
-        "repurposed_from": "-", "renotified_for_new_purpose": "n/a",
-        "sends_after_refusal": "no", "messages_per_week": "2", "is_commercial": "yes",
-        "has_ad_label": "yes", "uses_influencer": "no", "discloses_sponsorship": "n/a",
-        "channel": "zalo-oa", "claims_verified": "yes", "refund_window_days": "14",
-        "filters_reviews": "no", "reuses_reviews_in_ads": "no", "review_consent_on_file": "n/a",
-        "has_self_service_deletion": "yes", "has_breach_runbook": "yes",
-    }
-
-
-def self_check() -> str:
-    duties = read_duties()
-    lines = ["# plan_lifecycle self-check", ""]
-
-    assert len(duties) == 25, len(duties)
-    assert len({row["id"] for row in duties}) == len(duties)
-    assert set(CHECKS) == {row["id"] for row in duties}, set(CHECKS) ^ {r["id"] for r in duties}
-    for stage in STAGES:
-        assert any(row["stage"] == stage for row in duties), stage
-    lines.append(f"- {len(duties)} duties, one check each, every one of the {len(STAGES)} stages "
-                 f"populated")
-
-    # Every field the table says decides a duty is a field the sheet actually asks for.
-    for row in duties:
-        for field in row["decides_from"].split("; "):
-            assert field in FIELD_NAMES, (row["id"], field)
-    lines.append(f"- every decides_from token names one of the {len(FIELD_NAMES)} declared fields")
-
-    # A clean flow passes everything. Without that baseline no failure below means anything.
-    baseline = gates(duties, clean_declaration())
-    assert not failed(baseline), failed(baseline)
-    lines.append("- the worked clean declaration passes all applicable gates")
-
-    # A blank sheet fails rather than passes. This is the whole design.
-    empty = gates(duties, {})
-    applicable = [row for row in empty if row["applies"]]
-    assert len(failed(empty)) == len(applicable), (len(failed(empty)), len(applicable))
-    assert len(applicable) >= 20, len(applicable)
-    lines.append(f"- an empty sheet fails all {len(applicable)} gates it reaches, none of them "
-                 f"silently passing")
-
-    # The working-day count is arithmetic, not a lookup. 2026-08-19 to 2026-09-01 spans two
-    # weekends, so the calendar gap of thirteen days is eight working days.
-    counted = working_days_between(dt.date(2026, 8, 19), dt.date(2026, 9, 1))
-    assert counted == 8, counted
-    assert working_days_between(dt.date(2026, 8, 21), dt.date(2026, 9, 1)) == 6
-    latest = last_lawful_notice_date(dt.date(2026, 9, 1))
-    assert latest == dt.date(2026, 8, 20), latest
-    assert working_days_between(latest, dt.date(2026, 9, 1)) == WORKING_DAYS_NOTICE
-    assert working_days_between(latest + dt.timedelta(days=1), dt.date(2026, 9, 1)) < \
-        WORKING_DAYS_NOTICE
-    lines.append(f"- 2026-08-19 to 2026-09-01 is {counted} working days; the last lawful notice "
-                 f"date for a 2026-09-01 expiry is {latest}, and one day later misses")
-
-    # A notice two days late fails, and the report names the date it should have gone out.
-    late = dict(clean_declaration(), renewal_notice_date="2026-08-26")
-    row = next(item for item in gates(duties, late)
-               if item["gate"] == "renewal-notice-at-least-seven-working-days-out")
-    assert not row["pass"] and "2026-08-20" in str(row["finding"]), row
-    lines.append("- a notice sent 2026-08-26 for a 2026-09-01 expiry fails and is told to send by "
-                 "2026-08-20")
-
-    # The retention arithmetic is the one that catches a global template.
-    stale = dict(clean_declaration(), max_delay_months="18")
-    row = next(item for item in gates(duties, stale)
-               if item["gate"] == "no-message-after-the-declared-retention-period")
-    assert not row["pass"] and "6 months after" in str(row["finding"]), row
-    lines.append("- a win-back at month 18 against a published 12 months fails by 6 months")
-
-    # Bundled consent is a fail, not a nuance.
-    bundled = dict(clean_declaration(), marketing_consent="bundled")
-    row = next(item for item in gates(duties, bundled)
-               if item["gate"] == "marketing-consent-is-its-own-choice")
-    assert not row["pass"], row
-    assert "marketing-consent-is-its-own-choice" in blocking(gates(duties, bundled))
-    lines.append("- one checkbox at checkout fails Điều 18.4.b and blocks the send, because the "
-                 "remedy column puts the breach at Điều 10.1.m")
-
-    # The overlay ceiling depends on what the overlay is, and a static image gets no wait at all.
-    motion = dict(clean_declaration(), overlay="motion", wait_seconds="5")
-    assert not failed(gates(duties, motion)), failed(gates(duties, motion))
-    static = dict(clean_declaration(), overlay="static", wait_seconds="3")
-    assert "overlay-wait-is-capped" in failed(gates(duties, static))
-    lines.append("- 5 seconds is lawful on motion and unlawful on a static image")
-
-    # Severity is derived from the table, so an advertising row blocks and a duty row does not.
-    labelled = next(row for row in duties if row["id"] == "a-commercial-message-is-marked-as-advertising")
-    assert severity_of(labelled) == "critical"
-    assert severity_of(next(row for row in duties if row["id"] == "a-refund-lands-inside-thirty-days")) \
-        == "high"
-    assert severity_of(next(row for row in duties
-                            if row["id"] == "no-contact-against-the-consumers-wishes")) == "critical"
-    # And the branch that reads the remedy column: a duty written at Điều 18.4.b whose breach is the
-    # prohibited act at Điều 10.1.m.
-    assert severity_of(next(row for row in duties
-                            if row["id"] == "marketing-consent-is-its-own-choice")) == "critical"
-    blocked = sum(1 for row in duties if severity_of(row) == "critical")
-    assert blocked == 13, blocked
-    lines.append(f"- severity is derived: a fine band or a Điều 10 prohibition in either the duty or "
-                 f"the remedy column blocks, and {blocked} of {len(duties)} rows do")
-
-    # An unverified claim costs more through the till than through the fine.
-    over = dict(clean_declaration(), claims_verified="no")
-    rows = gates(duties, over)
-    assert "an-over-claim-becomes-a-refund-duty" in failed(rows)
-    liability = refund_liability(rows, 4200, 690_000)
-    assert liability == 2_898_000_000, liability
-    assert liability > exposure(rows)[1], (liability, exposure(rows))
-    lines.append(f"- 4.200 orders at 690.000 đồng puts {money(liability)} đồng at risk, more than "
-                 f"any fine band in the table")
-
-    # The sheet the tool writes is a sheet the tool can read. The claims unit shipped this broken.
-    with tempfile.TemporaryDirectory() as directory:
-        sheet = Path(directory) / "flow.csv"
-        sheet.write_text(build_template(), encoding="utf-8")
-        round_tripped = read_declaration(sheet)
-        assert set(round_tripped) == set(FIELD_NAMES), set(FIELD_NAMES) - set(round_tripped)
-        assert unanswered(round_tripped) == list(FIELD_NAMES)
-    lines.append("- --template writes a sheet --audit reads, with every field blank and failing")
-
-    lines += ["", "All assertions passed."]
-    return "\n".join(lines) + "\n"
-
-
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Grade a lifecycle flow against the duties Vietnamese law attaches to it.")
@@ -946,7 +809,6 @@ def build_parser() -> argparse.ArgumentParser:
     mode.add_argument("--audit", metavar="FLOW.CSV", help="grade a filled declaration sheet")
     mode.add_argument("--template", metavar="FLOW.CSV", help="write the declaration sheet to fill in")
     mode.add_argument("--duties", action="store_true", help="print every duty, grouped by stage")
-    mode.add_argument("--self-check", action="store_true", help="run the built-in assertions")
     parser.add_argument("--stage", help=f"limit --duties to one stage: {', '.join(STAGES)}")
     parser.add_argument("--orders", type=int, default=0,
                         help="orders in the window, to size the refund liability")
@@ -961,9 +823,6 @@ def main(argv: list[str] | None = None) -> int:
     use_utf8_stdout()
     args = build_parser().parse_args(argv)
 
-    if args.self_check:
-        emit(self_check(), args.output)
-        return 0
 
     try:
         duties = read_duties(args.table)

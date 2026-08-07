@@ -24,7 +24,7 @@ Two photographs from the image pipeline; the menu and palette sheet were drawn b
 
 ## Output, before and after
 
-The same Vietnamese About-us paragraph, drafted then rewritten through the skill. Both texts are kept verbatim in [`rewrite-human-worked-example.md`](marketing-minthep/assets/examples/rewrite-human-worked-example.md), and the measuring script's own `--self-check` — run in CI before every deploy — pins the arithmetic that fails flat drafts like the first and passes writing like the second:
+The same Vietnamese About-us paragraph, drafted then rewritten through the skill. Both texts are kept verbatim in [`rewrite-human-worked-example.md`](marketing-minthep/assets/examples/rewrite-human-worked-example.md), so you can re-run the gate on them yourself and watch the first fail and the second pass:
 
 | Measured | Draft | Rewrite | Gate |
 |---|--:|--:|---|
@@ -79,13 +79,13 @@ Gates exit `0` clean, `2` failed, `3` unsettled, `4` could-not-run — a crash i
 ```
 marketing-minthep/
   SKILL.md            router: 12 rules, reads the ask before any tool
-  references/         52 topic files — doctrine, loaded per job, never all at once
+  references/         51 topic files — doctrine, loaded per job, never all at once
   data/               43 lookup tables — palettes, copy formulas, slop tells, ask map
-  scripts/            53 tools — 11 gates that measure; the model owns the verdict
+  scripts/            52 tools — 11 gates that measure; the model owns the verdict
   assets/examples/    runnable inputs + the worked runs above
 ```
 
-Scripts measure; they never generate content. 21 of them ship a `--self-check` that CI runs before every deploy, alongside the routing eval and the two simulated runs above — if any printed readout drifts from what the gates now measure, the build fails. Depth in [ARCHITECTURE.md](ARCHITECTURE.md).
+Scripts measure; they never generate content. There is no test suite behind them, on purpose: the gates are the tests, and they run on your draft at the moment it matters — every run is the test. A broken instrument exits `4` instead of passing you, so a crash can never issue a verdict. Depth in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## What it will not do
 

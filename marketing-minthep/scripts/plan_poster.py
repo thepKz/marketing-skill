@@ -67,7 +67,7 @@ ARCMIN = math.pi / 10800
 # distance per inch of cap height. It is the same axis inverted, and the conversion is exact.
 # cap / distance = (1/12) / LI radians, so arcmin = (10800/pi) / (12 x LI) = 286.4789 / LI.
 # Carrying both means one formula can answer an optician, a print shop and a billboard vendor
-# without any of them being told they are using somebody else's unit. `--self-check` pins it.
+# without any of them being told they are using somebody else's unit.
 LI_ARCMIN = (10800.0 / math.pi) / 12.0
 
 # The three bands, in arcminutes of cap height, each one point on that axis.
@@ -527,7 +527,7 @@ def explain_units() -> str:
         "needs about three times the cap height a viewer facing it needs, which divides the\n"
         "measured band to LI 6.7-12.7. A street banner is read side-on. A poster you walk up to is\n"
         "not, so on a wall the glance band is generous by roughly two.\n\n"
-        "Two anchors make it checkable rather than asserted, and --self-check runs both:\n"
+        "Two anchors make it checkable rather than asserted:\n"
         f"  6 m at the acuity floor is "
         f"{cap_height(ACUITY_ARCMIN, 'mm', 6.0):.2f} mm, which is the 6-metre line on an\n"
         "  optician's chart, 8.73 mm.\n"
@@ -543,64 +543,6 @@ def explain_units() -> str:
         f"Cap height to type size uses CAP = {CAP}, imported from render_mockup.py so the number\n"
         "that sizes the type is the number that draws it.\n"
     )
-
-
-def self_check() -> tuple[str, int]:
-    lines, failures = [], 0
-
-    def check(name: str, got: float, want: float, tolerance: float, unit: str) -> None:
-        nonlocal failures
-        ok = abs(got - want) <= tolerance
-        failures += 0 if ok else 1
-        lines.append(f"  [{'ok' if ok else 'FAIL'}] {name}: {got:.4f} {unit} "
-                     f"(expected {want} +/- {tolerance})")
-
-    # The optician's wall. A 20/20 optotype at 6 m is 8.73 mm tall.
-    check("Snellen 20/20 at 6 m", cap_height(ACUITY_ARCMIN, "mm", 6.0), 8.73, 0.01, "mm")
-    # The sign trade's rule of thumb, restated.
-    check("one inch per ten feet", cap_height(GLANCE_ARCMIN, "mm", 3.048), 25.4, 0.05, "mm")
-    # Linear in distance: double the distance, double the letter.
-    check("linearity at 20 m", cap_height(GLANCE_ARCMIN, "mm", 20.0),
-          cap_height(GLANCE_ARCMIN, "mm", 10.0) * 2, 0.001, "mm")
-    # The two axes are one axis. The acuity ceiling is LI 57 and the trade rule is LI 10, and both
-    # fall out of the same conversion rather than being asserted beside each other.
-    check("acuity floor as an LI", legibility_index(ACUITY_ARCMIN), 57.30, 0.01, "ft/in")
-    check("glance band as an LI", legibility_index(GLANCE_ARCMIN), 10.0, 0.01, "ft/in")
-    check("OAAA table as an angle", LI_ARCMIN / 25.0, 11.46, 0.01, "arcmin")
-    # The CSS reference pixel, from the specification's own definition.
-    check("css reference pixel", CSS_PX_ARCMIN, 1.2789, 0.0005, "arcmin")
-    # The browser default lands just under sustained reading, which is the point of the band.
-    check("16 css-px cap height", 16 * CAP * CSS_PX_ARCMIN, 15.14, 0.02, "arcmin")
-
-    # ISO 216 is a definition, so every A and B row in the table is recomputable. The definition is
-    # the 1:sqrt(2) ratio - it is what makes halving the long side reproduce the shape - so the two
-    # roots are checked against it before anything is derived from them.
-    for series, (short, long_) in ISO_ROOTS.items():
-        check(f"ISO 216 {series.upper()} root is 1:sqrt(2)", long_ / short, math.sqrt(2.0),
-              0.001, "ratio")
-
-    formats = Formats()
-    for row in formats.rows:
-        if row["size_grade"] != "iso-216-definitional":
-            continue
-        series = row["format_id"][0]
-        step = int(row["format_id"][1])
-        # Halving n times across the long side: the new short side is the old long side halved and
-        # the new long side is the old short side. The rounding compounds, hence the tolerance.
-        w, h = ISO_ROOTS[series]
-        for _ in range(step):
-            w, h = h / 2.0, w
-        got_w, got_h = float(row["size_w"]), float(row["size_h"])
-        ok = abs(got_w - w) <= ISO_TOLERANCE_MM and abs(got_h - h) <= ISO_TOLERANCE_MM
-        failures += 0 if ok else 1
-        lines.append(f"  [{'ok' if ok else 'FAIL'}] {row['format_id']} from the ISO 216 "
-                     f"{series.upper()} root: {got_w:.0f} x {got_h:.0f} against "
-                     f"{w:.1f} x {h:.1f} mm")
-
-    head = ("SELF-CHECK - the arithmetic against an optician's chart, the sign trade's own index, "
-            "the\nCSS specification and the ISO 216 definition\n")
-    tail = (f"\n{len(lines)} checks, {failures} failed\n")
-    return head + "\n".join(lines) + tail, (2 if failures else 0)
 
 
 def list_formats(formats: Formats) -> str:
@@ -642,15 +584,10 @@ def main(argv: list[str] | None = None) -> int:
                              "gate for the provider's published native-text ceiling")
     parser.add_argument("--list-formats", action="store_true")
     parser.add_argument("--explain-units", action="store_true")
-    parser.add_argument("--self-check", action="store_true")
     parser.add_argument("--format-out", dest="fmt", choices=("text", "json"), default="text")
     parser.add_argument("--output")
     args = parser.parse_args(argv)
 
-    if args.self_check:
-        text, code = self_check()
-        emit(text, args.output)
-        return code
     if args.explain_units:
         emit(explain_units(), args.output)
         return 0

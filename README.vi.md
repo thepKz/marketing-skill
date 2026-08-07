@@ -24,7 +24,7 @@ Hai tấm ảnh ra từ pipeline ảnh; menu và bảng palette do script vẽ, 
 
 ## Output, trước và sau
 
-Cùng một đoạn giới thiệu quán bằng tiếng Việt, bản nháp và bản viết lại qua skill. Cả hai đoạn giữ nguyên văn trong [`rewrite-human-worked-example.md`](marketing-minthep/assets/examples/rewrite-human-worked-example.md), và `--self-check` của chính script đo — chạy trong CI trước mỗi lần deploy — ghim phép tính đánh trượt loại nháp phẳng như bản đầu:
+Cùng một đoạn giới thiệu quán bằng tiếng Việt, bản nháp và bản viết lại qua skill. Cả hai đoạn giữ nguyên văn trong [`rewrite-human-worked-example.md`](marketing-minthep/assets/examples/rewrite-human-worked-example.md), nên bạn tự chạy lại gate trên chính hai đoạn đó được — bản đầu trượt, bản sau đậu:
 
 | Số đo | Nháp | Viết lại | Chuẩn |
 |---|--:|--:|---|
@@ -79,13 +79,13 @@ Gate thoát `0` sạch, `2` trượt, `3` chưa ngã ngũ, `4` không chạy đ�
 ```
 marketing-minthep/
   SKILL.md            router: 12 luật, đọc câu hỏi trước khi đụng tool nào
-  references/         52 file doctrine — nạp theo việc, không bao giờ nạp hết
+  references/         51 file doctrine — nạp theo việc, không bao giờ nạp hết
   data/               43 bảng tra — palette, công thức copy, dấu hiệu slop, bảng ask
-  scripts/            53 tool — 11 gate chỉ đo; kết luận thuộc về model
+  scripts/            52 tool — 11 gate chỉ đo; kết luận thuộc về model
   assets/examples/    input chạy được + hai run mô phỏng ở trên
 ```
 
-Script đo, không viết hộ. 21 script mang `--self-check` chạy trong CI trước mỗi lần deploy, cùng bài eval routing và hai run mô phỏng ở trên — readout nào trôi khỏi số gate đo được là build trượt. Chi tiết trong [ARCHITECTURE.md](ARCHITECTURE.md).
+Script đo, không viết hộ. Cố ý không có test suite phía sau: gate chính là bài test, và nó chạy trên bản nháp của bạn đúng lúc cần — mỗi lần chạy là một lần test. Script hỏng thì thoát `4` chứ không đậu hộ, nên crash không bao giờ ra được kết luận. Chi tiết trong [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Những việc nó từ chối
 

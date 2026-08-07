@@ -56,7 +56,6 @@ When the palette will sit on the same surface as a photograph, measure the photo
 sample_reference.py --image ref/bowl.png
 sample_reference.py --image ref/bowl.png --check accent=#2A4BD7 support=#D9541E
 sample_reference.py --image ref/bowl.png --artwork out/menu.png --check accent=#2A4BD7
-sample_reference.py --self-check
 ```
 
 Exit 0 is a clean palette. Exit 1 is a usage error. Exit 2 is a failed gate: something in the

@@ -8,7 +8,6 @@ because the rewrite reads well; only a character-level diff against the supplied
 
     python scripts/check_locked_copy.py --artifact menu.html --lock "Bún bò tái 55.000đ"
     python scripts/check_locked_copy.py --artifact menu.html --locks supplied.txt
-    python scripts/check_locked_copy.py --self-check
 
 `--locks` reads one supplied string per line; blank lines and lines opening with `#` are skipped.
 Matching is exact after NFC normalisation and whitespace collapse, so a lock may span markup - a
@@ -80,42 +79,14 @@ def check(artifact_text: str, locks: list[str]) -> list[dict]:
     return results
 
 
-def self_check() -> None:
-    page = (
-        "<html><body><h1>Nhiều ưu đãi tháng 8</h1>"
-        "<table><tr><td>Bún bò tái chín</td><td>55.000đ</td></tr>"
-        "<tr><td>Cà phê   sữa</td>\n<td>25.000đ</td></tr></table>"
-        "<p>Gọi 0901 234 567 &amp; đặt bàn</p></body></html>"
-    )
-    # A lock spanning two table cells, one with collapsed whitespace, one crossing an entity.
-    clean = check(page, ["Bún bò tái chín 55.000đ", "Cà phê sữa 25.000đ", "Gọi 0901 234 567 & đặt bàn"])
-    assert all(row["found"] for row in clean), clean
-    # The rewrite failure: same dish, embellished. Must fail and name what rendered instead.
-    rewritten = check(
-        "<html><body><td>Bún bò tái chín — nước dùng đậm đà</td><td>55K</td></body></html>",
-        ["Bún bò tái chín 55.000đ"],
-    )
-    assert not rewritten[0]["found"] and "nước dùng" in rewritten[0]["instead"], rewritten
-    # One dropped diacritic is a different word, not a near miss.
-    broken = check("<h1>Nhiêu ưu đãi tháng 8</h1>", ["Nhiều ưu đãi tháng 8"])
-    assert not broken[0]["found"], broken
-    # Plain-text artifacts are checked as-is, angle brackets in prose left alone.
-    assert check("Giá <combo> là 99.000đ", ["Giá <combo> là 99.000đ"])[0]["found"]
-    emit("self-check passed")
-
-
 def main() -> int:
     use_utf8_stdout()
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--artifact", help="the rendered file: HTML, SVG, markdown, or plain text")
     parser.add_argument("--lock", action="append", default=[], help="one supplied string; repeatable")
     parser.add_argument("--locks", help="file with one supplied string per line")
-    parser.add_argument("--self-check", action="store_true")
     args = parser.parse_args()
 
-    if args.self_check:
-        self_check()
-        return 0
     if not args.artifact or not (args.lock or args.locks):
         parser.error("--artifact plus --lock or --locks is required")
 

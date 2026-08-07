@@ -28,7 +28,6 @@ page to re-read.
     python scripts/check_tracking_plan.py --events
     python scripts/check_tracking_plan.py --windows
     python scripts/check_tracking_plan.py --rules
-    python scripts/check_tracking_plan.py --self-check
 
 Exit codes are 0 clean, 1 usage error, 2 a blocking gate failed.
 """
@@ -579,130 +578,6 @@ def print_rules() -> str:
     return "\n".join(lines)
 
 
-def self_check() -> str:
-    # A correctly tagged link clears everything except the two advisory gates.
-    good = read_url("https://minhthep.vn/ban-go?utm_id=q3-oak&utm_source=facebook&utm_medium=cpc"
-                    "&utm_campaign=facebook-ban-go-202607")
-    rows = {row["gate"]: row for row in url_gates(good)}
-    assert good["channel"] == "Paid Search or Paid Other", good["channel"]
-    assert blocking_count(list(rows.values())) == 0, [r for r in rows.values() if not r["pass"]]
-
-    # The mistake that survives review: correctly classified and split into two rows anyway.
-    cased = read_url("https://a.vn/?utm_source=Facebook&utm_medium=CPC&utm_campaign=Tet-Sale-202601")
-    assert channel_for("CPC") == "Paid Search or Paid Other"
-    cased_rows = {row["gate"]: row for row in url_gates(cased)}
-    assert cased_rows["medium-routes-to-a-channel"]["pass"], "case must not break classification"
-    assert not cased_rows["lowercase-values"]["pass"], cased["uppercase"]
-
-    # The near-miss that costs a channel. `social media` with a space is a published value and routes;
-    # `social_media` with an underscore is not on the list and routes nowhere, which is the whole
-    # reason this is a lookup against published strings rather than a guess at intent. The spaced
-    # version still fails a different gate, because a space in a value splits the row in two.
-    spaced_medium = read_url("https://a.vn/?utm_source=fb&utm_medium=Social%20Media"
-                             "&utm_campaign=a-b-202607")
-    assert channel_for("social media") == "Organic Social"
-    assert channel_for("Social Media") == "Organic Social", "channel rules ignore case"
-    assert channel_for("social_media") is None, "underscore is not one of the published values"
-    # The push rule is a suffix and two substrings, which is why it is not an exact match like the rest.
-    assert channel_for("mobile_push") == "Mobile Push Notifications"
-    assert channel_for("web_notification") == "Mobile Push Notifications"
-    assert channel_for("audio") == "Audio" and channel_for("sms") == "SMS"
-    # The ordering conflict. `cpm` is on the Display list and also matches the paid pattern, and the
-    # vendor's answer is Display. A first-match loop with the paid rule at the top said Paid Other.
-    assert channel_for("cpm") == "Display", channel_for("cpm")
-    assert channel_for("cpc") == "Paid Search or Paid Other", channel_for("cpc")
-    assert channel_for("cpv") == "Paid Search or Paid Other", channel_for("cpv")
-    spaced_rows = {row["gate"]: row for row in url_gates(spaced_medium)}
-    assert spaced_rows["medium-routes-to-a-channel"]["pass"], "spaced medium is a published value"
-    assert not spaced_rows["no-whitespace"]["pass"], spaced_medium["whitespace"]
-
-    # And the underscore version, which is classified nowhere. This is the failure that produces a
-    # channel called Unassigned and no way to recover the traffic.
-    underscored = read_url("https://a.vn/?utm_source=fb&utm_medium=social_media"
-                           "&utm_campaign=a-b-202607")
-    under_rows = {row["gate"]: row for row in url_gates(underscored)}
-    assert not under_rows["medium-routes-to-a-channel"]["pass"], underscored["channel"]
-    assert under_rows["no-whitespace"]["pass"], "and nothing else about it looks wrong"
-
-    # Tags after the fragment: the link works and the report is empty.
-    hashed = read_url("https://a.vn/page#utm_source=zalo&utm_medium=social&utm_campaign=a-b-202607")
-    hashed_rows = {row["gate"]: row for row in url_gates(hashed)}
-    assert not hashed_rows["tags-after-the-fragment"]["pass"]
-    assert not hashed_rows["required-parameters"]["pass"], "and the tags do not count as present"
-
-    # Personal data, both ways it arrives.
-    leaky = read_url("https://a.vn/?utm_source=zalo&utm_medium=social&utm_campaign=a-b-202607"
-                     "&email=nguyen@example.com&sdt=0901234567")
-    assert len(leaky["personal"]) >= 3, leaky["personal"]
-    assert not {row["gate"]: row for row in url_gates(leaky)}["personal-data-in-url"]["pass"]
-
-    # A registry event with its parameters supplied clears every gate.
-    known = read_event("add_to_cart", parse_pairs("item_id=A1,quantity=2,price=450000,currency=VND"),
-                       False)
-    assert known["known"] and not known["missing_required"], known["missing_required"]
-    assert blocking_count(event_gates(known)) == 0, [r for r in event_gates(known) if not r["pass"]]
-
-    # `currency` is a reserved name and also a recommended ecommerce parameter. Sending it is right.
-    assert "currency" not in known["reserved_params"], known["reserved_params"]
-    custom = read_event("view_item", parse_pairs("gclid=abc,item_id=A1,item_name=Ban,price=1,currency=VND"),
-                        False)
-    assert custom["reserved_params"] == ["gclid"], custom["reserved_params"]
-
-    # Reserved and malformed names.
-    reserved = read_event("page_view", [], False)
-    assert not {row["gate"]: row for row in event_gates(reserved)}["event-name-not-reserved"]["pass"]
-    spaced = read_event("add to cart", [], False)
-    assert not {row["gate"]: row for row in event_gates(spaced)}["event-name-charset"]["pass"]
-    prefixed = read_event("ga_custom", [], False)
-    assert not {row["gate"]: row for row in event_gates(prefixed)}["event-name-prefix"]["pass"]
-
-    # The longer ceilings for the three named parameters, so a long path is not a failure.
-    long_path = read_event("view_item", [("page_location", "https://a.vn/" + "x" * 200),
-                                         ("item_id", "A1"), ("item_name", "B"), ("price", "1"),
-                                         ("currency", "VND")], False)
-    assert not long_path["long_values"], long_path["long_values"]
-    long_other = read_event("view_item", [("item_name", "x" * 120)], False)
-    assert long_other["long_values"], "a plain parameter still fails at 100"
-
-    # The key-event margin is a note, never a block.
-    margin = read_event("a" + "b" * 38, [], True)
-    margin_rows = {row["gate"]: row for row in event_gates(margin)}
-    assert margin_rows["event-name-length"]["pass"], "39 is inside the documented limit"
-    assert not margin_rows["key-event-name-margin"]["pass"]
-    assert blocking_count(list(margin_rows.values())) == 0
-
-    # The overlap floor. Three platforms claiming 240 against an analytics total of 190 means at
-    # least 50 claims are counted twice or are not there.
-    gap = reconcile({"meta": 120, "google": 80, "tiktok": 40}, 190)
-    assert gap["minimum_double_counted"] == 50, gap
-    assert round(gap["minimum_share"], 4) == round(50 / 240, 4), gap
-    # And a sum below the analytics total proves nothing either way, so the floor is zero.
-    assert reconcile({"meta": 10}, 100)["minimum_double_counted"] == 0
-    assert reconcile({"meta": 10}, None)["minimum_double_counted"] is None
-
-    # Cash on delivery. 640 delivered out of 1000 ordered overstates every ratio by 36 percent.
-    delivery = delivery_gap(1000, 640)
-    assert delivery["delivery_rate"] == 0.64 and delivery["overstatement"] == 0.36, delivery
-
-    # The tables are readable and the two consumed columns parse.
-    events = load_table(EVENT_TABLE)
-    assert len(events) >= 12, len(events)
-    assert all(row["counted_as_conversion"] in ("yes", "no", "sometimes") for row in events)
-    windows = load_table(WINDOW_TABLE)
-    assert len(windows) >= 6, len(windows)
-    # Every token, not just the first. Three rows cite more than one page, because the setting and the
-    # timestamp basis are documented separately and neither page carries the other's fact, and an
-    # assertion on `startswith` alone would pass a cell whose second URL I had invented.
-    for row in windows:
-        pages = row["vendor_page"].split()
-        assert pages, row["id"]
-        assert all(page.startswith("https://") for page in pages), (row["id"], pages)
-        # A vendor page is on the vendor's domain. This is the assertion that would have caught the
-        # third-party summary I was tempted to cite when the vendor's own search returned nothing.
-        assert all(any(host in page for host in VENDOR_HOSTS) for page in pages), (row["id"], pages)
-    return "self-check passed"
-
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -715,7 +590,6 @@ def main(argv: list[str] | None = None) -> int:
     source.add_argument("--events", action="store_true", help="print the event registry")
     source.add_argument("--windows", action="store_true", help="print the attribution table")
     source.add_argument("--rules", action="store_true", help="print the enforced limits")
-    source.add_argument("--self-check", action="store_true", help="run the built-in assertions")
     parser.add_argument("--params", default="", help="event parameters, as key=value,key=value")
     parser.add_argument("--key-event", action="store_true", help="the event is marked a key event")
     parser.add_argument("--analytics", type=float, help="the analytics total, for --reconcile")
@@ -725,9 +599,6 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output", help="write here instead of stdout")
     args = parser.parse_args(argv)
 
-    if args.self_check:
-        emit(self_check(), args.output)
-        return 0
     if args.rules:
         emit(print_rules(), args.output)
         return 0

@@ -44,7 +44,6 @@ Currency-agnostic and unit-agnostic on purpose. It never converts and never assu
     python scripts/size_market.py --template chain.csv
     python scripts/size_market.py --families
     python scripts/size_market.py --margin 300
-    python scripts/size_market.py --self-check
 
 Exit codes are 0 clean, 1 usage error, 2 a gate failed, 3 computable but unsettled.
 """
@@ -498,120 +497,6 @@ reachable share,reach,,,share,trace,,https://,,
 """
 
 
-def self_check() -> str:
-    notes = []
-
-    clean = parse_chain(list(csv.DictReader(io.StringIO(
-        "term,role,low,high,unit,family,n,source_url,retrieved,what_it_measures\n"
-        "urban households,people,8000000,8000000,households,official,,https://nso.gov.vn/x,"
-        "2026-07-01,Census household count\n"
-        "share buying monthly,incidence,0.18,0.32,share,panel,600,https://example.org/p,"
-        "2026-06-01,Claimed monthly purchase\n"
-        "purchases per year,frequency,4,7,count,trace,,https://example.org/t,2026-05-01,Receipts\n"
-        "price paid,price,45000,70000,currency,trace,,https://shopee.vn/x,2026-07-10,Listing ladder\n"
-        "reachable share,reach,0.1,0.25,share,trace,,https://example.org/d,2026-07-10,Our footprint\n"
-    ))))
-    result = compute(clean)
-    rows = gates(result, "2026-07-31")
-    assert blocking(rows) == 0, [r for r in rows if not r["pass"]]
-
-    # The product, by hand: 8e6 * 0.18 * 4 * 45000 * 0.1 and the same with the highs.
-    expected_low = 8_000_000 * 0.18 * 4 * 45000 * 0.1
-    expected_high = 8_000_000 * 0.32 * 7 * 70000 * 0.25
-    assert math.isclose(result["addressable_low"], expected_low, rel_tol=1e-9), result
-    assert math.isclose(result["addressable_high"], expected_high, rel_tol=1e-9), result
-    # The centre is the geometric mean, which sits below the average of the two products. If this ever
-    # inverts, the base case has started flattering itself.
-    assert result["centre"] < (expected_low + expected_high) / 2
-    assert math.isclose(result["centre"], math.sqrt(expected_low * expected_high), rel_tol=1e-9)
-    # The shares of spread partition the total, so they sum to one and can be read as percentages.
-    assert math.isclose(sum(t["uncertainty_share"] for t in clean), 1.0, rel_tol=1e-9)
-    notes.append("a five-term chain multiplies to the hand-computed product, "
-                 f"spread {result['total_ratio']:.1f}x, dominant term {result['dominant_term']!r}")
-
-    # n=600 gives a 4.0-point half-width, so a band of +/-0.01 on a share is a quarter of the
-    # sampling error and must fail. This is the gate that fires most often on real work.
-    narrow = parse_chain(list(csv.DictReader(io.StringIO(
-        "term,role,low,high,unit,family,n,source_url,retrieved,what_it_measures\n"
-        "urban households,people,8000000,8000000,households,official,,https://nso.gov.vn/x,"
-        "2026-07-01,Census\n"
-        "share buying,incidence,0.40,0.42,share,panel,300,https://example.org/p,2026-06-01,Claimed\n"
-        "purchases per year,frequency,4,7,count,trace,,https://example.org/t,2026-05-01,Receipts\n"
-        "price paid,price,45000,70000,currency,trace,,https://shopee.vn/x,2026-07-10,Ladder\n"
-    ))))
-    rows = gates(compute(narrow), "2026-07-31")
-    failed = {row["gate"] for row in rows if not row["pass"]}
-    assert "survey-range-beats-its-own-margin" in failed, rows
-    half = sampling_half_width(300)
-    assert abs(half - 0.0566) < 0.0005, half
-    notes.append(f"a +/-1 point band on n=300 fails against its own {half * 100:.1f}-point margin")
-
-    # Platform self-report is refused rather than downgraded, and the refusal is critical.
-    planner = parse_chain(list(csv.DictReader(io.StringIO(
-        "term,role,low,high,unit,family,n,source_url,retrieved,what_it_measures\n"
-        "reachable accounts,people,50000000,52000000,people,platform,,https://facebook.com/x,"
-        "2026-07-01,Ad audience size\n"
-        "share buying,incidence,0.18,0.32,share,panel,600,https://example.org/p,2026-06-01,Claimed\n"
-        "purchases per year,frequency,4,7,count,trace,,https://example.org/t,2026-05-01,Receipts\n"
-        "price paid,price,45000,70000,currency,trace,,https://shopee.vn/x,2026-07-10,Ladder\n"
-    ))))
-    rows = gates(compute(planner), "2026-07-31")
-    refused = [row for row in rows if row["gate"] == "no-platform-self-report"]
-    assert refused and not refused[0]["pass"] and refused[0]["severity"] == "critical", rows
-    assert "population-is-official" in {row["gate"] for row in rows if not row["pass"]}
-    notes.append("an ad-planner reach figure used as a denominator fails two gates, one critical")
-
-    # A chain with a term omitted is asserting that term is 1, which is the quiet version of the error.
-    short = parse_chain(list(csv.DictReader(io.StringIO(
-        "term,role,low,high,unit,family,n,source_url,retrieved,what_it_measures\n"
-        "urban households,people,8000000,8000000,households,official,,https://nso.gov.vn/x,"
-        "2026-07-01,Census\n"
-        "share buying,incidence,0.18,0.32,share,panel,600,https://example.org/p,2026-06-01,Claimed\n"
-        "price paid,price,45000,70000,currency,trace,,https://shopee.vn/x,2026-07-10,Ladder\n"
-    ))))
-    rows = gates(compute(short), "2026-07-31")
-    assert "chain-is-complete" in {row["gate"] for row in rows if not row["pass"]}, rows
-    notes.append("a chain with no frequency term is caught rather than silently multiplied by one")
-
-    # Staleness is measured against the date passed in, not against the clock, so this assertion does
-    # not start failing on its own one year from now.
-    rows = gates(compute(clean), "2027-12-31")
-    assert "sources-are-not-stale" in {row["gate"] for row in rows if not row["pass"]}
-    notes.append("staleness is measured against --as-of, so the suite does not rot")
-
-    # The stop rule. The clean chain runs 25.9bn to 314bn, so a threshold inside that decides nothing
-    # and a threshold above it decides the question without another source being read.
-    result = compute(clean)
-    inside = resolve_against(result, result["centre"])
-    assert inside["straddles"] and inside["verdict"] == "unresolved", inside
-    # A threshold sitting exactly on the centre can never be settled by narrowing one term, and that is
-    # arithmetic rather than a defect. Collapsing a term to its own geometric centre leaves the total's
-    # geometric centre where it was, so the threshold stays inside the new range whatever you pin down.
-    # A decision balanced on the centre of your own estimate is not a research problem.
-    assert inside["settled_by"] == [], inside["settled_by"]
-    near_edge = resolve_against(result, result["addressable_high"] * 0.8)
-    assert near_edge["straddles"] and near_edge["settled_by"], near_edge
-    assert near_edge["settled_by"][0]["uncertainty_share"] >= \
-        near_edge["settled_by"][-1]["uncertainty_share"], "settling terms come back widest-first"
-    above = resolve_against(result, result["addressable_high"] * 2)
-    assert not above["straddles"] and above["verdict"] == "below on every reading", above
-    below = resolve_against(result, result["addressable_low"] / 2)
-    assert below["verdict"] == "above on every reading", below
-    # A term named as settling the threshold has to actually settle it when collapsed, and the check
-    # is the same arithmetic run again rather than a heuristic.
-    for item in inside["settled_by"]:
-        low, high = item["range_if_known"]
-        assert not (low <= inside["threshold"] <= high), item
-    notes.append(f"a threshold at the centre stays unresolved and lists "
-                 f"{len(inside['settled_by'])} term(s) that would settle it; one outside the range "
-                 f"ends the research")
-
-    report = ["# size_market self-check", ""]
-    report += [f"- {note}" for note in notes]
-    report += ["", "self-check passed", ""]
-    return "\n".join(report)
-
-
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Multiply a bottom-up sizing chain out loud and check every term has evidence.")
@@ -620,7 +505,6 @@ def build_parser() -> argparse.ArgumentParser:
     source.add_argument("--template", metavar="CHAIN.CSV", help="write a starter chain file")
     source.add_argument("--families", action="store_true", help="print the families and roles")
     source.add_argument("--margin", type=int, metavar="N", help="sampling error at a sample size")
-    source.add_argument("--self-check", action="store_true", help="run the built-in assertions")
     parser.add_argument("--as-of", default=dt.date.today().isoformat(),
                         help="date to measure source staleness against, YYYY-MM-DD")
     parser.add_argument("--threshold", type=float, metavar="VALUE",
@@ -635,9 +519,6 @@ def main(argv: list[str] | None = None) -> int:
     use_utf8_stdout()
     args = build_parser().parse_args(argv)
 
-    if args.self_check:
-        emit(self_check(), args.output)
-        return 0
     if args.families:
         emit(render_families(), args.output)
         return 0

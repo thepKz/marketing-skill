@@ -33,7 +33,6 @@ advertising duties sit in `data/vn-advertising-law.csv`.
 python scripts/check_claims.py --families
 python scripts/check_claims.py --template answers.csv --sector cosmetics
 python scripts/check_claims.py --audit draft.md --sector cosmetics --answers answers.csv
-python scripts/check_claims.py --self-check
 ```
 
 Exit 2 means a gate failed. Exit 0 means nothing mechanical is left, which is not the same as

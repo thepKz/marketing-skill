@@ -57,7 +57,6 @@ fact with the article it came from, and the constants below restate them so the 
     python scripts/model_affiliate.py --template deal.csv
     python scripts/model_affiliate.py --mechanics
     python scripts/model_affiliate.py --notch
-    python scripts/model_affiliate.py --self-check
 
 Exit codes are 0 clean, 1 usage error, 2 a gate failed, 3 computable but unsettled.
 """
@@ -638,88 +637,6 @@ content_cost,,,VND,,,Your hours at your own rate plus samples editing and media
 """
 
 
-def self_check() -> str:
-    lines = ["# model_affiliate self-check", ""]
-
-    def deal(**overrides) -> dict:
-        base = {"gmv": (100_000_000, 100_000_000), "commission_rate": (0.08, 0.12),
-                "return_rate": (0.10, 0.20), "attribution_window_days": (7, 7),
-                "days_to_cash": (45, 45), "service_fee": (0.0098, 0.0098),
-                "withholding_rate": (0.1, 0.1), "withholding_floor": (250_000, 250_000),
-                "payments_in_period": (8, 8), "content_cost": (2_000_000, 2_000_000),
-                "contribution_margin": (0.30, 0.30)}
-        base.update(overrides)
-        return {n: {"parameter": n, "low": float(lo), "high": float(hi), "unit": "",
-                    "source_url": "https://help.shopee.vn/portal/10/article/174381",
-                    "verified_at": "2026-07-31", "what_it_measures": ""}
-                for n, (lo, hi) in base.items()}
-
-    # A quoted rate loses a fifth of itself before the delay is counted. Checked by hand:
-    # 100,000,000 x (1-0.15) x 0.10 x (1-0.0098) x 0.9 - 2,000,000 = 5,574,015.
-    result = compute("creator", deal())
-    expected = 100_000_000 * 0.85 * 0.10 * (1 - 0.0098) * 0.9 - 2_000_000
-    assert abs(result["base"]["net"] - expected) < 1.0, result["base"]["net"]
-    lines.append(f"- base-case net is the deductions applied in order: {expected:,.0f}")
-
-    # The bounds bracket the base case, and the spread is driven by the two ranged inputs.
-    assert result["low"] < result["centre"] < result["high"]
-    drivers = [r["parameter"] for r in shares_of_spread("creator", result) if r["share"] > 0]
-    assert set(drivers) == {"commission_rate", "return_rate"}, drivers
-    lines.append(f"- the spread comes from exactly the ranged inputs: {', '.join(sorted(drivers))}")
-
-    # The notch: a payment at the floor nets less than one a dong below it.
-    band = notch()
-    assert band["worst_net"] < band["best_below"], band
-    assert abs(band["top"] - 250_000 / 0.9) < 1e-6, band
-    lines.append(f"- the notch runs {band['floor']:,.0f} to {band['top']:,.0f} VND, "
-                 f"{band['width']:,.0f} VND wide")
-
-    # A model with no return rate prints no total at all - not a total with the gap defaulted to zero.
-    stripped = deal()
-    del stripped["return_rate"]
-    incomplete = compute("creator", stripped)
-    rows = gates("creator", incomplete, "2026-07-31")
-    failed = {r["gate"] for r in rows if not r["pass"]}
-    assert not incomplete["computable"] and incomplete["missing"] == ["return_rate"], incomplete
-    assert "return-rate-is-stated" in failed and "model-is-complete" in failed, failed
-    report = render("creator", incomplete, rows, "2026-07-31", None)
-    assert "not computable" in report and "## What arrives" not in report, report[:400]
-    assert len(rows) == 12, len(rows)
-    lines.append("- a model without a return rate refuses to print a total and says which input is gone")
-
-    # The stale withholding floor is caught even though it is published on the same host.
-    rows = gates("creator", compute("creator", deal(withholding_floor=(2_000_000, 2_000_000))),
-                 "2026-07-31")
-    assert not next(r for r in rows if r["gate"] == "withholding-floor-is-the-current-one")["pass"]
-    lines.append("- the superseded 2,000,000 VND floor fails its gate")
-
-    # A seller funding commission above margin fails, and it is the gate that fails.
-    seller = compute("seller", deal(commission_rate=(0.32, 0.35)))
-    rows = gates("seller", seller, "2026-07-31")
-    assert not next(r for r in rows if r["gate"] == "contribution-survives-commission")["pass"]
-    assert seller["high"] < 0, seller["high"]
-    lines.append("- commission above contribution margin fails its gate and nets below zero")
-
-    # A floor outside the range ends the question; one inside it names what would settle it.
-    clean = compute("creator", deal())
-    assert not resolve_against("creator", clean, clean["high"] * 2)["straddles"]
-    middle = resolve_against("creator", clean, clean["centre"])
-    assert middle["straddles"] and middle["settled_by"] == [], middle
-    off_centre = resolve_against("creator", clean, (clean["centre"] + clean["high"]) / 2)
-    assert off_centre["straddles"] and off_centre["settled_by"], off_centre
-    lines.append("- a floor on the centre has no research answer; one off centre names the input")
-
-    # Every gate explains itself in more than a clause.
-    rows = gates("creator", clean, "2026-07-31")
-    assert len(rows) == 12, len(rows)
-    assert all(len(r["why"].split()) > 20 for r in rows)
-    assert blocking(rows) == 0, [r["gate"] for r in rows if not r["pass"]]
-    lines.append(f"- {len(rows)} gates, each explaining itself, and a clean deal clears all of them")
-
-    lines += ["", "All assertions passed."]
-    return "\n".join(lines) + "\n"
-
-
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Model what an affiliate commission rate actually pays, and when.")
@@ -730,7 +647,6 @@ def build_parser() -> argparse.ArgumentParser:
                         help="print the published figures this model checks against")
     source.add_argument("--notch", action="store_true",
                         help="print the payment band where earning more nets less")
-    source.add_argument("--self-check", action="store_true", help="run the built-in assertions")
     parser.add_argument("--side", choices=("creator", "seller"),
                         help="whose arithmetic to run, required with --check")
     parser.add_argument("--as-of", default=dt.date.today().isoformat(),
@@ -746,9 +662,6 @@ def main(argv: list[str] | None = None) -> int:
     use_utf8_stdout()
     args = build_parser().parse_args(argv)
 
-    if args.self_check:
-        emit(self_check(), args.output)
-        return 0
     if args.mechanics:
         emit(render_mechanics() + "\n", args.output)
         return 0

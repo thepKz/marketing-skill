@@ -7,8 +7,8 @@
 
 This file is for anyone deciding whether to trust the skill, extend it, or copy its shape. It states
 the layer model, the one rule that produced it, the invariants that hold it together, and the things
-it refuses to do. Every count below is measured from the filesystem by a test, so this page cannot
-quietly go stale.
+it refuses to do. Every count below was measured from the filesystem on 2026-08-07, and step 7 of
+"Adding a unit" is what keeps it honest.
 
 ## The failure this shape exists to avoid
 
@@ -33,9 +33,9 @@ different containers, and that split is the whole architecture.
 |---|---|---|---|---|
 | Entry point | `SKILL.md`: routing, twelve core rules, intake, the run loop. No craft values | 301 lines | It absorbs the manual. Every new unit wants four lines here | Rules stay one line each; craft is exiled to `references/`; a new unit earns one routing row, not a section |
 | Contract | `assets/registries/pipelines.json`: per pipeline, the references, scripts and deliverables it owes | 9 pipelines | A deliverable names a script the pipeline never loads, or one nobody shipped | Every `run:` line is checked against its own pipeline's script list |
-| Prose | `references/`, one flat level, no satellite trees | 52 files | A reference nothing routes to. Knowledge that never loads reads as depth and ships as nothing | Every reference must be named by the entry point, the router, or the registry |
-| Rows | `data/`: craft values, legal articles, vendor capabilities, one row per decision | 43 lookup tables | The table drifts from the script that reads it | The scripts that read a table load it inside their `--self-check`, so a renamed column or a regex that stops compiling fails in CI |
-| Instruments | `scripts/`: arithmetic and gates, each returning a verdict rather than an opinion | 53 tools | It returns advice. Advice cannot be wrong, so it cannot be fixed | `--self-check` on every tool that computes, verified against known inputs |
+| Prose | `references/`, one flat level, no satellite trees | 51 files | A reference nothing routes to. Knowledge that never loads reads as depth and ships as nothing | Every reference must be named by the entry point, the router, or the registry |
+| Rows | `data/`: craft values, legal articles, vendor capabilities, one row per decision | 43 lookup tables | The table drifts from the script that reads it | The script parses its table on every run, so a renamed column crashes to exit 4 instead of becoming a verdict |
+| Instruments | `scripts/`: arithmetic and gates, each returning a verdict rather than an opinion | 52 tools | It returns advice. Advice cannot be wrong, so it cannot be fixed | Every readout names the row, the measured value and the threshold, so a wrong verdict is checkable by hand |
 | Gates | The anti-slop layer, the claim and rights checks, `run_status.py --strict` | 3 text instruments + 1 image track | A pass earned by nobody looking | A blank answer fails its gate instead of passing it |
 
 ## The rule that produced all of it
@@ -118,25 +118,25 @@ seed, when a variance table has a hole in a column that is full everywhere else.
 A pass against silence is the single most expensive defect available to a tool like this, because it
 looks exactly like a pass.
 
-## The invariants, and what holds each
+## Where the proof lives
 
-The architecture is not a description. Every load-bearing claim above is re-checked before a
-deploy, by the CI workflow in `.github/workflows/deploy-pages.yml` and by the scripts' own
-`--self-check` modes — 21 of them, one per measuring instrument, each asserting on inputs that
-once broke that instrument.
+There is no test suite and no CI validation behind this skill, on purpose. An earlier version had
+both — 21 self-checks, a routing eval, worked examples re-gated before every deploy — and the
+apparatus rotted the repo from two directions at once. The CI pinned yesterday's file structure,
+so every consolidation arrived as a broken build; the docs quoted the suite's counts, so every
+change to the suite made a sentence here false. For a personal skill the proof belongs at runtime,
+on the operator's own draft, where it cannot go stale:
 
-| Invariant | Held by |
+| Claim | Held by |
 |---|---|
-| The router and every reference it depends on exist on disk | file-existence checks in the deploy workflow |
-| The dossier tree and the handbook JavaScript stay deleted | inverted `test ! -e` checks in the same workflow |
-| Each gate still fires on known-bad input and stays quiet on clean input | that script's `--self-check`; all 21 run in CI |
-| Routing still sends each ask to the pipeline its row names | `evaluate_workbench.py`, replayed in CI |
-| The two simulated runs still earn the readouts printed inside them | both files re-gated by `check_output_shape.py` and `check_specificity.py` in CI |
-| A planner manifest and a scaffolded run still build from scratch | smoke tests in the same workflow |
-| Every script still compiles on a clean checkout | `python -m compileall` in CI |
+| A verdict is arithmetic, not opinion | Every readout names the row, the measured value and the threshold, so it can be re-checked by hand |
+| A broken instrument never passes you | `run_gate` in `_emit.py` converts any crash to exit 4 — a traceback is not a verdict |
+| Silence never reads as a pass | Exit 3 exists for questions with no published answer, and the readout names the missing page |
+| An empty deliverable never ships | `run_status.py --strict` refuses unfilled sections, leftover placeholders and unsourced figures |
+| The worked examples earn their readouts | Both simulated runs sit verbatim in `assets/examples/`; re-run the gates on them any day you doubt this file |
 
-The worked examples are re-gated rather than trusted because a README readout is the first thing
-to rot and the last thing anybody rereads.
+Every run is the test. The gate that matters is the one that runs on the draft about to ship, not
+one that ran in CI against a fixture.
 
 ## Adding a unit
 
@@ -146,8 +146,8 @@ Seven steps, in this order. Skipping any of them ships a unit that works and can
    states what the unit does not establish.
 2. **Write the table.** `data/<topic>.csv`, one row per decision, with the source and caveat columns
    the row's kind needs. A value that belongs in a script constant belongs here instead.
-3. **Write the script.** `scripts/<verb>_<noun>.py`, with `--self-check`, the five exit codes, and a
-   docstring that records why any number is *absent*.
+3. **Write the script.** `scripts/<verb>_<noun>.py`, with the five exit codes, `run_gate` around
+   `main`, and a docstring that records why any number is *absent*.
 4. **Register it.** Add the reference and the script to the pipelines in `pipelines.json` that need
    them, and extend the deliverable's `run:` line so the command reaches an operator.
 5. **Route it.** One overlay row in `SKILL.md` and one bullet in `marketing-system-router.md`,
@@ -162,7 +162,8 @@ Seven steps, in this order. Skipping any of them ships a unit that works and can
   not a cached page. Retrieval happens in research, is dated in a row, and expires.
 - **No number the operator did not declare.** Where this corpus holds no citable figure, the field
   is declared by the operator and the script certifies nothing. First-response time and send
-  frequency are both refusals, both recorded as such, and both pinned by a test.
+  frequency are both refusals, and both are recorded as refusals rather than filled with a
+  plausible default.
 - **No row without its limits.** A benchmark, a legal article and a vendor capability each ship with
   what they do not establish, or they do not ship.
 - **No claim of work that did not happen.** A prompt is not an image, a storyboard is not a video, a
@@ -172,7 +173,7 @@ Seven steps, in this order. Skipping any of them ships a unit that works and can
 
 ## What this does not establish
 
-The layer model buys traceability, not correctness. A wrong row passes every test in the suite, and
+The layer model buys traceability, not correctness. A wrong row sails through every gate, and
 a house rule graded as a house rule is still just an opinion with a label on it. What the shape
 guarantees is narrower and more useful than being right: every value has one place it lives, one
 source beside it, and a diff that shows when it changed.

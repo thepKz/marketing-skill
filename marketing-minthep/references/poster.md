@@ -11,7 +11,7 @@ A poster is not a small ad enlarged. It is a piece of copy that has to be read f
 
 Most posters and banners are made in Canva, and the ones that work are working for reasons that can be written down. This unit writes them down, and then does the part Canva does not: it computes whether the copy fits before anybody opens an editor.
 
-Run `plan_poster.py --explain-units` for the arithmetic, `--list-formats` for the trim sizes, and `--self-check` to watch the formula reproduce an optician's chart.
+Run `plan_poster.py --explain-units` for the arithmetic — it ends by reproducing an optician's chart — and `--list-formats` for the trim sizes.
 
 ## The one formula
 
@@ -29,7 +29,7 @@ Three bands on that angle carry everything:
 | Sustained | 20′ | 14.3 | A person who has stopped can read a paragraph without effort. ISO 9241-3:1992 cl. 5.4 prefers 20′ to 22′ and sets 16′ as its minimum | Support copy, prices, addresses, hours |
 | Glance | 28.65′ | 10 | The sign trade's "one inch of letter height per ten feet", restated as the angle it always was | Headlines, anything read in motion |
 
-Two anchors make this checkable instead of asserted, and `--self-check` reproduces both:
+Two anchors make this checkable instead of asserted, and `--explain-units` prints both:
 
 - 5′ at 6 m is **8.73 mm**, which is the 6-metre line on a Snellen chart. The formula agrees with an optician's wall.
 - 28.65′ at 3.048 m (ten feet) is **25.4 mm**, one inch. The trade rule of thumb falls out of the arithmetic rather than sitting beside it.
@@ -119,7 +119,7 @@ A grade is not a footnote. It is the cell that decides whether the script comput
 
 | Grade | Column | What it means | What the script does |
 | --- | --- | --- | --- |
-| `iso-216-definitional` | size | Not a measurement. A0 is 841 × 1189 mm and every later size is the previous long side halved, so the seven A and B rows are derivable from the 1:√2 root | `--self-check` recomputes all seven from the root and fails if the table drifted |
+| `iso-216-definitional` | size | Not a measurement. A0 is 841 × 1189 mm and every later size is the previous long side halved, so the seven A and B rows are derivable from the 1:√2 root | Computes. The seven rows derive from the root, so a drifted row is recomputable by hand |
 | `css-definitional` | distance | The CSS reference pixel is specified as an angle, 1/96 inch at arm's length, so a screen format carries its own viewing distance | Computes with no distance, and **fails** if `--distance` is passed, because that applies the distance twice |
 | `trade-multi-vendor` | size | No standards body publishes the number, but several independent Vietnamese shops publish the same one — 600 × 1600 mm for a standee in three size lists, 800 × 3000 mm for a băng rôn ngang in two. A convention, and what the word means on a quote | Computes |
 | `industry-common-unsourced` | size | The five web ad sizes every ad server accepts and every publisher lists. This repository fetched no primary specification for them | Computes |

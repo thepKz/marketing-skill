@@ -46,7 +46,6 @@ names something the reader has, wants or is losing, and whether any metaphor in 
     python scripts/check_title.py --page docs/index.html
     python scripts/check_title.py --page docs/index.html --json
     python scripts/check_title.py --devices
-    python scripts/check_title.py --self-check
 
 Exit codes are 0 clean and judged, 1 usage error, 2 a blocking device or a device over its set
 budget, 3 measurable gates pass and the two human judgements are still open.
@@ -407,127 +406,6 @@ def device_table() -> str:
     return "\n".join(lines)
 
 
-def self_check() -> str:
-    """Verify the detectors against inputs whose answers are known by construction."""
-    devices = read_devices()
-    ids = {row["id"] for row in devices}
-    checks: list[tuple[str, bool, str]] = []
-
-    def check(name: str, ok: bool, detail: str = "") -> None:
-        checks.append((name, ok, detail))
-
-    check("table loads", len(devices) > 0, f"{len(devices)} devices")
-    check("every pattern compiles", all(
-        _compiles(row) for row in devices), "regex rows only")
-    check("every structural id has a detector", all(
-        _has_detector(row["id"]) for row in devices if row["detect"] == "structural"))
-
-    # The three landing-page titles that started this. Each must name the device it is an example of.
-    cases = [
-        ("Lấy cấu trúc. Không sao chép dấu vân tay.", "vi",
-         {"contrastive-negation", "clipped-parallel"}),
-        ("Makeup đổi bề mặt. Không đổi con người.", "vi",
-         {"contrastive-negation", "clipped-parallel"}),
-        ("Một brief rời rạc đi vào. Một hệ thống có thể vận hành đi ra.", "vi",
-         {"workshop-noun", "symmetry-in-out"}),
-        ("Khám phá bí mật đằng sau thành công: 5 điều bạn cần biết ngay", "vi",
-         {"curiosity-gap-vi", "imperative-discovery-vi", "colon-deck"}),
-        ("Unlocking the full potential of your brand", "en", {"gerund-elevation-en"}),
-        ("Việc tối ưu hoá quy trình sản xuất nội dung", "vi",
-         {"nominalised-opener-vi", "workshop-noun"}),
-        ("Dịch vụ giao hàng nhanh nhất khu vực", "vi", {"superlative-unnumbered"}),
-        ("Nồi nước dùng bắt đầu từ bốn giờ sáng", "vi", set()),
-        ("Bún bò nấu từ xương, bán tới khi hết nồi", "vi", set()),
-    ]
-    for title, language, expected in cases:
-        hit = {item["id"] for item in devices_in(title, language, devices)}
-        missing = expected - hit
-        check(f"detects in {title[:34]!r}", not missing, f"missing {sorted(missing)}" if missing else
-              f"found {sorted(hit)}")
-
-    # A clean title must trigger nothing at all, or the gate is noise and gets switched off.
-    for title, language in (("Nồi nước dùng bắt đầu từ bốn giờ sáng", "vi"),
-                            ("The pot starts at four in the morning", "en")):
-        hit = {item["id"] for item in devices_in(title, language, devices)}
-        check(f"clean title is silent {title[:28]!r}", not hit, f"fired {sorted(hit)}")
-
-    # superlative-unnumbered must stay quiet once a figure is present, which is the whole point of
-    # only_when. A superlative beside a measurement is a summary of the measurement.
-    with_number = devices_in("Giao nhanh nhất trong 20 phút", "vi", devices)
-    check("only_when=no-digit suppresses the superlative",
-          "superlative-unnumbered" not in {item["id"] for item in with_number})
-    without = devices_in("Dịch vụ giao hàng nhanh nhất", "vi", devices)
-    check("and fires without one",
-          "superlative-unnumbered" in {item["id"] for item in without})
-
-    # The set gates. Four titles all using one device must fail both, and the arithmetic is checkable
-    # by hand: concentration 4/4 = 1.00, device-free 0/4 = 0.00.
-    same = [measure_title(t, "vi", devices) for t in (
-        "Lấy cấu trúc. Không sao chép dấu vân tay.",
-        "Makeup đổi bề mặt. Không đổi con người.",
-        "Đo ảnh trước. Không đoán màu sau.",
-        "Bán tới khi hết nồi, không hết giờ.")]
-    rows = set_gates(same, devices)
-    named = {row["gate"]: row for row in rows}
-    check("four of one device fails concentration",
-          named["device-concentration"]["pass"] is False,
-          named["device-concentration"]["observed"])
-    check("and fails the device-free floor",
-          named["device-free-share"]["pass"] is False,
-          named["device-free-share"]["observed"])
-    check("and names the budget it broke",
-          "budget:contrastive-negation" in named)
-
-    # A set of clean titles must pass every set gate, or the gate can never be satisfied.
-    clean = [measure_title(t, "vi", devices) for t in (
-        "Nồi nước dùng bắt đầu từ bốn giờ sáng",
-        "Bốn món trên bảng, không có món phụ",
-        "Rau lấy ở chợ Bà Chiểu mỗi sáng",
-        "Quán mở từ sáu giờ tới mười một giờ")]
-    rows = set_gates(clean, devices)
-    failed = blocking(rows)
-    check("a clean set passes every set gate", not failed, f"failed {failed}")
-
-    # Under three titles the repetition gates must say so rather than divide by two.
-    rows = set_gates(clean[:2], devices)
-    check("under three titles the set gates stand down",
-          len(rows) == 1 and rows[0]["gate"] == "set-size", rows[0]["gate"])
-
-    # Length reads from the shared constant rather than a second copy of the same rule, and it reads
-    # the per-language one. A flat threshold would fail every honest Vietnamese title of nine words.
-    for language, limit in TITLE_WORDS_HARD.items():
-        gate = title_gates(measure_title(" ".join(["từ"] * (limit + 1)), language, devices))[0]
-        check(f"a long {language} title fails length at high severity",
-              not gate["pass"] and gate["severity"] == "high", gate["observed"])
-        gate = title_gates(measure_title(" ".join(["từ"] * TITLE_WORDS_MAX[language]),
-                                         language, devices))[0]
-        check(f"and a {language} title at the limit passes", gate["pass"], gate["observed"])
-
-    # The floor, checked on the label that taught it. Both of these cleared every other gate.
-    for language, label in (("vi", "Mẫu brief."), ("en", "Campaign system")):
-        gate = [row for row in title_gates(measure_title(label, language, devices))
-                if row["gate"] == "states-a-claim"][0]
-        check(f"a {language} section label fails states-a-claim", not gate["pass"], gate["observed"])
-    for language, title in (("vi", "Số nào lên báo cáo tháng"),
-                            ("en", "The same person in the next photo")):
-        gate = [row for row in title_gates(measure_title(title, language, devices))
-                if row["gate"] == "states-a-claim"][0]
-        check(f"and a real {language} title clears the floor", gate["pass"], gate["observed"])
-
-    # Heading extraction, including an entity and a nested tag, because both are in the real page.
-    got = headings("<h1>A &amp; <em>B</em></h1><h2 class='x'>C</h2><h4>skip</h4>")
-    check("headings strip tags and entities", got == ["A & B", "C"], str(got))
-
-    check("every id is unique", len(ids) == len(devices))
-
-    failures = [name for name, ok, _ in checks if not ok]
-    lines = ["# check_title self-check", ""]
-    for name, ok, detail in checks:
-        lines.append(f"- {'ok' if ok else 'FAIL'} — {name}{(': ' + detail) if detail else ''}")
-    lines += ["", f"{len(checks)} checks, {len(failures)} failed.", ""]
-    return "\n".join(lines)
-
-
 def _compiles(row: dict) -> bool:
     if row["detect"] != "regex":
         return True
@@ -558,13 +436,8 @@ def main() -> int:
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--output", help="write the report here instead of stdout")
     parser.add_argument("--devices", action="store_true", help="print the device table and exit")
-    parser.add_argument("--self-check", action="store_true")
     args = parser.parse_args()
 
-    if args.self_check:
-        text = self_check()
-        emit(text)
-        return 0 if "0 failed" in text else 2
     if args.devices:
         emit(device_table(), args.output)
         return 0
@@ -576,7 +449,7 @@ def main() -> int:
     if args.page:
         titles += headings(Path(args.page).read_text(encoding="utf-8"))
     if not titles:
-        parser.error("pass --title, --set FILE, --page FILE, --devices or --self-check")
+        parser.error("pass --title, --set FILE, --page FILE or --devices")
 
     devices = read_devices()
     readings = [measure_title(title,

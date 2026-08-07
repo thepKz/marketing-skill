@@ -17,6 +17,8 @@ so no adapter and no path rewriting is needed.
 from __future__ import annotations
 
 import argparse
+
+from _emit import use_utf8_stdout
 import filecmp
 import shutil
 import sys
@@ -109,6 +111,7 @@ def drift(source: Path, destination: Path) -> list[str]:
 
 
 def main() -> int:
+    use_utf8_stdout()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="report drift without writing")
     arguments = parser.parse_args()

@@ -44,7 +44,7 @@ JOB_MODULES = {
     "creator-ugc": ["affiliate-commerce.md", "channel-spec-registry.md", "claims-proof-ledger.md"],
     "lifecycle-retention": ["lifecycle-retention.md", "copywriting.md", "performance-direction.md"],
     "creative-production": ["reference-reading.md", "product-imagery.md", "realistic-studio-imagery.md"],
-    "measurement-optimization": ["performance-direction.md", "evaluation-suite.md", "output-contract.md"],
+    "measurement-optimization": ["performance-direction.md", "output-contract.md"],
 }
 
 JOB_FAMILIES = {

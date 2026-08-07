@@ -1156,7 +1156,6 @@
         "image-output-and-sharpening.md",
         "prompt-contracts.md",
         "provider-compilers.md",
-        "evaluation-suite.md",
         "rewrite-human.md"
       ],
       "scripts": [
@@ -2093,7 +2092,6 @@
       "use_when": "Something is already running and results are known, weak, or confusing. Diagnose, form hypotheses, and change one variable at a time.",
       "references": [
         "performance-direction.md",
-        "evaluation-suite.md",
         "output-contract.md",
         "claims-proof-ledger.md",
         "measurement-plan.md",

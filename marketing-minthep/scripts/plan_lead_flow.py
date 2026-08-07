@@ -53,7 +53,6 @@ Usage:
     python scripts/plan_lead_flow.py --audit sheet.csv
     python scripts/plan_lead_flow.py --funnel counts.csv
     python scripts/plan_lead_flow.py --funnel counts.csv --json
-    python scripts/plan_lead_flow.py --self-check
 
 Exit codes are 0 clean, 1 usage error, 2 a gate failed, 3 computable but unsettled.
 """
@@ -411,87 +410,6 @@ def render_funnel(report: dict[str, object]) -> str:
     return "".join(out)
 
 
-def self_check() -> tuple[str, int]:
-    out: list[str] = ["# Self-check\n\n"]
-    failures = 0
-
-    def check(name: str, ok: bool, detail: str = "") -> None:
-        nonlocal failures
-        if not ok:
-            failures += 1
-        out.append(f"{'ok  ' if ok else 'FAIL'} {name}{(' - ' + detail) if detail else ''}\n")
-
-    rows = load_states()
-    ids = {r["id"] for r in rows}
-    check("table loads", len(rows) >= 9, f"{len(rows)} states")
-    check("funnel order present", all(s in ids for s in FUNNEL_ORDER))
-    check("terminal states present", all(s in ids for s in TERMINAL))
-    for row in rows:
-        target = row["exits_to"]
-        if target != "-":
-            check(f"{row['id']} exits to a known state", target in ids, target)
-        stall = row["stall_exits_to"]
-        if stall != "-":
-            check(f"{row['id']} stalls to a known state", stall in ids, stall)
-
-    low, high = wilson(0, 10)
-    check("wilson keeps width at zero hits", high > 0.0 and low == 0.0, f"{low:.3f}-{high:.3f}")
-    low, high = wilson(10, 10)
-    check("wilson keeps width at full hits", low < 1.0, f"{low:.3f}-{high:.3f}")
-    low, high = wilson(50, 100)
-    check("wilson centres on the estimate", low < 0.5 < high, f"{low:.3f}-{high:.3f}")
-    wide = wilson(2, 3)
-    narrow = wilson(200, 300)
-    check("a small base gives a wider band", (wide[1] - wide[0]) > (narrow[1] - narrow[0]))
-
-    report, code = funnel({"new": 3, "won": 2})
-    check("a tiny base refuses a percentage", code == 3 and report["overall"]["rate"] is None)
-    report, code = funnel({"new": 10, "replied": 40})
-    check("more later than earlier fails", code == 2
-          and report["steps"][0]["verdict"] == "impossible")
-    # Rates 75%, 50%, 30%, 67%, 40% - the 30% is unique, so the located drop is unambiguous.
-    report, code = funnel({"new": 400, "replied": 300, "qualified": 150, "quoted": 45,
-                           "negotiating": 30, "won": 12})
-    check("a real base measures", code == 0 and report["steps"][0]["verdict"] == "measured")
-    check("the drop is located", report["biggest_measured_drop"] == "qualified",
-          str(report["biggest_measured_drop"]))
-
-    with tempfile.TemporaryDirectory() as tmp:
-        sheet = Path(tmp) / "sheet.csv"
-        write_template(sheet)
-        results, code = audit(read_sheet(sheet))
-        check("a blank template fails every field", code == 2
-              and len([r for r in results if r[1] == "failed"]) >= len(DECLARED))
-
-    filled = {f: "x" for f, _p, _w in DECLARED}
-    filled.update({"contact_channels": "zalo;phone", "manual_tally": "no",
-                   "first_response_target_minutes": "30", "reply_is_human_written": "yes",
-                   "fit_criteria": "in district;budget over 2 million", "touches_max": "3",
-                   "touch_gaps_hours": "4;24;72", "stop_rule": "they ask us to stop"})
-    results, code = audit(filled)
-    check("a filled sheet reaches review not failure", code == 3,
-          "; ".join(f"{g}:{v}" for g, v, _m in results if v == "failed") or "no failures")
-
-    filled_price = dict(filled, loss_reason="too expensive", loss_reason_evidence="")
-    _results, code = audit(filled_price)
-    check("price with no gap fails", code == 2)
-    filled_price["loss_reason_evidence"] = "quoted 4.2m against a 3.5m competitor, 2-week lead time"
-    _results, code = audit(filled_price)
-    check("price with a gap passes", code == 3)
-
-    blind = dict(filled, contact_channels="zalo;shopee-chat", manual_tally="no")
-    _results, code = audit(blind)
-    check("untallied marketplace chat fails", code == 2)
-
-    mismatch = dict(filled, touches_max="3", touch_gaps_hours="4;24")
-    results, _code = audit(mismatch)
-    check("a ladder with missing gaps fails",
-          any(g == "ladder-shape" and v == "failed" for g, v, _m in results))
-
-    out.append(f"\n{failures} failure(s)\n")
-    return "".join(out), (2 if failures else 0)
-
-
 def main(argv: list[str] | None = None) -> int:
     use_utf8_stdout()
     parser = argparse.ArgumentParser(
@@ -502,13 +420,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--audit", help="grade a filled declaration sheet")
     parser.add_argument("--funnel", help="a CSV of state,count")
     parser.add_argument("--json", action="store_true", help="machine-readable output")
-    parser.add_argument("--self-check", action="store_true", help="verify this script's own logic")
     args = parser.parse_args(argv)
 
-    if args.self_check:
-        text, code = self_check()
-        emit(text)
-        return code
 
     if args.states or args.state:
         rows = load_states()

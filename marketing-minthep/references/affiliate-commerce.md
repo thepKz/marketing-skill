@@ -77,8 +77,7 @@ headline rate applies to what settles rather than to what was ordered.
 | Content cost | minus what the posts cost to make | 5,575,030 |
 
 A 10% rate arrives as 5.58% of the value it was attributed. Negotiate against that.
-It is also the number nobody brings to the negotiation. Run `--self-check` to see the chain asserted
-step by step.
+It is also the number nobody brings to the negotiation.
 
 Two of those rates were replaced recently and both old values are still published. The service fee ran
 at 1% and has been 0.98% since 16 July 2025. The withholding floor was 2,000,000 VND per payment and

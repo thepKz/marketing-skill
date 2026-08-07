@@ -89,7 +89,6 @@ Compare per-day figures, or state in the report that you did not. Both are defen
 python scripts/build_variance_report.py --input period.json
 python scripts/build_variance_report.py --metric revenue --actual 312500000 --plan 350000000
 python scripts/build_variance_report.py --input period.json --output-format json
-python scripts/build_variance_report.py --self-check
 ```
 
 The payload is one object. `period` and `prior` carry a `label` and optionally `days`. Every row carries a `kpi` id from `data/kpi-metrics.csv`, an `actual`, and whichever of `plan` and `prior` exist. `base` is the count underneath a rate, and `prior_base` the same count for the earlier period.

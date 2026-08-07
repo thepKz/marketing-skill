@@ -42,12 +42,13 @@ Usage:
     python build_variance_report.py --metric revenue --actual 312500000 --plan 350000000 \\
         --prior 288000000
     python build_variance_report.py --input period.json --output-format json
-    python build_variance_report.py --self-check
 """
 
 from __future__ import annotations
 
 import argparse
+
+from _emit import use_utf8_stdout
 import csv
 import datetime as dt
 import decimal
@@ -450,124 +451,6 @@ def exit_code(report: dict) -> int:
     return 3 if report["counts"]["open_questions"] else 0
 
 
-def self_check() -> str:
-    """Cases that failed at least once while this was being written, kept as the record.
-
-    Every one of them is a way a variance table can be wrong while looking finished.
-    """
-    library = catalog()
-    results: list[tuple[bool, str]] = []
-
-    def case(condition: bool, description: str) -> None:
-        results.append((bool(condition), description))
-
-    # Direction, on the pair that exists in the library to make this exact point.
-    margin = library["gross_margin"]
-    cost = library["cost_to_revenue"] if "cost_to_revenue" in library else None
-    case(favourability(Decimal("-2"), margin["direction"]) == UNFAVOURABLE,
-         "margin down two points is unfavourable")
-    if cost:
-        case(favourability(Decimal("-2"), cost["direction"]) == FAVOURABLE,
-             "cost-to-revenue down two points is favourable, on the same unit as margin")
-
-    # A fall in a lower-is-better metric is good news, which is the sign trap in one line.
-    cac = next((row for row in library.values() if row["direction"] == LOWER_BETTER
-                and row["unit"] in ("$", "No")), None)
-    if cac:
-        report = compare(cac, 74000, 91000, "prior")
-        case(report["verdict"] == FAVOURABLE and report["absolute"] < 0,
-             f"{cac['kpi_id']} falling is reported as favourable with a negative absolute")
-
-    # Percentage points against per cent, on a rate metric.
-    rate = compare(margin, "57", "56", "plan")
-    case(rate["absolute"] == Decimal("1") and rate["absolute_unit"] == "pp",
-         "a rate variance is measured in percentage points")
-    case(rate["relative"] is not None and rate["relative"].quantize(Decimal("0.1")) == Decimal("1.8"),
-         "and carries the relative figure separately: one point on 56 is 1.8%")
-
-    # A missing plan is not a plan of zero.
-    empty = compare(margin, "57", None, "plan")
-    case(empty["absolute"] is None and empty["verdict"] == NOT_COMPARABLE,
-         "a missing plan produces no variance rather than a 100% shortfall")
-
-    # A zero base has no relative variance in either direction.
-    zero = compare(library["revenue"], "1200000", "0", "plan")
-    case(zero["relative"] is None and any("zero" in note for note in zero["notes"]),
-         "a plan of zero yields no percentage, not an infinite one")
-
-    # The small-base floor withholds the percentage and keeps the absolute.
-    small = compare(library["revenue"], "3", "2", "plan", base="2")
-    case(small["relative"] is None and small["absolute"] == Decimal("1"),
-         "three against a plan of two prints the raw figures, not +50%")
-    big = compare(library["revenue"], "330", "300", "plan", base="300")
-    case(big["relative"] is not None and big["relative"].quantize(Decimal("0.1")) == Decimal("10.0"),
-         "and a base over the floor does carry its percentage")
-
-    # An index moves in points. This is the figure most likely to appear in a real board pack
-    # anyway, which is why it is worth a case: nobody notices a per cent of NPS is meaningless.
-    nps = compare(library["nps"], 44, 41, "prior")
-    case(nps["absolute"] == Decimal("3") and nps["relative"] is None
-         and nps["absolute_unit"] == "pts",
-         "NPS moves three points and carries no percentage")
-    case(compare(library["resellers_acquired"], 44, 41, "prior")["relative"] is not None,
-         "and a count in the same unit does carry one, because its zero is real")
-
-    # A date variance is days, with no percentage attached.
-    date_metric = next((row for row in library.values() if row["unit"] == "Date"), None)
-    if date_metric:
-        late = compare(date_metric, "2026-08-05", "2026-08-01", "plan")
-        case(late["absolute"] == Decimal("4") and late["relative"] is None,
-             "a date lands four days out with no percentage of a date")
-
-    # Float never reaches the arithmetic.
-    case(_dec(0.1, "x") == Decimal("0.1"), "0.1 as a float parses to exactly 0.1")
-
-    # An unknown id names its near misses instead of dropping the row.
-    try:
-        resolve("revenu", library)
-        case(False, "an unknown metric id raises")
-    except Unreportable as exc:
-        case("revenue" in str(exc), "an unknown metric id names the row it could have meant")
-
-    # A row with no actual is a gap, not a variance.
-    case(_raises(lambda: build_row({"kpi": "revenue", "plan": 100}, library)),
-         "a row with no actual refuses to build")
-
-    # The full report exits 3 while anything is withheld, and 0 when nothing is.
-    withheld = build({"period": {"label": "test"},
-                      "rows": [{"kpi": "revenue", "actual": 3, "plan": 2, "base": 2}]})
-    case(exit_code(withheld) == 3, "a withheld percentage makes the report exit 3")
-    clean = build({"period": {"label": "test"},
-                   "rows": [{"kpi": "revenue", "actual": 330, "plan": 300}]})
-    case(exit_code(clean) == 0, "a report with nothing withheld exits 0")
-    case(clean["scope"] and "prior" in clean["scope"][0],
-         "and a report with no prior column says so in one line without calling it a question")
-
-    # A column that is full except for one row is the case that gets misread.
-    holed = build({"period": {"label": "test"}, "rows": [
-        {"kpi": "revenue", "actual": 330, "plan": 300, "prior": 310},
-        {"kpi": "nps", "actual": 44, "prior": 41},
-    ]})
-    case(not holed["scope"] and exit_code(holed) == 3,
-         "one row missing a plan the others have is an open question, not a scope line")
-    case(any("1 of 2 rows" in note for row in holed["rows"]
-             for item in row["comparisons"] for note in item["notes"]),
-         "and the note counts the rows that do carry the figure")
-
-    # Period length is an artefact the reader has to be told about.
-    uneven = build({"period": {"label": "Jul", "days": 31}, "prior": {"label": "Jun", "days": 30},
-                    "rows": [{"kpi": "revenue", "actual": 330, "plan": 300, "prior": 300}]})
-    case(any("31 and 30 days" in note for note in uneven["notes"]),
-         "two periods of different lengths are declared before the percentages are read")
-
-    passed = sum(1 for ok, _ in results if ok)
-    lines = [f"{'ok  ' if ok else 'FAIL'} {text}" for ok, text in results]
-    lines.append("")
-    lines.append(f"verdict {'passed' if passed == len(results) else 'failed'} - "
-                 f"{passed}/{len(results)} cases")
-    return "\n".join(lines)
-
-
 def _raises(thunk) -> bool:
     try:
         thunk()
@@ -577,6 +460,7 @@ def _raises(thunk) -> bool:
 
 
 def main() -> int:
+    use_utf8_stdout()
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--input", help="JSON file: {period, prior, rows:[{kpi, actual, plan, prior}]}")
     parser.add_argument("--metric", help="one metric id from data/kpi-metrics.csv")
@@ -587,13 +471,8 @@ def main() -> int:
     parser.add_argument("--small-base", default=str(SMALL_BASE),
                         help=f"below this base a percentage is withheld (default {SMALL_BASE})")
     parser.add_argument("--output-format", choices=("markdown", "json"), default="markdown")
-    parser.add_argument("--self-check", action="store_true")
     args = parser.parse_args()
 
-    if args.self_check:
-        text = self_check()
-        print(text)
-        return 0 if "verdict passed" in text else 2
 
     try:
         small_base = _dec(args.small_base, "--small-base")

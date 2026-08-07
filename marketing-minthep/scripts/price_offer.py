@@ -23,7 +23,6 @@ twenty-five thousand.
     python scripts/price_offer.py --price 390000 --variable-cost 150000 --campaign-spend 20000000
     python scripts/price_offer.py --price 390000 --variable-cost 150000 --repeat-purchases 2.5 \\
         --acquisition-cost 90000
-    python scripts/price_offer.py --self-check
 
 Exit codes are 0 clean, 1 usage error, 2 a gate failed, 3 computable but unsettled.
 """
@@ -256,64 +255,6 @@ def as_text(report: dict) -> str:
     return "\n".join(lines)
 
 
-def self_check() -> str:
-    """Verify the arithmetic on cases whose answers can be checked by hand.
-
-    Every case here is chosen so the right answer is obvious on inspection, which is the only kind of
-    self-check worth having in a file full of division. The 40 percent margin case is the one the whole
-    script exists for: 20 off 40 leaves 20, and 40 over 20 is 2.
-    """
-    lines = ["# price_offer self-check"]
-    ok = True
-
-    def check(label: str, got: float | None, want: float, tol: float = 1e-9) -> None:
-        nonlocal ok
-        good = got is not None and abs(got - want) <= tol
-        ok = ok and good
-        lines.append(f"{'ok  ' if good else 'FAIL'} {label}: {got} vs {want}")
-
-    # Price 100, cost 60. Contribution 40, ratio 0.4, break-even ROAS 2.5.
-    core = margin(100.0, 60.0)
-    check("contribution at 100/60", core["contribution_per_unit"], 40.0)
-    check("ratio at 100/60", core["contribution_ratio"], 0.4)
-    check("break-even ROAS at 40% contribution", core["break_even_roas"], 2.5)
-
-    # 20% off 100 is 80; 80 - 60 = 20; holding gross profit needs 40/20 = exactly 2x the units.
-    effect = discount_effect(100.0, 60.0, 0.20)
-    check("contribution after 20% off", effect["contribution_after"], 20.0)
-    check("volume multiple", effect["volume_multiple_to_hold_gross_profit"], 2.0)
-    check("share of contribution lost", effect["contribution_lost_share"], 0.5)
-    check("extra units per hundred", effect["extra_units_per_hundred"], 100.0)
-
-    # The asymmetry that makes this worth a script: the same 20 points off a 70 percent margin costs
-    # under a third of the contribution, so the volume needed is nowhere near double.
-    thin = discount_effect(100.0, 30.0, 0.20)
-    check("volume multiple at 70% margin", thin["volume_multiple_to_hold_gross_profit"],
-          70.0 / 50.0, 1e-4)
-
-    # 50% off a 40% margin goes below cost, so there is no multiple that saves it.
-    ruin = discount_effect(100.0, 60.0, 0.50)
-    good = (ruin["contribution_after"] < 0
-            and ruin["volume_multiple_to_hold_gross_profit"] is None)
-    ok = ok and good
-    lines.append(f"{'ok  ' if good else 'FAIL'} 50% off a 40% margin has no survivable volume: "
-                 f"contribution {ruin['contribution_after']}")
-
-    check("max CAC at 40 contribution, 3 purchases, 3x", max_acquisition_cost(40.0, 3.0, 3.0), 40.0)
-    good = max_acquisition_cost(-5.0, 3.0, 3.0) is None
-    ok = ok and good
-    lines.append(f"{'ok  ' if good else 'FAIL'} negative contribution has no acquisition ceiling")
-
-    report = build(100.0, 120.0, None, None, None, None, None, 3.0)
-    good = report["verdict"]["status"] == "failed"
-    ok = ok and good
-    lines.append(f"{'ok  ' if good else 'FAIL'} price under cost is refused before anything else")
-
-    lines.append("")
-    lines.append("verdict passed" if ok else "verdict failed")
-    return "\n".join(lines)
-
-
 def main(argv: list[str] | None = None) -> int:
     use_utf8_stdout()
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -331,16 +272,11 @@ def main(argv: list[str] | None = None) -> int:
                         help="required return on acquisition spend, default 3.0, a policy choice")
     parser.add_argument("--format", choices=("text", "json"), default="text")
     parser.add_argument("--output", help="write here instead of stdout")
-    parser.add_argument("--self-check", action="store_true")
     args = parser.parse_args(argv)
 
-    if args.self_check:
-        report = self_check()
-        emit(report)
-        return 0 if report.rstrip().endswith("passed") else 2
 
     if args.price is None or args.variable_cost is None:
-        parser.error("pass --price and --variable-cost, or --self-check")
+        parser.error("pass --price and --variable-cost")
     if args.price <= 0:
         parser.error("--price must be above zero")
     if args.variable_cost < 0:

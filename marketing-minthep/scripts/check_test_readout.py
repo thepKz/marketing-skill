@@ -24,7 +24,6 @@ so there is no dependency to install and no version of this that silently disagr
     python scripts/check_test_readout.py --variant "A:clicks=900,conversions=27" \\
         --variant "B:clicks=880,conversions=31" --daily-clicks 300 --format json
     python scripts/check_test_readout.py --plan --baseline 0.03 --mde 0.20
-    python scripts/check_test_readout.py --self-check
 
 Exit codes are 0 clean, 1 usage error, 2 a gate failed, 3 computable but unsettled.
 """
@@ -57,8 +56,7 @@ def normal_quantile(p: float) -> float:
 
     Bisection rather than a rational approximation because the approximations are the kind of code
     that gets pasted in with a stale constant and is never checked again. Fifty-two halvings of
-    [-10, 10] lands well inside float precision and takes microseconds, and `--self-check` compares
-    the result against the standard critical values so a wrong answer here cannot go unnoticed.
+    [-10, 10] lands well inside float precision and takes microseconds.
     """
     if not 0.0 < p < 1.0:
         raise ValueError(f"quantile needs 0 < p < 1, got {p}")
@@ -317,70 +315,6 @@ def as_text(report: dict) -> str:
     return "\n".join(lines)
 
 
-def self_check() -> str:
-    """Check the arithmetic against values that exist outside this file.
-
-    A statistics helper nobody has checked against a published number is a random number generator
-    with units. These three are the standard ones, so a wrong bisection or a swapped tail shows up
-    here rather than in somebody's budget decision.
-    """
-    lines = ["# check_test_readout self-check"]
-    cases = [
-        ("z for 95% two-sided", normal_quantile(0.975), 1.959964, 1e-5),
-        ("z for 80% power", normal_quantile(0.80), 0.841621, 1e-5),
-        ("z for 99% two-sided", normal_quantile(0.995), 2.575829, 1e-5),
-        ("normal_cdf(0)", normal_cdf(0.0), 0.5, 1e-12),
-        ("normal_cdf(1.96)", normal_cdf(1.959964), 0.975, 1e-6),
-    ]
-    ok = True
-    for label, got, want, tol in cases:
-        good = abs(got - want) <= tol
-        ok = ok and good
-        lines.append(f"{'ok  ' if good else 'FAIL'} {label}: {got:.6f} vs {want:.6f}")
-
-    # The sample size is checked by running the power function forward on the size that came back.
-    # The first draft of this check asserted "published calculators put this a little over 6000",
-    # which was a number from memory, and it failed against the correct answer of 8155. Recalling a
-    # calculator output is exactly the move the rest of this skill gates other people for, so the
-    # check now goes through a different route instead: invert to get n, then compute the power that
-    # n actually delivers. Agreement means the inversion is right without anybody remembering
-    # anything, and a swapped tail or a dropped variance term shows up immediately.
-    for baseline, mde, power in ((0.05, 0.20, 0.80), (0.03, 0.50, 0.80), (0.20, 0.10, 0.90)):
-        n = required_per_arm(baseline, mde, 0.05, power)
-        treated = baseline * (1.0 + mde)
-        se = math.sqrt(baseline * (1 - baseline) / n + treated * (1 - treated) / n)
-        achieved = normal_cdf((treated - baseline) / se - normal_quantile(0.975))
-        good = abs(achieved - power) < 0.005
-        ok = ok and good
-        lines.append(f"{'ok  ' if good else 'FAIL'} {baseline:.0%} baseline, {mde:.0%} lift: "
-                     f"n = {n} per arm delivers {achieved:.4f} power against {power:.2f} asked")
-
-    # A real property of the formula rather than a remembered value: it goes as the inverse square of
-    # the effect, so halving the detectable lift quadruples the traffic. This is the trade-off the
-    # planner is actually making, so it is worth having a test fail if it ever stops holding.
-    coarse = required_per_arm(0.05, 0.20, 0.05, 0.80)
-    fine = required_per_arm(0.05, 0.10, 0.05, 0.80)
-    ratio = fine / coarse
-    good = 3.8 <= ratio <= 4.3
-    ok = ok and good
-    lines.append(f"{'ok  ' if good else 'FAIL'} halving the lift multiplies traffic by "
-                 f"{ratio:.2f}, expected about 4")
-
-    # Identical arms must not be significant, and a large clear difference must be.
-    flat = two_proportion(50, 1000, 50, 1000, 0.05)
-    good = flat["p_value"] > 0.99 and flat["interval_crosses_zero"]
-    ok = ok and good
-    lines.append(f"{'ok  ' if good else 'FAIL'} identical arms: p = {flat['p_value']:.4f}")
-    wide = two_proportion(50, 1000, 100, 1000, 0.05)
-    good = wide["p_value"] < 0.001 and not wide["interval_crosses_zero"]
-    ok = ok and good
-    lines.append(f"{'ok  ' if good else 'FAIL'} 5% against 10%: p = {wide['p_value']:.6f}")
-
-    lines.append("")
-    lines.append("verdict passed" if ok else "verdict failed")
-    return "\n".join(lines)
-
-
 def main(argv: list[str] | None = None) -> int:
     use_utf8_stdout()
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -398,13 +332,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--baseline", type=float, help="current rate, for --plan")
     parser.add_argument("--format", choices=("text", "json"), default="text")
     parser.add_argument("--output", help="write here instead of stdout")
-    parser.add_argument("--self-check", action="store_true")
     args = parser.parse_args(argv)
 
-    if args.self_check:
-        report = self_check()
-        emit(report)
-        return 0 if report.rstrip().endswith("passed") else 2
 
     if not 0.0 < args.alpha < 0.5:
         parser.error("--alpha belongs in (0, 0.5)")

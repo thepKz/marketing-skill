@@ -128,9 +128,9 @@ Load only what the decision needs.
 | Provider execution, and what a provider actually honours | `api-image-orchestration.md`, `provider-compilers.md`, `prompt-grammar.md`, `data/prompt-grammar.csv` |
 | Any designed artefact, before any craft table is opened | `design-direction.md`: content locked first, then one committed visual direction, art-directed inside. Tables measure the result; they never generate it |
 | Food, restaurant, dish, menu, or Canva-ready graphic | `menu.md`, plus `product-imagery.md` and `canva-native-ai-design.md`; expand "Canva-like" into component inventory, mask family, contrast roles, layer ownership, text-safe geometry before prompting |
-| Website, landing, wireframe, or type-led layout | `design-direction.md` (its layout/typography dossier), then `evaluation-suite.md`; set the real headline before styling |
+| Website, landing, wireframe, or type-led layout | `design-direction.md` (its layout/typography dossier); set the real headline before styling |
 | Poster, banner, standee, billboard — anything read from a distance | `poster.md`, `data/poster-formats.csv`, `scripts/plan_poster.py` |
-| Visual QA and export | `rewrite-human.md`, `evaluation-suite.md`, `output-contract.md` |
+| Visual QA and export | `rewrite-human.md`, `output-contract.md` |
 | Published claims, and whether Vietnamese law allows them | `claims-proof-ledger.md` (its `Rights and claims` section covers people, references, packaging), `data/claim-evidence.csv`, `scripts/check_claims.py` |
 | Welcome, cart, renewal, win-back flow, capture popup, consent | `lifecycle-retention.md`, `data/lifecycle-duties.csv`, `scripts/plan_lifecycle.py` |
 | What happens after somebody messages | `lead-handling.md`, `data/lead-states.csv`, `scripts/plan_lead_flow.py` |

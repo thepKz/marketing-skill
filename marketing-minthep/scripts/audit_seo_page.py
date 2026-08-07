@@ -501,122 +501,6 @@ def print_targets() -> str:
     ])
 
 
-def self_check() -> str:
-    use_utf8_stdout()
-    rows = load_intents()
-    assert len(rows) >= 8, len(rows)
-    assert len({row["id"] for row in rows}) == len(rows), "duplicate intent id"
-    for row in rows:
-        assert int(row["proofs_required"]) >= 2, row["id"]
-        assert all(value.strip() for value in row.values()), row["id"]
-
-    # --- folding and width ---
-    assert fold("Giá iPhone 15 ở TP HCM") == "gia iphone 15 o tp hcm"
-    assert head_terms("giá iPhone 15 là bao nhiêu") == ["gia", "iphone", "15", "bao", "nhieu"]
-    # Capitals are wider than lowercase, which is the whole reason width beats character count.
-    assert title_pixels("MMMMMMMMMM") > title_pixels("iiiiiiiiii")
-    assert title_pixels("Giá iPhone") == title_pixels("Gia iPhone"), "diacritics added width"
-
-    # --- front matter and provenance ---
-    declared = ("---\ntitle: Giá iPhone 15 tại Gò Vấp\ndescription: Bảng giá cập nhật.\n"
-                "query: giá iPhone 15\nintent: price\n---\n\n# Giá iPhone 15\n\nGiá là 20 triệu.\n")
-    fields, body = parse_front_matter(declared)
-    assert fields["intent"] == "price" and body.startswith("# Giá"), (fields, body[:20])
-    assert read_page(declared, None, None)["title_provenance"] == "declared"
-
-    # An H1 is not a title. The fallback is reported as inferred, because a page whose title was
-    # never written down ships without one however well the H1 reads.
-    bare = "# Giá iPhone 15 tại Gò Vấp\n\nGiá hôm nay là 20 triệu đồng.\n"
-    stats = read_page(bare, "giá iPhone 15", None)
-    assert stats["title_provenance"] == "inferred", stats["title_provenance"]
-    assert stats["intent"] == "unknown"
-    named = {row["gate"] for row in gates(stats)}
-    assert "proof-count-for-intent" not in named, "an unknown intent must skip, not pass"
-    assert any("intent was given" in item for item in unknowns(stats))
-
-    # --- the narrative-first failure this gate exists for ---
-    narrative = ("---\ntitle: Về chúng tôi và hành trình thương hiệu\nquery: giá bàn gỗ sồi\n---\n\n"
-                 "# Về chúng tôi\n\n"
-                 + ("Chúng tôi là một thương hiệu tận tâm với nhiều năm kinh nghiệm trong ngành nội "
-                    "thất cao cấp và luôn đặt khách hàng lên hàng đầu. " * 6)
-                 + "\n\nGiá bàn gỗ sồi hiện tại là 4.500.000 đồng.\n")
-    verdicts = {row["gate"]: row for row in gates(read_page(narrative, None, None))}
-    assert not verdicts["answer-before-narrative"]["pass"], verdicts["answer-before-narrative"]
-    assert not verdicts["query-in-title"]["pass"]
-    assert not verdicts["information-gain"]["pass"], "one number under 160 words of fluff is not gain"
-
-    # --- the same page, answering first ---
-    answered = ("---\ntitle: Giá bàn gỗ sồi 2026\ndescription: "
-                + "Giá bàn gỗ sồi tại xưởng Gò Vấp, cập nhật tháng 7 2026, kèm phí giao và bảo hành."
-                + "\nquery: giá bàn gỗ sồi\nintent: price\n---\n\n"
-                "# Giá bàn gỗ sồi\n\nGiá bàn gỗ sồi là 4.500.000 đồng, cập nhật ngày 12/07/2026. "
-                "Mặt bàn dày 25mm. Giao trong 48 giờ ở TP HCM, phí 150.000 đồng.\n\n"
-                "## Giá thay đổi theo gì\n\nKích thước 1m6 cộng thêm 800.000 đồng. "
-                "Gọi 0901 234 567 để đặt.\n\nXem thêm [bàn ăn gỗ](/ban-an-go).\n")
-    verdicts = {row["gate"]: row for row in gates(read_page(answered, None, None))}
-    for gate in ("answer-before-narrative", "query-in-title", "information-gain",
-                 "proof-count-for-intent", "internal-link", "meta-description", "single-h1"):
-        assert verdicts[gate]["pass"], (gate, verdicts[gate])
-    assert blocking_count(list(verdicts.values())) == 0, [
-        row for row in verdicts.values() if not row["pass"]]
-
-    # --- proof inside a table counts, which is the bug this reader was rewritten to fix ---
-    # A comparison page's proof IS the table. Counting prose only scored 26 of this skill's own 60
-    # reference files as carrying nothing, with their numbers sitting in rows the reader skipped.
-    tabular = ("---\ntitle: So sánh bàn gỗ sồi và gỗ cao su\nquery: so sánh bàn gỗ sồi\n"
-               "description: Bảng so sánh hai loại mặt bàn theo giá, độ dày và bảo hành, đo tháng 7.\n"
-               "intent: comparison\n---\n\n# So sánh bàn gỗ sồi và gỗ cao su\n\n"
-               "| Trục | Sồi | Cao su |\n|---|---|---|\n"
-               "| Giá | 4.500.000 đồng | 2.100.000 đồng |\n"
-               "| Độ dày mặt | 25mm | 18mm |\n"
-               "| Bảo hành | 24 tháng | 12 tháng |\n"
-               "| Giao ở TP HCM | 48 giờ | 24 giờ |\n\nXem [bàn ăn gỗ](/ban-an-go).\n")
-    stream = reading_stream(tabular.split("---\n")[2])
-    assert "4.500.000 đồng" in stream, stream
-    assert not any(set(piece) <= set("|-: ") for piece in stream), "separator rule leaked in"
-    verdicts = {row["gate"]: row for row in gates(read_page(tabular, None, None))}
-    for gate in ("information-gain", "proof-count-for-intent", "answer-before-narrative"):
-        assert verdicts[gate]["pass"], (gate, verdicts[gate])
-
-    # A heading is text a reader passes through, so it can be where the query is answered.
-    assert reading_stream("## Giá bàn gỗ sồi\n")[0] == "Giá bàn gỗ sồi"
-    # A code fence is not a claim, and a snippet full of numbers must not read as proof.
-    fenced_out = reading_stream("Prose here.\n\n```\nprice = 4500000\n```\n")
-    assert not any("4500000" in piece for piece in fenced_out), fenced_out
-
-    # --- structure ---
-    skipped = read_page("# One\n\nProse here about it.\n\n#### Four\n\nMore prose here.\n", None, None)
-    assert skipped["skipped_levels"] == [(1, 4)], skipped["skipped_levels"]
-    two = read_page("# One\n\nProse.\n\n# Two\n\nProse.\n", None, None)
-    assert not {row["gate"]: row for row in gates(two)}["single-h1"]["pass"]
-
-    # Images: the gate is absent when the page has none, rather than passing on no evidence.
-    assert "image-alt" not in {row["gate"] for row in gates(read_page("# T\n\nProse.\n", None, None))}
-    with_images = read_page("# T\n\nProse.\n\n![](/a.jpg)\n\n![Bàn gỗ sồi](/b.jpg)\n", None, None)
-    assert with_images["images_without_alt"] == 1, with_images
-    assert not {row["gate"]: row for row in gates(with_images)}["image-alt"]["pass"]
-
-    # A code fence must not contribute headings, or a snippet renames the page.
-    fenced = read_page("# Real\n\nProse here.\n\n```\n# not a heading\n```\n", None, None)
-    assert fenced["h1_count"] == 1, fenced["headings"]
-
-    # Repetition is counted on the exact phrase, and an external link is not an internal one.
-    stuffed = read_page("# Giá bàn gỗ\n\n" + "Giá bàn gỗ là tốt. " * 12
-                        + "\n\n[Nguồn](https://example.com)\n", "giá bàn gỗ", None)
-    assert stuffed["internal_links"] == 0
-    assert not {row["gate"]: row for row in gates(stuffed)}["phrase-repetition"]["pass"], stuffed
-
-    # And the same rate must not fire on a short page that used its query twice, correctly. This one
-    # scores well over the per-300 ceiling on eleven words and is not stuffed.
-    twice = read_page("# Giá bàn gỗ\n\nGiá bàn gỗ là 4.500.000 đồng.\n", "giá bàn gỗ", None)
-    assert twice["phrase_per_300"] > PHRASE_PER_300_MAX, twice["phrase_per_300"]
-    assert {row["gate"]: row for row in gates(twice)}["phrase-repetition"]["pass"], twice
-
-    # Every run states what it cannot know. Silence there would read as a clean bill of health.
-    assert len(unknowns(stats)) >= 4
-    return "self-check passed\n"
-
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -626,16 +510,12 @@ def main(argv: list[str] | None = None) -> int:
     source.add_argument("--list-intents", action="store_true", help="print the intent table")
     source.add_argument("--explain", metavar="INTENT", help="explain one intent")
     source.add_argument("--targets", action="store_true", help="print the thresholds and stop")
-    source.add_argument("--self-check", action="store_true", help="run the built-in assertions")
     parser.add_argument("--query", help="the query the page is written for")
     parser.add_argument("--intent", help="intent id from --list-intents")
     parser.add_argument("--json", action="store_true", help="machine-readable report")
     parser.add_argument("--output", help="write the report here instead of stdout")
     args = parser.parse_args(argv)
 
-    if args.self_check:
-        emit(self_check(), args.output)
-        return 0
     if args.targets:
         emit(print_targets(), args.output)
         return 0

@@ -7,6 +7,7 @@ import argparse
 import json
 from pathlib import Path
 
+from _emit import emit
 from new_run import build_run, write_run
 from plan_design_options import plan_options
 from plan_image_generation import route_image_request
@@ -134,11 +135,7 @@ def main() -> None:
         request["mode"] = args.mode
 
     result = start(request, Path(args.root).resolve(), force=args.force)
-    content = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
-    if args.output:
-        Path(args.output).write_text(content, encoding="utf-8")
-    else:
-        print(content, end="")
+    emit(json.dumps(result, ensure_ascii=False, indent=2) + "\n", args.output)
 
 
 if __name__ == "__main__":

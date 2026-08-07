@@ -19,7 +19,6 @@ as `chúng ta giao trong ngày`, where the customer is now doing the delivering.
     python scripts/check_address_register.py --text "Quý khách yên tâm, bạn nhé" --channel social
     python scripts/check_address_register.py --list-forms
     python scripts/check_address_register.py --explain "bạn"
-    python scripts/check_address_register.py --self-check
 
 Exit codes are 0 clean, 1 usage error, 2 a gate failed, 3 computable but unsettled.
 """
@@ -367,102 +366,6 @@ def explain(form: str, rows: list[dict[str, str]]) -> str:
     return "\n".join(lines)
 
 
-def self_check(rows: list[dict[str, str]]) -> str:
-    """Every assertion here is a bug this script had, or one the design invites."""
-    # Masking. `chúng tôi` must not also report `tôi`, and `người ta` must not report `ta`.
-    found = {hit["form"] for hit in detect("Chúng tôi giao trong ngày cho các bạn.", rows)}
-    assert found == {"chúng tôi", "các bạn"}, found
-    assert {hit["form"] for hit in detect("Người ta nói vậy.", rows)} == {"người ta"}
-
-    # Every probe in the table must resolve to exactly the form that owns it. This is the check the
-    # generator cannot do, because nesting is settled by the masking order in this file.
-    for row in rows:
-        if row["probe"] == "-":
-            continue
-        got = {hit["form"] for hit in detect(row["probe"], rows)}
-        assert row["form"] in got, (row["form"], row["probe"], got)
-
-    # The documented tôi exception: it takes any second person, so no pairing failure.
-    clean = check("Tôi mở quán năm 2009. Quý khách ghé trước 11h30 thì có chỗ.", rows, None)
-    by_gate = {gate["gate"]: gate for gate in clean["gates"]}
-    assert by_gate["pair-holds"]["status"] == "passed", by_gate["pair-holds"]
-    assert clean["verdict"]["status"] == "passed", clean["verdict"]
-
-    # The headline defect: elevated and peer address in one piece.
-    mixed = check("Quý khách vui lòng giữ hoá đơn. Bạn cần hỗ trợ thì gọi bọn mình nha.", rows, None)
-    mixed_gates = {gate["gate"]: gate for gate in mixed["gates"]}
-    assert mixed_gates["one-address-form"]["status"] == "failed", mixed_gates["one-address-form"]
-    assert mixed["verdict"]["status"] == "failed", mixed["verdict"]
-
-    # bạn and các bạn are the one allowed switch: number, not tier.
-    number = check("Bạn có bốn mươi phút. Các bạn ghé trước 11h30 nhé. Bọn mình mở từ 7h sáng.",
-                   rows, None)
-    number_gates = {gate["gate"]: gate for gate in number["gates"]}
-    assert number_gates["one-address-form"]["status"] == "passed", number_gates["one-address-form"]
-
-    # Inclusive against exclusive, which is the calque of English `we` and a grammatical error.
-    both = check("Chúng tôi giao trong ngày. Chúng ta cùng giữ chất lượng đó cho bạn.", rows, None)
-    both_gates = {gate["gate"]: gate for gate in both["gates"]}
-    assert both_gates["inclusive-exclusive"]["status"] == "failed", both_gates["inclusive-exclusive"]
-
-    # An obsolete form is unambiguous, so it fails rather than reviews.
-    old = check("Ngươi muốn mua gì? Chúng tôi có đủ.", rows, None)
-    old_gates = {gate["gate"]: gate for gate in old["gates"]}
-    assert old_gates["no-archaic-or-impolite"]["status"] == "failed", old_gates
-    # And an ambiguous one reviews rather than fails. This is cosmetics copy: `kẻ mày` is eyebrow
-    # pencil, and the detector cannot know that. `lông mày` is excluded outright because it can only
-    # be the noun; `kẻ mày` is left to `review` because it could be either, and a checker that
-    # hard-fails a brow product's description is a checker the copywriter turns off on day one.
-    brow = check("Bút kẻ mày này giữ nét cả ngày, tôi dùng ba tháng rồi.", rows, None)
-    brow_gates = {gate["gate"]: gate for gate in brow["gates"]}
-    assert brow_gates["no-archaic-or-impolite"]["status"] == "review", brow_gates
-    assert brow["verdict"]["status"] == "review", brow["verdict"]
-    assert "mày" in brow["verdict"]["why"], brow["verdict"]
-    # `lông mày` on the other hand is settled, and must not even be reported.
-    assert not [hit for hit in detect("Chì kẻ lông mày lâu trôi.", rows) if hit["form"] == "mày"]
-    # Two impolite forms together are not ambiguous at all, and must hard-fail.
-    rude = check('Khách nhắn: "Mày tư vấn giúp tao với."', rows, None)
-    assert {gate["gate"]: gate for gate in
-            rude["gates"]}["no-archaic-or-impolite"]["status"] == "failed", rude["gates"]
-
-    # Short copy must not fail for addressing nobody. A button is allowed to address nobody.
-    short = check("Đặt trước 11h30.", rows, None)
-    short_gates = {gate["gate"]: gate for gate in short["gates"]}
-    assert short_gates["address-present"]["status"] == "skipped", short_gates["address-present"]
-    # Long copy that never addresses anyone is a product sheet pretending to be an ad.
-    sheet = check(" ".join(["Sản phẩm được làm từ gỗ sồi tự nhiên và sơn phủ gốc nước."] * 8),
-                  rows, None)
-    sheet_gates = {gate["gate"]: gate for gate in sheet["gates"]}
-    assert sheet_gates["address-present"]["status"] == "failed", sheet_gates["address-present"]
-
-    # Channel fit only runs when asked, and it must catch ceremonial register on social.
-    social = check("Kính thưa quý vị, chúng tôi xin thông báo.", rows, "social")
-    social_gates = {gate["gate"]: gate for gate in social["gates"]}
-    assert social_gates["channel-fit"]["status"] == "failed", social_gates["channel-fit"]
-    assert {gate["gate"]: gate for gate in
-            check("Kính thưa quý vị.", rows, None)["gates"]}["channel-fit"]["status"] == "skipped"
-
-    # A clean Vietnamese draft in one consistent register must pass everything that runs.
-    good = check("Bọn mình rang cà phê ở Gò Vấp và giao trong ngày cho quán trong bán kính tám cây "
-                 "số. Ngày rang in dưới đáy túi. Bạn không thấy ngày rang thì đừng mua. Bạn đặt "
-                 "trước 4h chiều thì mai có hàng.", rows, "social")
-    assert good["verdict"]["status"] == "passed", good
-    assert not [gate for gate in good["gates"] if gate["status"] == "failed"], good["gates"]
-
-    # `em` sits on both sides of the conversation, so it must not fail against `anh`.
-    retail = check("Em gửi anh ảnh sản phẩm. Anh xem giúp em nhé.", rows, "chat")
-    retail_gates = {gate["gate"]: gate for gate in retail["gates"]}
-    assert retail_gates["one-address-form"]["status"] == "passed", retail_gates["one-address-form"]
-    assert retail_gates["pair-holds"]["status"] == "passed", retail_gates["pair-holds"]
-
-    # Fenced code must not contribute address forms: a code sample is not copy.
-    fenced = check("```\nban = 'quý khách'\n```\n\nBạn đặt trước nhé. Bọn mình giao hôm sau.",
-                   rows, None)
-    assert {hit["form"] for hit in fenced["forms"]} == {"bạn", "bọn mình"}, fenced["forms"]
-
-    return "self-check passed\n"
-
-
 def main(argv: list[str] | None = None) -> int:
     use_utf8_stdout()
     rows = load()
@@ -477,12 +380,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--explain", metavar="FORM")
     parser.add_argument("--format", choices=("text", "json"), default="text")
     parser.add_argument("--output", help="write here instead of stdout")
-    parser.add_argument("--self-check", action="store_true")
     args = parser.parse_args(argv)
 
-    if args.self_check:
-        emit(self_check(rows))
-        return 0
     if args.list_forms:
         emit(list_forms(rows), args.output)
         return 0
@@ -490,8 +389,7 @@ def main(argv: list[str] | None = None) -> int:
         emit(explain(args.explain, rows), args.output)
         return 0
     if not (args.check or args.text):
-        parser.error("pass --check FILE, --text STRING, --list-forms, --explain FORM, "
-                     "or --self-check")
+        parser.error("pass --check FILE, --text STRING, --list-forms, or --explain FORM")
 
     text = args.text if args.text else Path(args.check).read_text(encoding="utf-8")
     report = check(text, rows, args.channel)

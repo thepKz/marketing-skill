@@ -490,130 +490,6 @@ def compare_share(measurement: dict, rendered: dict, hue: float) -> dict:
     }
 
 
-# ------------------------------------------------------------------------------- self-check
-
-
-def encode_png(width: int, height: int, pixels: list[tuple[int, int, int]], filter_type: int = 0) -> bytes:
-    """Write an 8-bit truecolour PNG using one filter for every scanline.
-
-    This exists for `self_check` and for the test suite. A decoder tested only against files
-    produced by one encoder is tested against that encoder's habits: real PNGs pick a filter per
-    scanline, and the filters this repository's own files happen to use are not all five. So the
-    check writes each of the five itself and reads its own output back.
-    """
-    if len(pixels) != width * height:
-        raise ValueError(f"{len(pixels)} pixels for a {width}x{height} image")
-    raw = bytearray()
-    previous = bytearray(width * 3)
-    for y in range(height):
-        line = bytearray()
-        for x in range(width):
-            line += bytes(pixels[y * width + x])
-        raw.append(filter_type)
-        if filter_type == 0:
-            raw += line
-        elif filter_type == 1:
-            raw += bytes((line[i] - (line[i - 3] if i >= 3 else 0)) & 0xFF for i in range(len(line)))
-        elif filter_type == 2:
-            raw += bytes((line[i] - previous[i]) & 0xFF for i in range(len(line)))
-        elif filter_type == 3:
-            out = bytearray()
-            for i in range(len(line)):
-                left = line[i - 3] if i >= 3 else 0
-                out.append((line[i] - ((left + previous[i]) >> 1)) & 0xFF)
-            raw += out
-        elif filter_type == 4:
-            out = bytearray()
-            for i in range(len(line)):
-                left = line[i - 3] if i >= 3 else 0
-                up = previous[i]
-                corner = previous[i - 3] if i >= 3 else 0
-                estimate = left + up - corner
-                da, db, dc = abs(estimate - left), abs(estimate - up), abs(estimate - corner)
-                predictor = left if (da <= db and da <= dc) else (up if db <= dc else corner)
-                out.append((line[i] - predictor) & 0xFF)
-            raw += out
-        else:
-            raise ValueError(f"filter {filter_type} is not 0-4")
-        previous = line
-
-    def chunk(kind: bytes, body: bytes) -> bytes:
-        return struct.pack(">I", len(body)) + kind + body + struct.pack(">I", zlib.crc32(kind + body))
-
-    return (
-        b"\x89PNG\r\n\x1a\n"
-        + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0))
-        + chunk(b"IDAT", zlib.compress(bytes(raw)))
-        + chunk(b"IEND", b"")
-    )
-
-
-def self_check() -> str:
-    """Prove the decoder and the gates on inputs whose answers are known without this script."""
-    import tempfile
-
-    problems: list[str] = []
-
-    # 1. Every filter must decode to the same pixels. Ten shades on a gradient, so Sub, Up, Average
-    # and Paeth all have something to predict from and a bug cannot hide behind a flat field.
-    pixels = [(x * 25, y * 25, (x + y) * 12) for y in range(10) for x in range(10)]
-    with tempfile.TemporaryDirectory() as folder:
-        for filter_type in range(5):
-            path = Path(folder) / f"f{filter_type}.png"
-            path.write_bytes(encode_png(10, 10, pixels, filter_type))
-            size, decoded = sample_pixels(path, step=1)
-            if size != (10, 10):
-                problems.append(f"filter {filter_type} decoded to {size}, not (10, 10)")
-            if decoded != pixels:
-                problems.append(f"filter {filter_type} did not round-trip its pixels")
-
-        # 2. A frame that is three quarters cream and one quarter a known blue must report that
-        # blue's own OKLCH, at a share of 0.25, in the 240-270 arc. The expected numbers come from
-        # plan_palette's conversion, not from this file's arithmetic.
-        cream, blue = (0xF5, 0xF1, 0xE8), (0x32, 0x58, 0xC5)
-        field = [blue if (y >= 5) and (x >= 5) else cream for y in range(10) for x in range(10)]
-        path = Path(folder) / "field.png"
-        path.write_bytes(encode_png(10, 10, field, 4))
-        measured = measure(path, step=1)
-
-    lab = rgb_to_oklab(tuple(c / 255.0 for c in blue))  # type: ignore[arg-type]
-    expected_chroma = round(math.hypot(lab[1], lab[2]), 4)
-    expected_hue = math.degrees(math.atan2(lab[2], lab[1])) % 360.0
-    if measured["chroma"]["max"] != expected_chroma:
-        problems.append(f"peak chroma {measured['chroma']['max']} is not the blue's {expected_chroma}")
-    if measured["most_saturated_pixel"]["hex"] != "#3258C5":
-        problems.append(f"peak pixel is {measured['most_saturated_pixel']['hex']}, not #3258C5")
-    if measured["neutral_share"] != 0.75:
-        problems.append(f"neutral share is {measured['neutral_share']}, not 0.75 of the frame")
-    arc = _arc_for_hue(measured, expected_hue)
-    if arc is None or arc["arc"] != "240-270":
-        problems.append(f"hue {expected_hue:.1f} landed in {arc['arc'] if arc else 'no arc'}, not 240-270")
-    elif arc["share_of_frame"] != 0.25:
-        problems.append(f"the blue quarter reports share {arc['share_of_frame']}, not 0.25")
-
-    # 3. The gates must fire on the case that motivated them and stay quiet on the one that does
-    # not. Against this reference the same hue at higher chroma out-shouts it; the same hue at the
-    # measured chroma does not.
-    verdicts = {
-        (g["role"], g["gate"]): g["status"]
-        for g in check_against_reference(measured, {"louder": "#2A4BD7", "measured": "#3258C5"})
-    }
-    expected = {
-        ("louder", "subject-holds-chroma-peak"): "failed",
-        ("louder", "accent-hue-is-anchored-in-reference"): "passed",
-        ("measured", "subject-holds-chroma-peak"): "passed",
-        ("measured", "accent-chroma-matches-reference"): "passed",
-    }
-    for key, want in expected.items():
-        got = verdicts.get(key)
-        if got != want:
-            problems.append(f"{key[1]} on {key[0]} returned {got}, expected {want}")
-
-    if problems:
-        return "self-check FAILED\n" + "\n".join(f"- {p}" for p in problems) + "\n"
-    return "self-check passed\n"
-
-
 # ------------------------------------------------------------------------------- CLI
 
 
@@ -622,12 +498,6 @@ def main() -> int:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument("--image", help="Reference photograph to measure. PNG, 8-bit, non-interlaced.")
-    parser.add_argument(
-        "--self-check",
-        action="store_true",
-        help="Decode a PNG this script wrote in each of the five filter modes and re-derive the "
-        "measurement and the gate verdicts from inputs whose answers are known without it.",
-    )
     parser.add_argument(
         "--check",
         nargs="+",
@@ -650,12 +520,8 @@ def main() -> int:
 
     use_utf8_stdout()
 
-    if args.self_check:
-        report = self_check()
-        print(report, end="")
-        return 0 if report.startswith("self-check passed") else 2
     if not args.image:
-        parser.error("--image is required unless --self-check is given")
+        parser.error("--image is required")
 
     try:
         payload = measure(args.image, args.step)

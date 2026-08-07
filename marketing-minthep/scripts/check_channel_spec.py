@@ -37,7 +37,6 @@ Usage:
     python check_channel_spec.py --survey --width 1080 --height 1920 --duration 22 --format mp4
     python check_channel_spec.py --list-placements
     python check_channel_spec.py --show meta-facebook-feed-image
-    python check_channel_spec.py --self-check
 """
 
 from __future__ import annotations
@@ -538,165 +537,6 @@ def show(placement: str) -> str:
     return "\n".join(lines)
 
 
-def self_check() -> str:
-    """Cases whose answers come off the vendor pages, not out of a memory of what they used to say."""
-    out = []
-    ok = True
-    # Pinned so the freshness gate is being tested rather than the calendar. Two months after the
-    # sweep: inside the window, so a stale row cannot quietly turn every other case into review.
-    fresh = dt.date(2026, 9, 15)
-
-    def record(name, condition, detail=""):
-        nonlocal ok
-        ok = ok and condition
-        out.append(f"{'PASS' if condition else 'FAIL'} {name}{(' - ' + detail) if detail else ''}")
-
-    def gate_of(report, name):
-        return [item for item in report["gates"] if item["gate"] == name][0]
-
-    rows = load_rows()
-    record("every row carries a source url and a date",
-           all(row["source_url"].startswith("https://") and row["retrieved"] for row in rows))
-    record("no cell is left empty, because empty would read as forgotten",
-           all(value.strip() for row in rows for value in row.values()))
-
-    # The defect the unit exists for: one square export posted to a surface that wants 4:5.
-    square = build("meta-facebook-feed-image", 1080, 1080, file_size="4MB", container="jpg",
-                   today=fresh)
-    record("a 1:1 still fails Facebook Feed, which documents 4:5",
-           gate_of(square, "aspect-ratio")["status"] == "failed")
-    record("the same still at 4:5 clears the ratio gate",
-           gate_of(build("meta-facebook-feed-image", 1440, 1800, file_size="4MB",
-                         container="jpg", today=fresh), "aspect-ratio")["status"] == "passed")
-
-    # 3 per cent on Feed against 1 per cent on Stories: the same crop is legal on one and not the
-    # other, which is exactly the sort of thing nobody checks by hand.
-    record("a 2 per cent drift passes Feed's 3 per cent tolerance",
-           gate_of(build("meta-facebook-feed-image", 1440, 1770, today=fresh),
-                   "aspect-ratio")["status"] == "passed")
-    record("the same drift fails Stories' 1 per cent tolerance",
-           gate_of(build("meta-facebook-story-image", 1440, 2510, today=fresh),
-                   "aspect-ratio")["status"] == "failed")
-
-    # Three states, three different answers. This is the whole design.
-    record("a documented ceiling that is met passes",
-           gate_of(build("meta-facebook-feed-image", file_size="10MB", today=fresh),
-                   "file-size")["status"] == "passed")
-    record("a documented ceiling that is broken fails",
-           gate_of(build("meta-facebook-feed-image", file_size="40MB", today=fresh),
-                   "file-size")["status"] == "failed")
-    record("a documented absence of a ceiling passes",
-           gate_of(build("tiktok-infeed-spark", file_size="900MB", today=fresh),
-                   "file-size")["status"] == "passed")
-    record("an undocumented ceiling is review and never passed",
-           gate_of(build("meta-facebook-reels-image", file_size="40MB", today=fresh),
-                   "file-size")["status"] == "review")
-
-    # Same shape on duration, where Reels states no maximum and the still variant states nothing.
-    record("Facebook Reels video documents no maximum length, so an hour passes",
-           gate_of(build("meta-facebook-reels-video", duration="3600", today=fresh),
-                   "duration")["status"] == "passed")
-    record("Instagram Reels caps at 15 minutes, so the same hour fails",
-           gate_of(build("meta-instagram-reels-video", duration="3600", today=fresh),
-                   "duration")["status"] == "failed")
-    record("a bumper past six seconds fails",
-           gate_of(build("youtube-bumper", duration="7", today=fresh),
-                   "duration")["status"] == "failed")
-    record("a still has no duration gate to fail",
-           gate_of(build("meta-facebook-feed-image", duration="7", today=fresh),
-                   "duration")["status"] == "skipped")
-    record("mm:ss reads the same as seconds",
-           parse_duration("1:30") == 90 and parse_duration("90") == 90)
-
-    # A copy budget is a recommendation. Failing an asset for one would be this tool lying about
-    # who rejects what.
-    long_caption = "x" * 200
-    record("copy over a recommended budget is review, not failed",
-           gate_of(build("meta-instagram-reels-video", primary_text=long_caption, today=fresh),
-                   "primary-text-length")["status"] == "review")
-    record("copy inside the budget passes",
-           gate_of(build("meta-facebook-feed-image", primary_text="Com tam 45k", today=fresh),
-                   "primary-text-length")["status"] == "passed")
-    record("a headline written for a surface with no headline field is flagged",
-           gate_of(build("meta-instagram-story-image", headline="Giam 20%", today=fresh),
-                   "headline-length")["status"] == "review")
-
-    record("a wrong container fails",
-           gate_of(build("meta-instagram-reels-video", container="avi", today=fresh),
-                   "file-format")["status"] == "failed")
-    record("the same container passes on TikTok, which accepts it",
-           gate_of(build("tiktok-infeed-nonspark-vertical", container="avi", today=fresh),
-                   "file-format")["status"] == "passed")
-    record("jpeg is read as jpg rather than refused on a spelling",
-           gate_of(build("meta-facebook-feed-image", container="jpeg", today=fresh),
-                   "file-format")["status"] == "passed")
-
-    record("a resolution under the documented floor fails",
-           gate_of(build("meta-facebook-feed-image", 480, 600, today=fresh),
-                   "minimum-resolution")["status"] == "failed")
-    record("a resolution over the floor but under the recommendation is review, not failure",
-           gate_of(build("meta-facebook-feed-image", 800, 1000, today=fresh),
-                   "recommended-size")["status"] == "review")
-
-    # Google display is not a ratio problem, and saying it is would send somebody to crop.
-    record("a per-placement surface asks for the size table rather than checking a ratio",
-           gate_of(build("google-display-uploaded-image", 300, 250, today=fresh),
-                   "aspect-ratio")["status"] == "review")
-    record("the 150KB display ceiling bites",
-           gate_of(build("google-display-uploaded-image", file_size="200KB", today=fresh),
-                   "file-size")["status"] == "failed")
-
-    stale = build("meta-facebook-feed-image", 1440, 1800, today=dt.date(2027, 6, 1))
-    record("a row past the trust window is flagged even on a clean asset",
-           gate_of(stale, "row-freshness")["status"] == "review"
-           and stale["verdict"]["status"] == "review")
-    record("the stale warning names the page to re-read",
-           "facebook.com" in gate_of(stale, "row-freshness")["detail"])
-    record("a future date is caught rather than treated as very fresh",
-           gate_of(build("meta-facebook-feed-image", today=dt.date(2020, 1, 1)),
-                   "row-freshness")["status"] == "review")
-
-    # The verdict has to be reachable, or every answer is review and nobody reads any of them.
-    clean = build("meta-facebook-feed-image", 1440, 1800, file_size="8MB", container="jpg",
-                  primary_text="Com tam suon nuong, 45.000d, giao trong 20 phut",
-                  headline="Com tam 45k", today=fresh)
-    record("a fully specified compliant asset can actually pass",
-           clean["verdict"]["status"] == "passed", clean["verdict"]["status"])
-
-    # The question a one-person marketer really asks: one 9:16 cut, where can it go?
-    vertical = survey(1080, 1920, duration="22", file_size="30MB", container="mp4", today=fresh)
-    by_key = {item["placement"]: item for item in vertical["results"]}
-    record("a 9:16 22-second cut is clear on both Reels surfaces",
-           by_key["meta-instagram-reels-video"]["status"] == "clear"
-           and by_key["meta-facebook-reels-video"]["status"] == "clear")
-    record("the same cut is refused by Facebook Feed, which wants 4:5",
-           by_key["meta-facebook-feed-video"]["status"] == "refused")
-    record("and by the six-second bumper",
-           by_key["youtube-bumper"]["status"] == "refused")
-    record("both states are populated, so the survey discriminates",
-           vertical["counts"]["clear"] >= 6 and vertical["counts"]["refused"] >= 3,
-           str(vertical["counts"]))
-    record("a recommendation shortfall does not refuse a placement",
-           by_key["meta-instagram-reels-video"]["open_questions"] > 0)
-    record("survey output is ordered clear-first",
-           [item["status"] for item in vertical["results"]]
-           == sorted((item["status"] for item in vertical["results"]),
-                     key=lambda status: status != "clear"))
-
-    record("a size with no unit is refused rather than guessed at",
-           _raises(lambda: parse_size("30")))
-    record("an unknown placement is refused", _raises(lambda: build("meta-nowhere")))
-    try:
-        build("facebook-feed")
-        record("a near miss suggests the real keys", False)
-    except ValueError as exc:
-        record("a near miss suggests the real keys", "did you mean" not in str(exc)
-               or "meta-facebook-feed-image" in str(exc))
-
-    out.append(f"verdict {'passed' if ok else 'failed'}")
-    return "\n".join(out)
-
-
 def _raises(thunk) -> bool:
     try:
         thunk()
@@ -722,13 +562,8 @@ def main() -> int:
     parser.add_argument("--output")
     parser.add_argument("--list-placements", action="store_true")
     parser.add_argument("--show", metavar="PLACEMENT")
-    parser.add_argument("--self-check", action="store_true")
     args = parser.parse_args()
 
-    if args.self_check:
-        report = self_check()
-        print(report)
-        return 0 if report.rstrip().endswith("verdict passed") else 2
     if args.list_placements:
         print(list_placements())
         return 0

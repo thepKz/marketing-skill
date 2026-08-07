@@ -24,7 +24,6 @@ documentation does not. Four rules cover almost everything:
 python scripts/check_prompt_grammar.py --list-families
 python scripts/check_prompt_grammar.py --prompt-file runs/x/prompt.txt --provider flux
 python scripts/check_prompt_grammar.py --provider midjourney --recurring-person --needs-reproducible
-python scripts/check_prompt_grammar.py --self-check
 ```
 
 Exit codes: 0 consistent with the documentation, 2 a request the provider will accept and quietly

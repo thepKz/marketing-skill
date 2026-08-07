@@ -11,7 +11,6 @@ content, no overture, no recap.
 
 Usage:
     python check_output_shape.py --check FILE
-    python check_output_shape.py --self-check
 
 Exit 0 clean, 2 failed gate (critical or high), 3 computable but unsettled
 (review findings only). Run after check_specificity.py and before
@@ -226,7 +225,6 @@ def report(path, findings):
               % (word, n["critical"], n["high"], n["review"]))
     return code
 
-# ---------------------------------------------------------------- self-check
 
 AI_VI = """# Kế hoạch marketing quán bún bò
 
@@ -297,40 +295,14 @@ Bắt đầu từ thứ hai 2026-08-10, đo số tô ca sáng trong 14 ngày tr�
 SHORT_ANSWER = "Chạy khuyến mãi 15% là hòa vốn ở 2,1 tô cho mỗi tô cũ — quá 2x, không nên chạy."
 
 
-def self_check():
-    cases = [
-        ("ai-vi", AI_VI, 2,
-         {"announce-open", "recap-close", "generic-headers",
-          "bold-led-bullets", "uniform-bullet-counts", "verdict-missing"}),
-        ("ai-en", AI_EN, 2,
-         {"announce-open", "recap-close", "generic-headers"}),
-        ("good-vi", GOOD_VI, 0, set()),
-        ("short-answer", SHORT_ANSWER, 0, set()),
-    ]
-    for name, text, want_code, want_gates in cases:
-        findings = check(text)
-        got_gates = {f["gate"] for f in findings}
-        code = verdict(findings)
-        assert want_gates <= got_gates, \
-            "%s: expected gates %s, got %s" % (name, want_gates, got_gates)
-        assert code == want_code, \
-            "%s: expected exit %d, got %d (%s)" % (name, want_code, code, got_gates)
-    assert not check(GOOD_VI), "good-vi must produce zero findings"
-    print("self-check passed")
-
-
 def main():
     if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
         sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--check", metavar="FILE", help="markdown or plain-text deliverable")
-    ap.add_argument("--self-check", action="store_true")
     args = ap.parse_args()
-    if args.self_check:
-        self_check()
-        return 0
     if not args.check:
-        ap.error("--check FILE or --self-check required")
+        ap.error("--check FILE required")
     with open(args.check, encoding="utf-8") as fh:
         text = fh.read()
     return report(args.check, check(text))

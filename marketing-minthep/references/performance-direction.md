@@ -175,7 +175,6 @@ adjustable by wanting the answer sooner.
 python scripts/check_test_readout.py --plan --baseline 0.03 --mde 0.30 --daily-clicks 500
 python scripts/check_test_readout.py --variant "A:clicks=400,conversions=8" \
     --variant "B:clicks=410,conversions=13" --claim B
-python scripts/check_test_readout.py --self-check
 ```
 
 `--plan` sizes a test before it runs, which is the only time the answer is cheap. `--claim` is the

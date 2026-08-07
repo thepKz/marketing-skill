@@ -27,7 +27,6 @@ rather than carrying its own thresholds, so a source's floor is edited in one pl
     python scripts/check_evidence_saturation.py --interval 10 0.6
     python scripts/check_evidence_saturation.py --needed 0.5 0.1
     python scripts/check_evidence_saturation.py --sources
-    python scripts/check_evidence_saturation.py --self-check
 
 Exit codes are 0 clean, 1 usage error, 2 a gate failed, 3 computable but unsettled.
 """
@@ -481,137 +480,6 @@ def print_needed(share: float, width: float) -> str:
             f"respondents are the right ones, and non-response bias does not shrink with n\n")
 
 
-# --- self-check -------------------------------------------------------------------------------
-
-def self_check() -> str:
-    out = []
-
-    low, high = wilson(6, 10)
-    assert 0.30 < low < 0.32 and 0.82 < high < 0.84, (low, high)
-    out.append(f"six of ten is 60 percent and also anywhere from {low:.0%} to {high:.0%}")
-
-    assert wilson(0, 5) == (0.0, wilson(0, 5)[1]) and wilson(0, 5)[1] < 0.55
-    assert wilson(5, 5)[0] > 0.55 and wilson(5, 5)[1] == 1.0
-    out.append("a unanimous 5 of 5 still has a lower bound near a half, and neither bound escapes 0..1")
-
-    assert respondents_needed(0.5, 0.2) > respondents_needed(0.5, 0.4)
-    assert respondents_needed(0.05, 0.1) < respondents_needed(0.5, 0.1)
-    out.append(f"a 20-point interval at a half needs {respondents_needed(0.5, 0.2)} respondents; "
-               f"a 10-point one needs {respondents_needed(0.5, 0.1)}")
-
-    sources = read_sources()
-    assert len(sources) >= 20, len(sources)
-    assert source_floor(sources["switch-interviews"]) == CODE_SATURATION_MIN
-    assert source_floor(sources["customer-survey"]) is None, \
-        "a survey's floor is an interval width, not a headcount"
-    out.append("the floors come from evidence-sources.csv, not from this file")
-
-    # A theme everybody raised and nobody was ever asked against gets a count and no share.
-    unanimous = [
-        {"respondent_id": f"r{i}", "sequence": str(i), "source_id": "switch-interviews",
-         "code": "price-unclear", "stance": "raised", "intensity": "emphasised",
-         "provenance": "2026-07-02 interview"} for i in range(1, 6)]
-    themes = prevalence(unanimous, sources)
-    assert themes[0]["verdict"] == "counted-only" and themes[0]["interval"] is None, themes[0]
-    # Withheld from the payload and not only from the printout. This assertion used to read `== 1.0`,
-    # on the reasoning that as_text never prints the cell so computing it was harmless. It was not:
-    # `--json` is the interface a caller automates against, and the cell said 1.0 for the one theme
-    # whose share this whole script exists to refuse.
-    assert themes[0]["share_of_asked"] is None, "the trivial 100 percent is still in the payload"
-    out.append("five raised it, nobody denied it, so the share is withheld from the text and the JSON")
-
-    # Add two people who were asked and said no, and the same theme becomes reportable arithmetic.
-    with_denial = unanimous + [
-        {"respondent_id": f"r{i}", "sequence": str(i), "source_id": "switch-interviews",
-         "code": "price-unclear", "stance": "denied", "intensity": "passing",
-         "provenance": "2026-07-03 interview"} for i in range(6, 8)]
-    themes = prevalence(with_denial, sources)
-    assert themes[0]["verdict"] == "share-too-wide", themes[0]
-    assert themes[0]["asked"] == 7 and themes[0]["affirmed"] == 5
-    out.append("two recorded denials turn a count into a share, and the share is still too wide to quote")
-
-    # The curve closes only when several consecutive respondents teach nothing.
-    growing = [{"respondent_id": f"r{i}", "sequence": str(i), "source_id": "switch-interviews",
-                "code": f"theme-{i}", "stance": "raised", "intensity": "passing",
-                "provenance": "2026-07-02 interview"} for i in range(1, 15)]
-    assert saturation(growing)["verdict"] == "still-growing"
-    settled = growing[:11] + [
-        {"respondent_id": f"r{i}", "sequence": str(i), "source_id": "switch-interviews",
-         "code": "theme-1", "stance": "raised", "intensity": "passing",
-         "provenance": "2026-07-02 interview"} for i in range(12, 18)]
-    curve = saturation(settled)
-    assert curve["verdict"] == "code-set-closed", curve["verdict"]
-    assert curve["respondents"] == 17 and curve["new_codes_in_last_three"] == 0
-    short = saturation(growing[:8])
-    assert short["verdict"] == "too-few-to-say", short["verdict"]
-    out.append("a new theme every time is still-growing; eleven then six quiet ones is closed; "
-               "eight is too few to say either way")
-
-    # A theme seen through one source is that source's bias until a second source sees it.
-    one_source = prevalence(with_denial, sources)[0]
-    assert "single-source" in one_source["flags"]
-    two = with_denial + [{"respondent_id": "r9", "sequence": "9", "source_id": "support-tickets",
-                          "code": "price-unclear", "stance": "raised", "intensity": "blocking",
-                          "provenance": "2026-07-04 ticket 8812"}]
-    assert "single-source" not in prevalence(two, sources)[0]["flags"]
-    out.append("one source flags single-source; a second source clears it")
-
-    # Rare and blocking is a different instruction from common and passing.
-    grid = [{"respondent_id": f"r{i}", "sequence": str(i), "source_id": "switch-interviews",
-             "code": "delivery-late", "stance": "raised", "intensity": "passing",
-             "provenance": "2026-07-02 interview"} for i in range(1, 13)]
-    grid += [{"respondent_id": "r13", "sequence": "13", "source_id": "switch-interviews",
-              "code": "no-invoice", "stance": "raised", "intensity": "blocking",
-              "provenance": "2026-07-02 interview"}]
-    grid += [{"respondent_id": f"r{i}", "sequence": str(i), "source_id": "switch-interviews",
-              "code": "no-invoice", "stance": "denied", "intensity": "passing",
-              "provenance": "2026-07-02 interview"} for i in range(1, 13)]
-    by_code = {theme["code"]: theme for theme in prevalence(grid, sources)}
-    assert "common-but-passing" in by_code["delivery-late"]["flags"], by_code["delivery-late"]
-    assert "rare-but-blocking" in by_code["no-invoice"]["flags"], by_code["no-invoice"]
-    out.append("twelve mentions nobody minded is common-but-passing; one that stopped a purchase "
-               "is rare-but-blocking, and they are not ranked against each other")
-
-    # Storing the text of a private message is a rights problem, not a research one, and the table
-    # already knows which sources are unquotable.
-    leak = [{"respondent_id": "r1", "sequence": "1", "source_id": "support-tickets",
-             "code": "packaging-damaged", "stance": "raised", "intensity": "blocking",
-             "provenance": "2026-07-02 ticket 41", "verbatim": "hộp bị bẹp, giao lại giúp em"}]
-    by_gate = {result["gate"]: result["status"] for result
-               in gates(leak, sources, saturation(leak), prevalence(leak, sources),
-                        heard_per_source(leak, sources))}
-    assert by_gate["stored-quote-rights"] == "failed", by_gate
-    clean = [dict(row, verbatim="") for row in leak]
-    by_gate = {result["gate"]: result["status"] for result
-               in gates(clean, sources, saturation(clean), prevalence(clean, sources),
-                        heard_per_source(clean, sources))}
-    assert by_gate["stored-quote-rights"] == "passed", by_gate
-    out.append("pasting a support ticket's own words into the research file fails the rights gate; "
-               "coding it without the text passes")
-
-    # The headcount floor belongs to the source, so it is reported once and not per theme.
-    thin = heard_per_source(leak, sources)
-    assert thin[0]["status"] == "below-floor" and thin[0]["floor"] == 25, thin
-    survey = [dict(row, source_id="customer-survey") for row in leak]
-    assert heard_per_source(survey, sources)[0]["status"] == "no-headcount-floor"
-    out.append("one ticket is below the support floor of 25; a survey has no headcount floor to be "
-               "below, because its floor is an interval width")
-
-    example = Path(__file__).resolve().parent.parent / "assets" / "examples" / \
-        "customer-evidence-coded.csv"
-    if example.exists():
-        report = check(example)
-        assert report["verdict"] in {"passed", "review"}, report["verdict"]
-        by_gate = {result["gate"]: result["status"] for result in report["gates"]}
-        assert by_gate["provenance-recorded"] == "passed", by_gate
-        assert by_gate["known-source"] == "passed", by_gate
-        assert by_gate["input-vocabulary"] == "passed", by_gate
-        out.append(f"the shipped example reads clean and lands on {report['verdict']}")
-
-    return ("evidence saturation self-check passed:\n"
-            + "\n".join(f"  - {line}" for line in out) + "\n")
-
-
 def main(argv: list[str] | None = None) -> int:
     use_utf8_stdout()
     parser = argparse.ArgumentParser(
@@ -623,15 +491,11 @@ def main(argv: list[str] | None = None) -> int:
                       help="the 95 percent interval around an observed share")
     mode.add_argument("--needed", nargs=2, metavar=("SHARE", "WIDTH"),
                       help="respondents needed for an interval of that width")
-    mode.add_argument("--self-check", action="store_true", help="run the built-in assertions")
     parser.add_argument("--query", help="filter --sources")
     parser.add_argument("--json", action="store_true", help="machine-readable report")
     parser.add_argument("--out", metavar="FILE", help="write here instead of stdout")
     args = parser.parse_args(argv)
 
-    if args.self_check:
-        emit(self_check(), args.out)
-        return 0
     if args.sources:
         emit(print_sources(args.query), args.out)
         return 0

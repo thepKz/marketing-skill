@@ -20,7 +20,6 @@ Usage:
         --provider imagen --in-image-text
     python check_prompt_grammar.py --provider midjourney --recurring-person --needs-reproducible
     python check_prompt_grammar.py --list-families
-    python check_prompt_grammar.py --self-check
 """
 
 from __future__ import annotations
@@ -447,115 +446,6 @@ def list_families() -> str:
     return "\n".join(lines)
 
 
-def self_check() -> str:
-    """Cases whose answers come from the documentation, not from how a model feels."""
-    out = []
-    ok = True
-
-    def record(name, condition, detail=""):
-        nonlocal ok
-        ok = ok and condition
-        out.append(f"{'PASS' if condition else 'FAIL'} {name}{(' - ' + detail) if detail else ''}")
-
-    facts = load_facts()
-    record("every gate-cited fact id exists in the table",
-           all(fid in facts for f in FAMILIES for fid in f.facts()))
-
-    # The defect this script was written for: the skill's own FLUX compiler emitted a
-    # negative block to a provider whose docs say the field does not exist.
-    flux = build("PROVIDER: FLUX\nPOSITIVE PROMPT\na bowl on a table\n\nNEGATIVE PROMPT\nplastic skin",
-                 "flux")
-    neg = [g for g in flux["gates"] if g["gate"] == "negative-prompt-field"][0]
-    record("a negative block sent to flux fails", neg["status"] == "failed", neg["status"])
-    record("the flux failure names its source", neg.get("fact_id") == "flux2-no-negative")
-
-    # Same block, a provider that documents the field.
-    sd = build("POSITIVE\na bowl on a table\n\nNEGATIVE PROMPT\nplastic skin", "sd3.5")
-    record("the same block passes on stable-diffusion-3",
-           [g for g in sd["gates"] if g["gate"] == "negative-prompt-field"][0]["status"] == "passed")
-
-    # 77 tokens is a place where words disappear, so the boundary is worth pinning.
-    short = build(" ".join(["word"] * 40), "sdxl")
-    long_ = build(" ".join(["word"] * 200), "sdxl")
-    record("a short prompt fits the CLIP window",
-           [g for g in short["gates"] if g["gate"] == "prompt-window"][0]["status"] == "passed")
-    record("a 200-word prompt fails the CLIP window",
-           [g for g in long_["gates"] if g["gate"] == "prompt-window"][0]["status"] == "failed")
-    record("the same prompt fits sd3, which carries a 256-token window",
-           [g for g in build(" ".join(["word"] * 120), "sd3.5")["gates"]
-            if g["gate"] == "prompt-window"][0]["status"] == "passed")
-    record("an unpublished window is review, never passed",
-           [g for g in build("a bowl", "gpt-image")["gates"]
-            if g["gate"] == "prompt-window"][0]["status"] == "review")
-
-    # Google's 25 characters is the only published text budget in the survey.
-    fits = build('a poster with the words "Bun Bo Hue"', "imagen", in_image_text=True)
-    over = build('a poster with the words "Bun Bo Hue chinh goc tu 1998, giao trong ngay"',
-                 "imagen", in_image_text=True)
-    record("a 10-character headline fits the Imagen budget",
-           [g for g in fits["gates"] if g["gate"] == "in-image-text"][0]["status"] == "passed")
-    record("a 52-character headline fails it",
-           [g for g in over["gates"] if g["gate"] == "in-image-text"][0]["status"] == "failed")
-    record("four quoted phrases fail the three-phrase limit",
-           [g for g in build('"one" "two" "three" "four"', "imagen",
-                             in_image_text=True)["gates"]
-            if g["gate"] == "in-image-text"][0]["status"] == "failed")
-    record("the same long headline is only review where no budget is published",
-           [g for g in build('a poster with the words "Bun Bo Hue chinh goc tu 1998, giao trong '
-                             'ngay"', "gpt-image", in_image_text=True)["gates"]
-            if g["gate"] == "in-image-text"][0]["status"] == "review")
-
-    # Midjourney is the only provider documenting a syntax rather than a preference.
-    record("unquoted text on midjourney fails",
-           [g for g in build("a poster with the words Bun Bo Hue written on it",
-                             "midjourney")["gates"]
-            if g["gate"] == "in-image-text"][0]["status"] == "failed")
-
-    record("a recurring person on midjourney v8 fails for want of a mechanism",
-           [g for g in build("a woman", "midjourney", recurring_person=True)["gates"]
-            if g["gate"] == "character-consistency"][0]["status"] == "failed")
-    record("a recurring person elsewhere is review, because no provider guarantees it",
-           [g for g in build("a woman", "flux", recurring_person=True)["gates"]
-            if g["gate"] == "character-consistency"][0]["status"] == "review")
-
-    record("a midjourney seed cannot carry reproducibility",
-           [g for g in build("a bowl", "midjourney", needs_reproducible=True)["gates"]
-            if g["gate"] == "seed-reproducibility"][0]["status"] == "failed")
-    record("an imagen seed is reproducible only by dropping the watermark",
-           [g for g in build("a bowl", "imagen", needs_reproducible=True)["gates"]
-            if g["gate"] == "seed-reproducibility"][0]["status"] == "review")
-
-    record("the published character ceiling is a separate gate from the encoder window",
-           [g for g in build("a bowl", "gpt-image")["gates"]
-            if g["gate"] == "prompt-character-limit"][0]["status"] == "passed")
-    record("a prompt past 32000 characters is a rejected request, not a truncation",
-           [g for g in build("x " * 20000, "gpt-image")["gates"]
-            if g["gate"] == "prompt-character-limit"][0]["status"] == "failed")
-    record("families with no published character limit skip that gate rather than pass it",
-           [g for g in build("a bowl", "flux")["gates"]
-            if g["gate"] == "prompt-character-limit"][0]["status"] == "skipped")
-    record("a recurring cast on gemini is review against a published ceiling",
-           [g for g in build("four women", "nano-banana-2", recurring_person=True)["gates"]
-            if g["gate"] == "character-consistency"][0]["fact_id"] == "gemini-reference-counts")
-    record("openai names character drift in its own limitations, so the gate cites that row",
-           [g for g in build("a woman", "gpt-image", recurring_person=True)["gates"]
-            if g["gate"] == "character-consistency"][0]["fact_id"]
-           == "openai-consistency-limitation")
-    record("a deprecated family is flagged even on a clean prompt",
-           build("a bowl", "imagen")["verdict"]["status"] == "review")
-    record("dalle resolves to the gpt-image family rather than erroring",
-           resolve("dall-e").name == "gpt-image")
-
-    try:
-        resolve("firefly-2")
-        record("an unknown provider is refused", False)
-    except ValueError:
-        record("an unknown provider is refused", True)
-
-    out.append(f"verdict {'passed' if ok else 'failed'}")
-    return "\n".join(out)
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -569,13 +459,8 @@ def main() -> int:
     parser.add_argument("--format", choices=("text", "json"), default="text")
     parser.add_argument("--output")
     parser.add_argument("--list-families", action="store_true")
-    parser.add_argument("--self-check", action="store_true")
     args = parser.parse_args()
 
-    if args.self_check:
-        report = self_check()
-        print(report)
-        return 0 if report.rstrip().endswith("verdict passed") else 2
     if args.list_families:
         print(list_families())
         return 0

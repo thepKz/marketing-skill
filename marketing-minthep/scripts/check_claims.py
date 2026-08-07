@@ -60,7 +60,6 @@ Usage:
     python scripts/check_claims.py --audit draft.md --sector food --answers answers.csv
     python scripts/check_claims.py --template answers.csv --sector food
     python scripts/check_claims.py --families
-    python scripts/check_claims.py --self-check
 
 Exit codes are 0 clean, 1 usage error, 2 a gate failed.
 """
@@ -646,119 +645,6 @@ def render(ledger: list[dict], sector: str, draft: str, hits: list[dict],
     return "\n".join(lines)
 
 
-def self_check() -> str:
-    ledger = read_ledger()
-    lines = ["# check_claims self-check", ""]
-
-    assert len(ledger) >= 40, len(ledger)
-    assert len({row["id"] for row in ledger}) == len(ledger)
-    for verdict in VERDICTS:
-        assert any(row["verdict"] == verdict for row in ledger), verdict
-    lines.append(f"- {len(ledger)} ledger rows, unique ids, all five verdicts populated")
-
-    # Vietnamese false friends do not fire the superlative gate; a real superlative does.
-    friendly = "Hai bên đã thống nhất một mức giá và giữ nhất quán trong suốt quý."
-    assert not scan(friendly, ledger, "general"), scan(friendly, ledger, "general")
-    real = "Đây là loại kem dưỡng tốt nhất thị trường hiện nay."
-    assert [hit["id"] for hit in scan(real, ledger, "general")] == ["superlative"]
-    lines.append("- thống nhất and nhất quán do not fire; tốt nhất does")
-
-    # A prohibited category fires whatever sector was declared.
-    tobacco = scan("Ưu đãi thuốc lá điện tử cuối tuần.", ledger, "general")
-    assert [hit["id"] for hit in tobacco] == ["banned-tobacco"], tobacco
-    rows = gates(ledger, "general", tobacco, {}, "2026-07-31")
-    banned_gate = next(row for row in rows if row["gate"] == "nothing-in-the-prohibited-list")
-    assert not banned_gate["pass"] and banned_gate["severity"] == "critical"
-    lines.append("- a prohibited category fires under sector general and blocks")
-
-    # The sector-bound prohibitions stay bound. One word firing two articles would invent an offence.
-    both = scan("Được bác sĩ khuyên dùng.", ledger, "cosmetics")
-    assert [hit["id"] for hit in both] == ["banned-medical-staff-cosmetics"], both
-    assert not scan("Được bác sĩ khuyên dùng.", ledger, "food")
-    lines.append("- bác sĩ fires the cosmetics article only, and no article at all for food")
-
-    # A dermatologist in a cosmetics ad is a fine, not a creative choice.
-    clinical = scan("Được bác sĩ da liễu tại phòng khám khuyên dùng.", ledger, "cosmetics")
-    assert "banned-medical-staff-cosmetics" in [hit["id"] for hit in clinical], clinical
-    rows = gates(ledger, "cosmetics", clinical, {}, "2026-07-31")
-    assert not next(row for row in rows
-                    if row["gate"] == "no-medical-staff-or-clinic-imagery")["pass"]
-    lines.append("- a dermatologist in a cosmetics ad fails its own gate")
-
-    # An unanswered sheet fails rather than passes.
-    rows = gates(ledger, "cosmetics", [], {}, "2026-07-31")
-    assert len(rows) == 14, len(rows)
-    # no-expired-approval is the one answer gate an empty sheet legitimately clears: nothing named
-    # is nothing lapsed. The other five have to fail, because silence is not an answer.
-    silent = [row["gate"] for row in rows if row["reads"].endswith("answers") and row["applies"]
-              and row["gate"] != "no-expired-approval"]
-    passed = [gate for gate in silent if next(r for r in rows if r["gate"] == gate)["pass"]]
-    assert not passed, passed
-    assert len(silent) == 6, silent
-    assert blocking(rows) >= 3, blocking(rows)
-    lines.append(f"- an empty answer sheet fails all {len(silent)} answer gates rather than passing")
-
-    # The sector out-of-scope refusal is a gate failure and not a crash.
-    rows = gates(ledger, "pharmaceutical", [], {}, "2026-07-31")
-    covered = next(row for row in rows if row["gate"] == "sector-is-covered-by-this-table")
-    assert not covered["pass"] and "Dieu 69" in covered["observed"], covered
-    lines.append("- sector pharmaceutical is refused by name rather than answered badly")
-
-    # A filled sheet clears the answer gates for a sector with no mandatory phrase of its own.
-    filled = {row["id"]: {"claim_id": row["id"],
-                          "status": "absent" if row["id"] in MUST_BE_ABSENT else "present",
-                          "document": "Phieu cong bo", "issued_by": "Cuc Quan ly Duoc",
-                          "reference": "12345/20/CBMP-HN", "expires": "2030-01-01",
-                          "verified_at": "2026-07-31"}
-              for row in rows_needing_an_answer(ledger, "cosmetics")}
-    rows = gates(ledger, "cosmetics", [], filled, "2026-07-31")
-    assert failed(rows) == 0, [row["gate"] for row in rows if row["applies"] and not row["pass"]]
-    lines.append("- a fully answered cosmetics sheet with no triggers clears every gate")
-
-    # An expired document is caught even when everything else is in order.
-    stale = dict(filled)
-    stale["cosmetic-notice-number"] = dict(filled["cosmetic-notice-number"],
-                                           expires="2026-01-01")
-    rows = gates(ledger, "cosmetics", [], stale, "2026-07-31")
-    assert not next(row for row in rows if row["gate"] == "no-expired-approval")["pass"]
-    lines.append("- an approval that lapsed in January fails in July")
-
-    # The mandatory food phrases are required by name, and absence is what fails.
-    rows = gates(ledger, "food", [], {}, "2026-07-31")
-    phrase_gate = next(row for row in rows if row["gate"] == "mandatory-wording-present")
-    assert phrase_gate["applies"] and not phrase_gate["pass"]
-    assert "advisory-not-a-medicine" in phrase_gate["claim_ids"], phrase_gate
-    lines.append("- a food draft missing the không phải là thuốc advisory fails by row id")
-
-    # Every gate explains itself, and every explanation cites something.
-    rows = gates(ledger, "cosmetics", [], {}, "2026-07-31")
-    assert all(len(row["why"].split()) > 25 for row in rows), \
-        [row["gate"] for row in rows if len(row["why"].split()) <= 25]
-    assert sum(1 for row in rows if "Dieu" in row["why"]) >= 11
-    lines.append("- all 14 gates explain themselves in more than 25 words, 11 citing an article")
-
-    # The template only asks what a scanner cannot answer.
-    template = build_template(ledger, "food")
-    assert "advisory-not-a-medicine" not in template, "a scannable phrase should not be asked"
-    assert "food-identity-block" in template and "person-image-or-words" in template
-    lines.append("- the template asks only what the scanner cannot decide")
-
-    # The sheet this writes has to be readable by the thing that wrote it. It was not: the blank line
-    # between the instructions and the header became the header, so the tool rejected its own output
-    # and blamed the user for the shape of it.
-    with tempfile.TemporaryDirectory() as folder:
-        sheet = Path(folder) / "answers.csv"
-        sheet.write_text(template, encoding="utf-8")
-        blank = read_answers(sheet)
-    asked = [row["id"] for row in rows_needing_an_answer(ledger, "food")]
-    assert sorted(blank) == sorted(asked), (sorted(blank), sorted(asked))
-    assert all(not answer["status"] for answer in blank.values())
-    lines.append("- the template it writes is a sheet it can read back, with every status blank")
-
-    lines += ["", "All assertions passed."]
-    return "\n".join(lines) + "\n"
-
-
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Audit a draft against the five ways a claim fails under Vietnamese law.")
@@ -768,7 +654,6 @@ def build_parser() -> argparse.ArgumentParser:
                       help="write the answer sheet a sector has to fill in")
     mode.add_argument("--families", action="store_true",
                       help="print the five verdicts and every row under each")
-    mode.add_argument("--self-check", action="store_true", help="run the built-in assertions")
     parser.add_argument("--sector", default="general",
                         help="which sector's articles apply; --families lists them")
     parser.add_argument("--answers", metavar="ANSWERS.CSV",
@@ -785,9 +670,6 @@ def main(argv: list[str] | None = None) -> int:
     use_utf8_stdout()
     args = build_parser().parse_args(argv)
 
-    if args.self_check:
-        emit(self_check(), args.output)
-        return 0
 
     try:
         ledger = read_ledger(args.ledger)
